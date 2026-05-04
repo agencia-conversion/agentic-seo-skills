@@ -33,12 +33,16 @@ REQUIRED_WIKI_PAGES = [
     "index.md",
     "eeat.md",
     "schema.md",
+    "estrategia/index.md",
+    "llm-wiki/index.md",
     "tecnologia/index.md",
+    "seo-tecnico/index.md",
     "tom-de-voz/index.md",
     "conteudos/index.md",
     "conteudos/topic-clusters.md",
+    "dados-e-analise/index.md",
+    "fontes/index.md",
     "log/index.md",
-    "sources/index.md",
 ]
 STRATEGIC_PAGES = {
     "index.md",
@@ -119,10 +123,20 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def format_log_file_link(file_path: str) -> str:
+    file_path = file_path.strip()
+    if not file_path:
+        return "n/a"
+    external_prefixes = ("sources/", "reports/", "artifacts/", "web/", ".seo-brain/")
+    if file_path.startswith(external_prefixes) or "." in Path(file_path).name:
+        return f"`{file_path}`"
+    return f"[[{file_path.removesuffix('.md')}]]"
+
+
 def append_log(project: str, event_type: str, title: str, files: list[str], summary: str, approval: str) -> None:
     wiki_log = project_path(project) / "wiki" / "log" / "index.md"
     wiki_log.parent.mkdir(parents=True, exist_ok=True)
-    links = ", ".join(f"[[{f}]]" for f in files) if files else "n/a"
+    links = ", ".join(format_log_file_link(f) for f in files) if files else "n/a"
     entry = textwrap.dedent(
         f"""
 
@@ -561,6 +575,10 @@ def command_wiki_ingest(args: argparse.Namespace) -> None:
     target = path / "sources" / "manual" / f"{today()}-{slugify(source.stem)}{source.suffix}"
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, target)
+    source_index = path / "wiki" / "fontes" / "index.md"
+    if source_index.exists():
+        with source_index.open("a", encoding="utf-8") as file:
+            file.write(f"| {today()} | {source.name} | manual | `../{target.relative_to(path)}` |\n")
     append_log(args.project, "ingest", source.name, [str(target.relative_to(path))], "Fonte manual adicionada ao projeto.", "not-required")
     print(json.dumps({"ok": True, "source": str(target)}, ensure_ascii=False))
 

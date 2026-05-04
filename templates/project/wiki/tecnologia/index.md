@@ -12,6 +12,8 @@ judgment_level: strategic
 
 # Tecnologia
 
+Esta pagina define as decisoes tecnicas que afetam SEO, manutencao e publicacao. Por ser pagina estrategica, so vira contexto aprovado depois de aprovacao humana.
+
 ## Stack recomendado
 
 Padrao SEO Brain: Vercel, Next.js com SSG sempre que possivel, Payload CMS quando houver necessidade editorial real, e checks deterministicos de SEO tecnico.
@@ -27,4 +29,3 @@ Padrao SEO Brain: Vercel, Next.js com SSG sempre que possivel, Payload CMS quand
 - Definir hospedagem.
 - Definir CMS.
 - Definir estrutura de conteudo.
-
