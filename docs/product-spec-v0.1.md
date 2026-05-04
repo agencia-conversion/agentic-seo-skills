@@ -56,7 +56,7 @@ This implies a dedicated `ux-web` or `project-dashboard` skill in v0.1.
 
 ## Project Wiki
 
-The Wiki is the source of operational context for each project. It should be Obsidian-compatible Markdown and use stable internal links.
+The Wiki is the source of operational context for each project. It should be Obsidian-compatible Markdown and use stable internal links. Open `projects/<slug>/wiki/` as the Obsidian vault; raw evidence remains outside the vault in `projects/<slug>/sources/`.
 
 Required initial structure:
 
@@ -65,18 +65,28 @@ wiki/
   index.md
   eeat.md
   schema.md
+  estrategia/
+    index.md
+  llm-wiki/
+    index.md
   tecnologia/
+    index.md
+  seo-tecnico/
     index.md
   tom-de-voz/
     index.md
   conteudos/
     index.md
     topic-clusters.md
+  dados-e-analise/
+    index.md
+  fontes/
+    index.md
   log/
     index.md
-  sources/
-    index.md
 ```
+
+`wiki/fontes/index.md` is only a catalog. Raw crawls, SERP snapshots, interviews, analytics exports, provider responses, and other evidence files live in sibling `sources/` folders and are linked with normal Markdown links such as `[fonte](../sources/manual/file.md)`.
 
 Strategic pages require explicit human approval before they can be treated as approved operating context:
 
@@ -165,4 +175,3 @@ Observed env keys:
 - `E2B_API_KEY`
 
 There is a duplicate `SCRAPINGBEE_API_KEY` entry in the current `.env`; the implementation should normalize this when generating `.env.example`, but should not edit the real `.env` without confirmation.
-

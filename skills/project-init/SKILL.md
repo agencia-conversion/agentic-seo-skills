@@ -34,6 +34,7 @@ Writes only:
 - Generate a safe kebab-case slug.
 - Create all required directories idempotently.
 - Create initial Wiki pages from templates.
+- Create six-pillar Wiki maps and `wiki/fontes/index.md` as the evidence catalog.
 - Mark strategic pages as `status: draft`.
 - Append a creation entry to `wiki/log/index.md`.
 - Do not write secrets.
@@ -45,4 +46,3 @@ Writes only:
 - Required Wiki pages exist.
 - Strategic pages are drafts.
 - Log has a project creation entry.
-

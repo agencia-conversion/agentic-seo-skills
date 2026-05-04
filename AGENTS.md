@@ -40,7 +40,9 @@ This repository root is the plugin root.
 Every SEO Brain project should use Obsidian-compatible Markdown and separate sources from synthesis.
 
 - Raw sources live in `sources/` and should be treated as immutable or append-only.
-- Generated and curated knowledge lives in `wiki/`.
+- Generated and curated knowledge lives in `wiki/`; open `projects/<slug>/wiki/` as the Obsidian vault.
+- `wiki/fontes/index.md` is a catalog of raw evidence, but the raw files themselves remain in `sources/`.
+- Use Obsidian wikilinks only for real pages inside `wiki/`; use normal Markdown links for files under `../sources/`.
 - Strategic pages require explicit human approval.
 - Operational and observational pages may be updated by agents when checks pass.
 - Important events must be appended to `wiki/log/index.md`.
