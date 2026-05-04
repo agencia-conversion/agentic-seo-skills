@@ -29,6 +29,7 @@ Writes only:
 ## Required Behavior
 
 - Treat raw sources as immutable or append-only.
+- Keep raw source files in `projects/[project]/sources/`; catalog them from `wiki/fontes/index.md`.
 - Separate extracted facts, synthesis, and human judgment.
 - Keep `wiki/index.md` useful as a project map.
 - Append important changes to `wiki/log/index.md`.
@@ -40,4 +41,3 @@ Writes only:
 - Changed pages cite their sources or mark gaps.
 - Index/log are updated.
 - Approval status is correct.
-

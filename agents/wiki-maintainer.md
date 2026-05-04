@@ -17,4 +17,4 @@ bin/seo-brain wiki-approve --project <slug> --page <wiki-page.md> --by "<user>"
 ```
 
 Never convert a strategic draft into approved context unless the user explicitly approved it.
-
+Keep raw evidence under `sources/` and use `wiki/fontes/index.md` only as the Obsidian-readable catalog.

@@ -1,5 +1,5 @@
 ---
-title: "Resumo do projeto"
+title: "Mapa do projeto"
 status: draft
 pillar: wiki
 owner: human
@@ -10,37 +10,42 @@ sources: []
 judgment_level: strategic
 ---
 
-# Resumo do projeto
+# Mapa do projeto
 
-## O que este projeto faz
+Esta e a pagina inicial da Wiki do projeto. Ela deve funcionar como mapa para humanos no Obsidian e como contexto de entrada para agentes.
 
-Preencher com a proposta do projeto, publico, oferta, mercado e objetivo financeiro do SEO.
+## Contexto estrategico
 
-## Como o SEO gera resultado financeiro
+- Proposta, publico, oferta e mercado: preencher.
+- Como o SEO gera resultado financeiro: preencher com demanda organica, conversao, ticket, margem e ciclo de venda.
+- Posicionamento de marca: preencher com o que a marca defende, evita, para quem e diferente e por que isso importa.
 
-Preencher com a ligacao entre demanda organica, conversao, ticket, margem, ciclo de venda e prioridades.
+## Pilares
 
-## Posicionamento de marca
+| Pilar | Pagina | Uso |
+| --- | --- | --- |
+| Estrategia | [[estrategia/index]] | Decisoes, prioridades, EEAT e clusters |
+| LLM Wiki | [[llm-wiki/index]] | Regras de leitura, manutencao e qualidade do conhecimento |
+| Tecnologia | [[tecnologia/index]] | Stack, arquitetura web e decisoes tecnicas |
+| SEO tecnico | [[seo-tecnico/index]] | Checks, problemas tecnicos e prioridades de correcao |
+| Conteudo | [[conteudos/index]] | Tom de voz, briefings, artigos e calendario |
+| Dados e analise | [[dados-e-analise/index]] | SERP, keywords, backlinks, analytics e relatorios |
 
-Preencher com o que a marca defende, o que evita, para quem e diferente e por que isso importa.
+## Paginas estrategicas que exigem aprovacao
 
-## EEAT
+| Pagina | Status esperado |
+| --- | --- |
+| [[index]] | `draft` ate aprovacao explicita |
+| [[eeat]] | `draft` ate aprovacao explicita |
+| [[tecnologia/index]] | `draft` ate aprovacao explicita |
+| [[tom-de-voz/index]] | `draft` ate aprovacao explicita |
 
-Ver [[eeat]].
+## Navegacao operacional
 
-## Tecnologia
+- Evidencias e lacunas: [[fontes/index]].
+- Regras da Wiki: [[schema]].
+- Registro cronologico: [[log/index]].
 
-Ver [[tecnologia/index]].
-
-## Tom de voz
-
-Ver [[tom-de-voz/index]].
-
-## Conteudos
-
-Ver [[conteudos/index]] e [[conteudos/topic-clusters]].
-
-## Status de aprovacao
+## Regra de aprovacao
 
 Este documento so pode ser usado como contexto estrategico aprovado depois de aprovacao explicita do usuario.
-

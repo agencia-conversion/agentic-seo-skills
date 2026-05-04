@@ -12,6 +12,8 @@ judgment_level: strategic
 
 # EEAT
 
+Esta pagina registra provas, lacunas e limites de experiencia, especialidade, autoridade e confianca. Nenhuma alegacao sem fonte deve virar contexto aprovado.
+
 ## Experiencia
 
 Fatos comprovaveis sobre experiencia real da marca, equipe, autores, clientes, projetos, pesquisas e operacao.
@@ -37,4 +39,3 @@ Transparencia, contato, politicas, revisao editorial, seguranca, fontes, atualiz
 ## Lacunas
 
 - Mapear provas que ainda precisam ser encontradas, criadas ou aprovadas.
-

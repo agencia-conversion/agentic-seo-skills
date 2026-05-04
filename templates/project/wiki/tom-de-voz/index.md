@@ -12,6 +12,8 @@ judgment_level: strategic
 
 # Tom de voz
 
+Esta pagina guia conteudo publico e respostas editoriais. Por ser pagina estrategica, exemplos e principios so viram regra aprovada depois de aprovacao humana.
+
 ## Principios
 
 - Claro.
@@ -30,4 +32,3 @@ judgment_level: strategic
 ## Exemplos aprovados
 
 Adicionar trechos aprovados pelo usuario conforme o projeto evoluir.
-

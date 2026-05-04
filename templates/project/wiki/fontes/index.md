@@ -1,7 +1,7 @@
 ---
 title: "Fontes"
 status: approved
-pillar: wiki
+pillar: llm-wiki
 owner: agent
 last_reviewed: null
 approved_by: system
@@ -12,9 +12,8 @@ judgment_level: observational
 
 # Fontes
 
-Indice de fontes brutas usadas pela Wiki.
+Catalogo de fontes brutas usadas pela Wiki. Os arquivos originais ficam fora do vault Obsidian, em `../sources/`, e devem ser tratados como imutaveis ou append-only.
 
 | Data | Fonte | Tipo | Caminho |
 | --- | --- | --- | --- |
 |  |  |  |  |
-

@@ -23,6 +23,27 @@ projects/[project-slug]/
   .seo-brain/
 ```
 
+Open `projects/[project-slug]/wiki/` as the Obsidian vault. Keep raw files outside the vault in `sources/`; catalog them from `wiki/fontes/index.md` using Markdown links to `../sources/...`.
+
+Initial Wiki maps use the six SEO Brain pillars:
+
+```text
+wiki/
+  index.md
+  schema.md
+  eeat.md
+  estrategia/index.md
+  llm-wiki/index.md
+  tecnologia/index.md
+  seo-tecnico/index.md
+  tom-de-voz/index.md
+  conteudos/index.md
+  conteudos/topic-clusters.md
+  dados-e-analise/index.md
+  fontes/index.md
+  log/index.md
+```
+
 ## Wiki Status
 
 Use frontmatter:
@@ -106,4 +127,3 @@ Five generic rules:
 - Every sentence containing a link must remain coherent if the link is removed. This is the link-removed test.
 - Do not mention in prose any domain that appears in the `top_results` of the `seo-analysis` report for the article's primary keyword. The SERP is input for understanding intent and gaps; it is never output. This rule is enforced dynamically against the analysis report, not against a hardcoded list.
 - Cite external sources via Markdown backlinks with anchor text that describes the idea or the work, never the domain. The choice of when to cite is editorial; the form is fixed.
-
