@@ -54,10 +54,16 @@ Required strategic approval pages:
 - `wiki/tecnologia/index.md`
 - `wiki/tom-de-voz/index.md`
 
-## Development Rules
+## Plugin Development
 
-- Use progressive discovery in skills: keep `SKILL.md` concise and point to references, scripts, or templates only when needed.
-- Every skill must have a contract, fixture strategy, and evaluation criteria before implementation is considered complete.
-- Use Autoresearch for iterative improvement: one skill or subsystem per run, fixed criteria, keep/reject decision, and logged result.
+Use these rules when changing manifests, skills, shared references, templates, scripts, or agent instructions.
+
+- Keep agent files short; put durable workflow detail in `skills/<skill>/SKILL.md`, `skills/_shared/references/`, scripts, fixtures, or templates.
+- Treat every skill change as a verifiable workflow change. Before implementation is complete, define the skill contract, inputs, outputs, fixture strategy, and pass/fail criteria.
+- Prefer Autoresearch-style loops: one skill or subsystem per run, baseline first, fixed fixtures or budget, explicit metric or rubric, and a keep/reject decision. For deeper context, see `karpathy/autoresearch`.
+- Validate meaningful skill changes with sub-agents that run or simulate the target skill against fixtures. Use one executor-style sub-agent and, for nontrivial changes, one reviewer-style sub-agent focused on contract drift, hallucination risk, source separation, and approval gates.
+- Sub-agent output is evidence, not approval. The main agent remains responsible for integration, and humans still approve strategic context.
+- Keep eval artifacts reviewable. Save development run notes in `.context/skill-evals/`; commit only reusable fixtures, scripts, templates, and concise docs.
+- Keep an implementation only when it passes the agreed checks or preserves behavior while simplifying the workflow. Log rejected experiments with the reason.
 - Separate extracted data, LLM synthesis, and human judgment in every artifact.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, or proof.
