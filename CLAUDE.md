@@ -62,6 +62,27 @@ Required strategic approval pages:
 - Separate extracted data, LLM synthesis, and human judgment in every artifact.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, or proof.
 
+## Size & Language Budgets
+
+File-size limits per artifact type. Treat the target as the goal and the max as a hard ceiling — exceeding the max means refactor before merging.
+
+| Artifact | Path | Target | Max | Overflow strategy |
+|---|---|---|---|---|
+| Skill body | `skills/*/SKILL.md` | ≤ 60 lines | 100 | Move detail to `references/` or `templates/` (progressive discovery). |
+| Utility script | `scripts/*.mjs` | ≤ 100 lines | 200 | Extract modules into `scripts/lib/`. |
+| Production code | `src/**/*.ts` | ≤ 300 lines | 500 | Split by subcommand or domain into multiple files. |
+| Test case | `tests/*.mjs` | ≤ 80 lines | — | Split scenarios into separate files. |
+
+### TypeScript vs MJS
+
+- **TypeScript (`src/**/*.ts`)** — code with reusable shapes, multi-module structure, or that grows over time. The build step pays for itself when ≥ 2 `type`/`interface` are reused across functions or ≥ 3 functions share related signatures.
+- **MJS (`scripts/*.mjs`, `tests/*.mjs`)** — linear, fixture-driven, single-purpose scripts under 200 lines. No build, executed directly with `node`.
+- Default to MJS for new utilities and tests; promote to TS only when the criteria above are met.
+
+### Known debt
+
+- `src/seo-brain.ts` (1116 lines) violates the 500-line max. Tracked for split-by-subcommand refactor.
+
 ## Claude Code Plugin Loading
 
 Running plain `claude` inside this repository does not enable the plugin. It loads this folder as a normal project only.

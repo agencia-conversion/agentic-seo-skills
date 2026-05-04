@@ -42,7 +42,7 @@ claude plugin validate .claude-plugin/marketplace.json
 Validate SEO Brain skill contracts:
 
 ```bash
-python3 scripts/validate_skills.py
+node scripts/validate_skills.mjs
 ```
 
 Load locally in Claude Code:
