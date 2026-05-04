@@ -10,7 +10,7 @@ Use `program.md` as the operating protocol. Prefer:
 
 ```bash
 bin/seo-brain autoresearch
-python3 scripts/validate_skills.py
+node scripts/validate_skills.mjs
 claude plugin validate .
 ```
 
