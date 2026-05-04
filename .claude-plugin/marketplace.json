@@ -1,0 +1,24 @@
+{
+  "name": "seo-brain-marketplace",
+  "owner": {
+    "name": "Agentic SEO"
+  },
+  "description": "Marketplace local do plugin SEO Brain.",
+  "version": "0.1.0",
+  "plugins": [
+    {
+      "name": "seo-brain",
+      "source": "./",
+      "description": "Agentic SEO operating system with project Wikis, DataForSEO workflows, content, and technical SEO.",
+      "category": "Productivity",
+      "tags": [
+        "seo",
+        "agentic-seo",
+        "dataforseo",
+        "technical-seo",
+        "content"
+      ]
+    }
+  ]
+}
+

@@ -19,6 +19,7 @@ import shutil
 import sys
 import textwrap
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -58,6 +59,8 @@ def today() -> str:
 
 def slugify(value: str) -> str:
     value = value.strip().lower()
+    value = unicodedata.normalize("NFKD", value)
+    value = "".join(ch for ch in value if not unicodedata.combining(ch))
     value = re.sub(r"[^a-z0-9]+", "-", value)
     value = re.sub(r"-+", "-", value).strip("-")
     if not value:
@@ -148,14 +151,69 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
 
 
 def set_frontmatter_value(path: Path, updates: dict[str, str]) -> None:
+    """Update top-level frontmatter keys without flattening multi-line values.
+
+    The previous implementation reserialized the whole frontmatter from a flat
+    dict, which dropped list values like `sources:` followed by indented items.
+    This version performs targeted replacements per key, preserving every
+    untouched line including indented continuation lines that belong to the
+    parent key.
+    """
     text = path.read_text(encoding="utf-8")
-    fm, body = parse_frontmatter(text)
-    fm.update(updates)
-    lines = ["---"]
-    for key, value in fm.items():
-        lines.append(f"{key}: {value}")
-    lines.extend(["---", "", body])
-    path.write_text("\n".join(lines), encoding="utf-8")
+    if not text.startswith("---\n"):
+        lines = ["---"]
+        for key, value in updates.items():
+            lines.append(f"{key}: {value}")
+        lines.extend(["---", "", text])
+        path.write_text("\n".join(lines), encoding="utf-8")
+        return
+    end = text.find("\n---", 4)
+    if end == -1:
+        raise SystemExit(f"Malformed frontmatter in {path}")
+    fm_block = text[4:end]
+    body = text[end + 4:]
+    for key, value in updates.items():
+        pattern = re.compile(rf"^{re.escape(key)}:.*(?:\n[ \t].*)*", re.MULTILINE)
+        replacement = f"{key}: {value}"
+        if pattern.search(fm_block):
+            fm_block = pattern.sub(replacement, fm_block, count=1)
+        else:
+            if not fm_block.endswith("\n"):
+                fm_block += "\n"
+            fm_block += replacement + "\n"
+    new_text = "---\n" + fm_block.rstrip("\n") + "\n---" + body
+    path.write_text(new_text, encoding="utf-8")
+
+
+def dataforseo_credentials_present() -> bool:
+    login = os.environ.get("CLAUDE_PLUGIN_OPTION_dataforseo_login") or get_secret("DATAFORSEO_LOGIN")
+    password = os.environ.get("CLAUDE_PLUGIN_OPTION_dataforseo_password") or get_secret("DATAFORSEO_PASSWORD")
+    return bool(login and password)
+
+
+def resolve_seo_provider(prefer: str | None = None) -> dict[str, str]:
+    """Pick the SEO data provider for seo-analysis.
+
+    Returns {"provider": "dataforseo"|"websearch", "reason": str}.
+    Default ("auto" or None) prefers DataForSEO when credentials are present
+    and falls back to websearch otherwise. Forcing dataforseo without
+    credentials raises a clear error.
+    """
+    choice = (prefer or "auto").strip().lower()
+    has_creds = dataforseo_credentials_present()
+    if choice == "websearch":
+        return {"provider": "websearch", "reason": "Forced by --provider websearch."}
+    if choice == "dataforseo":
+        if not has_creds:
+            raise SystemExit(
+                "DataForSEO credentials missing. Set DATAFORSEO_LOGIN/DATAFORSEO_PASSWORD or use --provider websearch."
+            )
+        return {"provider": "dataforseo", "reason": "Forced by --provider dataforseo."}
+    if choice != "auto":
+        raise SystemExit(f"Unsupported provider preference: {choice}. Use dataforseo, websearch, or auto.")
+    if has_creds:
+        return {"provider": "dataforseo", "reason": "DataForSEO credentials present in environment."}
+    return {"provider": "websearch", "reason": "DataForSEO credentials absent; falling back to websearch."}
 
 
 def dataforseo_request(method: str, endpoint: str, payload: Any | None = None, sandbox: bool = False) -> dict[str, Any]:
@@ -453,10 +511,15 @@ def command_data_setup(args: argparse.Namespace) -> None:
     login = os.environ.get("CLAUDE_PLUGIN_OPTION_dataforseo_login") or get_secret("DATAFORSEO_LOGIN")
     password = os.environ.get("CLAUDE_PLUGIN_OPTION_dataforseo_password") or get_secret("DATAFORSEO_PASSWORD")
     mode = resolve_dataforseo_mode(args)
+    decision = resolve_seo_provider(None)
     status: dict[str, Any] = {
         "dataforseo_login": mask(login),
         "dataforseo_password": mask(password),
         "default_mode": mode,
+        "dataforseo_configured": bool(login and password),
+        "websearch_available": True,
+        "provider_default": decision["provider"],
+        "provider_default_reason": decision["reason"],
         "modes": {
             "live": "ultrarrapido: usa endpoints /live; retorna em segundos e costuma custar mais.",
             "standard": "medio: usa task_post + polling task_get; padrao do SEO Brain.",
@@ -683,66 +746,223 @@ def latest_file(directory: Path, pattern: str) -> Path | None:
     return files[0] if files else None
 
 
+def load_dataforseo_serp_results(path: Path, keyword: str, override: str | None) -> list[dict[str, Any]]:
+    serp_file = Path(override) if override else None
+    if not serp_file:
+        serp_file = latest_file(path / "sources" / "serp", f"*-{slugify(keyword)}.normalized.json")
+    if not serp_file or not serp_file.exists():
+        return []
+    data = json.loads(serp_file.read_text(encoding="utf-8"))
+    return data.get("organic_results") or []
+
+
+def load_websearch_results(path: Path, keyword: str, override: str | None) -> list[dict[str, Any]]:
+    websearch_file = Path(override) if override else path / "sources" / "websearch" / f"{slugify(keyword)}.json"
+    if not websearch_file.exists():
+        return []
+    data = json.loads(websearch_file.read_text(encoding="utf-8"))
+    return data.get("results") or data.get("organic_results") or []
+
+
+def load_keyword_metrics(path: Path, keyword: str) -> dict[str, Any] | None:
+    report = latest_file(path / "reports" / "keyword-research", f"*-{slugify(keyword)}.json")
+    if not report:
+        return None
+    data = json.loads(report.read_text(encoding="utf-8"))
+    keywords = data.get("keywords") or []
+    if not keywords:
+        return None
+    primary = keywords[0]
+    if primary.get("search_volume") is None and primary.get("competition") is None:
+        return None
+    return {
+        "search_volume": primary.get("search_volume"),
+        "competition": primary.get("competition"),
+        "cpc": primary.get("cpc"),
+        "source_path": str(report.relative_to(path)),
+    }
+
+
 def command_seo_analysis(args: argparse.Namespace) -> None:
     path = ensure_project(args.project)
-    serp_file = args.serp_file and Path(args.serp_file)
-    if not serp_file:
-        serp_file = latest_file(path / "sources" / "serp", f"*-{slugify(args.keyword)}.normalized.json")
-    if not serp_file or not serp_file.exists():
-        raise SystemExit("No SERP data found. Run serp-extract first, preferably with --live.")
-    serp = json.loads(serp_file.read_text(encoding="utf-8"))
-    competitors = []
-    for result in (serp.get("organic_results") or [])[:3]:
-        url = result.get("url")
+    decision = resolve_seo_provider(getattr(args, "provider", None))
+    provider = decision["provider"]
+    provider_reason = decision["reason"]
+
+    if provider == "dataforseo":
+        organic = load_dataforseo_serp_results(path, args.keyword, args.serp_file)
+        keyword_metrics = load_keyword_metrics(path, args.keyword)
+    else:
+        organic = load_websearch_results(path, args.keyword, args.websearch_file)
+        keyword_metrics = None
+
+    top_results: list[dict[str, Any]] = []
+    for idx, item in enumerate(organic, start=1):
+        top_results.append(
+            {
+                "position": item.get("rank_absolute") or item.get("rank_group") or item.get("position") or idx,
+                "title": item.get("title", ""),
+                "url": item.get("url", ""),
+                "snippet": item.get("snippet") or item.get("description") or "",
+                "domain": item.get("domain", ""),
+            }
+        )
+
+    competitors: list[dict[str, Any]] = []
+    for entry in top_results[:3]:
+        url = entry.get("url")
         extracted: dict[str, Any] = {}
         status = None
-        if url and args.fetch_pages:
+        if url and getattr(args, "fetch_pages", False):
             status, html = fetch_url(url)
             extracted = extract_html(html)
-        competitors.append({"serp": result, "http_status": status, "page": extracted})
+        competitors.append({"serp": entry, "http_status": status, "page": extracted})
+
+    heading_patterns: list[dict[str, Any]] = []
+    for c in competitors:
+        headings = (c.get("page") or {}).get("headings") or []
+        if headings:
+            heading_patterns.append(
+                {
+                    "url": c["serp"].get("url"),
+                    "h1": next((h["text"] for h in headings if h["level"] == "h1"), ""),
+                    "h2_count": sum(1 for h in headings if h["level"] == "h2"),
+                }
+            )
+
+    title_blob = " ".join((r.get("title") or "").lower() for r in top_results)
+    if any(token in title_blob for token in ("comprar", "preço", "preco", "melhor", "vs ", "review")):
+        intent = "commercial investigation"
+    elif any(token in title_blob for token in ("o que e", "o que é", "guia", "como", "tutorial")):
+        intent = "informational"
+    else:
+        intent = "mixed"
+
+    incomplete = len(top_results) < 5
+    limitations: list[str] = []
+    if incomplete:
+        limitations.append(f"Apenas {len(top_results)} resultados disponíveis; ideal >=5.")
+    if provider == "websearch" and not top_results:
+        limitations.append(
+            f"Nenhum resultado em sources/websearch/{slugify(args.keyword)}.json. Rode WebSearch e grave o JSON antes de reexecutar."
+        )
+    if provider == "dataforseo" and keyword_metrics is None:
+        limitations.append("Sem keyword-research recente para enriquecer keyword_metrics.")
+
     report = {
         "keyword": args.keyword,
-        "timestamp": now_iso(),
-        "source_serp": str(serp_file),
+        "provider": provider,
+        "provider_reason": provider_reason,
+        "keyword_metrics": keyword_metrics,
+        "top_results": top_results,
         "competitors": competitors,
-        "recommendations": [
-            "Validar a intencao dominante antes de escrever.",
-            "Comparar lacunas de headings e entidades dos top 3.",
-            "Nao copiar estrutura; usar evidencias para superar completude e UX.",
+        "intent": intent,
+        "heading_patterns": heading_patterns,
+        "gaps": [
+            "Mapear entidades e subtópicos pouco cobertos pelo top 3.",
+            "Confirmar formato dominante: artigo, listicle, guia passo a passo.",
+            "Identificar perguntas reais do leitor não respondidas pelos competidores.",
         ],
-        "limitations": [] if competitors else ["SERP sem resultados organicos normalizados."],
+        "improvement_hypotheses": [
+            "Cobertura mais densa de exemplos brasileiros do que os concorrentes.",
+            "EEAT explícito com autoria e proveniência declarada, ausente em parte do top 3.",
+            "Estrutura de heading que responda a intenção observada antes de aprofundar.",
+        ],
+        "limitations": limitations,
+        "incomplete": incomplete,
+        "generated_at": now_iso(),
     }
-    stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-    out = path / "reports" / "seo-analysis" / f"{stamp}-{slugify(args.keyword)}.json"
+
+    out = path / "reports" / "seo-analysis" / f"{slugify(args.keyword)}.json"
     write_json(out, report)
-    append_log(args.project, "seo-analysis", args.keyword, [str(out.relative_to(path))], "Analise SEO gerada a partir da SERP.", "not-required")
+    append_log(
+        args.project,
+        "seo-analysis",
+        args.keyword,
+        [str(out.relative_to(path))],
+        f"Análise SEO via {provider} ({len(top_results)} resultados).",
+        "not-required",
+    )
     print(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+def seo_analysis_path(project_path: Path, slug: str) -> Path:
+    return project_path / "reports" / "seo-analysis" / f"{slug}.json"
 
 
 def command_topic_cluster(args: argparse.Namespace) -> None:
     path = ensure_project(args.project)
+    seed_slug = slugify(args.seed)
+    analysis_file = seo_analysis_path(path, seed_slug)
+    hypothesis_only = bool(getattr(args, "hypothesis_only", False))
+
+    if not analysis_file.exists() and not hypothesis_only:
+        raise SystemExit(
+            "Missing seo-analysis for this seed. Run: "
+            f"bin/seo-brain seo-analysis --project {args.project} --keyword \"{args.seed}\" "
+            "or rerun with --hypothesis-only to produce a hypothesis-grade cluster."
+        )
+
+    intent = "to-be-validated"
+    analysis_data: dict[str, Any] | None = None
+    if analysis_file.exists():
+        analysis_data = json.loads(analysis_file.read_text(encoding="utf-8"))
+        intent = analysis_data.get("intent") or intent
+
+    if hypothesis_only and not analysis_data:
+        cluster_status = "hypothesis"
+        supporting_pages = [
+            {"title": f"O que é {args.seed}", "intent": "informational", "judgment": "hypothesis"},
+            {"title": f"Como avaliar {args.seed}", "intent": "commercial investigation", "judgment": "hypothesis"},
+            {"title": f"{args.seed}: exemplos práticos", "intent": "informational", "judgment": "hypothesis"},
+        ]
+    else:
+        cluster_status = "draft"
+        supporting_pages = [
+            {"title": f"O que é {args.seed}", "intent": intent, "judgment": "draft"},
+            {"title": f"Como avaliar {args.seed}", "intent": intent, "judgment": "draft"},
+            {"title": f"{args.seed}: exemplos brasileiros", "intent": intent, "judgment": "draft"},
+        ]
+
     cluster = {
         "seed": args.seed,
-        "timestamp": now_iso(),
-        "pillar_page": f"/{slugify(args.seed)}/",
-        "supporting_pages": [
-            {"title": f"O que e {args.seed}", "intent": "informational", "judgment": "draft"},
-            {"title": f"Como escolher {args.seed}", "intent": "commercial investigation", "judgment": "draft"},
-            {"title": f"{args.seed}: exemplos e boas praticas", "intent": "informational", "judgment": "draft"},
-        ],
-        "business_hypothesis": "Precisa de validacao humana: conectar demanda organica a oferta, conversao e margem.",
+        "seed_slug": seed_slug,
+        "status": cluster_status,
+        "generated_at": now_iso(),
+        "pillar_page": f"/{seed_slug}/",
+        "supporting_pages": supporting_pages,
+        "business_hypothesis": "Precisa de validação humana: conectar demanda orgânica a oferta, conversão e margem.",
+        "data_provenance": {
+            "seo_analysis": (
+                {
+                    "path": str(analysis_file.relative_to(path)),
+                    "provider": analysis_data.get("provider") if analysis_data else None,
+                    "provider_reason": analysis_data.get("provider_reason") if analysis_data else None,
+                }
+                if analysis_data
+                else {"path": None, "provider": None, "provider_reason": "hypothesis-only run"}
+            )
+        },
     }
-    out_json = path / "reports" / "topic-cluster" / f"{slugify(args.seed)}.json"
+    out_json = path / "reports" / "topic-cluster" / f"{seed_slug}.json"
     write_json(out_json, cluster)
     md = path / "wiki" / "conteudos" / "topic-clusters.md"
     with md.open("a", encoding="utf-8") as file:
         file.write(f"\n\n## {args.seed}\n\n")
-        file.write(f"- Pagina pilar: `{cluster['pillar_page']}`\n")
-        file.write("- Status: draft\n")
-        file.write("- Hipotese de negocio: precisa de validacao humana.\n")
+        file.write(f"- Página pilar: `{cluster['pillar_page']}`\n")
+        file.write(f"- Status: {cluster_status}\n")
+        file.write(f"- Intenção dominante: {intent}\n")
+        file.write("- Hipótese de negócio: precisa de validação humana.\n")
         for page in cluster["supporting_pages"]:
             file.write(f"- {page['title']} ({page['intent']})\n")
-    append_log(args.project, "topic-cluster", args.seed, ["conteudos/topic-clusters"], "Topic cluster em rascunho criado.", "pending")
+    append_log(
+        args.project,
+        "topic-cluster",
+        args.seed,
+        ["conteudos/topic-clusters"],
+        f"Cluster em status {cluster_status}.",
+        "pending",
+    )
     print(json.dumps(cluster, ensure_ascii=False, indent=2))
 
 
@@ -780,20 +1000,72 @@ def command_eeat(args: argparse.Namespace) -> None:
 
 def command_content_seo(args: argparse.Namespace) -> None:
     path = ensure_project(args.project)
-    slug = slugify(args.topic)
+    topic_slug = slugify(args.topic)
+    keyword = args.keyword or args.topic
+    keyword_slug = slugify(keyword)
+    analysis_file = seo_analysis_path(path, keyword_slug)
+    skip_data = bool(getattr(args, "skip_data", False))
+    skip_reason = getattr(args, "skip_data_reason", None)
+
+    if not analysis_file.exists() and not skip_data:
+        raise SystemExit(
+            "Missing seo-analysis for this topic. Run: "
+            f"bin/seo-brain seo-analysis --project {args.project} --keyword \"{keyword}\" "
+            "or rerun content-seo with --skip-data --skip-data-reason \"motivo claro\" para gerar um briefing sem proveniência de SERP."
+        )
+    if skip_data and not skip_reason:
+        raise SystemExit("--skip-data requires --skip-data-reason \"motivo claro\".")
+
+    analysis_data: dict[str, Any] | None = None
+    if analysis_file.exists():
+        analysis_data = json.loads(analysis_file.read_text(encoding="utf-8"))
+
+    intent = (analysis_data or {}).get("intent", "to-be-validated")
+    provenance = (
+        {
+            "path": str(analysis_file.relative_to(path)),
+            "provider": analysis_data.get("provider") if analysis_data else None,
+            "provider_reason": analysis_data.get("provider_reason") if analysis_data else None,
+            "generated_at": analysis_data.get("generated_at") if analysis_data else None,
+        }
+        if analysis_data
+        else {"path": None, "provider": None, "provider_reason": f"skip-data: {skip_reason}"}
+    )
+
     report = {
         "topic": args.topic,
-        "keyword": args.keyword or args.topic,
-        "timestamp": now_iso(),
+        "topic_slug": topic_slug,
+        "keyword": keyword,
+        "keyword_slug": keyword_slug,
+        "generated_at": now_iso(),
+        "data_provenance": {"seo_analysis": provenance},
         "brief": {
-            "intent": "Definir com base na SERP.",
-            "reader_need": "Responder com profundidade sem depender de padroes genericos de IA.",
-            "must_include": ["definicao clara", "criterios praticos", "exemplos brasileiros", "proximos passos"],
-            "avoid": ["titulo em Padrao Americano", "excesso de bullets", "metaforas traduzidas do ingles"],
+            "intent": intent,
+            "reader_need": "Responder com profundidade, sem cair em padrões genéricos de IA.",
+            "must_include": [
+                "definição direta no início",
+                "critérios práticos de decisão",
+                "exemplos brasileiros verificáveis",
+                "próximos passos para o leitor",
+            ],
+            "must_avoid": [
+                "título em padrão americano",
+                "URL ou slug interno em prosa",
+                "voz de Wiki em texto público",
+                "anchor text genérico tipo clique aqui",
+                "sequência longa de parágrafos de uma linha",
+                "metáforas traduzidas literalmente do inglês",
+                "adjetivos vazios como robusto, completo, líder",
+            ],
+        },
+        "voice_check": {
+            "audience": "leitor de blog público que entende SEO",
+            "tense_perspective": "terceira pessoa, voz informativa",
+            "link_test": "remover qualquer link e a frase deve continuar coerente",
         },
         "draft_status": "outline",
     }
-    write_json(path / "reports" / "content" / f"{slug}.brief.json", report)
+    write_json(path / "reports" / "content" / f"{topic_slug}.brief.json", report)
     markdown = textwrap.dedent(
         f"""\
         ---
@@ -802,6 +1074,9 @@ def command_content_seo(args: argparse.Namespace) -> None:
         pillar: conteudo
         owner: shared
         judgment_level: editorial
+        cluster: ""
+        url: "/{topic_slug}/"
+        primary_keyword: "{keyword}"
         sources: []
         ---
 
@@ -809,25 +1084,29 @@ def command_content_seo(args: argparse.Namespace) -> None:
 
         ## Briefing
 
-        Intencao, angulo e argumentos devem ser validados contra a SERP antes da publicacao.
+        Intenção, ângulo e argumentos foram derivados de reports/seo-analysis/{keyword_slug}.json.
+        Reescrever para o leitor de blog: sem expor URL interna em prosa, sem voz de Wiki.
 
         ## Estrutura proposta
 
-        1. Introducao direta ao problema.
-        2. Explicacao com contexto brasileiro.
-        3. Criterios praticos de decisao.
-        4. Exemplos e cuidados.
-        5. Conclusao com proximo passo claro.
+        1. Resposta direta no topo.
+        2. Definição clara, com escopo e limites.
+        3. Critérios práticos.
+        4. Exemplos brasileiros verificáveis.
+        5. Próximo passo concreto.
 
-        ## Revisao anti-slop
+        ## Revisão anti-slop e registro de publicação
 
-        - Titulo em frase normal, nao em Padrao Americano.
-        - Evitar sequencia de paragrafos de uma linha.
-        - Reduzir bullets quando a explicacao pedir desenvolvimento.
+        - Título em frase normal, sem padrão americano.
+        - Nenhum path interno (ex.: /tema/sub-tema/) aparece em prosa.
+        - Links internos usam o título da página de destino como anchor text.
+        - Cada frase com link continua coerente sem o link.
+        - Evitar sequência longa de parágrafos de uma linha.
+        - Reduzir bullets quando a explicação pedir desenvolvimento.
         """
     )
-    write_text(path / "wiki" / "conteudos" / f"{slug}.md", markdown)
-    append_log(args.project, "content", args.topic, [f"conteudos/{slug}"], "Briefing e estrutura de conteudo criados.", "pending")
+    write_text(path / "wiki" / "conteudos" / f"{topic_slug}.md", markdown)
+    append_log(args.project, "content", args.topic, [f"conteudos/{topic_slug}"], "Briefing e estrutura de conteúdo criados.", "pending")
     print(json.dumps(report, ensure_ascii=False, indent=2))
 
 
@@ -1028,13 +1307,18 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("seo-analysis")
     p.add_argument("--project", required=True)
     p.add_argument("--keyword", required=True)
-    p.add_argument("--serp-file")
+    p.add_argument("--provider", choices=["dataforseo", "websearch", "auto"], default="auto",
+                   help="SEO data provider for SERP. Default auto: DataForSEO when configured, else websearch.")
+    p.add_argument("--serp-file", help="Override path to a normalized SERP JSON (DataForSEO).")
+    p.add_argument("--websearch-file", help="Override path to a websearch results JSON.")
     p.add_argument("--fetch-pages", action="store_true")
     p.set_defaults(func=command_seo_analysis)
 
     p = sub.add_parser("topic-cluster")
     p.add_argument("--project", required=True)
     p.add_argument("--seed", required=True)
+    p.add_argument("--hypothesis-only", action="store_true",
+                   help="Generate a hypothesis-grade cluster without seo-analysis precondition.")
     p.set_defaults(func=command_topic_cluster)
 
     p = sub.add_parser("eeat")
@@ -1047,7 +1331,10 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("content-seo")
     p.add_argument("--project", required=True)
     p.add_argument("--topic", required=True)
-    p.add_argument("--keyword")
+    p.add_argument("--keyword", help="Keyword used to locate reports/seo-analysis/<slug>.json. Defaults to topic.")
+    p.add_argument("--skip-data", action="store_true",
+                   help="Bypass the seo-analysis precondition. Requires --skip-data-reason.")
+    p.add_argument("--skip-data-reason", help="Reason logged in the brief when --skip-data is used.")
     p.set_defaults(func=command_content_seo)
 
     p = sub.add_parser("technical-seo")

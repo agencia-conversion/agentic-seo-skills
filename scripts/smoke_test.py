@@ -44,7 +44,7 @@ def main() -> int:
     run("seo-analysis", "--project", project, "--keyword", "seo agentico")
     run("topic-cluster", "--project", project, "--seed", "seo agentico")
     run("eeat", "--project", project, "--claim", "Metodologia propria de SEO Agentico", "--status", "gap")
-    run("content-seo", "--project", project, "--topic", "O que e SEO agentico")
+    run("content-seo", "--project", project, "--topic", "O que e SEO agentico", "--keyword", "seo agentico")
     run("backlink-analysis", "--project", project, "--target", "example.com", "--mode", "offline")
     run("next-website-creator", "--project", project)
     run("payload-cms", "--project", project)

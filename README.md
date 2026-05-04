@@ -23,7 +23,13 @@ Credentials must stay in `.env`, which is gitignored. Commit only `.env.example`
 Validate the Claude Code plugin:
 
 ```bash
-claude plugin validate .
+claude plugin validate .claude-plugin/plugin.json
+```
+
+Validate the optional local marketplace:
+
+```bash
+claude plugin validate .claude-plugin/marketplace.json
 ```
 
 Validate SEO Brain skill contracts:
@@ -36,6 +42,23 @@ Load locally in Claude Code:
 
 ```bash
 claude --plugin-dir .
+```
+
+Running plain `claude` from this repository does not load the plugin. It only opens the repository as a normal project. Plugin skills are available only after loading with `--plugin-dir` or installing the plugin from a marketplace.
+
+Once loaded, skills are namespaced:
+
+```text
+/seo-brain:project-init
+/seo-brain:seo-analysis
+/seo-brain:technical-seo
+```
+
+For a persistent local install in Claude Code:
+
+```text
+/plugin marketplace add /Users/diego/Codex/seo-brain-codex
+/plugin install seo-brain@seo-brain-marketplace
 ```
 
 Run the offline v0.1 smoke test:
