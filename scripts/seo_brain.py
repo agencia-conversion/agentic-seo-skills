@@ -1032,6 +1032,14 @@ def command_content_seo(args: argparse.Namespace) -> None:
         else {"path": None, "provider": None, "provider_reason": f"skip-data: {skip_reason}"}
     )
 
+    must_not_mention_in_prose = sorted(
+        {
+            (entry.get("domain") or "").strip().lower()
+            for entry in (analysis_data or {}).get("top_results", [])
+            if entry.get("domain")
+        }
+    )
+
     report = {
         "topic": args.topic,
         "topic_slug": topic_slug,
@@ -1053,6 +1061,8 @@ def command_content_seo(args: argparse.Namespace) -> None:
                 "URL ou slug interno em prosa",
                 "voz de Wiki em texto público",
                 "anchor text genérico tipo clique aqui",
+                "menção em prosa a domínio que aparece no top_results da análise SEO",
+                "referência a fonte externa fora de backlink Markdown",
                 "sequência longa de parágrafos de uma linha",
                 "metáforas traduzidas literalmente do inglês",
                 "adjetivos vazios como robusto, completo, líder",
@@ -1063,6 +1073,7 @@ def command_content_seo(args: argparse.Namespace) -> None:
             "tense_perspective": "terceira pessoa, voz informativa",
             "link_test": "remover qualquer link e a frase deve continuar coerente",
         },
+        "must_not_mention_in_prose": must_not_mention_in_prose,
         "draft_status": "outline",
     }
     write_json(path / "reports" / "content" / f"{topic_slug}.brief.json", report)
