@@ -33,7 +33,7 @@ Result:
 - task id was stored in project sources
 - DataForSEO returned no volume/CPC metrics for this keyword, which SEO Brain records as `null` instead of fabricating data
 
-The first live attempt exposed a polling bug: `40602 Task In Queue` was incorrectly treated as terminal. This was fixed and covered by `tests/test_dataforseo_modes.py`.
+The first live attempt exposed a polling bug: `40602 Task In Queue` was incorrectly treated as terminal. This was fixed and covered by `tests/test_dataforseo_modes.mjs`.
 
 ## SERP
 
@@ -87,4 +87,3 @@ Result:
 - spam score: `16`
 
 Note: DataForSEO Backlinks API v3 supports live retrieval, so SEO Brain maps `standard` to live for backlink analysis and records that limitation.
-

@@ -20,6 +20,13 @@ Credentials must stay in `.env`, which is gitignored. Commit only `.env.example`
 
 ## Development
 
+Install the TypeScript toolchain:
+
+```bash
+npm install
+npm run build
+```
+
 Validate the Claude Code plugin:
 
 ```bash
@@ -64,7 +71,7 @@ For a persistent local install in Claude Code:
 Run the offline v0.1 smoke test:
 
 ```bash
-python3 scripts/smoke_test.py
+npm test
 ```
 
 Use the local CLI directly:
@@ -78,7 +85,11 @@ bin/seo-brain seo-analysis --project meu-projeto --keyword "seo agentico"
 bin/seo-brain topic-cluster --project meu-projeto --seed "seo agentico"
 bin/seo-brain eeat --project meu-projeto --claim "Prova de autoridade" --status gap
 bin/seo-brain content-seo --project meu-projeto --topic "O que e SEO agentico"
-bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-valid.html --page-type blog-post
+bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-home.html --page-type inicial
+bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-ecommerce-product.html --page-type produto-ecommerce
+bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-service.html --page-type produto-ou-servico
+bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-valid.html --page-type blog
+bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-about.html --page-type quem-somos
 bin/seo-brain next-website-creator --project meu-projeto
 bin/seo-brain payload-cms --project meu-projeto
 bin/seo-brain ux-web --project meu-projeto

@@ -1,0 +1,17 @@
+{
+  "name": "seo-brain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "bin": {
+    "seo-brain": "bin/seo-brain"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node tests/test_dataforseo_modes.mjs && node tests/test_technical_seo.mjs && node tests/test_frontmatter.mjs && python3 scripts/smoke_test.py"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "typescript": "^5.9.3"
+  }
+}
