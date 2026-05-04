@@ -15,12 +15,16 @@ const REQUIRED_WIKI_PAGES = [
   "index.md",
   "eeat.md",
   "schema.md",
+  "estrategia/index.md",
+  "llm-wiki/index.md",
   "tecnologia/index.md",
+  "seo-tecnico/index.md",
   "tom-de-voz/index.md",
   "conteudos/index.md",
   "conteudos/topic-clusters.md",
+  "dados-e-analise/index.md",
+  "fontes/index.md",
   "log/index.md",
-  "sources/index.md",
 ];
 const STRATEGIC_PAGES = new Set(["index.md", "eeat.md", "tecnologia/index.md", "tom-de-voz/index.md"]);
 
@@ -115,7 +119,7 @@ function parseFrontmatter(text: string): [AnyRecord, string] {
   return [data, body];
 }
 
-function setFrontmatterValue(file: string, updates: Record<string, string>): void {
+export function setFrontmatterValue(file: string, updates: Record<string, string>): void {
   const text = fs.readFileSync(file, "utf8");
   if (!text.startsWith("---\n")) {
     const lines = ["---", ...Object.entries(updates).map(([k, v]) => `${k}: ${v}`), "---", "", text];

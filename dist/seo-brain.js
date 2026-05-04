@@ -34,6 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.setFrontmatterValue = setFrontmatterValue;
 exports.taskResultReady = taskResultReady;
 const node_buffer_1 = require("node:buffer");
 const fs = __importStar(require("node:fs"));
@@ -46,12 +47,16 @@ const REQUIRED_WIKI_PAGES = [
     "index.md",
     "eeat.md",
     "schema.md",
+    "estrategia/index.md",
+    "llm-wiki/index.md",
     "tecnologia/index.md",
+    "seo-tecnico/index.md",
     "tom-de-voz/index.md",
     "conteudos/index.md",
     "conteudos/topic-clusters.md",
+    "dados-e-analise/index.md",
+    "fontes/index.md",
     "log/index.md",
-    "sources/index.md",
 ];
 const STRATEGIC_PAGES = new Set(["index.md", "eeat.md", "tecnologia/index.md", "tom-de-voz/index.md"]);
 function nowIso() {

@@ -66,15 +66,20 @@ projects/[project]/
     index.md
     schema.md
     eeat.md
+    estrategia/
+    llm-wiki/
     tecnologia/
+    seo-tecnico/
     tom-de-voz/
     conteudos/
+    dados-e-analise/
+    fontes/
     log/
   artifacts/                # generated previews, reports, charts, prototypes
   reports/                  # exported human-readable deliverables
 ```
 
-`sources/` should be treated as the evidence base. `wiki/` should cite `sources/`. `artifacts/` and `reports/` can be regenerated or revised.
+`sources/` should be treated as the evidence base. `wiki/` should cite `sources/` with normal Markdown links to `../sources/...`; `wiki/fontes/index.md` is a catalog, not a raw-source folder. `artifacts/` and `reports/` can be regenerated or revised.
 
 ## Index and Log Decision
 
@@ -105,4 +110,3 @@ Karpathy's pattern solves maintenance cost. It does not automatically solve qual
 ## Verdict
 
 The user's Wiki model is directionally correct and stronger than a pure LLM-owned Wiki for SEO strategy. The only required correction is to formalize status, approval, and source provenance so the LLM can maintain the Wiki without silently converting unapproved drafts into operating doctrine.
-

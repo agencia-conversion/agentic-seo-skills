@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node tests/test_dataforseo_modes.mjs && node tests/test_technical_seo.mjs && python3 scripts/smoke_test.py"
+    "test": "npm run build && node tests/test_dataforseo_modes.mjs && node tests/test_technical_seo.mjs && node tests/test_frontmatter.mjs && python3 scripts/smoke_test.py"
   },
   "devDependencies": {
     "@types/node": "^20.19.0",
