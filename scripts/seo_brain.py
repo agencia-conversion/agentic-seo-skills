@@ -451,6 +451,63 @@ def command_project_init(args: argparse.Namespace) -> None:
     print(json.dumps({"ok": True, "project": slug, "path": str(path)}, ensure_ascii=False))
 
 
+def strip_code_blocks(text: str) -> str:
+    return re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+
+
+def lint_content_publication(path: Path) -> list[dict[str, str]]:
+    """Lint published-content artifacts under wiki/conteudos/.
+
+    Generic rules, parametrized by per-article briefs:
+
+    - For each `wiki/conteudos/<slug>.md` that has a matching brief
+      `reports/content/<slug>.brief.json`, read the brief's
+      `must_not_mention_in_prose` list and flag any substring match
+      found in the article body (frontmatter and code blocks excluded).
+    - The list of forbidden domains is never hardcoded; it always comes
+      from the brief, which derives it from the seo-analysis report.
+    """
+    findings: list[dict[str, str]] = []
+    conteudos = path / "wiki" / "conteudos"
+    briefs = path / "reports" / "content"
+    if not conteudos.exists():
+        return findings
+    skip_names = {"index.md", "topic-clusters.md"}
+    for md in sorted(conteudos.glob("*.md")):
+        if md.name in skip_names:
+            continue
+        brief_path = briefs / f"{md.stem}.brief.json"
+        if not brief_path.exists():
+            continue
+        try:
+            brief = json.loads(brief_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            findings.append(
+                {
+                    "severity": "warning",
+                    "file": str(md.relative_to(path / "wiki")),
+                    "message": f"brief is not valid JSON: {brief_path.relative_to(path)}",
+                }
+            )
+            continue
+        forbidden = [str(d).strip().lower() for d in (brief.get("must_not_mention_in_prose") or []) if d]
+        if not forbidden:
+            continue
+        text = md.read_text(encoding="utf-8")
+        _, body = parse_frontmatter(text)
+        body_clean = strip_code_blocks(body).lower()
+        for domain in forbidden:
+            if domain and domain in body_clean:
+                findings.append(
+                    {
+                        "severity": "error",
+                        "file": str(md.relative_to(path / "wiki")),
+                        "message": f"forbidden domain mentioned in prose: {domain}",
+                    }
+                )
+    return findings
+
+
 def command_wiki_lint(args: argparse.Namespace) -> None:
     path = ensure_project(args.project)
     wiki = path / "wiki"
@@ -470,6 +527,7 @@ def command_wiki_lint(args: argparse.Namespace) -> None:
             candidate = wiki / (target if target.endswith(".md") else f"{target}.md")
             if not candidate.exists():
                 findings.append({"severity": "warning", "file": rel, "message": f"broken wikilink: [[{link}]]"})
+    findings.extend(lint_content_publication(path))
     result = {"ok": not any(f["severity"] == "error" for f in findings), "findings": findings}
     write_json(path / "reports" / "wiki-lint.json", result)
     append_log(args.project, "lint", "Wiki lint", ["reports/wiki-lint.json"], f"{len(findings)} apontamentos encontrados.", "not-required")
