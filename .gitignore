@@ -1,0 +1,27 @@
+.env
+.env.*
+!.env.example
+
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.turbo/
+.vercel/
+
+.DS_Store
+*.log
+__pycache__/
+*.py[cod]
+
+# Runtime/user data produced while testing the plugin locally.
+.seo-brain/
+projects/*
+!projects/.gitkeep
+
+# Autoresearch experiment artifacts.
+runs/
+experiments/
+artifacts/
+reports/generated/

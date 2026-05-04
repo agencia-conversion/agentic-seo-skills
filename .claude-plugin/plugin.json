@@ -1,0 +1,49 @@
+{
+  "name": "seo-brain",
+  "version": "0.1.0",
+  "description": "Agentic SEO operating system with project Wikis, data-backed SEO analysis, content workflows, and technical SEO checks.",
+  "author": {
+    "name": "Agentic SEO"
+  },
+  "homepage": "https://agenticseo.sh/",
+  "license": "MIT",
+  "keywords": [
+    "seo",
+    "agentic-seo",
+    "content",
+    "technical-seo",
+    "llm-wiki",
+    "dataforseo"
+  ],
+  "skills": "./skills/",
+  "userConfig": {
+    "dataforseo_login": {
+      "type": "string",
+      "title": "DataForSEO login",
+      "description": "Login da sua conta DataForSEO. Pode ficar vazio e ser configurado depois pelo data-setup.",
+      "sensitive": true,
+      "required": false
+    },
+    "dataforseo_password": {
+      "type": "string",
+      "title": "DataForSEO password",
+      "description": "Senha ou API password da DataForSEO. Pode ficar vazio e ser configurado depois pelo data-setup.",
+      "sensitive": true,
+      "required": false
+    },
+    "default_projects_dir": {
+      "type": "directory",
+      "title": "Diretorio padrao de projetos",
+      "description": "Diretorio onde SEO Brain cria projects/[nome-do-projeto].",
+      "required": false,
+      "default": "./projects"
+    },
+    "dataforseo_mode": {
+      "type": "string",
+      "title": "Modo DataForSEO",
+      "description": "Modo padrao: standard. Opcoes: live, standard, async, offline.",
+      "required": false,
+      "default": "standard"
+    }
+  }
+}

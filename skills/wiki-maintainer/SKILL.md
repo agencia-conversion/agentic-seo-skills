@@ -1,0 +1,43 @@
+---
+name: wiki-maintainer
+description: Maintain the SEO Brain LLM Wiki with Obsidian-compatible Markdown, source provenance, indexes, logs, and approval-aware updates.
+---
+
+# Wiki Maintainer
+
+Use this skill when the user asks to ingest sources, update the Wiki, lint project knowledge, record decisions, or reconcile context.
+
+Read first when needed:
+
+- `skills/_shared/references/operating-model.md`
+- `docs/wiki-karpathy-validation.md`
+
+## Contract
+
+Inputs:
+
+- project slug;
+- source files, URLs, notes, or requested Wiki edits;
+- optional approval decision from the user.
+
+Writes only:
+
+- `projects/[project]/wiki/`
+- `projects/[project]/sources/` for newly captured raw sources;
+- `projects/[project]/reports/` for Wiki lint reports.
+
+## Required Behavior
+
+- Treat raw sources as immutable or append-only.
+- Separate extracted facts, synthesis, and human judgment.
+- Keep `wiki/index.md` useful as a project map.
+- Append important changes to `wiki/log/index.md`.
+- Keep strategic pages in `draft` or `needs-review` until explicit approval.
+- Flag contradictions, stale claims, missing citations, orphan pages, and broken links.
+
+## Done Criteria
+
+- Changed pages cite their sources or mark gaps.
+- Index/log are updated.
+- Approval status is correct.
+
