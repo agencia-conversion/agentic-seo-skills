@@ -1,6 +1,6 @@
 ---
 name: payload-cms
-description: Set up Payload CMS for SEO Brain projects with editorial collections, SEO fields, local development, and Vercel deployment guidance.
+description: Set up Payload CMS for SEO Brain project with editorial collections, SEO fields, local development, and Vercel deployment guidance.
 ---
 
 # Payload CMS
@@ -10,22 +10,21 @@ Use this skill when a project needs CMS-backed editorial workflows.
 Read first when needed:
 
 - `skills/_shared/references/operating-model.md`
-- `projects/[project]/wiki/tecnologia/index.md`
+- `project/wiki/tecnologia/index.md`
 - `skills/next-website-creator/SKILL.md`
 
 ## Contract
 
 Inputs:
 
-- project slug;
 - desired content models;
 - deployment target and database choice.
 
 Writes only:
 
-- `projects/[project]/web/`
-- `projects/[project]/wiki/tecnologia/`
-- `projects/[project]/reports/`
+- `project/web/`
+- `project/wiki/tecnologia/`
+- `project/reports/`
 
 ## Required Behavior
 

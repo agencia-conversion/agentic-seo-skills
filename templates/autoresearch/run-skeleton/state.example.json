@@ -9,7 +9,7 @@
   "iter": 0,
   "best": { "iter": null, "score": null, "path": null },
   "history": [],
-  "project_slug": "agencia-conversion-seo-brain",
+  "project_root": "agencia-conversion-seo-brain",
   "created_at": "2026-05-04T20:57:55.000Z",
   "updated_at": "2026-05-04T20:57:55.000Z"
 }

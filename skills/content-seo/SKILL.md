@@ -11,22 +11,21 @@ Read first when needed:
 
 - `skills/seo-analysis/SKILL.md`
 - `skills/_shared/references/operating-model.md`
-- `projects/[project]/wiki/tom-de-voz/index.md`
+- `project/wiki/tom-de-voz/index.md`
 
 ## Contract
 
 Inputs:
 
-- project slug;
 - topic (becomes the slug of the produced page);
 - keyword used to locate the seo-analysis report (defaults to the topic);
 - optional `--skip-data` with `--skip-data-reason` to bypass the precondition for explicitly-justified cases.
 
 Writes only:
 
-- `projects/[project]/wiki/conteudos/<topic-slug>.md`
-- `projects/[project]/reports/content/<topic-slug>.brief.json`
-- `projects/[project]/artifacts/`
+- `project/wiki/conteudos/<topic-slug>.md`
+- `project/reports/content/<topic-slug>.brief.json`
+- `project/artifacts/`
 
 ## Hard Precondition
 

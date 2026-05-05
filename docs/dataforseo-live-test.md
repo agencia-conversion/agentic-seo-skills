@@ -2,7 +2,7 @@
 
 Date: 2026-05-04
 
-Project used: `projects/dataforseo-live-test`
+Project used: `project/`
 
 ## Credential Check
 
@@ -23,7 +23,7 @@ Result:
 Command:
 
 ```bash
-bin/seo-brain keyword-research --project dataforseo-live-test --keyword "seo agentico" --mode standard --timeout 180 --poll-interval 10
+bin/seo-brain keyword-research --keyword "seo agentico" --mode standard --timeout 180 --poll-interval 10
 ```
 
 Result:
@@ -40,13 +40,13 @@ The first live attempt exposed a polling bug: `40602 Task In Queue` was incorrec
 Standard command:
 
 ```bash
-bin/seo-brain serp-extract --project dataforseo-live-test --keyword "seo agentico" --mode standard --timeout 180 --poll-interval 10 --depth 10
+bin/seo-brain serp-extract --keyword "seo agentico" --mode standard --timeout 180 --poll-interval 10 --depth 10
 ```
 
 Live command:
 
 ```bash
-bin/seo-brain serp-extract --project dataforseo-live-test --keyword "seo agentico" --mode live --depth 10
+bin/seo-brain serp-extract --keyword "seo agentico" --mode live --depth 10
 ```
 
 Result:
@@ -60,7 +60,7 @@ Result:
 Command:
 
 ```bash
-bin/seo-brain serp-extract --project dataforseo-live-test --keyword "seo agentico" --mode async --sandbox --pingback-url 'https://example.com/ping?id=$id&tag=$tag' --depth 10
+bin/seo-brain serp-extract --keyword "seo agentico" --mode async --sandbox --pingback-url 'https://example.com/ping?id=$id&tag=$tag' --depth 10
 ```
 
 Result:
@@ -74,7 +74,7 @@ Result:
 Command:
 
 ```bash
-bin/seo-brain backlink-analysis --project dataforseo-live-test --target conversion.com.br --mode standard
+bin/seo-brain backlink-analysis --target conversion.com.br --mode standard
 ```
 
 Result:

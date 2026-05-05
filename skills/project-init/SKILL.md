@@ -1,6 +1,6 @@
 ---
 name: project-init
-description: Create a new SEO Brain project with the standard multi-project folder layout, initial Wiki, and approval-ready strategic pages.
+description: Create a new SEO Brain project with the standard single-project folder layout, initial Wiki, and approval-ready strategic pages.
 ---
 
 # Project Init
@@ -17,22 +17,22 @@ Read first when needed:
 
 Inputs:
 
-- project name or slug;
+- project name;
 - optional brand/site context;
 - optional target market and language.
 
 Writes only:
 
-- `projects/[project-slug]/`
-- `projects/[project-slug]/wiki/`
-- `projects/[project-slug]/sources/`
-- `projects/[project-slug]/reports/`
-- `projects/[project-slug]/artifacts/`
-- `projects/[project-slug]/.seo-brain/`
+- `project/`
+- `project/wiki/`
+- `project/sources/`
+- `project/reports/`
+- `project/artifacts/`
+- `project/.seo-brain/`
 
 ## Required Behavior
 
-- Generate a safe kebab-case slug.
+- Use the configured single project directory.
 - Create all required directories idempotently.
 - Create initial Wiki pages from templates.
 - Create six-pillar Wiki maps and `wiki/fontes/index.md` as the evidence catalog.

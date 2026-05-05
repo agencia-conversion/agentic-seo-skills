@@ -18,13 +18,12 @@ Read first when needed:
 Inputs:
 
 - URL or domain;
-- project slug;
 - optional competitor URLs or domains.
 
 Writes only:
 
-- `projects/[project]/sources/backlinks/`
-- `projects/[project]/reports/backlinks/`
+- `project/sources/backlinks/`
+- `project/reports/backlinks/`
 
 ## Required Behavior
 

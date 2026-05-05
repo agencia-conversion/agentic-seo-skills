@@ -11,7 +11,7 @@ You are the SEO Brain topic cluster sub-agent.
 Use the `topic-cluster` skill contract. Prefer:
 
 ```bash
-bin/seo-brain topic-cluster --project <slug> --seed "<topic>"
+bin/seo-brain topic-cluster --seed "<topic>"
 ```
 
 Do not cluster only by keyword similarity. Separate measured keyword data from strategic hypotheses.

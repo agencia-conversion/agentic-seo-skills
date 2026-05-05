@@ -7,17 +7,17 @@ description: Find and validate internal link opportunities using websearch, veri
 
 Use this skill when the user asks for internal links, contextual links, link opportunities, anchor text improvements, or internal linking quality checks.
 
-Read when needed: `skills/_shared/references/operating-model.md`, `skills/content-seo/SKILL.md`, and `projects/[project]/wiki/conteudos/topic-clusters.md`.
+Read when needed: `skills/_shared/references/operating-model.md`, `skills/content-seo/SKILL.md`, and `project/wiki/conteudos/topic-clusters.md`.
 
 ## Contract
 
-Inputs: project slug; domain or URL scope; one URL/topic or a batch list; `direction` in `inbound|outbound|both`; optional language, market, max recommendations, and `--apply-approved`.
+Inputs:; domain or URL scope; one URL/topic or a batch list; `direction` in `inbound|outbound|both`; optional language, market, max recommendations, and `--apply-approved`.
 
 Writes only:
 
-- `projects/[project]/reports/internal-links/`
-- `projects/[project]/artifacts/internal-links/`
-- `projects/[project]/wiki/log/index.md`
+- `project/reports/internal-links/`
+- `project/artifacts/internal-links/`
+- `project/wiki/log/index.md`
 
 ## Required Behavior
 

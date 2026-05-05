@@ -5,7 +5,7 @@ import { join } from "node:path";
 
 const tmp = mkdtempSync(join(tmpdir(), "seo-brain-uc2-"));
 process.env.HOME = tmp;
-const projectRoot = join(tmp, "projects", "test");
+const projectRoot = join(tmp, "project");
 
 const wiki = join(projectRoot, "wiki");
 mkdirSync(join(wiki, "fontes"), { recursive: true });

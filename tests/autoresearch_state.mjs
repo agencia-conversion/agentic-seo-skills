@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, existsSync, readFileSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -7,6 +7,7 @@ const {
   slugify,
   generateRunId,
   resolveRunDir,
+  resolveProjectRoot,
   createRun,
   loadState,
   saveState,
@@ -29,13 +30,14 @@ assert.match(runId, /^\d{8}-\d{6}-improve-hero-headline$/);
 
 // --- resolveRunDir ---
 const projectRoot = join(tmp, "repo");
-mkdirSync(join(projectRoot, "projects", "client-a", ".seo-brain"), { recursive: true });
-const dirWithProject = resolveRunDir(projectRoot, runId, "client-a");
-assert.equal(dirWithProject, join(projectRoot, "projects", "client-a", ".context", "autoresearch", runId));
-const dirFreeUse = resolveRunDir(projectRoot, runId, null);
+mkdirSync(join(projectRoot, "project", ".seo-brain"), { recursive: true });
+assert.equal(resolveProjectRoot(projectRoot), join(projectRoot, "project"));
+const dirWithProject = resolveRunDir(projectRoot, runId);
+assert.equal(dirWithProject, join(projectRoot, "project", ".context", "autoresearch", runId));
+rmSync(join(projectRoot, "project"), { recursive: true, force: true });
+const dirFreeUse = resolveRunDir(projectRoot, runId);
 assert.equal(dirFreeUse, join(projectRoot, ".context", "autoresearch", runId));
-const dirMissingProject = resolveRunDir(projectRoot, runId, "nonexistent");
-assert.equal(dirMissingProject, join(projectRoot, ".context", "autoresearch", runId), "falls back to root .context when slug missing");
+mkdirSync(join(projectRoot, "project", ".seo-brain"), { recursive: true });
 
 // --- createRun ---
 const created = createRun({
@@ -45,7 +47,6 @@ const created = createRun({
   maxIter: 8,
   threshold: 8,
   plateauWindow: 3,
-  projectSlug: "client-a",
 });
 assert.ok(existsSync(created.runDir), "runDir created");
 assert.ok(existsSync(join(created.runDir, "state.json")), "state.json written");
@@ -53,7 +54,7 @@ assert.equal(created.state.problem, "Improve hero headline");
 assert.equal(created.state.phase, "framing");
 assert.equal(created.state.iter, 0);
 assert.deepEqual(created.state.history, []);
-assert.equal(created.state.project_slug, "client-a");
+assert.equal(created.state.project_root, join(projectRoot, "project"));
 
 // --- saveState / loadState round-trip ---
 const mutated = { ...created.state, iter: 2, phase: "looping", history: [{ iter: 1, score: 6.5 }, { iter: 2, score: 7.2 }] };

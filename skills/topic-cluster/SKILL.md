@@ -11,21 +11,20 @@ Read first when needed:
 
 - `skills/seo-analysis/SKILL.md`
 - `skills/_shared/references/operating-model.md`
-- `projects/[project]/wiki/conteudos/topic-clusters.md` when present.
+- `project/wiki/conteudos/topic-clusters.md` when present.
 
 ## Contract
 
 Inputs:
 
-- project slug;
 - seed topic, product, service, or keyword set;
 - optional market, geography, language, and business goal;
 - optional `--hypothesis-only` flag to bypass the seo-analysis precondition.
 
 Writes only:
 
-- `projects/[project]/wiki/conteudos/topic-clusters.md`
-- `projects/[project]/reports/topic-cluster/<seed-slug>.json`
+- `project/wiki/conteudos/topic-clusters.md`
+- `project/reports/topic-cluster/<seed-slug>.json`
 
 ## Hard Precondition
 

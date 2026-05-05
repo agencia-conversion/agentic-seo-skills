@@ -16,7 +16,7 @@ Esta pagina registra provas, lacunas e limites de experiencia, especialidade, au
 
 ## Experiencia
 
-Fatos comprovaveis sobre experiencia real da marca, equipe, autores, clientes, projetos, pesquisas e operacao.
+Fatos comprovaveis sobre experiencia real da marca, equipe, autores, clientes, casos, pesquisas e operacao.
 
 ## Especialidade
 

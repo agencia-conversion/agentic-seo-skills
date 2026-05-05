@@ -36,21 +36,17 @@ Backlinks:
 bin/seo-brain data-setup --check
 
 bin/seo-brain serp-extract \
-  --project meu-projeto \
   --keyword "seo agentico" \
   --mode standard
 
 bin/seo-brain keyword-research \
-  --project meu-projeto \
   --keyword "seo agentico" \
   --mode standard
 
 bin/seo-brain serp-extract \
-  --project meu-projeto \
   --keyword "seo agentico" \
   --mode async \
   --pingback-url 'https://example.com/ping?id=$id&tag=$tag'
 ```
 
 Provider calls can consume credits unless `--mode offline` or DataForSEO sandbox is used.
-

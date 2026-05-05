@@ -172,9 +172,8 @@ export async function handleSubmit(body, ctx) {
 
 export async function runPickCluster(argv = []) {
   const args = parseArgs(argv);
-  const projectRootArg =
-    args["project-root"] ?? (args.project ? join("projects", args.project) : null);
-  if (!projectRootArg) throw new Error("missing --project or --project-root");
+  if (args.project) throw new Error("--project is no longer supported; SEO Brain uses the single project at project/.");
+  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.SEO_BRAIN_PROJECT_DIR ?? "project";
   if (!args.proposal) throw new Error("missing --proposal");
   const projectRoot = resolve(projectRootArg);
   const proposalPath = resolve(args.proposal);

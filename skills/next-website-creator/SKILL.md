@@ -11,21 +11,20 @@ Read first when needed:
 
 - `skills/_shared/references/operating-model.md`
 - `docs/product-spec-v0.1.md`
-- `projects/[project]/wiki/index.md`
-- `projects/[project]/wiki/tom-de-voz/index.md`
+- `project/wiki/index.md`
+- `project/wiki/tom-de-voz/index.md`
 
 ## Contract
 
 Inputs:
 
-- project slug;
 - approved or draft brand context;
 - optional design direction and page requirements.
 
 Writes only:
 
-- `projects/[project]/web/`
-- `projects/[project]/reports/`
+- `project/web/`
+- `project/reports/`
 
 ## Required Behavior
 

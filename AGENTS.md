@@ -25,7 +25,7 @@ This repository root is the plugin root.
 - Shared skill references: `skills/_shared/references/`
 - Templates: `templates/`
 - Utility scripts: `scripts/`
-- Runtime projects: `projects/` and ignored by git except `projects/.gitkeep`
+- Runtime project: `project/` and ignored by git except `project/.gitkeep`
 
 ## Compatibility Rules
 
@@ -33,20 +33,20 @@ This repository root is the plugin root.
 - Keep cross-tool behavior in `AGENTS.md`, not only in Claude-specific files.
 - Do not rely on terminal output as the primary UX for nontechnical users.
 - Prefer local web UI artifacts for previews, approvals, and reports.
-- Do not commit secrets, raw user projects, generated runs, or provider responses from real clients.
+- Do not commit secrets, raw user project data, generated runs, or provider responses from real clients.
 
 ## Wiki Rules
 
 Every SEO Brain project should use Obsidian-compatible Markdown and separate sources from synthesis.
 
 - Raw sources live in `sources/` and should be treated as immutable or append-only.
-- Generated and curated knowledge lives in `wiki/`; open `projects/<slug>/wiki/` as the Obsidian vault.
+- Generated and curated knowledge lives in `wiki/`; open `project/wiki/` as the Obsidian vault.
 - `wiki/fontes/index.md` is a catalog of raw evidence, but the raw files themselves remain in `sources/`.
 - Use Obsidian wikilinks only for real pages inside `wiki/`; use normal Markdown links for files under `../sources/`.
 - Strategic pages require explicit human approval.
 - Operational and observational pages may be updated by agents when checks pass.
 - Important events must be appended to `wiki/log/index.md`. Each entry must declare a `type` of `strategic-approval` or `operational-decision` so events can be filtered by audience.
-- The wiki never holds drafts or hypotheses. Pages either reflect approved/measured state or do not exist yet. Hypothetical or unverified work lives only under `projects/[project]/reports/` until promoted by explicit human approval (for strategic pages) or by passing automated checks (for operational pages).
+- The wiki never holds drafts or hypotheses. Pages either reflect approved/measured state or do not exist yet. Hypothetical or unverified work lives only under `project/reports/` until promoted by explicit human approval (for strategic pages) or by passing automated checks (for operational pages).
 
 Required strategic approval pages:
 
@@ -61,8 +61,8 @@ For previews, approvals, sensitive input, and option selection, prefer a local b
 
 - Implementation lives in `scripts/companion.mjs` and templates under `templates/companion/`.
 - Each handoff binds to `127.0.0.1` on an ephemeral port, requires a one-time token, validates `Origin`/`Host`, and shuts down on submit, cancel, or TTL expiry.
-- Sensitive values (credentials, API keys) are never echoed to agent stdout, never logged in full, and never written to the repo root `.env`. They are stored via Claude Code `userConfig` when running as a plugin, or in `projects/[project]/.env.local` when running standalone.
-- Handoff state lives outside `projects/<slug>/` (in `.companion/handoffs/`, gitignored) so skill `Writes only` contracts remain intact.
+- Sensitive values (credentials, API keys) are never echoed to agent stdout, never logged in full, and never written to the repo root `.env`. They are stored via Claude Code `userConfig` when running as a plugin, or in `project/.env.local` when running standalone.
+- Handoff state lives outside `project/` (in `.companion/handoffs/`, gitignored) so skill `Writes only` contracts remain intact.
 - Every handoff submission appends to `wiki/log/index.md` with the appropriate `type`.
 
 ## Plugin Development

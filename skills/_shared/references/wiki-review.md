@@ -1,10 +1,10 @@
 # Wiki Review Protocol
 
-Reviewer obrigatório para qualquer skill que escreva em `projects/<slug>/wiki/**`. É um gate de agente, não um linter. Decisão é de julgamento; regex serve só como dica.
+Reviewer obrigatório para qualquer skill que escreva em `project/wiki/**`. É um gate de agente, não um linter. Decisão é de julgamento; regex serve só como dica.
 
 ## Quando invocar
 
-Toda skill que cria ou modifica arquivos sob `projects/<slug>/wiki/**` invoca este protocolo na lista de arquivos tocados no run atual, antes de reportar `done`. Skills que apenas leem o Wiki não invocam.
+Toda skill que cria ou modifica arquivos sob `project/wiki/**` invoca este protocolo na lista de arquivos tocados no run atual, antes de reportar `done`. Skills que apenas leem o Wiki não invocam.
 
 ## Contrato do reviewer
 
@@ -55,7 +55,7 @@ Se o reviewer retornar `proposed-changes`, a skill chamadora:
 1. NÃO persiste as mudanças em silêncio.
 2. Pergunta ao usuário qual mecanismo de revisão usar:
    - in-chat: resumo em prosa + bloco de diff por arquivo;
-   - browser handoff: `node scripts/companion.mjs review-changes --project <slug> --proposal <path>` abre página local com editor por arquivo (textarea pré-carregado com o v2 do reviewer, frontmatter editável), tabs de diff (vs v1, vs proposta), tabs de notas do reviewer (seções removidas, alegações suavizadas, AI-tells), botões de restaurar v1 / restaurar proposta. O usuário não aprova ou rejeita: ele submete o conteúdo final por arquivo. O ato de submeter é a aprovação.
+   - browser handoff: `node scripts/companion.mjs review-changes --proposal <path>` abre página local com editor por arquivo (textarea pré-carregado com o v2 do reviewer, frontmatter editável), tabs de diff (vs v1, vs proposta), tabs de notas do reviewer (seções removidas, alegações suavizadas, AI-tells), botões de restaurar v1 / restaurar proposta. O usuário não aprova ou rejeita: ele submete o conteúdo final por arquivo. O ato de submeter é a aprovação.
    Sugestão padrão: in-chat para ≤ 2 arquivos; handoff acima disso. A escolha é sempre confirmada com o usuário.
 
    Formato do `proposal.json` consumido pelo handoff:

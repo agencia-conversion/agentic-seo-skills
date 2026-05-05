@@ -11,10 +11,10 @@ Agents may draft judgment-heavy artifacts, but they must request explicit approv
 
 ## Project Paths
 
-Runtime projects use:
+Runtime project data uses:
 
 ```text
-projects/[project-slug]/
+project/
   wiki/
   web/
   sources/
@@ -23,7 +23,7 @@ projects/[project-slug]/
   .seo-brain/
 ```
 
-Open `projects/[project-slug]/wiki/` as the Obsidian vault. Keep raw files outside the vault in `sources/`; catalog them from `wiki/fontes/index.md` using Markdown links to `../sources/...`.
+Open `project/wiki/` as the Obsidian vault. Keep raw files outside the vault in `sources/`; catalog them from `wiki/fontes/index.md` using Markdown links to `../sources/...`.
 
 Initial Wiki maps use the six SEO Brain pillars:
 

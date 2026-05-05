@@ -18,8 +18,8 @@ __pycache__/
 
 # Runtime/user data produced while testing the plugin locally.
 .seo-brain/
-projects/*
-!projects/.gitkeep
+project/*
+!project/.gitkeep
 
 # Web companion runtime state (handoff drafts, results, identity).
 .companion/

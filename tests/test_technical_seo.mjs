@@ -1,15 +1,21 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const bin = resolve(root, "bin", "seo-brain");
+const tmp = mkdtempSync(resolve(tmpdir(), "seo-brain-technical-"));
+const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: resolve(tmp, "project") };
+
+execFileSync(bin, ["project-init", "Technical test"], { cwd: root, encoding: "utf8", env });
 
 function runTechnical(fixture, pageType) {
   const stdout = execFileSync(bin, ["technical-seo", "--html-file", resolve(root, fixture), "--page-type", pageType], {
     cwd: root,
     encoding: "utf8",
+    env,
   });
   return JSON.parse(stdout);
 }
@@ -41,4 +47,5 @@ assert.ok(about.checks.some((check) => check.id === "about_schema" && check.pass
 
 assert.ok(readFileSync(resolve(root, "skills/technical-seo/SKILL.md"), "utf8").includes("home, ecommerce_product, service_product, blog, about"));
 
+rmSync(tmp, { recursive: true, force: true });
 console.log("technical seo ok");
