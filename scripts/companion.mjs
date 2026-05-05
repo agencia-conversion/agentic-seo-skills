@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 import { runCollectEnv } from "./lib/companion-types/collect-env.mjs";
 import { runApprovePage } from "./lib/companion-types/approve-page.mjs";
+import { runApproveBriefing } from "./lib/companion-types/approve-briefing.mjs";
 import { runPickCluster } from "./lib/companion-types/pick-cluster.mjs";
 import { runReviewChanges } from "./lib/companion-types/review-changes.mjs";
 
 const HANDOFFS = {
   "collect-env": runCollectEnv,
   "approve-page": runApprovePage,
+  "approve-briefing": runApproveBriefing,
   "pick-cluster": runPickCluster,
   "review-changes": runReviewChanges,
 };

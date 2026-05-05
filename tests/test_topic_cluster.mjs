@@ -121,9 +121,9 @@ const { buildClusterPage, mergeClusterPage, mergeClusterPages, renderTopicCluste
   assert.match(md, /^---/);
   assert.match(md, /auto_generated: true/);
   assert.match(md, /# Topic clusters/);
-  assert.match(md, /## Visao geral/);
+  assert.match(md, /## Visão geral/);
   assert.match(md, /## Cluster: Agentic SEO/);
-  assert.match(md, /\| Papel \| Entidade \| KW principal \| Volume \| KW Secundarias \| Funil \| Intencao de Busca \|/);
+  assert.match(md, /\| Papel \| Entidade \| KW principal \| Volume \| KW Secundárias \| Funil \| Intenção de Busca \|/);
   // Pillar row
   assert.match(md, /\| Pillar \| Agentic SEO \| agentic seo \| 320 \| seo com agentes \(90\), ai seo agent \(1100\) \| TOFU-MOFU \| informational \|/);
   // Support 1 with values
@@ -133,7 +133,7 @@ const { buildClusterPage, mergeClusterPage, mergeClusterPages, renderTopicCluste
   // Sections
   assert.match(md, /### Lacunas de completude/);
   assert.match(md, /Glossario Agentic SEO/);
-  assert.match(md, /### Questoes abertas/);
+  assert.match(md, /### Questões abertas/);
 }
 
 // renderTopicClustersMarkdown with no clusters

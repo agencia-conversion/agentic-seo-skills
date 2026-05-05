@@ -31,16 +31,21 @@ function main() {
   const lint = run("wiki-lint");
   if (!lint.ok) throw new Error("Wiki lint failed");
   run("data-setup");
-  run("keyword-research", "--keyword", "seo agentico", "--mode", "offline");
-  run("serp-extract", "--keyword", "seo agentico", "--mode", "offline");
-  run("seo-analysis", "--keyword", "seo agentico");
-  run("topic-cluster", "--seed", "seo agentico", "--hypothesis-only");
-  run("eeat", "--claim", "Metodologia propria de SEO Agentico", "--status", "gap");
-  run("content-seo", "--topic", "O que e SEO agentico", "--keyword", "seo agentico");
+  run("keyword-research", "--keyword", "seo agêntico", "--mode", "offline");
+  run("serp-extract", "--keyword", "seo agêntico", "--mode", "offline");
+  run("seo-analysis", "--keyword", "seo agêntico");
+  run("topic-cluster", "--seed", "seo agêntico", "--hypothesis-only");
+  const eeatInit = spawnSync("node", [path.join(ROOT, "scripts", "eeat.mjs"), "init", "--mode", "wiki", "--slug", "smoke"], {
+    cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR },
+  });
+  if (eeatInit.status !== 0) throw new Error(`eeat init failed: ${eeatInit.stderr}`);
+  const eeatRun = JSON.parse(eeatInit.stdout);
+  if (!eeatRun.run_id) throw new Error("eeat init did not return run_id");
+  const content = run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico", "--brief-approval", "auto");
+  if (!Array.isArray(content.brief?.outline) || content.brief.outline.length < 3) throw new Error("content-seo did not generate an outline");
   run("backlink-analysis", "--target", "example.com", "--mode", "offline");
   run("next-website-creator");
   run("payload-cms");
-  run("ux-web");
   const technical = run(
     "technical-seo",
     "--html-file",

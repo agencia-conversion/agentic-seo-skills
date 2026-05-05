@@ -87,6 +87,9 @@ Append important events to `wiki/log/index.md`:
 ## Anti-Slop Rules for Brazilian Portuguese
 
 - Use Brazilian Portuguese unless the project explicitly says otherwise.
+- Preserve correct spelling, accents, and diacritics in natural-language output. Write `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`, not ASCII transliterations.
+- Keep ASCII transliteration only for slugs, file paths, IDs, enum values, command names, provider payloads, code identifiers, or verbatim source text that originally has no diacritics.
+- Preserve user-provided names, titles, claims, excerpts, anchors, and editorial text exactly unless the task explicitly asks for rewriting.
 - Do not use American title case. Capitalize only the first word and proper nouns.
 - Avoid excessive bullets.
 - Avoid a rhythm of many one-line paragraphs.

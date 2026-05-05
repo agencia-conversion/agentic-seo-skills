@@ -45,7 +45,7 @@ try {
   const wiki = readFileSync(wikiFile, "utf8");
   assert.match(wiki, /auto_generated: true/);
   assert.match(wiki, /## Cluster: agentic seo/);
-  assert.match(wiki, /\| Papel \| Entidade \| KW principal \| Volume \| KW Secundarias \| Funil \| Intencao de Busca \|/);
+  assert.match(wiki, /\| Papel \| Entidade \| KW principal \| Volume \| KW Secundárias \| Funil \| Intenção de Busca \|/);
   assert.match(wiki, /\| Pillar \| — \| agentic seo \| — \| — \| — \| — \|/);
 
   // Log entry written

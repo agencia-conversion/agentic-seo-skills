@@ -7,6 +7,8 @@ node_modules/
 out/
 dist/*
 !dist/seo-brain.js
+!dist/lib/
+!dist/lib/player-score.js
 coverage/
 .turbo/
 .vercel/

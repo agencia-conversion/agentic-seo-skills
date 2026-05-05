@@ -1,5 +1,5 @@
 ---
-title: "Conteudos"
+title: "Conteúdos"
 status: draft
 pillar: conteudo
 owner: shared
@@ -10,18 +10,18 @@ sources: []
 judgment_level: editorial
 ---
 
-# Conteudos
+# Conteúdos
 
-Mapa editorial do projeto. Use esta pagina para humanos acompanharem o pipeline e para agentes encontrarem tom de voz, clusters e briefings.
+Mapa editorial do projeto. Use esta página para humanos acompanharem o pipeline e para agentes encontrarem tom de voz, clusters e briefings.
 
-## Referencias internas
+## Referências internas
 
 - Tom de voz: [[tom-de-voz/index]].
 - Topic clusters: [[conteudos/topic-clusters]].
-- Evidencias e fontes: [[fontes/index]].
+- Evidências e fontes: [[fontes/index]].
 
-## Lista cronologica
+## Lista cronológica
 
-| Data | Conteudo | Status | Cluster |
+| Data | Conteúdo | Status | Cluster |
 | --- | --- | --- | --- |
 |  |  |  |  |

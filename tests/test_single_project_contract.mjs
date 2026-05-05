@@ -27,6 +27,9 @@ const banned = [
   "multi-project",
   "Multi-Project",
   "default_projects_dir",
+  "project/reports/",
+  "reports/technical-seo/",
+  "../reports/",
 ];
 
 function files(path) {

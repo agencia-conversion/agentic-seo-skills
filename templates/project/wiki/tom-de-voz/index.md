@@ -12,23 +12,23 @@ judgment_level: strategic
 
 # Tom de voz
 
-Esta pagina guia conteudo publico e respostas editoriais. Por ser pagina estrategica, exemplos e principios so viram regra aprovada depois de aprovacao humana.
+Esta página guia conteúdo público e respostas editoriais. Por ser página estratégica, exemplos e princípios só viram regra aprovada depois de aprovação humana.
 
-## Principios
+## Princípios
 
 - Claro.
-- Especifico.
+- Específico.
 - Brasileiro.
 - Sem exagero promocional.
 
 ## Evitar
 
-- Titulos em Padrao Americano.
-- Metaforas traduzidas literalmente do ingles.
-- Paragrafos curtos demais em sequencia.
+- Títulos em Padrão Americano.
+- Metáforas traduzidas literalmente do inglês.
+- Parágrafos curtos demais em sequência.
 - Excesso de bullet points.
-- Frases genericas de IA.
+- Frases genéricas de IA.
 
 ## Exemplos aprovados
 
-Adicionar trechos aprovados pelo usuario conforme o projeto evoluir.
+Adicionar trechos aprovados pelo usuário conforme o projeto evoluir.

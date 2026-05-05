@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 import { Buffer } from "node:buffer";
+import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import { homedir } from "node:os";
 import * as path from "node:path";
+import { buildPlayerScoreReport } from "./lib/player-score";
 
 type AnyRecord = Record<string, any>;
 type Severity = "critical" | "error" | "warning" | "info";
@@ -12,6 +14,7 @@ const ROOT = path.resolve(__dirname, "..");
 const PROJECT_DIR = resolveProjectDir();
 const TEMPLATES_DIR = path.join(ROOT, "templates", "project");
 const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
+const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
 const REQUIRED_WIKI_PAGES = [
   "index.md",
   "eeat.md",
@@ -107,6 +110,25 @@ function appendLog(eventType: string, title: string, files: string[], summary: s
   );
 }
 
+function appendOperationalLog(eventType: string, title: string, files: string[], decision: string, summary: string, notes?: string): void {
+  const wikiLog = path.join(PROJECT_DIR, "wiki", "log", "index.md");
+  mkdirp(path.dirname(wikiLog));
+  const links = files.length ? files.map((f) => `[[${f.replace(/\.md$/, "")}]]`).join(", ") : "n/a";
+  const lines = [
+    "",
+    "",
+    `## [${today()}] ${eventType} | ${title}`,
+    "",
+    "- Type: operational-decision",
+    "- Actor: agent",
+    `- Files: ${links}`,
+    `- Decision: ${decision}`,
+    `- Summary: ${summary}`,
+  ];
+  if (notes) lines.push(`- Notes: ${notes}`);
+  fs.appendFileSync(wikiLog, lines.join("\n") + "\n", "utf8");
+}
+
 function parseFrontmatter(text: string): [AnyRecord, string] {
   if (!text.startsWith("---\n")) return [{}, text];
   const end = text.indexOf("\n---", 4);
@@ -119,6 +141,11 @@ function parseFrontmatter(text: string): [AnyRecord, string] {
     if (idx > -1 && !/^\s/.test(line)) data[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
   }
   return [data, body];
+}
+
+function cleanFrontmatterValue(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  return String(value).trim().replace(/^["']|["']$/g, "") || null;
 }
 
 export function setFrontmatterValue(file: string, updates: Record<string, string>): void {
@@ -152,26 +179,29 @@ function readEnvFile(file = path.join(ROOT, ".env")): Record<string, string> {
   return values;
 }
 
-function readHomeCredentials(): Record<string, string> {
+function readHomeCredentials(): AnyRecord {
   const file = path.join(homedir(), ".seo-brain", "credentials.json");
   if (!fs.existsSync(file)) return {};
   try {
-    const data = JSON.parse(fs.readFileSync(file, "utf8")) as AnyRecord;
-    const out: Record<string, string> = {};
-    if (data.dataforseo_login) out.DATAFORSEO_LOGIN = String(data.dataforseo_login);
-    if (data.dataforseo_password) out.DATAFORSEO_PASSWORD = String(data.dataforseo_password);
-    if (data.dataforseo_mode) out.SEO_BRAIN_DATAFORSEO_MODE = String(data.dataforseo_mode);
-    return out;
+    return readJson(file);
   } catch {
     return {};
   }
 }
 
+const HOME_CREDENTIAL_KEYS: Record<string, string> = {
+  DATAFORSEO_LOGIN: "dataforseo_login",
+  DATAFORSEO_PASSWORD: "dataforseo_password",
+  SEO_BRAIN_DATAFORSEO_MODE: "dataforseo_mode",
+};
+
 function getSecret(name: string): string {
+  const home = readHomeCredentials();
+  const homeKey = HOME_CREDENTIAL_KEYS[name];
   return (
     process.env[name] ||
     readEnvFile(path.join(PROJECT_DIR, ".env.local"))[name] ||
-    readHomeCredentials()[name] ||
+    (homeKey && home[homeKey] ? String(home[homeKey]) : "") ||
     readEnvFile()[name] ||
     ""
   );
@@ -187,6 +217,19 @@ function dataforseoCredentialsPresent(): boolean {
   const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
   const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
   return Boolean(login && password);
+}
+
+export function dataforseoCredentialStatus(): AnyRecord {
+  const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
+  const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
+  const home = readHomeCredentials();
+  return {
+    dataforseo_login: mask(login),
+    dataforseo_password: mask(password),
+    dataforseo_configured: Boolean(login && password),
+    home_credentials_present: Boolean(home.dataforseo_login && home.dataforseo_password),
+    home_mode: home.dataforseo_mode || null,
+  };
 }
 
 function resolveSeoProvider(prefer?: string): AnyRecord {
@@ -227,10 +270,31 @@ function resolveDataforseoMode(args: AnyRecord): string {
     process.env.CLAUDE_PLUGIN_OPTION_dataforseo_mode ||
     process.env.SEO_BRAIN_DATAFORSEO_MODE ||
     readEnvFile().SEO_BRAIN_DATAFORSEO_MODE ||
+    getSecret("SEO_BRAIN_DATAFORSEO_MODE") ||
     "standard";
   const mode = String(configured).trim().toLowerCase();
   if (!DATAFORSEO_MODES.has(mode)) throw new CliError(`Unsupported DataForSEO mode: ${mode}. Use one of: ${Array.from(DATAFORSEO_MODES).sort().join(", ")}.`);
   return mode;
+}
+
+function boolArg(value: unknown, fallback: boolean): boolean {
+  if (value === undefined) return fallback;
+  if (typeof value === "boolean") return value;
+  return !["0", "false", "no", "nao", "não"].includes(String(value).trim().toLowerCase());
+}
+
+function intArg(value: unknown, fallback: number, min: number, max: number): number {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(parsed)));
+}
+
+function listArg(value: unknown): string[] {
+  if (!value) return [];
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function taskIdsFromResponse(response: AnyRecord): string[] {
@@ -763,6 +827,125 @@ export function collectKeywords(args: AnyRecord): string[] {
   return Array.from(new Set(list));
 }
 
+function taskForTarget(source: AnyRecord, target: string, index = 0): AnyRecord {
+  const tasks = source.tasks || [];
+  return tasks.find((task: AnyRecord) => task.data?.target === target) || tasks[index] || {};
+}
+
+function taskResult(source: AnyRecord, target: string, index = 0): AnyRecord {
+  return taskForTarget(source, target, index).result?.[0] || {};
+}
+
+function taskItems(source: AnyRecord, target: string, index = 0): AnyRecord[] {
+  return taskResult(source, target, index).items || [];
+}
+
+function taskResultValue(source: AnyRecord, target: string, key: string, index = 0): unknown {
+  return taskResult(source, target, index)[key] ?? null;
+}
+
+function endpointStatus(source: AnyRecord, endpoint: string): AnyRecord {
+  const task = (source.tasks || [])[0] || {};
+  return {
+    endpoint,
+    status_code: source.status_code ?? null,
+    status_message: source.status_message || null,
+    task_status_code: task.status_code ?? null,
+    task_status_message: task.status_message || null,
+    cost: task.cost ?? null,
+  };
+}
+
+function backlinkPayload(args: AnyRecord, target: string, limit: number): AnyRecord {
+  return {
+    target,
+    limit,
+    include_subdomains: boolArg(args.include_subdomains, true),
+    backlinks_status_type: args.backlinks_status || "live",
+  };
+}
+
+function backlinkSummary(result: AnyRecord): AnyRecord {
+  return {
+    backlinks: result.backlinks ?? null,
+    referring_domains: result.referring_domains ?? null,
+    referring_main_domains: result.referring_main_domains ?? null,
+    rank: result.rank ?? null,
+    spam_score: result.backlinks_spam_score ?? null,
+  };
+}
+
+export function normalizeBacklinkReport(target: string, competitors: string[], source: AnyRecord, args: AnyRecord = {}): AnyRecord {
+  const summarySource = source.summary || source;
+  const ownSummary = backlinkSummary(taskResult(summarySource, target, 0));
+  const backlinksTotalCount = taskResultValue(source.backlinks || {}, target, "total_count");
+  const competitorComparison = competitors.map((competitor, i) => {
+    const summary = backlinkSummary(taskResult(summarySource, competitor, i + 1));
+    return {
+      target: competitor,
+      ...summary,
+      backlink_delta_vs_target: summary.backlinks == null || ownSummary.backlinks == null ? null : summary.backlinks - ownSummary.backlinks,
+      referring_domain_delta_vs_target: summary.referring_domains == null || ownSummary.referring_domains == null ? null : summary.referring_domains - ownSummary.referring_domains,
+    };
+  });
+  const topReferringDomains = taskItems(source.referring_domains || {}, target).map((item) => ({
+    domain: item.domain || item.domain_from || null,
+    backlinks: item.backlinks ?? null,
+    rank: item.rank ?? null,
+    first_seen: item.first_seen || null,
+    dofollow: item.backlinks_dofollow ?? null,
+  }));
+  const topAnchors = taskItems(source.anchors || {}, target).map((item) => ({
+    anchor: item.anchor || null,
+    backlinks: item.backlinks ?? null,
+    referring_domains: item.referring_domains ?? null,
+    rank: item.rank ?? null,
+    spam_score: item.backlinks_spam_score ?? null,
+  }));
+  const sampleBacklinks = taskItems(source.backlinks || {}, target).map((item) => ({
+    from: item.url_from || null,
+    to: item.url_to || null,
+    anchor: item.anchor || null,
+    domain_from: item.domain_from || null,
+    rank: item.rank ?? item.page_from_rank ?? null,
+    dofollow: item.dofollow ?? null,
+    first_seen: item.first_seen || null,
+  }));
+  const hasData = (summarySource.tasks || []).length > 0;
+  const endpointStatuses = [
+    source.summary ? endpointStatus(source.summary, "/v3/backlinks/summary/live") : null,
+    source.referring_domains ? endpointStatus(source.referring_domains, "/v3/backlinks/referring_domains/live") : null,
+    source.anchors ? endpointStatus(source.anchors, "/v3/backlinks/anchors/live") : null,
+    source.backlinks ? endpointStatus(source.backlinks, "/v3/backlinks/backlinks/live") : null,
+  ].filter(Boolean);
+  return {
+    target,
+    competitors,
+    provider: hasData ? "dataforseo" : "offline",
+    mode: source.mode || "unknown",
+    requested_mode: source.requested_mode || args.mode || null,
+    timestamp: nowIso(),
+    settings: source.settings || {},
+    endpoints: source.endpoints || [],
+    backlinks: ownSummary.backlinks ?? backlinksTotalCount,
+    referring_domains: ownSummary.referring_domains,
+    referring_main_domains: ownSummary.referring_main_domains,
+    rank: ownSummary.rank,
+    spam_score: ownSummary.spam_score,
+    summary: ownSummary,
+    top_referring_domains: topReferringDomains,
+    top_anchors: topAnchors,
+    sample_backlinks: sampleBacklinks,
+    competitor_comparison: competitorComparison,
+    endpoint_statuses: endpointStatuses,
+    note:
+      source.mode_note ||
+      (source.mode === "offline"
+        ? "Backlink metrics unavailable without a provider call."
+        : "DataForSEO Backlinks API v3 is live-only; standard requests are executed through live endpoints for this skill."),
+  };
+}
+
 function latestFile(directory: string, suffix: string): string | null {
   if (!fs.existsSync(directory)) return null;
   const files = fs
@@ -795,6 +978,37 @@ function loadKeywordMetrics(projectDir: string, keyword: string): AnyRecord | nu
   return { search_volume: primary.search_volume, competition: primary.competition, cpc: primary.cpc, source_path: path.relative(projectDir, file) };
 }
 
+function projectSettings(projectDir: string): AnyRecord {
+  const config = path.join(projectDir, ".seo-brain", "project.json");
+  const wikiIndex = path.join(projectDir, "wiki", "index.md");
+  let data: AnyRecord = {};
+  if (fs.existsSync(config)) {
+    try {
+      data = readJson(config);
+    } catch {
+      data = {};
+    }
+  }
+  if (fs.existsSync(wikiIndex)) {
+    try {
+      const [fm] = parseFrontmatter(fs.readFileSync(wikiIndex, "utf8"));
+      data = { ...data, ...fm };
+    } catch {
+      // Keep project.json/defaults when the Wiki index is not parseable.
+    }
+  }
+  const clean = (value: unknown, fallback: string) => String(value || fallback).trim().replace(/^["']|["']$/g, "");
+  const market = clean(data.market, "Brasil");
+  const language = clean(data.language, "pt-BR");
+  return {
+    market,
+    country: clean(data.country, market),
+    language,
+    dataforseo_location: clean(data.dataforseo_location, market.toLowerCase() === "brasil" ? "Brazil" : market),
+    dataforseo_language: clean(data.dataforseo_language, language.toLowerCase().startsWith("pt") ? "pt" : language.slice(0, 2).toLowerCase()),
+  };
+}
+
 function projectDisplayName(projectDir: string): string {
   const config = path.join(projectDir, ".seo-brain", "project.json");
   if (!fs.existsSync(config)) return "SEO Brain";
@@ -805,12 +1019,40 @@ function projectDisplayName(projectDir: string): string {
   }
 }
 
+function shouldAutoOpenDataSetup(args: AnyRecord): boolean {
+  if (args.handoff || args.web) return true;
+  if (args.no_handoff || args.check || process.env.CI === "true") return false;
+  return !dataforseoCredentialsPresent() && Boolean(process.stdin.isTTY || process.stdout.isTTY);
+}
+
+function runDataSetupHandoff(): AnyRecord {
+  const result = spawnSync(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "collect-env"], {
+    cwd: ROOT,
+    env: process.env,
+    stdio: "inherit",
+  });
+  if (result.error) return { ok: false, reason: result.error.message };
+  if (result.status !== 0) return { ok: false, reason: `handoff-exit-${result.status}` };
+  return { ok: true };
+}
+
 async function commandProjectInit(args: AnyRecord): Promise<void> {
   const name = args._[0] || "SEO Brain Project";
   const p = PROJECT_DIR;
+  const language = args.language || "pt-BR";
+  const market = args.market || "Brasil";
+  const country = args.country || market;
   for (const dir of ["wiki", "web", "sources", "workbench", "artifacts", ".seo-brain"]) mkdirp(path.join(p, dir));
   copyDir(path.join(TEMPLATES_DIR, "wiki"), path.join(p, "wiki"));
-  writeJson(path.join(p, ".seo-brain", "project.json"), { name, created_at: nowIso(), language: args.language || "pt-BR", market: args.market || "Brasil", status: "draft" });
+  writeJson(path.join(p, ".seo-brain", "project.json"), { name, created_at: nowIso(), language, market, country, status: "draft" });
+  const wikiIndex = path.join(p, "wiki", "index.md");
+  setFrontmatterValue(wikiIndex, { language: JSON.stringify(language), market: JSON.stringify(market), country: JSON.stringify(country) });
+  writeText(
+    wikiIndex,
+    fs.readFileSync(wikiIndex, "utf8")
+      .replace(/- Pa[ií]s\/mercado de atua[cç][aã]o: .*/, `- País/mercado de atuação: ${country}.`)
+      .replace(/- Idioma principal: .*/, `- Idioma principal: ${language}.`),
+  );
   appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado.`, "pending");
   printJson({ ok: true, project_dir: p });
 }
@@ -871,7 +1113,7 @@ async function commandWikiApprove(args: AnyRecord): Promise<void> {
   const file = path.join(ensureProject(), "wiki", rel);
   if (!fs.existsSync(file)) throw new CliError(`Wiki page not found: ${file}`);
   setFrontmatterValue(file, { status: "approved", approved_by: JSON.stringify(by), approved_at: JSON.stringify(nowIso()), last_reviewed: JSON.stringify(today()) });
-  appendLog("approval", rel, [rel.replace(/\.md$/, "")], `Pagina ${rel} aprovada por ${by}.`, "approved");
+  appendLog("approval", rel, [rel.replace(/\.md$/, "")], `Página ${rel} aprovada por ${by}.`, "approved");
   printJson({ ok: true, approved: rel, by });
 }
 
@@ -887,26 +1129,34 @@ async function commandWikiIngest(args: AnyRecord): Promise<void> {
 }
 
 async function commandDataSetup(args: AnyRecord): Promise<void> {
+  if (shouldAutoOpenDataSetup(args)) {
+    const handoff = runDataSetupHandoff();
+    if (!handoff.ok) throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
+  }
   const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
   const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
   const mode = resolveDataforseoMode(args);
   const decision = resolveSeoProvider();
+  const credentialStatus = dataforseoCredentialStatus();
   const status: AnyRecord = {
-    dataforseo_login: mask(login),
-    dataforseo_password: mask(password),
+    dataforseo_login: credentialStatus.dataforseo_login,
+    dataforseo_password: credentialStatus.dataforseo_password,
     default_mode: mode,
-    dataforseo_configured: Boolean(login && password),
+    dataforseo_configured: credentialStatus.dataforseo_configured,
+    home_credentials_present: credentialStatus.home_credentials_present,
     websearch_available: true,
     provider_default: decision.provider,
     provider_default_reason: decision.reason,
     modes: {
-      live: "ultrarrapido: usa endpoints /live; retorna em segundos e costuma custar mais.",
-      standard: "medio: usa task_post + polling task_get; padrao do SEO Brain.",
-      async: "assincrono: usa task_post com pingback_url/postback_url quando informado.",
-      offline: "teste local: nao chama a DataForSEO.",
+      live: "ultrarrápido: usa endpoints /live; retorna em segundos e costuma custar mais.",
+      standard: "médio: usa task_post + polling task_get; padrão do SEO Brain.",
+      async: "assíncrono: usa task_post com pingback_url/postback_url quando informado.",
+      offline: "teste local: não chama a DataForSEO.",
     },
     credentials_present: Boolean(login && password),
     checked_live: Boolean(args.check),
+    setup_handoff_available: true,
+    setup_handoff_command: "bin/seo-brain data-setup --handoff",
   };
   if (args.check) {
     try {
@@ -924,14 +1174,17 @@ async function commandDataSetup(args: AnyRecord): Promise<void> {
 async function commandSerpExtract(args: AnyRecord): Promise<void> {
   const keyword = required(args, "keyword");
   const p = ensureProject();
+  const settings = projectSettings(p);
   const mode = resolveDataforseoMode(args);
-  const payload = [{ keyword, location_name: args.location || "Brazil", language_code: args.language || "pt", device: args.device || "desktop", depth: Number(args.depth || 10) }];
+  const location = args.location || settings.dataforseo_location;
+  const language = args.language || settings.dataforseo_language;
+  const payload = [{ keyword, location_name: location, language_code: language, device: args.device || "desktop", depth: Number(args.depth || 10) }];
   let source: AnyRecord;
   if (mode === "live") source = { ...(await dataforseoRequest("POST", "/v3/serp/google/organic/live/advanced", payload, Boolean(args.sandbox))), mode: "live" };
   else if (mode === "standard") source = await dataforseoStandardTask("/v3/serp/google/organic/task_post", "/v3/serp/google/organic/task_get/advanced/{id}", payload, Boolean(args.sandbox), Number(args.poll_interval || 10), Number(args.timeout || 180));
   else if (mode === "async") source = await dataforseoAsyncTask("/v3/serp/google/organic/task_post", payload, Boolean(args.sandbox), args.pingback_url, args.postback_url, args.postback_data || "advanced");
   else source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode standard or --mode live to fetch DataForSEO SERP data." };
-  const normalized = normalizeSerp(source, keyword, args.location || "Brazil", args.language || "pt", args.device || "desktop");
+  const normalized = normalizeSerp(source, keyword, location, language, args.device || "desktop");
   const base = path.join(p, "sources", "serp", `${stamp()}-${slugify(keyword)}`);
   writeJson(`${base}.raw.json`, source);
   writeJson(`${base}.normalized.json`, normalized);
@@ -965,11 +1218,14 @@ async function commandKeywordResearch(args: AnyRecord): Promise<void> {
 }
 
 async function runKeywordVolume(args: AnyRecord, projectDir: string): Promise<void> {
+  const settings = projectSettings(projectDir);
   const keywords = collectKeywords(args);
   const isBulk = keywords.length > 1;
-  const payload = [{ keywords, location_name: args.location || "Brazil", language_code: args.language || "pt" }];
+  const location = args.location || settings.dataforseo_location;
+  const language = args.language || settings.dataforseo_language;
+  const payload = [{ keywords, location_name: location, language_code: language }];
   const source = await runDataforseoCall(VOLUME_ENDPOINTS, payload, args);
-  const normalized = normalizeKeywords(source, keywords, args.location || "Brazil", args.language || "pt");
+  const normalized = normalizeKeywords(source, keywords, location, language);
   const slug = isBulk ? `bulk-${keywords.length}` : slugify(keywords[0]);
   const ts = stamp();
   const base = path.join(projectDir, "sources", "keyword-research", `${ts}-${slug}`);
@@ -984,25 +1240,31 @@ async function runKeywordVolume(args: AnyRecord, projectDir: string): Promise<vo
 async function runKeywordSuggestions(args: AnyRecord, projectDir: string): Promise<void> {
   const seed = required(args, "keyword");
   const limit = Math.max(1, Math.min(1000, Number(args.limit || 100)));
-  const payload = [{ keyword: seed, location_name: args.location || "Brazil", language_code: args.language || "pt", limit, include_seed_keyword: true }];
+  const settings = projectSettings(projectDir);
+  const location = args.location || settings.dataforseo_location;
+  const language = args.language || settings.dataforseo_language;
+  const payload = [{ keyword: seed, location_name: location, language_code: language, limit, include_seed_keyword: true }];
   const source = await runDataforseoCall(SUGGESTIONS_ENDPOINTS, payload, args);
-  const normalized = normalizeSuggestions(source, seed, args.location || "Brazil", args.language || "pt");
+  const normalized = normalizeSuggestions(source, seed, location, language);
   const slug = slugify(seed);
   const ts = stamp();
   const base = path.join(projectDir, "sources", "keyword-research", `${ts}-${slug}.suggestions`);
   writeJson(`${base}.raw.json`, source);
   writeJson(`${base}.normalized.json`, normalized);
   writeJson(path.join(projectDir, "workbench", "keyword-research", `${ts}-${slug}.suggestions.json`), normalized);
-  appendLog("keyword-suggestions", seed, [path.relative(projectDir, `${base}.normalized.json`)], `Sugestoes de keyword registradas (${normalized.keywords.length} itens).`, "not-required");
+  appendLog("keyword-suggestions", seed, [path.relative(projectDir, `${base}.normalized.json`)], `Sugestões de keyword registradas (${normalized.keywords.length} itens).`, "not-required");
   printJson(normalized);
 }
 
 async function commandKwVolume(args: AnyRecord): Promise<void> {
-  ensureProject();
+  const p = ensureProject();
+  const settings = projectSettings(p);
   const keywords = collectKeywords(args);
-  const payload = [{ keywords, location_name: args.location || "Brazil", language_code: args.language || "pt" }];
+  const location = args.location || settings.dataforseo_location;
+  const language = args.language || settings.dataforseo_language;
+  const payload = [{ keywords, location_name: location, language_code: language }];
   const source = await runDataforseoCall(VOLUME_ENDPOINTS, payload, args);
-  const normalized = normalizeKeywords(source, keywords, args.location || "Brazil", args.language || "pt");
+  const normalized = normalizeKeywords(source, keywords, location, language);
   const lean = {
     provider: normalized.provider,
     mode: normalized.mode,
@@ -1019,25 +1281,66 @@ async function commandBacklinkAnalysis(args: AnyRecord): Promise<void> {
   const target = required(args, "target");
   const p = ensureProject();
   const mode = resolveDataforseoMode(args);
-  const payload = [{ target, include_subdomains: true, backlinks_status_type: "live" }];
+  const competitors = listArg(args.competitors || args.competitor);
+  const limit = intArg(args.limit, 10, 1, 1000);
+  const includeSubdomains = boolArg(args.include_subdomains, true);
+  const statusType = String(args.backlinks_status || "live").trim().toLowerCase();
+  if (!BACKLINK_STATUS_TYPES.has(statusType)) throw new CliError(`Unsupported backlinks status: ${statusType}. Use all, live, or lost.`);
+  args.backlinks_status = statusType;
+  const summaryPayload = [target, ...competitors].map((item) => ({
+    target: item,
+    internal_list_limit: limit,
+    include_subdomains: includeSubdomains,
+    backlinks_status_type: statusType,
+  }));
+  const detailPayload = backlinkPayload(args, target, limit);
   let source: AnyRecord;
   if (mode === "live" || mode === "standard") {
-    source = { ...(await dataforseoRequest("POST", "/v3/backlinks/summary/live", payload, Boolean(args.sandbox))), mode: "live" };
-    if (mode === "standard") source.mode_note = "DataForSEO Backlinks API supports only Live retrieval; standard maps to live for backlinks.";
+    if (!dataforseoCredentialsPresent()) {
+      if (shouldAutoOpenDataSetup(args)) {
+        const handoff = runDataSetupHandoff();
+        if (!handoff.ok) throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
+      }
+      if (!dataforseoCredentialsPresent()) throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+    }
+    const summary = await dataforseoRequest("POST", "/v3/backlinks/summary/live", summaryPayload, Boolean(args.sandbox));
+    const referringDomains = await dataforseoRequest("POST", "/v3/backlinks/referring_domains/live", [{ ...detailPayload, order_by: ["backlinks,desc"] }], Boolean(args.sandbox));
+    const anchors = await dataforseoRequest("POST", "/v3/backlinks/anchors/live", [{ ...detailPayload, order_by: ["backlinks,desc"] }], Boolean(args.sandbox));
+    const backlinks = await dataforseoRequest("POST", "/v3/backlinks/backlinks/live", [{ ...detailPayload, mode: args.backlink_mode || "as_is", order_by: ["rank,desc"] }], Boolean(args.sandbox));
+    source = {
+      mode: "live",
+      requested_mode: mode,
+      mode_note: mode === "standard" ? "DataForSEO Backlinks API supports only Live retrieval; standard maps to live for backlinks." : undefined,
+      settings: { limit, include_subdomains: includeSubdomains, backlinks_status_type: statusType, backlink_mode: args.backlink_mode || "as_is" },
+      endpoints: ["/v3/backlinks/summary/live", "/v3/backlinks/referring_domains/live", "/v3/backlinks/anchors/live", "/v3/backlinks/backlinks/live"],
+      summary,
+      referring_domains: referringDomains,
+      anchors,
+      backlinks,
+    };
   } else if (mode === "async") throw new CliError("DataForSEO Backlinks API supports only Live retrieval in v3; async is not available for backlink-analysis.");
-  else source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode live or --mode standard to fetch DataForSEO backlink data." };
-  const result = source.tasks?.length ? source.tasks[0].result?.[0] || {} : {};
-  const normalized = { target, provider: source.tasks?.length ? "dataforseo" : "offline", mode: source.mode || "unknown", timestamp: nowIso(), backlinks: result.backlinks, referring_domains: result.referring_domains, referring_main_domains: result.referring_main_domains, rank: result.rank, spam_score: result.backlinks_spam_score, note: source.mode_note || (source.tasks?.length ? null : "Backlink metrics unavailable without a provider call.") };
+  else
+    source = {
+      status_code: "offline",
+      mode: "offline",
+      requested_mode: mode,
+      tasks: [],
+      settings: { limit, include_subdomains: includeSubdomains, backlinks_status_type: statusType, backlink_mode: args.backlink_mode || "as_is" },
+      endpoints: ["/v3/backlinks/summary/live", "/v3/backlinks/referring_domains/live", "/v3/backlinks/anchors/live", "/v3/backlinks/backlinks/live"],
+      note: "Run with --mode live or --mode standard to fetch DataForSEO backlink data.",
+    };
+  const normalized = normalizeBacklinkReport(target, competitors, source, args);
   const base = path.join(p, "sources", "backlinks", `${stamp()}-${slugify(target)}`);
   writeJson(`${base}.raw.json`, source);
   writeJson(path.join(p, "workbench", "backlinks", `${stamp()}-${slugify(target)}.json`), normalized);
-  appendLog("backlinks", target, [path.relative(p, `${base}.raw.json`)], "Analise de backlinks registrada.", "not-required");
+  appendLog("backlinks", target, [path.relative(p, `${base}.raw.json`)], "Análise de backlinks registrada.", "not-required");
   printJson(normalized);
 }
 
 async function commandSeoAnalysis(args: AnyRecord): Promise<void> {
   const keyword = required(args, "keyword");
   const p = ensureProject();
+  const settings = projectSettings(p);
   const decision = resolveSeoProvider(args.provider || "auto");
   const organic = decision.provider === "dataforseo" ? loadDataforseoSerpResults(p, keyword, args.serp_file) : loadWebsearchResults(p, keyword, args.websearch_file);
   const keywordMetrics = decision.provider === "dataforseo" ? loadKeywordMetrics(p, keyword) : null;
@@ -1060,10 +1363,18 @@ async function commandSeoAnalysis(args: AnyRecord): Promise<void> {
   if (incomplete) limitations.push(`Apenas ${topResults.length} resultados disponíveis; ideal >=5.`);
   if (decision.provider === "websearch" && !topResults.length) limitations.push(`Nenhum resultado em sources/websearch/${slugify(keyword)}.json. Rode WebSearch e grave o JSON antes de reexecutar.`);
   if (decision.provider === "dataforseo" && keywordMetrics === null) limitations.push("Sem keyword-research recente para enriquecer keyword_metrics.");
-  const report = {
+  let report: AnyRecord = {
     keyword,
     provider: decision.provider,
     provider_reason: decision.reason,
+    market_context: {
+      market: args.market || settings.market,
+      country: args.country || settings.country,
+      language: args.language || settings.language,
+      location: args.location || settings.dataforseo_location,
+      provider_language: args.provider_language || settings.dataforseo_language,
+      device: args.device || "desktop",
+    },
     keyword_metrics: keywordMetrics,
     top_results: topResults,
     competitors,
@@ -1071,15 +1382,32 @@ async function commandSeoAnalysis(args: AnyRecord): Promise<void> {
     heading_patterns: competitors
       .map((c: AnyRecord) => ({ url: c.serp.url, h1: (c.page.headings || []).find((h: AnyRecord) => h.level === "h1")?.text || "", h2_count: (c.page.headings || []).filter((h: AnyRecord) => h.level === "h2").length }))
       .filter((item) => item.h1 || item.h2_count),
-    gaps: ["Mapear entidades e subtopicos pouco cobertos pelo top 3.", "Confirmar formato dominante: artigo, listicle, guia passo a passo.", "Identificar perguntas reais do leitor nao respondidas pelos competidores."],
-    improvement_hypotheses: ["Cobertura mais densa de exemplos brasileiros do que os concorrentes.", "EEAT explicito com autoria e proveniencia declarada, ausente em parte do top 3.", "Estrutura de heading que responda a intencao observada antes de aprofundar."],
+    gaps: ["Mapear entidades e subtópicos pouco cobertos pelo top 3.", "Confirmar formato dominante: artigo, listicle, guia passo a passo.", "Identificar perguntas reais do leitor não respondidas pelos competidores."],
+    improvement_hypotheses: ["Cobertura mais densa de exemplos brasileiros do que os concorrentes.", "EEAT explícito com autoria e proveniência declarada, ausente em parte do top 3.", "Estrutura de heading que responda à intenção observada antes de aprofundar."],
     limitations,
     incomplete,
     generated_at: nowIso(),
   };
+  if (args.player_score) {
+    report = await buildPlayerScoreReport(args, report, {
+      rootDir: ROOT,
+      projectDir: p,
+      required,
+      normalizePageType,
+      readJson,
+      writeJson,
+      writeText,
+      fetchUrl,
+      extractHtml,
+      auditTechnicalSeo,
+      renderTechnicalMarkdown,
+      slugify,
+      stamp,
+    });
+  }
   const out = path.join(p, "workbench", "seo-analysis", `${slugify(keyword)}.json`);
   writeJson(out, report);
-  appendLog("seo-analysis", keyword, [path.relative(p, out)], `Analise SEO via ${decision.provider} (${topResults.length} resultados).`, "not-required");
+  appendLog("seo-analysis", keyword, [path.relative(p, out), ...(report.technical_seo_reports || [])], `Análise SEO via ${decision.provider} (${topResults.length} resultados${args.player_score ? "; player score ativo" : ""}).`, "not-required");
   printJson(report);
 }
 
@@ -1172,11 +1500,14 @@ async function commandTopicCluster(args: AnyRecord): Promise<void> {
     return;
   }
 
-  const hypothesisOnly = Boolean(args.hypothesis_only);
+  const settings = projectSettings(p);
+  const requestedHypothesisOnly = Boolean(args.hypothesis_only);
+  const credsMissing = !dataforseoCredentialsPresent();
+  const hypothesisOnly = requestedHypothesisOnly || credsMissing;
   const maxSupports = Math.max(1, Math.min(20, Number(args.max_supports || 7)));
-  const language = args.language || "pt-BR";
-  const location = args.location || "Brazil";
-  const langCode = String(language).split("-")[0] || "pt";
+  const language = args.language || settings.language || "pt-BR";
+  const location = args.location || settings.dataforseo_location || "Brazil";
+  const langCode = settings.dataforseo_language || String(language).split("-")[0] || "pt";
 
   let suggestions: AnyRecord = { keywords: [], provider: null };
   let ideas: AnyRecord = { keywords: [], provider: null };
@@ -1184,7 +1515,6 @@ async function commandTopicCluster(args: AnyRecord): Promise<void> {
   const serpByKeyword = new Map<string, AnyRecord>();
 
   if (!hypothesisOnly) {
-    if (!dataforseoCredentialsPresent()) throw new CliError("DataForSEO credentials missing. Set DATAFORSEO_LOGIN/DATAFORSEO_PASSWORD or rerun with --hypothesis-only.");
     const limit = Math.max(maxSupports * 4, 50);
     const tsSugg = stamp();
     const baseSugg = path.join(p, "sources", "keyword-research", `${tsSugg}-${seedSlug}.suggestions`);
@@ -1256,6 +1586,7 @@ async function commandTopicCluster(args: AnyRecord): Promise<void> {
       pool_size: pool.length,
       serp: serpByKeyword.size ? { provider: serpProvider, keyword_count: serpByKeyword.size } : null,
       hypothesis_only: hypothesisOnly || null,
+      hypothesis_reason: hypothesisOnly ? (requestedHypothesisOnly ? "requested" : "dataforseo-credentials-missing") : null,
     },
     pillar: mergedPillar,
     supporting_pages: mergedSupports,
@@ -1298,14 +1629,14 @@ export function renderTopicClustersMarkdown(clusters: AnyRecord[]): string {
   lines.push("");
   lines.push("# Topic clusters");
   lines.push("");
-  lines.push("Auto-gerado a partir de `workbench/topic-cluster/*.json`. Os campos de julgamento (title, entity, keywords_secondary, funnel_stage, serp_intent, judgment) sao editados nos JSONs; rode `bin/seo-brain topic-cluster --seed <seed> --render-only` para regenerar esta pagina.");
+  lines.push("Auto-gerado a partir de `workbench/topic-cluster/*.json`. Os campos de julgamento (title, entity, keywords_secondary, funnel_stage, serp_intent, judgment) são editados nos JSONs; rode `bin/seo-brain topic-cluster --seed <seed> --render-only` para regenerar esta página.");
   lines.push("");
   if (!clusters.length) {
     lines.push("Nenhum cluster registrado.");
     lines.push("");
     return lines.join("\n");
   }
-  lines.push("## Visao geral");
+  lines.push("## Visão geral");
   lines.push("");
   lines.push("| Cluster | Pillar | Status | Suportes | Idioma |");
   lines.push("| --- | --- | --- | --- | --- |");
@@ -1335,9 +1666,9 @@ function renderClusterSection(c: AnyRecord): string[] {
   lines.push(`- Idioma/Localidade: ${c.language || "—"} / ${c.location || "—"}`);
   lines.push(`- Gerado em: ${c.generated_at || "—"}`);
   if (provBits.length) lines.push(`- Provenance: ${provBits.join(" · ")}`);
-  if (c.business_goal?.primary) lines.push(`- Objetivo de negocio: ${c.business_goal.primary}`);
+  if (c.business_goal?.primary) lines.push(`- Objetivo de negócio: ${c.business_goal.primary}`);
   lines.push("");
-  lines.push("| Papel | Entidade | KW principal | Volume | KW Secundarias | Funil | Intencao de Busca |");
+  lines.push("| Papel | Entidade | KW principal | Volume | KW Secundárias | Funil | Intenção de Busca |");
   lines.push("| --- | --- | --- | --- | --- | --- | --- |");
   if (c.pillar) lines.push(renderPageRow({ ...c.pillar, role: "pillar" }));
   for (const s of c.supporting_pages || []) lines.push(renderPageRow({ ...s, role: s.role === "pillar" ? "pillar" : "support" }));
@@ -1349,7 +1680,7 @@ function renderClusterSection(c: AnyRecord): string[] {
   }
   if (Array.isArray(c.open_questions) && c.open_questions.length) {
     lines.push("");
-    lines.push("### Questoes abertas");
+    lines.push("### Questões abertas");
     lines.push("");
     for (const q of c.open_questions) lines.push(`- ${q}`);
   }
@@ -1374,17 +1705,41 @@ function escapeCell(value: string): string {
   return value.replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
-async function commandEeat(args: AnyRecord): Promise<void> {
-  const p = ensureProject();
-  const page = path.join(p, "wiki", "eeat.md");
-  if (!fs.existsSync(page)) fs.copyFileSync(path.join(TEMPLATES_DIR, "wiki", "eeat.md"), page);
-  const evidence = { claim: args.claim || "Evidencia a mapear", source: args.source || "sem fonte", status: args.status || "gap", timestamp: nowIso() };
-  const report = { timestamp: nowIso(), evidence, rules: ["Nao inventar experiencia, clientes, credenciais, premios ou provas.", "Marcar alegacoes sem fonte como gap.", "Manter wiki/eeat.md em draft ou needs-review ate aprovacao explicita."] };
-  fs.appendFileSync(page, `\n\n## Evidencia registrada\n\n- Alegacao: ${evidence.claim}\n- Fonte: ${evidence.source}\n- Status: ${evidence.status}\n`, "utf8");
-  const out = path.join(p, "workbench", "eeat", `${stamp()}.json`);
-  writeJson(out, report);
-  appendLog("eeat", "Evidencia EEAT", ["eeat", path.relative(p, out)], "Evidencia ou lacuna EEAT registrada.", "pending");
-  printJson(report);
+async function commandEeat(_args: AnyRecord): Promise<void> {
+  const message = "The eeat command is now driven by the /seo-brain:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. Run: node scripts/eeat.mjs init --mode wiki   (or --mode url --url https://...). See skills/eeat/SKILL.md for the contract.";
+  printJson({ ok: false, error: message });
+  throw new CliError(message);
+}
+
+function yamlString(value: unknown): string {
+  return JSON.stringify(String(value ?? ""));
+}
+
+function buildContentOutline(topic: string, analysisData: AnyRecord | null): AnyRecord[] {
+  const gap = analysisData?.gaps?.[0] || "subtópicos pouco cobertos pelo resultado atual";
+  const hypothesis = analysisData?.improvement_hypotheses?.[0] || "um ângulo mais claro e verificável para o leitor";
+  return [
+    { level: 1, title: topic, purpose: "Abrir com resposta direta alinhada à intenção de busca." },
+    { level: 2, title: "O que considerar primeiro", purpose: `Cobrir ${gap}.` },
+    { level: 2, title: "Como estruturar a decisão", purpose: `Transformar ${hypothesis} em critérios práticos.` },
+    { level: 2, title: "Cuidados editoriais", purpose: "Separar evidência, hipótese e recomendação sem slop de IA." },
+    { level: 2, title: "Próximo passo", purpose: "Fechar com uma ação concreta e verificável para o leitor." },
+  ];
+}
+
+function renderContentDraft(report: AnyRecord): string {
+  const topic = String(report.topic || "Conteudo");
+  const keyword = String(report.keyword || topic);
+  const slug = String(report.topic_slug || slugify(topic));
+  const intent = String(report.brief?.intent || "mixed");
+  const mustInclude = Array.isArray(report.brief?.must_include) ? report.brief.must_include : [];
+  const outline = Array.isArray(report.brief?.outline) ? report.brief.outline : buildContentOutline(topic, null);
+  const sectionTitles = outline.filter((item: AnyRecord) => Number(item.level) === 2).map((item: AnyRecord) => String(item.title));
+  const voiceStatus = String(report.voice_context?.status || "missing");
+  const firstInclude = String(mustInclude[0] || "uma resposta direta");
+  const secondInclude = String(mustInclude[1] || "critérios práticos");
+  const [first, second, third, fourth] = [...sectionTitles, "O que considerar primeiro", "Como estruturar a decisão", "Cuidados editoriais", "Próximo passo"];
+  return `---\ntitle: ${yamlString(topic)}\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${slug}/"\nprimary_keyword: ${yamlString(keyword)}\nbrief_status: approved\nvoice_status: ${yamlString(voiceStatus)}\nsources: []\n---\n\n# ${topic}\n\nQuem pesquisa por ${keyword} precisa de uma resposta clara antes de entrar em detalhes. Como a intenção principal é ${intent}, o primeiro bloco deve entregar ${firstInclude} e depois aprofundar conceitos, critérios e próximos passos.\n\n## ${first}\n\nComece delimitando o problema que o leitor quer resolver. Separe o que já está sustentado por evidência do que ainda depende de validação, sem transformar hipótese em promessa.\n\n## ${second}\n\nUse ${secondInclude} para ajudar o leitor a comparar caminhos possíveis. Quando houver exemplos, eles devem ser verificáveis e relevantes para o contexto brasileiro.\n\n## ${third}\n\nO texto deve evitar excesso de listas, ritmo artificial de parágrafos muito curtos e frases promocionais sem prova. Links e citações entram apenas quando ajudam a sustentar uma afirmação específica.\n\n## ${fourth}\n\nDefina a ação mais útil para o leitor depois da explicação principal. Se houver uma recomendação, deixe claro quais evidências sustentam essa orientação e quais pontos ainda precisam ser confirmados.\n`;
 }
 
 async function commandContentSeo(args: AnyRecord): Promise<void> {
@@ -1393,12 +1748,22 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
   const topicSlug = slugify(topic);
   const keyword = args.keyword || topic;
   const keywordSlug = slugify(keyword);
+  const briefApproval = String(args.brief_approval || "auto").trim().toLowerCase();
+  if (!["auto", "manual", "handoff"].includes(briefApproval)) throw new CliError("Unsupported --brief-approval. Use auto, manual, or handoff.");
   const analysisFile = path.join(p, "workbench", "seo-analysis", `${keywordSlug}.json`);
-  if (!fs.existsSync(analysisFile) && !args.skip_data) throw new CliError(`Missing seo-analysis for this topic. Run: bin/seo-brain seo-analysis --keyword "${keyword}" or rerun content-seo with --skip-data --skip-data-reason "motivo claro" para gerar um briefing sem proveniencia de SERP.`);
+  if (!fs.existsSync(analysisFile) && !args.skip_data) throw new CliError(`Missing seo-analysis for this topic. Run: bin/seo-brain seo-analysis --keyword "${keyword}". Only rerun content-seo with --skip-data --skip-data-confirmed --skip-data-reason "motivo claro" if the user explicitly approved bypassing SERP analysis.`);
   if (args.skip_data && !args.skip_data_reason) throw new CliError('--skip-data requires --skip-data-reason "motivo claro".');
+  if (args.skip_data && !args.skip_data_confirmed) throw new CliError("--skip-data requires --skip-data-confirmed after explicit user approval to bypass SEO analysis.");
   const analysisData = fs.existsSync(analysisFile) ? readJson(analysisFile) : null;
   const mustNotMention = Array.from(new Set((analysisData?.top_results || []).map((entry: AnyRecord) => String(entry.domain || "").trim().toLowerCase()).filter(Boolean))).sort();
   const provenance = analysisData ? { path: path.relative(p, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason, generated_at: analysisData.generated_at } : { path: null, provider: null, provider_reason: `skip-data: ${args.skip_data_reason}` };
+  const voicePath = path.join(p, "wiki", "tom-de-voz", "index.md");
+  const [voiceFm] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
+  const voiceContext = {
+    path: fs.existsSync(voicePath) ? path.relative(p, voicePath) : null,
+    status: cleanFrontmatterValue(voiceFm.status) || "missing",
+    title: cleanFrontmatterValue(voiceFm.title) || "Tom de voz",
+  };
   const report = {
     topic,
     topic_slug: topicSlug,
@@ -1406,20 +1771,72 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
     keyword_slug: keywordSlug,
     generated_at: nowIso(),
     data_provenance: { seo_analysis: provenance },
+    process_bypass: args.skip_data
+      ? { step: "seo-analysis", confirmed: true, reason: args.skip_data_reason, consequence: "Briefing is not backed by SERP or competitor analysis." }
+      : null,
     brief: {
       intent: analysisData?.intent || "to-be-validated",
-      reader_need: "Responder com profundidade, sem cair em padroes genericos de IA.",
-      must_include: ["definicao direta no inicio", "criterios praticos de decisao", "exemplos brasileiros verificaveis", "proximos passos para o leitor"],
-      must_avoid: ["titulo em padrao americano", "URL ou slug interno em prosa", "voz de Wiki em texto publico", "anchor text generico tipo clique aqui", "mencao em prosa a dominio que aparece no top_results da analise SEO", "referencia a fonte externa fora de backlink Markdown", "sequencia longa de paragrafos de uma linha", "metaforas traduzidas literalmente do ingles", "adjetivos vazios como robusto, completo, lider"],
+      reader_need: "Responder com profundidade, sem cair em padrões genéricos de IA.",
+      must_include: ["definição direta no início", "critérios práticos de decisão", "exemplos brasileiros verificáveis", "próximos passos para o leitor"],
+      must_avoid: ["título em padrão americano", "URL ou slug interno em prosa", "voz de Wiki em texto público", "anchor text genérico tipo clique aqui", "menção em prosa a domínio que aparece no top_results da análise SEO", "referência a fonte externa fora de backlink Markdown", "sequência longa de parágrafos de uma linha", "metáforas traduzidas literalmente do inglês", "adjetivos vazios como robusto, completo, líder"],
+      outline: buildContentOutline(topic, analysisData),
     },
-    voice_check: { audience: "leitor de blog publico que entende SEO", tense_perspective: "terceira pessoa, voz informativa", link_test: "remover qualquer link e a frase deve continuar coerente" },
+    voice_check: { audience: "leitor de blog público que entende SEO", tense_perspective: "terceira pessoa, voz informativa", link_test: "remover qualquer link e a frase deve continuar coerente" },
+    voice_context: voiceContext,
     must_not_mention_in_prose: mustNotMention,
-    draft_status: "outline",
+    approval: {
+      mode: briefApproval,
+      status: briefApproval === "auto" ? "approved" : "pending",
+      approved_by: briefApproval === "auto" ? "agent:auto" : null,
+      decided_at: briefApproval === "auto" ? nowIso() : null,
+      notes: briefApproval === "auto" ? "Auto-approved by --brief-approval auto." : null,
+    },
+    draft_status: briefApproval === "auto" ? "approved-for-writing" : "briefing",
   };
-  writeJson(path.join(p, "workbench", "content", `${topicSlug}.brief.json`), report);
-  writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), `---\ntitle: "${topic}"\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${topicSlug}/"\nprimary_keyword: "${keyword}"\nsources: []\n---\n\n# ${topic}\n\n## Briefing\n\nIntencao, angulo e argumentos foram derivados de workbench/seo-analysis/${keywordSlug}.json.\nReescrever para o leitor de blog: sem expor URL interna em prosa, sem voz de Wiki.\n\n## Estrutura proposta\n\n1. Resposta direta no topo.\n2. Definicao clara, com escopo e limites.\n3. Criterios praticos.\n4. Exemplos brasileiros verificaveis.\n5. Proximo passo concreto.\n\n## Revisao anti-slop e registro de publicacao\n\n- Titulo em frase normal, sem padrao americano.\n- Nenhum path interno aparece em prosa.\n- Links internos usam o titulo da pagina de destino como anchor text.\n- Cada frase com link continua coerente sem o link.\n- Evitar sequencia longa de paragrafos de uma linha.\n- Reduzir bullets quando a explicacao pedir desenvolvimento.\n`);
-  appendLog("content", topic, [`conteudos/${topicSlug}`], "Briefing e estrutura de conteudo criados.", "pending");
-  printJson(report);
+  const briefPath = path.join(p, "workbench", "content", `${topicSlug}.brief.json`);
+  writeJson(briefPath, report);
+  appendOperationalLog("content-briefing", topic, [path.relative(p, briefPath)], report.approval.status, `Briefing criado em modo ${briefApproval}.`);
+
+  if (briefApproval === "manual") {
+    printJson({
+      ...report,
+      next_handoff_command: `node scripts/companion.mjs approve-briefing --project-root "${p}" --brief "${briefPath}"`,
+    });
+    return;
+  }
+
+  let approvedReport: AnyRecord = report;
+  if (briefApproval === "handoff") {
+    const handoff = spawnSync(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "approve-briefing", "--project-root", p, "--brief", briefPath], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: process.env,
+    });
+    if (handoff.stderr) process.stderr.write(handoff.stderr);
+    if (handoff.status !== 0) throw new CliError(`Briefing approval handoff failed: ${handoff.stderr || handoff.stdout || "unknown error"}`);
+    let handoffResult: AnyRecord = {};
+    try {
+      handoffResult = JSON.parse(handoff.stdout || "{}");
+    } catch {
+      throw new CliError("Briefing approval handoff returned invalid JSON.");
+    }
+    if (!handoffResult.ok || handoffResult.status !== "approved") {
+      printJson({ ...readJson(briefPath), handoff: handoffResult });
+      return;
+    }
+    approvedReport = readJson(briefPath);
+  }
+
+  if (approvedReport.approval?.status !== "approved") {
+    printJson(approvedReport);
+    return;
+  }
+
+  approvedReport.draft_status = "draft";
+  writeJson(briefPath, approvedReport);
+  writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), renderContentDraft(approvedReport));
+  appendOperationalLog("content-draft", topic, [`conteudos/${topicSlug}`], "draft", "Conteúdo escrito a partir de briefing aprovado e tom de voz registrado.");
+  printJson(approvedReport);
 }
 
 async function commandTechnicalSeo(args: AnyRecord): Promise<void> {
@@ -1448,7 +1865,7 @@ async function commandTechnicalSeo(args: AnyRecord): Promise<void> {
   const outMd = path.join(p, "workbench", "technical-seo", `${basename}.md`);
   writeJson(outJson, result);
   writeText(outMd, renderTechnicalMarkdown(result));
-  appendLog("technical-seo", pageType, [path.relative(p, outJson), path.relative(p, outMd)], "Auditoria tecnica deterministica executada.", "not-required");
+  appendLog("technical-seo", pageType, [path.relative(p, outJson), path.relative(p, outMd)], "Auditoria técnica determinística executada.", "not-required");
   printJson(result);
 }
 
@@ -1462,7 +1879,7 @@ async function commandNextWebsiteCreator(args: AnyRecord): Promise<void> {
   writeJson(path.join(web, "package.json"), { scripts: { dev: "next dev", build: "next build", start: "next start" }, dependencies: { next: "latest", react: "latest", "react-dom": "latest" }, devDependencies: { typescript: "latest", "@types/react": "latest", "@types/node": "latest" } });
   writeText(path.join(web, "app", "layout.tsx"), 'export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang="pt-BR"><body>{children}</body></html>; }\n');
   writeText(path.join(web, "app", "page.tsx"), `export default function Page() { return <main><h1>${projectName}</h1><p>Site SEO Brain em rascunho.</p></main>; }\n`);
-  writeText(path.join(web, "app", "servicos", "page.tsx"), "export default function Page() { return <main><h1>Servicos</h1></main>; }\n");
+  writeText(path.join(web, "app", "servicos", "page.tsx"), "export default function Page() { return <main><h1>Serviços</h1></main>; }\n");
   writeText(path.join(web, "app", "contato", "page.tsx"), "export default function Page() { return <main><h1>Contato</h1></main>; }\n");
   writeText(path.join(web, "app", "blog", "page.tsx"), "export default function Page() { return <main><h1>Blog</h1></main>; }\n");
   writeText(path.join(web, "app", "blog", "[slug]", "page.tsx"), "export default function Page() { return <main><h1>Post</h1></main>; }\n");
@@ -1476,26 +1893,6 @@ async function commandPayloadCms(args: AnyRecord): Promise<void> {
   writeText(path.join(web, "payload.config.ts"), "import { buildConfig } from 'payload'\n\nexport default buildConfig({\n  collections: [\n    { slug: 'pages', fields: [{ name: 'title', type: 'text', required: true }, { name: 'seoTitle', type: 'text' }, { name: 'seoDescription', type: 'textarea' }] },\n    { slug: 'posts', fields: [{ name: 'title', type: 'text', required: true }, { name: 'slug', type: 'text', required: true }, { name: 'content', type: 'richText' }] },\n    { slug: 'authors', fields: [{ name: 'name', type: 'text', required: true }, { name: 'bio', type: 'textarea' }] }\n  ]\n})\n");
   appendLog("technology", "Payload CMS", ["web/payload.config.ts"], "Config inicial do Payload criada.", "pending");
   printJson({ ok: true, payload_config: path.join(web, "payload.config.ts") });
-}
-
-async function commandUxWeb(args: AnyRecord): Promise<void> {
-  const p = ensureProject();
-  const projectName = projectDisplayName(p);
-  const reportLinks: string[] = [];
-  walk(path.join(p, "workbench"), (file) => reportLinks.push(`<li>${path.relative(p, file)}</li>`));
-  const pending: string[] = [];
-  for (const rel of STRATEGIC_PAGES) {
-    const file = path.join(p, "wiki", rel);
-    if (fs.existsSync(file)) {
-      const [fm] = parseFrontmatter(fs.readFileSync(file, "utf8"));
-      if (fm.status !== "approved") pending.push(`<li>${rel}: ${fm.status || "sem status"}</li>`);
-    }
-  }
-  const html = `<!doctype html>\n<html lang="pt-BR">\n<meta charset="utf-8">\n<title>SEO Brain - ${projectName}</title>\n<body>\n  <main>\n    <h1>SEO Brain: ${projectName}</h1>\n    <h2>Aprovacoes pendentes</h2>\n    <ul>${pending.join("") || "<li>Nenhuma</li>"}</ul>\n    <h2>Relatorios</h2>\n    <ul>${reportLinks.join("") || "<li>Nenhum relatorio gerado</li>"}</ul>\n  </main>\n</body>\n</html>\n`;
-  const out = path.join(p, "artifacts", "dashboard", "index.html");
-  writeText(out, html);
-  appendLog("ux", "Dashboard", [path.relative(p, out)], "Dashboard HTML gerado.", "not-required");
-  printJson({ ok: true, dashboard: out });
 }
 
 async function commandAuditSkills(args: AnyRecord): Promise<void> {
@@ -1515,15 +1912,6 @@ async function commandAuditSkills(args: AnyRecord): Promise<void> {
   printJson(report);
 }
 
-function walk(dir: string, cb: (file: string) => void): void {
-  if (!fs.existsSync(dir)) return;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(p, cb);
-    else cb(p);
-  }
-}
-
 const COMMANDS: Record<string, (args: AnyRecord) => Promise<void>> = {
   "project-init": commandProjectInit,
   "wiki-lint": commandWikiLint,
@@ -1541,7 +1929,6 @@ const COMMANDS: Record<string, (args: AnyRecord) => Promise<void>> = {
   "technical-seo": commandTechnicalSeo,
   "next-website-creator": commandNextWebsiteCreator,
   "payload-cms": commandPayloadCms,
-  "ux-web": commandUxWeb,
   "audit-skills": commandAuditSkills,
 };
 
