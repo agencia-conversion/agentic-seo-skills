@@ -23,7 +23,7 @@ Writes only:
 
 - `.env.example` when adding placeholder keys;
 - project-local config files only after explicit user action;
-- setup reports under `project/reports/setup/` when a project is active.
+- setup workbench outputs under `project/workbench/setup/` when a project is active.
 
 ## Required Behavior
 

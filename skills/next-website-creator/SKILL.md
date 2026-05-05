@@ -24,7 +24,7 @@ Inputs:
 Writes only:
 
 - `project/web/`
-- `project/reports/`
+- `project/workbench/`
 
 ## Required Behavior
 

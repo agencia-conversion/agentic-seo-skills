@@ -35,7 +35,7 @@ project/
   wiki/
   web/
   sources/
-  reports/
+  workbench/
   artifacts/
   .seo-brain/
 ```

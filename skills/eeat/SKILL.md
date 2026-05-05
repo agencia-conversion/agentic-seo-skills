@@ -22,7 +22,7 @@ Writes only:
 
 - `project/wiki/eeat.md`
 - source captures under `project/sources/`
-- EEAT reports under `project/reports/`
+- EEAT workbench outputs under `project/workbench/`
 
 ## Required Behavior
 
@@ -37,4 +37,3 @@ Writes only:
 - EEAT page has evidence inventory and gap list.
 - All strong claims are sourced or marked unverified.
 - Approval status is correct.
-

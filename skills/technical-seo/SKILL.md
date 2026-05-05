@@ -21,7 +21,7 @@ Inputs:
 
 Writes only:
 
-- `project/reports/technical-seo/`
+- `project/workbench/technical-seo/`
 - scripts/tests owned by the `technical-seo` implementation.
 
 ## Required Behavior

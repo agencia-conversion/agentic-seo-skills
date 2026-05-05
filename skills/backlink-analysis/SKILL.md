@@ -23,7 +23,7 @@ Inputs:
 Writes only:
 
 - `project/sources/backlinks/`
-- `project/reports/backlinks/`
+- `project/workbench/backlinks/`
 
 ## Required Behavior
 

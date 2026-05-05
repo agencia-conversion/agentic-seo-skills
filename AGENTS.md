@@ -46,7 +46,7 @@ Every SEO Brain project should use Obsidian-compatible Markdown and separate sou
 - Strategic pages require explicit human approval.
 - Operational and observational pages may be updated by agents when checks pass.
 - Important events must be appended to `wiki/log/index.md`. Each entry must declare a `type` of `strategic-approval` or `operational-decision` so events can be filtered by audience.
-- The wiki never holds drafts or hypotheses. Pages either reflect approved/measured state or do not exist yet. Hypothetical or unverified work lives only under `project/reports/` until promoted by explicit human approval (for strategic pages) or by passing automated checks (for operational pages).
+- The wiki never holds drafts or hypotheses. Pages either reflect approved/measured state or do not exist yet. Hypothetical or unverified work lives only under `project/workbench/` until promoted by explicit human approval (for strategic pages) or by passing automated checks (for operational pages).
 
 Required strategic approval pages:
 

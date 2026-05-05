@@ -25,7 +25,7 @@ Inputs:
 
 Writes only:
 
-- `project/reports/seo-analysis/<keyword-slug>.json`
+- `project/workbench/seo-analysis/<keyword-slug>.json`
 - `project/sources/serp/` (when DataForSEO is used)
 - `project/sources/websearch/` (when websearch is used; populated by the agent before running)
 
@@ -66,7 +66,7 @@ The JSON report must include:
 
 ## Done Criteria
 
-- Report exists at `reports/seo-analysis/<keyword-slug>.json`.
+- Report exists at `workbench/seo-analysis/<keyword-slug>.json`.
 - `provider` is `dataforseo` or `websearch`.
 - Analysis separates extracted data, hypotheses, and recommendations.
 - Missing data is explicit in `limitations`, not fabricated.
