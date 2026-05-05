@@ -35,6 +35,16 @@ This repository root is the plugin root.
 - Prefer local web UI artifacts for previews, approvals, and reports.
 - Do not commit secrets, raw user project data, generated runs, or provider responses from real clients.
 
+## Process Integrity
+
+The default is to follow the full documented process. Do not skip analysis, approval, review, lint, source separation, or other gates because the user gave a narrow request, because an old artifact exists, or because a shortcut seems sufficient.
+
+- A process step may be skipped only when the current user explicitly asks to skip that specific step or confirms the bypass after the agent names the missing step and consequence.
+- Existing drafts, previous briefings, homepage-only context, or agent confidence do not waive preconditions.
+- When a bypass is explicit, record it in the artifact and log before presenting the result. State clearly that the artifact is not data-backed for the skipped dimension.
+- Approval of an artifact is not approval of an undisclosed bypass. Approval requests must show missing analysis, missing sources, and skipped checks before the user decides.
+- If a required process cannot run, stop at the gate and provide the exact next command or approval handoff instead of silently substituting a weaker process.
+
 ## Wiki Rules
 
 Every SEO Brain project should use Obsidian-compatible Markdown and separate sources from synthesis.

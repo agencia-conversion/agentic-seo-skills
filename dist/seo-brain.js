@@ -37,6 +37,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setFrontmatterValue = setFrontmatterValue;
 exports.taskResultReady = taskResultReady;
 const node_buffer_1 = require("node:buffer");
+const node_child_process_1 = require("node:child_process");
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
 const ROOT = path.resolve(__dirname, "..");
@@ -128,6 +129,25 @@ function appendLog(eventType, title, files, summary, approval) {
     const links = files.length ? files.map((f) => `[[${f}]]`).join(", ") : "n/a";
     fs.appendFileSync(wikiLog, `\n\n## [${today()}] ${eventType} | ${title}\n\n- Actor: agent\n- Files: ${links}\n- Summary: ${summary}\n- Approval: ${approval}\n`, "utf8");
 }
+function appendOperationalLog(eventType, title, files, decision, summary, notes) {
+    const wikiLog = path.join(PROJECT_DIR, "wiki", "log", "index.md");
+    mkdirp(path.dirname(wikiLog));
+    const links = files.length ? files.map((f) => `[[${f.replace(/\.md$/, "")}]]`).join(", ") : "n/a";
+    const lines = [
+        "",
+        "",
+        `## [${today()}] ${eventType} | ${title}`,
+        "",
+        "- Type: operational-decision",
+        "- Actor: agent",
+        `- Files: ${links}`,
+        `- Decision: ${decision}`,
+        `- Summary: ${summary}`,
+    ];
+    if (notes)
+        lines.push(`- Notes: ${notes}`);
+    fs.appendFileSync(wikiLog, lines.join("\n") + "\n", "utf8");
+}
 function parseFrontmatter(text) {
     if (!text.startsWith("---\n"))
         return [{}, text];
@@ -143,6 +163,11 @@ function parseFrontmatter(text) {
             data[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
     }
     return [data, body];
+}
+function cleanFrontmatterValue(value) {
+    if (value === undefined || value === null)
+        return null;
+    return String(value).trim().replace(/^["']|["']$/g, "") || null;
 }
 function setFrontmatterValue(file, updates) {
     const text = fs.readFileSync(file, "utf8");
@@ -943,20 +968,60 @@ async function commandEeat(args) {
     appendLog("eeat", "Evidencia EEAT", ["eeat", path.relative(p, out)], "Evidencia ou lacuna EEAT registrada.", "pending");
     printJson(report);
 }
+function yamlString(value) {
+    return JSON.stringify(String(value ?? ""));
+}
+function buildContentOutline(topic, analysisData) {
+    const gap = analysisData?.gaps?.[0] || "subtopicos pouco cobertos pelo resultado atual";
+    const hypothesis = analysisData?.improvement_hypotheses?.[0] || "um angulo mais claro e verificavel para o leitor";
+    return [
+        { level: 1, title: topic, purpose: "Abrir com resposta direta alinhada a intencao de busca." },
+        { level: 2, title: "O que considerar primeiro", purpose: `Cobrir ${gap}.` },
+        { level: 2, title: "Como estruturar a decisao", purpose: `Transformar ${hypothesis} em criterios praticos.` },
+        { level: 2, title: "Cuidados editoriais", purpose: "Separar evidencia, hipotese e recomendacao sem slop de IA." },
+        { level: 2, title: "Proximo passo", purpose: "Fechar com uma acao concreta e verificavel para o leitor." },
+    ];
+}
+function renderContentDraft(report) {
+    const topic = String(report.topic || "Conteudo");
+    const keyword = String(report.keyword || topic);
+    const slug = String(report.topic_slug || slugify(topic));
+    const intent = String(report.brief?.intent || "mixed");
+    const mustInclude = Array.isArray(report.brief?.must_include) ? report.brief.must_include : [];
+    const outline = Array.isArray(report.brief?.outline) ? report.brief.outline : buildContentOutline(topic, null);
+    const sectionTitles = outline.filter((item) => Number(item.level) === 2).map((item) => String(item.title));
+    const voiceStatus = String(report.voice_context?.status || "missing");
+    const firstInclude = String(mustInclude[0] || "uma resposta direta");
+    const secondInclude = String(mustInclude[1] || "criterios praticos");
+    const [first, second, third, fourth] = [...sectionTitles, "O que considerar primeiro", "Como estruturar a decisao", "Cuidados editoriais", "Proximo passo"];
+    return `---\ntitle: ${yamlString(topic)}\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${slug}/"\nprimary_keyword: ${yamlString(keyword)}\nbrief_status: approved\nvoice_status: ${yamlString(voiceStatus)}\nsources: []\n---\n\n# ${topic}\n\nQuem pesquisa por ${keyword} precisa de uma resposta clara antes de entrar em detalhes. Como a intencao principal e ${intent}, o primeiro bloco deve entregar ${firstInclude} e depois aprofundar conceitos, criterios e proximos passos.\n\n## ${first}\n\nComece delimitando o problema que o leitor quer resolver. Separe o que ja esta sustentado por evidencia do que ainda depende de validacao, sem transformar hipotese em promessa.\n\n## ${second}\n\nUse ${secondInclude} para ajudar o leitor a comparar caminhos possiveis. Quando houver exemplos, eles devem ser verificaveis e relevantes para o contexto brasileiro.\n\n## ${third}\n\nO texto deve evitar excesso de listas, ritmo artificial de paragrafos muito curtos e frases promocionais sem prova. Links e citacoes entram apenas quando ajudam a sustentar uma afirmacao especifica.\n\n## ${fourth}\n\nDefina a acao mais util para o leitor depois da explicacao principal. Se houver uma recomendacao, deixe claro quais evidencias sustentam essa orientacao e quais pontos ainda precisam ser confirmados.\n`;
+}
 async function commandContentSeo(args) {
     const topic = required(args, "topic");
     const p = ensureProject();
     const topicSlug = slugify(topic);
     const keyword = args.keyword || topic;
     const keywordSlug = slugify(keyword);
+    const briefApproval = String(args.brief_approval || "auto").trim().toLowerCase();
+    if (!["auto", "manual", "handoff"].includes(briefApproval))
+        throw new CliError("Unsupported --brief-approval. Use auto, manual, or handoff.");
     const analysisFile = path.join(p, "workbench", "seo-analysis", `${keywordSlug}.json`);
     if (!fs.existsSync(analysisFile) && !args.skip_data)
-        throw new CliError(`Missing seo-analysis for this topic. Run: bin/seo-brain seo-analysis --keyword "${keyword}" or rerun content-seo with --skip-data --skip-data-reason "motivo claro" para gerar um briefing sem proveniencia de SERP.`);
+        throw new CliError(`Missing seo-analysis for this topic. Run: bin/seo-brain seo-analysis --keyword "${keyword}". Only rerun content-seo with --skip-data --skip-data-confirmed --skip-data-reason "motivo claro" if the user explicitly approved bypassing SERP analysis.`);
     if (args.skip_data && !args.skip_data_reason)
         throw new CliError('--skip-data requires --skip-data-reason "motivo claro".');
+    if (args.skip_data && !args.skip_data_confirmed)
+        throw new CliError("--skip-data requires --skip-data-confirmed after explicit user approval to bypass SEO analysis.");
     const analysisData = fs.existsSync(analysisFile) ? readJson(analysisFile) : null;
     const mustNotMention = Array.from(new Set((analysisData?.top_results || []).map((entry) => String(entry.domain || "").trim().toLowerCase()).filter(Boolean))).sort();
     const provenance = analysisData ? { path: path.relative(p, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason, generated_at: analysisData.generated_at } : { path: null, provider: null, provider_reason: `skip-data: ${args.skip_data_reason}` };
+    const voicePath = path.join(p, "wiki", "tom-de-voz", "index.md");
+    const [voiceFm] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
+    const voiceContext = {
+        path: fs.existsSync(voicePath) ? path.relative(p, voicePath) : null,
+        status: cleanFrontmatterValue(voiceFm.status) || "missing",
+        title: cleanFrontmatterValue(voiceFm.title) || "Tom de voz",
+    };
     const report = {
         topic,
         topic_slug: topicSlug,
@@ -964,20 +1029,71 @@ async function commandContentSeo(args) {
         keyword_slug: keywordSlug,
         generated_at: nowIso(),
         data_provenance: { seo_analysis: provenance },
+        process_bypass: args.skip_data
+            ? { step: "seo-analysis", confirmed: true, reason: args.skip_data_reason, consequence: "Briefing is not backed by SERP or competitor analysis." }
+            : null,
         brief: {
             intent: analysisData?.intent || "to-be-validated",
             reader_need: "Responder com profundidade, sem cair em padroes genericos de IA.",
             must_include: ["definicao direta no inicio", "criterios praticos de decisao", "exemplos brasileiros verificaveis", "proximos passos para o leitor"],
             must_avoid: ["titulo em padrao americano", "URL ou slug interno em prosa", "voz de Wiki em texto publico", "anchor text generico tipo clique aqui", "mencao em prosa a dominio que aparece no top_results da analise SEO", "referencia a fonte externa fora de backlink Markdown", "sequencia longa de paragrafos de uma linha", "metaforas traduzidas literalmente do ingles", "adjetivos vazios como robusto, completo, lider"],
+            outline: buildContentOutline(topic, analysisData),
         },
         voice_check: { audience: "leitor de blog publico que entende SEO", tense_perspective: "terceira pessoa, voz informativa", link_test: "remover qualquer link e a frase deve continuar coerente" },
+        voice_context: voiceContext,
         must_not_mention_in_prose: mustNotMention,
-        draft_status: "outline",
+        approval: {
+            mode: briefApproval,
+            status: briefApproval === "auto" ? "approved" : "pending",
+            approved_by: briefApproval === "auto" ? "agent:auto" : null,
+            decided_at: briefApproval === "auto" ? nowIso() : null,
+            notes: briefApproval === "auto" ? "Auto-approved by --brief-approval auto." : null,
+        },
+        draft_status: briefApproval === "auto" ? "approved-for-writing" : "briefing",
     };
-    writeJson(path.join(p, "workbench", "content", `${topicSlug}.brief.json`), report);
-    writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), `---\ntitle: "${topic}"\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${topicSlug}/"\nprimary_keyword: "${keyword}"\nsources: []\n---\n\n# ${topic}\n\n## Briefing\n\nIntencao, angulo e argumentos foram derivados de workbench/seo-analysis/${keywordSlug}.json.\nReescrever para o leitor de blog: sem expor URL interna em prosa, sem voz de Wiki.\n\n## Estrutura proposta\n\n1. Resposta direta no topo.\n2. Definicao clara, com escopo e limites.\n3. Criterios praticos.\n4. Exemplos brasileiros verificaveis.\n5. Proximo passo concreto.\n\n## Revisao anti-slop e registro de publicacao\n\n- Titulo em frase normal, sem padrao americano.\n- Nenhum path interno aparece em prosa.\n- Links internos usam o titulo da pagina de destino como anchor text.\n- Cada frase com link continua coerente sem o link.\n- Evitar sequencia longa de paragrafos de uma linha.\n- Reduzir bullets quando a explicacao pedir desenvolvimento.\n`);
-    appendLog("content", topic, [`conteudos/${topicSlug}`], "Briefing e estrutura de conteudo criados.", "pending");
-    printJson(report);
+    const briefPath = path.join(p, "workbench", "content", `${topicSlug}.brief.json`);
+    writeJson(briefPath, report);
+    appendOperationalLog("content-briefing", topic, [path.relative(p, briefPath)], report.approval.status, `Briefing criado em modo ${briefApproval}.`);
+    if (briefApproval === "manual") {
+        printJson({
+            ...report,
+            next_handoff_command: `node scripts/companion.mjs approve-briefing --project-root "${p}" --brief "${briefPath}"`,
+        });
+        return;
+    }
+    let approvedReport = report;
+    if (briefApproval === "handoff") {
+        const handoff = (0, node_child_process_1.spawnSync)(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "approve-briefing", "--project-root", p, "--brief", briefPath], {
+            cwd: ROOT,
+            encoding: "utf8",
+            env: process.env,
+        });
+        if (handoff.stderr)
+            process.stderr.write(handoff.stderr);
+        if (handoff.status !== 0)
+            throw new CliError(`Briefing approval handoff failed: ${handoff.stderr || handoff.stdout || "unknown error"}`);
+        let handoffResult = {};
+        try {
+            handoffResult = JSON.parse(handoff.stdout || "{}");
+        }
+        catch {
+            throw new CliError("Briefing approval handoff returned invalid JSON.");
+        }
+        if (!handoffResult.ok || handoffResult.status !== "approved") {
+            printJson({ ...readJson(briefPath), handoff: handoffResult });
+            return;
+        }
+        approvedReport = readJson(briefPath);
+    }
+    if (approvedReport.approval?.status !== "approved") {
+        printJson(approvedReport);
+        return;
+    }
+    approvedReport.draft_status = "draft";
+    writeJson(briefPath, approvedReport);
+    writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), renderContentDraft(approvedReport));
+    appendOperationalLog("content-draft", topic, [`conteudos/${topicSlug}`], "draft", "Conteudo escrito a partir de briefing aprovado e tom de voz registrado.");
+    printJson(approvedReport);
 }
 async function commandTechnicalSeo(args) {
     let html;

@@ -36,7 +36,8 @@ function main() {
   run("seo-analysis", "--keyword", "seo agentico");
   run("topic-cluster", "--seed", "seo agentico");
   run("eeat", "--claim", "Metodologia propria de SEO Agentico", "--status", "gap");
-  run("content-seo", "--topic", "O que e SEO agentico", "--keyword", "seo agentico");
+  const content = run("content-seo", "--topic", "O que e SEO agentico", "--keyword", "seo agentico", "--brief-approval", "auto");
+  if (!Array.isArray(content.brief?.outline) || content.brief.outline.length < 3) throw new Error("content-seo did not generate an outline");
   run("backlink-analysis", "--target", "example.com", "--mode", "offline");
   run("next-website-creator");
   run("payload-cms");
