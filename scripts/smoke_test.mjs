@@ -41,7 +41,8 @@ function main() {
   if (eeatInit.status !== 0) throw new Error(`eeat init failed: ${eeatInit.stderr}`);
   const eeatRun = JSON.parse(eeatInit.stdout);
   if (!eeatRun.run_id) throw new Error("eeat init did not return run_id");
-  run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico");
+  const content = run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico", "--brief-approval", "auto");
+  if (!Array.isArray(content.brief?.outline) || content.brief.outline.length < 3) throw new Error("content-seo did not generate an outline");
   run("backlink-analysis", "--target", "example.com", "--mode", "offline");
   run("next-website-creator");
   run("payload-cms");

@@ -84,7 +84,7 @@ bin/seo-brain serp-extract --keyword "seo agentico"
 bin/seo-brain seo-analysis --keyword "seo agentico"
 bin/seo-brain topic-cluster --seed "seo agentico"
 bin/seo-brain eeat --claim "Prova de autoridade" --status gap
-bin/seo-brain content-seo --topic "O que e SEO agentico"
+bin/seo-brain content-seo --topic "O que e SEO agentico" --brief-approval handoff
 bin/seo-brain backlink-analysis --target example.com --mode standard --limit 10
 bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-home.html --page-type inicial
 bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-ecommerce-product.html --page-type produto-ecommerce
