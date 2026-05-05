@@ -31,6 +31,7 @@ This repository root is the plugin root.
 
 - Keep skill bodies in standard `SKILL.md` directories so Claude Code and Codex can discover them.
 - Keep cross-tool behavior in `AGENTS.md`, not only in Claude-specific files.
+- Keep user-facing runtime behavior in the canonical `seo-brain` skill; `AGENTS.md` and `CLAUDE.md` are development guidance.
 - Do not rely on terminal output as the primary UX for nontechnical users.
 - Prefer local web UI artifacts for previews, approvals, and reports.
 - Do not commit secrets, raw user project data, generated runs, or provider responses from real clients.
