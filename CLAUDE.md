@@ -19,7 +19,7 @@ File-size limits per artifact type. Treat the target as the goal and the max as 
 
 ### Known debt
 
-- `src/seo-brain.ts` (1116 lines) violates the 500-line max. Tracked for split-by-subcommand refactor.
+- `src/seo-brain.ts` (~1500 lines) violates the 500-line max. Tracked for split-by-subcommand refactor.
 
 ## Claude Code Plugin Loading
 

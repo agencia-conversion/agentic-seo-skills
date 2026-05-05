@@ -34,7 +34,7 @@ function main() {
   run("keyword-research", "--keyword", "seo agentico", "--mode", "offline");
   run("serp-extract", "--keyword", "seo agentico", "--mode", "offline");
   run("seo-analysis", "--keyword", "seo agentico");
-  run("topic-cluster", "--seed", "seo agentico");
+  run("topic-cluster", "--seed", "seo agentico", "--hypothesis-only");
   run("eeat", "--claim", "Metodologia propria de SEO Agentico", "--status", "gap");
   run("content-seo", "--topic", "O que e SEO agentico", "--keyword", "seo agentico");
   run("backlink-analysis", "--target", "example.com", "--mode", "offline");
