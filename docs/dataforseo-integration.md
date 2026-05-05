@@ -27,8 +27,13 @@ Keyword search volume:
 
 Backlinks:
 
-- DataForSEO Backlinks API v3 supports live retrieval. SEO Brain maps `standard` to the live summary endpoint and records that limitation.
-- endpoint: `POST /v3/backlinks/summary/live`
+- DataForSEO Backlinks API v3 supports live retrieval for this workflow. SEO Brain maps `standard` to live endpoints and records `requested_mode`.
+- summary: `POST /v3/backlinks/summary/live`
+- top referring domains: `POST /v3/backlinks/referring_domains/live`
+- top anchors: `POST /v3/backlinks/anchors/live`
+- sample backlinks: `POST /v3/backlinks/backlinks/live`
+- optional competitor summaries are batched into the summary request.
+- official docs: [summary](https://docs.dataforseo.com/v3/backlinks-summary-live/), [referring domains](https://docs.dataforseo.com/v3/backlinks-referring_domains-live/), [anchors](https://docs.dataforseo.com/v3/backlinks-anchors-live/), [backlinks](https://docs.dataforseo.com/v3/backlinks-backlinks-live/).
 
 ## CLI Examples
 
@@ -47,6 +52,12 @@ bin/seo-brain serp-extract \
   --keyword "seo agentico" \
   --mode async \
   --pingback-url 'https://example.com/ping?id=$id&tag=$tag'
+
+bin/seo-brain backlink-analysis \
+  --target conversion.com.br \
+  --competitors "concorrente-a.com.br,concorrente-b.com.br" \
+  --mode standard \
+  --limit 10
 ```
 
 Provider calls can consume credits unless `--mode offline` or DataForSEO sandbox is used.

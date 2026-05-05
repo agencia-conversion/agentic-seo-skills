@@ -29,10 +29,17 @@ Writes only:
 
 - Never display full secrets.
 - Prefer Claude Code `userConfig` sensitive fields when running as a plugin.
+- When credentials are missing in standalone CLI mode, open the local web handoff:
+
+```bash
+bin/seo-brain data-setup --handoff
+```
+
 - Set `dataforseo_mode` to `standard` by default unless the user asks for `live`, `async`, or `offline`.
 - Validate credentials with a minimal safe request.
 - Explain setup in plain Portuguese.
 - Support DataForSEO first and leave provider abstraction for future sources.
+- The CLI reads the same `~/.seo-brain/credentials.json` file that the handoff writes.
 
 ## Done Criteria
 
