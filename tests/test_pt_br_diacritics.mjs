@@ -49,7 +49,6 @@ try {
   run("project-init", "Projeto de acentuação", "--language", "pt-BR");
   run("seo-analysis", "--keyword", "seo agêntico", "--provider", "websearch");
   run("topic-cluster", "--seed", "seo agêntico");
-  run("eeat", "--claim", "Metodologia própria de SEO agêntico", "--status", "gap");
   run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico");
   run("technical-seo", "--html-file", join(root, "tests", "fixtures", "technical-seo-valid.html"), "--page-type", "blog-post");
   run("next-website-creator");

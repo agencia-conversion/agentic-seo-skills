@@ -1238,18 +1238,10 @@ async function commandTopicCluster(args) {
     appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], `Cluster em status ${clusterStatus}.`, "pending");
     printJson(cluster);
 }
-async function commandEeat(args) {
-    const p = ensureProject();
-    const page = path.join(p, "wiki", "eeat.md");
-    if (!fs.existsSync(page))
-        fs.copyFileSync(path.join(TEMPLATES_DIR, "wiki", "eeat.md"), page);
-    const evidence = { claim: args.claim || "Evidência a mapear", source: args.source || "sem fonte", status: args.status || "gap", timestamp: nowIso() };
-    const report = { timestamp: nowIso(), evidence, rules: ["Não inventar experiência, clientes, credenciais, prêmios ou provas.", "Marcar alegações sem fonte como gap.", "Manter wiki/eeat.md em draft ou needs-review até aprovação explícita."] };
-    fs.appendFileSync(page, `\n\n## Evidência registrada\n\n- Alegação: ${evidence.claim}\n- Fonte: ${evidence.source}\n- Status: ${evidence.status}\n`, "utf8");
-    const out = path.join(p, "workbench", "eeat", `${stamp()}.json`);
-    writeJson(out, report);
-    appendLog("eeat", "Evidência EEAT", ["eeat", path.relative(p, out)], "Evidência ou lacuna EEAT registrada.", "pending");
-    printJson(report);
+async function commandEeat(_args) {
+    const message = "The eeat command is now driven by the /seo-brain:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. Run: node scripts/eeat.mjs init --mode wiki   (or --mode url --url https://...). See skills/eeat/SKILL.md for the contract.";
+    printJson({ ok: false, error: message });
+    throw new CliError(message);
 }
 async function commandContentSeo(args) {
     const topic = required(args, "topic");
