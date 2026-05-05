@@ -988,26 +988,6 @@ async function commandPayloadCms(args: AnyRecord): Promise<void> {
   printJson({ ok: true, payload_config: path.join(web, "payload.config.ts") });
 }
 
-async function commandUxWeb(args: AnyRecord): Promise<void> {
-  const p = ensureProject();
-  const projectName = projectDisplayName(p);
-  const reportLinks: string[] = [];
-  walk(path.join(p, "workbench"), (file) => reportLinks.push(`<li>${path.relative(p, file)}</li>`));
-  const pending: string[] = [];
-  for (const rel of STRATEGIC_PAGES) {
-    const file = path.join(p, "wiki", rel);
-    if (fs.existsSync(file)) {
-      const [fm] = parseFrontmatter(fs.readFileSync(file, "utf8"));
-      if (fm.status !== "approved") pending.push(`<li>${rel}: ${fm.status || "sem status"}</li>`);
-    }
-  }
-  const html = `<!doctype html>\n<html lang="pt-BR">\n<meta charset="utf-8">\n<title>SEO Brain - ${projectName}</title>\n<body>\n  <main>\n    <h1>SEO Brain: ${projectName}</h1>\n    <h2>Aprovacoes pendentes</h2>\n    <ul>${pending.join("") || "<li>Nenhuma</li>"}</ul>\n    <h2>Relatorios</h2>\n    <ul>${reportLinks.join("") || "<li>Nenhum relatorio gerado</li>"}</ul>\n  </main>\n</body>\n</html>\n`;
-  const out = path.join(p, "artifacts", "dashboard", "index.html");
-  writeText(out, html);
-  appendLog("ux", "Dashboard", [path.relative(p, out)], "Dashboard HTML gerado.", "not-required");
-  printJson({ ok: true, dashboard: out });
-}
-
 async function commandAuditSkills(args: AnyRecord): Promise<void> {
   const skillDir = path.join(ROOT, "skills");
   const results = fs
@@ -1023,15 +1003,6 @@ async function commandAuditSkills(args: AnyRecord): Promise<void> {
   const report = { timestamp: nowIso(), threshold: Number(args.threshold || 90), results, ok: results.every((r) => r.promoted) };
   writeJson(path.join(ROOT, "runs", stamp(), "audit-skills-report.json"), report);
   printJson(report);
-}
-
-function walk(dir: string, cb: (file: string) => void): void {
-  if (!fs.existsSync(dir)) return;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(p, cb);
-    else cb(p);
-  }
 }
 
 const COMMANDS: Record<string, (args: AnyRecord) => Promise<void>> = {
@@ -1050,7 +1021,6 @@ const COMMANDS: Record<string, (args: AnyRecord) => Promise<void>> = {
   "technical-seo": commandTechnicalSeo,
   "next-website-creator": commandNextWebsiteCreator,
   "payload-cms": commandPayloadCms,
-  "ux-web": commandUxWeb,
   "audit-skills": commandAuditSkills,
 };
 

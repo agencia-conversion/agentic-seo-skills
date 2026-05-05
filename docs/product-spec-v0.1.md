@@ -52,7 +52,7 @@ Users should not need to parse terminal logs. CLI output can exist for developer
 4. request explicit approval when a strategic artifact changes;
 5. record the decision in the Wiki log.
 
-This implies a dedicated `ux-web` or `project-dashboard` skill in v0.1.
+For v0.1, local browser handoffs through `scripts/companion.mjs` are the concrete web UX for approvals, sensitive setup, option selection, and visual review. A dedicated dashboard skill is intentionally out of scope until it can provide a real maintained app surface.
 
 ## Project Wiki
 
@@ -127,7 +127,6 @@ judgment_level: strategic
 ### Foundation
 
 - `project-init`: creates the single-project directory, initial Wiki, local dashboard, and config.
-- `ux-web`: starts and updates the local web app for artifacts, previews, tutorials, and approval flows.
 - `wiki-maintainer`: ingests sources, updates indexes, manages cross-links, logs changes, and runs Wiki lint.
 
 ### Strategy

@@ -92,7 +92,6 @@ bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-valid.html 
 bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-about.html --page-type quem-somos
 bin/seo-brain next-website-creator
 bin/seo-brain payload-cms
-bin/seo-brain ux-web
 ```
 
 Provider calls can consume credits unless `--mode offline` or DataForSEO sandbox is used. DataForSEO defaults to `--mode standard` for SERP and keyword data. Use `--mode live` for ultrafast results and `--mode async` for callback-based tasks. See `docs/dataforseo-integration.md`.
