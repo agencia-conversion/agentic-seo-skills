@@ -17,20 +17,19 @@ Read first when needed:
 
 Inputs:
 
-- project slug;
 - source files, URLs, notes, or requested Wiki edits;
 - optional approval decision from the user.
 
 Writes only:
 
-- `projects/[project]/wiki/`
-- `projects/[project]/sources/` for newly captured raw sources;
-- `projects/[project]/reports/` for Wiki lint reports.
+- `project/wiki/`
+- `project/sources/` for newly captured raw sources;
+- `project/reports/` for Wiki lint reports.
 
 ## Required Behavior
 
 - Treat raw sources as immutable or append-only.
-- Keep raw source files in `projects/[project]/sources/`; catalog them from `wiki/fontes/index.md`.
+- Keep raw source files in `project/sources/`; catalog them from `wiki/fontes/index.md`.
 - Separate extracted facts, synthesis, and human judgment.
 - Keep `wiki/index.md` useful as a project map.
 - Append important changes to `wiki/log/index.md`.

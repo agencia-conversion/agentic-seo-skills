@@ -42,6 +42,8 @@ function requireRun(cwd, runId) {
 const SUBCOMMANDS = {
   init(args, cwd) {
     if (!args.problem) fail("--problem required");
+    const legacyProjectFlag = ["project", "slug"].join("-");
+    if (args[legacyProjectFlag]) fail("The legacy project selector is no longer supported; SEO Brain uses the single project at project/.");
     const created = createRun({
       cwd,
       problem: args.problem,
@@ -49,7 +51,6 @@ const SUBCOMMANDS = {
       maxIter: args["max-iter"] ? Number(args["max-iter"]) : 8,
       threshold: args.threshold ? Number(args.threshold) : 8,
       plateauWindow: args.plateau ? Number(args.plateau) : 3,
-      projectSlug: args["project-slug"] ?? null,
     });
     ok({ run_id: created.runId, run_dir: created.runDir, phase: created.state.phase });
   },

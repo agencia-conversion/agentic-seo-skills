@@ -17,13 +17,12 @@ Read first when needed:
 Inputs:
 
 - seed keyword/topic;
-- project slug;
 - language, country, and optional filters.
 
 Writes only:
 
-- `projects/[project]/sources/keyword-research/`
-- `projects/[project]/reports/keyword-research/`
+- `project/sources/keyword-research/`
+- `project/reports/keyword-research/`
 
 ## Required Behavior
 

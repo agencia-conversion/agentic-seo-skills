@@ -17,9 +17,9 @@ Esta Wiki separa fontes brutas, sintese gerada, operacao e julgamento humano.
 
 ## Vault Obsidian
 
-Abra `projects/<slug>/wiki/` como vault no Obsidian. A Wiki contem apenas paginas de conhecimento, mapas, sinteses, decisoes, briefings e logs.
+Abra `project/wiki/` como vault no Obsidian. A Wiki contem apenas paginas de conhecimento, mapas, sinteses, decisoes, briefings e logs.
 
-Arquivos brutos ficam fora do vault, em `projects/<slug>/sources/`. Para apontar para uma fonte bruta, use link Markdown relativo, por exemplo `[entrevista](../sources/manual/arquivo.md)`. Use wikilinks Obsidian somente para paginas reais dentro de `wiki/`.
+Arquivos brutos ficam fora do vault, em `project/sources/`. Para apontar para uma fonte bruta, use link Markdown relativo, por exemplo `[entrevista](../sources/manual/arquivo.md)`. Use wikilinks Obsidian somente para paginas reais dentro de `wiki/`.
 
 ## Arquitetura inicial
 
@@ -66,7 +66,7 @@ wiki/
 - `rejected`: humano rejeitou a versao atual; agente deve reescrever.
 - `archived`: preservado para historico, mas fora do contexto ativo.
 
-A wiki nao recebe rascunho ou hipotese permanente. Hipoteses ficam em `projects/<slug>/reports/` ate serem promovidas por aprovacao humana (paginas estrategicas) ou checks automaticos (paginas operacionais).
+A wiki nao recebe rascunho ou hipotese permanente. Hipoteses ficam em `project/reports/` ate serem promovidas por aprovacao humana (paginas estrategicas) ou checks automaticos (paginas operacionais).
 
 ## Niveis de julgamento
 

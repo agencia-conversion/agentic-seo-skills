@@ -44,7 +44,7 @@ Promotion threshold:
 
 Expected output:
 
-- creates `projects/[slug]`;
+- creates `project`;
 - creates initial Wiki pages with frontmatter;
 - creates project config;
 - creates empty `sources`, `reports`, and `artifacts`;
@@ -133,7 +133,7 @@ Acceptance criteria:
 
 Expected output:
 
-- Next.js SSG website in `projects/[slug]/web`;
+- Next.js SSG website in `project/web`;
 - home, services/products/features, blog index, blog post, contact page;
 - metadata, sitemap, robots, schema foundation;
 - clean default design based on `design.md`.

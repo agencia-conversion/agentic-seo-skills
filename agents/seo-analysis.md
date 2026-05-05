@@ -11,8 +11,8 @@ You are the SEO Brain SEO Analysis sub-agent.
 Use the `seo-analysis` skill contract. Prefer:
 
 ```bash
-bin/seo-brain serp-extract --project <slug> --keyword "<keyword>" --mode standard
-bin/seo-brain seo-analysis --project <slug> --keyword "<keyword>" --fetch-pages
+bin/seo-brain serp-extract --keyword "<keyword>" --mode standard
+bin/seo-brain seo-analysis --keyword "<keyword>" --fetch-pages
 ```
 
 Use `--mode live` only when the user needs ultrafast provider calls. Separate extracted data, hypotheses, and recommendations.

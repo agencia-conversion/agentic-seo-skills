@@ -5,7 +5,7 @@ import { join } from "node:path";
 
 const tmp = mkdtempSync(join(tmpdir(), "seo-brain-uc3-"));
 process.env.HOME = tmp;
-const projectRoot = join(tmp, "projects", "test");
+const projectRoot = join(tmp, "project");
 mkdirSync(join(projectRoot, "wiki", "log"), { recursive: true });
 writeFileSync(join(projectRoot, "wiki", "log", "index.md"), "# Log\n");
 

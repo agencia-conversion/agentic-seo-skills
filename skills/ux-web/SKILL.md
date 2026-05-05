@@ -16,13 +16,12 @@ Read first when needed:
 
 Inputs:
 
-- project slug;
 - artifact, Wiki page, report, or setup flow to display.
 
 Writes only:
 
 - dashboard code or templates owned by SEO Brain;
-- generated artifacts under `projects/[project]/artifacts/`;
+- generated artifacts under `project/artifacts/`;
 - explicit approval records when the user approves in the web UI.
 
 ## Required Behavior

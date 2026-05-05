@@ -20,15 +20,14 @@ Read first when needed:
 Inputs:
 
 - keyword;
-- project slug;
 - provider preference: `dataforseo`, `websearch`, or `auto` (default);
 - optional: SERP file override, websearch results file override, location, language, device.
 
 Writes only:
 
-- `projects/[project]/reports/seo-analysis/<keyword-slug>.json`
-- `projects/[project]/sources/serp/` (when DataForSEO is used)
-- `projects/[project]/sources/websearch/` (when websearch is used; populated by the agent before running)
+- `project/reports/seo-analysis/<keyword-slug>.json`
+- `project/sources/serp/` (when DataForSEO is used)
+- `project/sources/websearch/` (when websearch is used; populated by the agent before running)
 
 ## Provider Selection
 

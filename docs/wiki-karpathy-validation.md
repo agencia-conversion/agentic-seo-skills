@@ -55,7 +55,7 @@ Use `judgment_level` to decide approval requirements:
 ## Proposed SEO Brain Wiki Layers
 
 ```text
-projects/[project]/
+project/
   sources/                  # immutable or append-only raw material
     web/
     serp/

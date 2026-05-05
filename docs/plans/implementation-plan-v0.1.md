@@ -79,7 +79,7 @@ AGENTS.md
 CLAUDE.md
 ```
 
-Runtime projects stay under `projects/` locally and are ignored by git.
+Runtime project data stays under `project/` locally and is ignored by git.
 
 ## Implementation Phases
 
@@ -225,7 +225,7 @@ SEO Brain adapts this as:
 
 1. Should v0.1 include a working local dashboard from day one, or can the first milestone expose generated Markdown reports before the dashboard is complete?
 2. Which backlink provider should be authoritative for v0.1: DataForSEO backlinks, Semrush, or a provider abstraction with whichever credential is available?
-3. Should generated user projects remain entirely local, or should SEO Brain support creating a separate git repo per project?
+3. Should generated project data remain entirely local, or should SEO Brain support creating a separate git repo for the project?
 4. Should `version` remain omitted until public release, or should v0.1 use explicit semver tags from the start?
 
 ## Recommended Next Step

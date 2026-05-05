@@ -2,7 +2,7 @@
 
 ## Purpose
 
-SEO Brain is a Claude Code/Codex plugin for implementing Agentic SEO as an operational system. It should help less technical users create and run SEO projects without needing to read terminal output. The plugin should expose project state, generated artifacts, tutorials, previews, and review checkpoints through a local web app whenever possible.
+SEO Brain is a Claude Code/Codex plugin for implementing Agentic SEO as an operational system. It should help less technical users create and run one SEO project without needing to read terminal output. The plugin should expose project state, generated artifacts, tutorials, previews, and review checkpoints through a local web app whenever possible.
 
 The plugin is grounded in the Agentic SEO philosophy described at:
 
@@ -26,12 +26,12 @@ SEO Brain v0.1 covers six pillars:
 
 Every project should make these pillars visible in the Wiki and in the project dashboard.
 
-## Multi-Project Architecture
+## Project Architecture
 
-Runtime projects should be created under:
+Runtime project data should be created under:
 
 ```text
-projects/[project-slug]/
+project/
   wiki/
   web/
   sources/
@@ -40,7 +40,7 @@ projects/[project-slug]/
   .seo-brain/
 ```
 
-The public plugin repository should not commit real runtime projects. The repository should include templates, example fixtures, and tests only.
+The public plugin repository should not commit real runtime project data. The repository should include templates, example fixtures, and tests only.
 
 ## UX Principle
 
@@ -56,7 +56,7 @@ This implies a dedicated `ux-web` or `project-dashboard` skill in v0.1.
 
 ## Project Wiki
 
-The Wiki is the source of operational context for each project. It should be Obsidian-compatible Markdown and use stable internal links. Open `projects/<slug>/wiki/` as the Obsidian vault; raw evidence remains outside the vault in `projects/<slug>/sources/`.
+The Wiki is the source of operational context for each project. It should be Obsidian-compatible Markdown and use stable internal links. Open `project/wiki/` as the Obsidian vault; raw evidence remains outside the vault in `project/sources/`.
 
 Required initial structure:
 
@@ -126,7 +126,7 @@ judgment_level: strategic
 
 ### Foundation
 
-- `project-init`: creates the multi-project directory, initial Wiki, local dashboard, and config.
+- `project-init`: creates the single-project directory, initial Wiki, local dashboard, and config.
 - `ux-web`: starts and updates the local web app for artifacts, previews, tutorials, and approval flows.
 - `wiki-maintainer`: ingests sources, updates indexes, manages cross-links, logs changes, and runs Wiki lint.
 

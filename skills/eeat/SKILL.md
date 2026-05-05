@@ -10,20 +10,19 @@ Use this skill when the user asks about EEAT, brand authority, trust, authors, c
 Read first when needed:
 
 - `skills/_shared/references/operating-model.md`
-- `projects/[project]/wiki/eeat.md`
+- `project/wiki/eeat.md`
 
 ## Contract
 
 Inputs:
 
-- project slug;
 - brand notes, URLs, documents, credentials, people, clients, awards, or proof sources.
 
 Writes only:
 
-- `projects/[project]/wiki/eeat.md`
-- source captures under `projects/[project]/sources/`
-- EEAT reports under `projects/[project]/reports/`
+- `project/wiki/eeat.md`
+- source captures under `project/sources/`
+- EEAT reports under `project/reports/`
 
 ## Required Behavior
 

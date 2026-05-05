@@ -14,10 +14,10 @@ Each stage is a CLI subcommand of `scripts/autoresearch.mjs`. The skill orchestr
 
 ## Run Directory
 
-When invoked inside a SEO Brain project (slug detected via `projects/<slug>/.seo-brain/`):
+When invoked inside a SEO Brain project (slug detected via `project/.seo-brain/`):
 
 ```
-projects/<slug>/.context/autoresearch/<run-id>/
+project/.context/autoresearch/<run-id>/
 ```
 
 Otherwise (free use):
@@ -52,7 +52,7 @@ Files inside the run directory:
   "iter": 0,
   "best": { "iter": null, "score": null, "path": null },
   "history": [],
-  "project_slug": "agencia-conversion-seo-brain",
+  "project_root": "agencia-conversion-seo-brain",
   "created_at": "<ISO>",
   "updated_at": "<ISO>"
 }

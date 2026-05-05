@@ -17,13 +17,12 @@ Read first when needed:
 Inputs:
 
 - keyword;
-- project slug;
 - location, language, device, and depth.
 
 Writes only:
 
-- `projects/[project]/sources/serp/`
-- `projects/[project]/reports/serp/`
+- `project/sources/serp/`
+- `project/reports/serp/`
 
 ## Required Behavior
 

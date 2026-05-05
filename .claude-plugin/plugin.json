@@ -31,12 +31,12 @@
       "sensitive": true,
       "required": false
     },
-    "default_projects_dir": {
+    "project_dir": {
       "type": "directory",
-      "title": "Diretorio padrao de projetos",
-      "description": "Diretorio onde SEO Brain cria projects/[nome-do-projeto].",
+      "title": "Diretorio do projeto",
+      "description": "Diretorio onde SEO Brain cria o projeto unico.",
       "required": false,
-      "default": "./projects"
+      "default": "./project"
     },
     "dataforseo_mode": {
       "type": "string",

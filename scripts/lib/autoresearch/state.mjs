@@ -1,4 +1,4 @@
-import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync, readdirSync } from "node:fs";
+import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { join } from "node:path";
 
 const ASCII_FOLD = {
@@ -35,12 +35,16 @@ export function generateRunId(problem, now = new Date()) {
   return `${timestamp(now)}-${slugify(problem, 32)}`;
 }
 
-export function resolveRunDir(cwd, runId, projectSlug) {
-  if (projectSlug) {
-    const projectMarker = join(cwd, "projects", projectSlug, ".seo-brain");
-    if (existsSync(projectMarker)) {
-      return join(cwd, "projects", projectSlug, ".context", "autoresearch", runId);
-    }
+export function resolveProjectRoot(cwd) {
+  const configured = process.env.CLAUDE_PLUGIN_OPTION_project_dir || process.env.SEO_BRAIN_PROJECT_DIR;
+  if (configured) return configured.startsWith("/") ? configured : join(cwd, configured);
+  return join(cwd, "project");
+}
+
+export function resolveRunDir(cwd, runId) {
+  const projectRoot = resolveProjectRoot(cwd);
+  if (existsSync(join(projectRoot, ".seo-brain"))) {
+    return join(projectRoot, ".context", "autoresearch", runId);
   }
   return join(cwd, ".context", "autoresearch", runId);
 }
@@ -55,10 +59,11 @@ function atomicWriteJson(filePath, value) {
   renameSync(tmp, filePath);
 }
 
-export function createRun({ cwd, problem, mode = "general", maxIter = 8, threshold = 8, plateauWindow = 3, projectSlug = null }) {
+export function createRun({ cwd, problem, mode = "general", maxIter = 8, threshold = 8, plateauWindow = 3 }) {
   const now = new Date();
   const runId = generateRunId(problem, now);
-  const runDir = resolveRunDir(cwd, runId, projectSlug);
+  const runDir = resolveRunDir(cwd, runId);
+  const projectRoot = resolveProjectRoot(cwd);
   mkdirSync(runDir, { recursive: true });
   const state = {
     run_id: runId,
@@ -71,7 +76,7 @@ export function createRun({ cwd, problem, mode = "general", maxIter = 8, thresho
     iter: 0,
     best: { iter: null, score: null, path: null },
     history: [],
-    project_slug: projectSlug,
+    project_root: existsSync(join(projectRoot, ".seo-brain")) ? projectRoot : null,
     created_at: now.toISOString(),
     updated_at: now.toISOString(),
   };
@@ -82,12 +87,8 @@ export function createRun({ cwd, problem, mode = "general", maxIter = 8, thresho
 export function findRunDir(cwd, runId) {
   const rootDir = join(cwd, ".context", "autoresearch", runId);
   if (existsSync(rootDir)) return rootDir;
-  const projectsRoot = join(cwd, "projects");
-  if (!existsSync(projectsRoot)) return null;
-  for (const slug of readdirSync(projectsRoot)) {
-    const candidate = join(projectsRoot, slug, ".context", "autoresearch", runId);
-    if (existsSync(candidate)) return candidate;
-  }
+  const projectRunDir = join(resolveProjectRoot(cwd), ".context", "autoresearch", runId);
+  if (existsSync(projectRunDir)) return projectRunDir;
   return null;
 }
 
