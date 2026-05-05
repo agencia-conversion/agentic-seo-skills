@@ -85,6 +85,7 @@ bin/seo-brain seo-analysis --keyword "seo agentico"
 bin/seo-brain topic-cluster --seed "seo agentico"
 bin/seo-brain eeat --claim "Prova de autoridade" --status gap
 bin/seo-brain content-seo --topic "O que e SEO agentico"
+bin/seo-brain backlink-analysis --target example.com --mode standard --limit 10
 bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-home.html --page-type inicial
 bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-ecommerce-product.html --page-type produto-ecommerce
 bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-service.html --page-type produto-ou-servico
@@ -94,7 +95,7 @@ bin/seo-brain next-website-creator
 bin/seo-brain payload-cms
 ```
 
-Provider calls can consume credits unless `--mode offline` or DataForSEO sandbox is used. DataForSEO defaults to `--mode standard` for SERP and keyword data. Use `--mode live` for ultrafast results and `--mode async` for callback-based tasks. See `docs/dataforseo-integration.md`.
+Provider calls can consume credits unless `--mode offline` or DataForSEO sandbox is used. DataForSEO defaults to `--mode standard` for SERP and keyword data. Backlink analysis accepts `standard` but maps it to DataForSEO live-only endpoints and records that in the report. Use `--mode live` for ultrafast results and `--mode async` for callback-based SERP/keyword tasks. See `docs/dataforseo-integration.md`.
 
 ## Main Planning Docs
 

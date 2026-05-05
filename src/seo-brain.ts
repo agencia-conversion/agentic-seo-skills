@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 import { Buffer } from "node:buffer";
+import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
+import { homedir } from "node:os";
 import * as path from "node:path";
 
 type AnyRecord = Record<string, any>;
@@ -11,6 +13,7 @@ const ROOT = path.resolve(__dirname, "..");
 const PROJECT_DIR = resolveProjectDir();
 const TEMPLATES_DIR = path.join(ROOT, "templates", "project");
 const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
+const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
 const REQUIRED_WIKI_PAGES = [
   "index.md",
   "eeat.md",
@@ -151,8 +154,24 @@ function readEnvFile(file = path.join(ROOT, ".env")): Record<string, string> {
   return values;
 }
 
+function readHomeCredentials(): AnyRecord {
+  const file = path.join(homedir(), ".seo-brain", "credentials.json");
+  if (!fs.existsSync(file)) return {};
+  try {
+    return readJson(file);
+  } catch {
+    return {};
+  }
+}
+
 function getSecret(name: string): string {
-  return process.env[name] || readEnvFile()[name] || "";
+  const home = readHomeCredentials();
+  const homeKey = {
+    DATAFORSEO_LOGIN: "dataforseo_login",
+    DATAFORSEO_PASSWORD: "dataforseo_password",
+    SEO_BRAIN_DATAFORSEO_MODE: "dataforseo_mode",
+  }[name];
+  return process.env[name] || readEnvFile()[name] || (homeKey ? home[homeKey] : "") || "";
 }
 
 function mask(value?: string): string {
@@ -165,6 +184,19 @@ function dataforseoCredentialsPresent(): boolean {
   const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
   const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
   return Boolean(login && password);
+}
+
+export function dataforseoCredentialStatus(): AnyRecord {
+  const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
+  const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
+  const home = readHomeCredentials();
+  return {
+    dataforseo_login: mask(login),
+    dataforseo_password: mask(password),
+    dataforseo_configured: Boolean(login && password),
+    home_credentials_present: Boolean(home.dataforseo_login && home.dataforseo_password),
+    home_mode: home.dataforseo_mode || null,
+  };
 }
 
 function resolveSeoProvider(prefer?: string): AnyRecord {
@@ -205,10 +237,31 @@ function resolveDataforseoMode(args: AnyRecord): string {
     process.env.CLAUDE_PLUGIN_OPTION_dataforseo_mode ||
     process.env.SEO_BRAIN_DATAFORSEO_MODE ||
     readEnvFile().SEO_BRAIN_DATAFORSEO_MODE ||
+    getSecret("SEO_BRAIN_DATAFORSEO_MODE") ||
     "standard";
   const mode = String(configured).trim().toLowerCase();
   if (!DATAFORSEO_MODES.has(mode)) throw new CliError(`Unsupported DataForSEO mode: ${mode}. Use one of: ${Array.from(DATAFORSEO_MODES).sort().join(", ")}.`);
   return mode;
+}
+
+function boolArg(value: unknown, fallback: boolean): boolean {
+  if (value === undefined) return fallback;
+  if (typeof value === "boolean") return value;
+  return !["0", "false", "no", "nao", "não"].includes(String(value).trim().toLowerCase());
+}
+
+function intArg(value: unknown, fallback: number, min: number, max: number): number {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(parsed)));
+}
+
+function listArg(value: unknown): string[] {
+  if (!value) return [];
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function taskIdsFromResponse(response: AnyRecord): string[] {
@@ -603,6 +656,125 @@ function normalizeKeywords(source: AnyRecord, keyword: string, location: string,
   };
 }
 
+function taskForTarget(source: AnyRecord, target: string, index = 0): AnyRecord {
+  const tasks = source.tasks || [];
+  return tasks.find((task: AnyRecord) => task.data?.target === target) || tasks[index] || {};
+}
+
+function taskResult(source: AnyRecord, target: string, index = 0): AnyRecord {
+  return taskForTarget(source, target, index).result?.[0] || {};
+}
+
+function taskItems(source: AnyRecord, target: string, index = 0): AnyRecord[] {
+  return taskResult(source, target, index).items || [];
+}
+
+function taskResultValue(source: AnyRecord, target: string, key: string, index = 0): unknown {
+  return taskResult(source, target, index)[key] ?? null;
+}
+
+function endpointStatus(source: AnyRecord, endpoint: string): AnyRecord {
+  const task = (source.tasks || [])[0] || {};
+  return {
+    endpoint,
+    status_code: source.status_code ?? null,
+    status_message: source.status_message || null,
+    task_status_code: task.status_code ?? null,
+    task_status_message: task.status_message || null,
+    cost: task.cost ?? null,
+  };
+}
+
+function backlinkPayload(args: AnyRecord, target: string, limit: number): AnyRecord {
+  return {
+    target,
+    limit,
+    include_subdomains: boolArg(args.include_subdomains, true),
+    backlinks_status_type: args.backlinks_status || "live",
+  };
+}
+
+function backlinkSummary(result: AnyRecord): AnyRecord {
+  return {
+    backlinks: result.backlinks ?? null,
+    referring_domains: result.referring_domains ?? null,
+    referring_main_domains: result.referring_main_domains ?? null,
+    rank: result.rank ?? null,
+    spam_score: result.backlinks_spam_score ?? null,
+  };
+}
+
+export function normalizeBacklinkReport(target: string, competitors: string[], source: AnyRecord, args: AnyRecord = {}): AnyRecord {
+  const summarySource = source.summary || source;
+  const ownSummary = backlinkSummary(taskResult(summarySource, target, 0));
+  const backlinksTotalCount = taskResultValue(source.backlinks || {}, target, "total_count");
+  const competitorComparison = competitors.map((competitor, i) => {
+    const summary = backlinkSummary(taskResult(summarySource, competitor, i + 1));
+    return {
+      target: competitor,
+      ...summary,
+      backlink_delta_vs_target: summary.backlinks == null || ownSummary.backlinks == null ? null : summary.backlinks - ownSummary.backlinks,
+      referring_domain_delta_vs_target: summary.referring_domains == null || ownSummary.referring_domains == null ? null : summary.referring_domains - ownSummary.referring_domains,
+    };
+  });
+  const topReferringDomains = taskItems(source.referring_domains || {}, target).map((item) => ({
+    domain: item.domain || item.domain_from || null,
+    backlinks: item.backlinks ?? null,
+    rank: item.rank ?? null,
+    first_seen: item.first_seen || null,
+    dofollow: item.backlinks_dofollow ?? null,
+  }));
+  const topAnchors = taskItems(source.anchors || {}, target).map((item) => ({
+    anchor: item.anchor || null,
+    backlinks: item.backlinks ?? null,
+    referring_domains: item.referring_domains ?? null,
+    rank: item.rank ?? null,
+    spam_score: item.backlinks_spam_score ?? null,
+  }));
+  const sampleBacklinks = taskItems(source.backlinks || {}, target).map((item) => ({
+    from: item.url_from || null,
+    to: item.url_to || null,
+    anchor: item.anchor || null,
+    domain_from: item.domain_from || null,
+    rank: item.rank ?? item.page_from_rank ?? null,
+    dofollow: item.dofollow ?? null,
+    first_seen: item.first_seen || null,
+  }));
+  const hasData = (summarySource.tasks || []).length > 0;
+  const endpointStatuses = [
+    source.summary ? endpointStatus(source.summary, "/v3/backlinks/summary/live") : null,
+    source.referring_domains ? endpointStatus(source.referring_domains, "/v3/backlinks/referring_domains/live") : null,
+    source.anchors ? endpointStatus(source.anchors, "/v3/backlinks/anchors/live") : null,
+    source.backlinks ? endpointStatus(source.backlinks, "/v3/backlinks/backlinks/live") : null,
+  ].filter(Boolean);
+  return {
+    target,
+    competitors,
+    provider: hasData ? "dataforseo" : "offline",
+    mode: source.mode || "unknown",
+    requested_mode: source.requested_mode || args.mode || null,
+    timestamp: nowIso(),
+    settings: source.settings || {},
+    endpoints: source.endpoints || [],
+    backlinks: ownSummary.backlinks ?? backlinksTotalCount,
+    referring_domains: ownSummary.referring_domains,
+    referring_main_domains: ownSummary.referring_main_domains,
+    rank: ownSummary.rank,
+    spam_score: ownSummary.spam_score,
+    summary: ownSummary,
+    top_referring_domains: topReferringDomains,
+    top_anchors: topAnchors,
+    sample_backlinks: sampleBacklinks,
+    competitor_comparison: competitorComparison,
+    endpoint_statuses: endpointStatuses,
+    note:
+      source.mode_note ||
+      (source.mode === "offline"
+        ? "Backlink metrics unavailable without a provider call."
+        : "DataForSEO Backlinks API v3 is live-only; standard requests are executed through live endpoints for this skill."),
+  };
+}
+
 function latestFile(directory: string, suffix: string): string | null {
   if (!fs.existsSync(directory)) return null;
   const files = fs
@@ -643,6 +815,23 @@ function projectDisplayName(projectDir: string): string {
   } catch {
     return "SEO Brain";
   }
+}
+
+function shouldAutoOpenDataSetup(args: AnyRecord): boolean {
+  if (args.handoff || args.web) return true;
+  if (args.no_handoff || args.check || process.env.CI === "true") return false;
+  return !dataforseoCredentialsPresent() && Boolean(process.stdin.isTTY || process.stdout.isTTY);
+}
+
+function runDataSetupHandoff(): AnyRecord {
+  const result = spawnSync(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "collect-env"], {
+    cwd: ROOT,
+    env: process.env,
+    stdio: "inherit",
+  });
+  if (result.error) return { ok: false, reason: result.error.message };
+  if (result.status !== 0) return { ok: false, reason: `handoff-exit-${result.status}` };
+  return { ok: true };
 }
 
 async function commandProjectInit(args: AnyRecord): Promise<void> {
@@ -727,15 +916,21 @@ async function commandWikiIngest(args: AnyRecord): Promise<void> {
 }
 
 async function commandDataSetup(args: AnyRecord): Promise<void> {
+  if (shouldAutoOpenDataSetup(args)) {
+    const handoff = runDataSetupHandoff();
+    if (!handoff.ok) throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
+  }
   const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
   const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
   const mode = resolveDataforseoMode(args);
   const decision = resolveSeoProvider();
+  const credentialStatus = dataforseoCredentialStatus();
   const status: AnyRecord = {
-    dataforseo_login: mask(login),
-    dataforseo_password: mask(password),
+    dataforseo_login: credentialStatus.dataforseo_login,
+    dataforseo_password: credentialStatus.dataforseo_password,
     default_mode: mode,
-    dataforseo_configured: Boolean(login && password),
+    dataforseo_configured: credentialStatus.dataforseo_configured,
+    home_credentials_present: credentialStatus.home_credentials_present,
     websearch_available: true,
     provider_default: decision.provider,
     provider_default_reason: decision.reason,
@@ -747,6 +942,8 @@ async function commandDataSetup(args: AnyRecord): Promise<void> {
     },
     credentials_present: Boolean(login && password),
     checked_live: Boolean(args.check),
+    setup_handoff_available: true,
+    setup_handoff_command: "bin/seo-brain data-setup --handoff",
   };
   if (args.check) {
     try {
@@ -803,15 +1000,55 @@ async function commandBacklinkAnalysis(args: AnyRecord): Promise<void> {
   const target = required(args, "target");
   const p = ensureProject();
   const mode = resolveDataforseoMode(args);
-  const payload = [{ target, include_subdomains: true, backlinks_status_type: "live" }];
+  const competitors = listArg(args.competitors || args.competitor);
+  const limit = intArg(args.limit, 10, 1, 1000);
+  const includeSubdomains = boolArg(args.include_subdomains, true);
+  const statusType = String(args.backlinks_status || "live").trim().toLowerCase();
+  if (!BACKLINK_STATUS_TYPES.has(statusType)) throw new CliError(`Unsupported backlinks status: ${statusType}. Use all, live, or lost.`);
+  args.backlinks_status = statusType;
+  const summaryPayload = [target, ...competitors].map((item) => ({
+    target: item,
+    internal_list_limit: limit,
+    include_subdomains: includeSubdomains,
+    backlinks_status_type: statusType,
+  }));
+  const detailPayload = backlinkPayload(args, target, limit);
   let source: AnyRecord;
   if (mode === "live" || mode === "standard") {
-    source = { ...(await dataforseoRequest("POST", "/v3/backlinks/summary/live", payload, Boolean(args.sandbox))), mode: "live" };
-    if (mode === "standard") source.mode_note = "DataForSEO Backlinks API supports only Live retrieval; standard maps to live for backlinks.";
+    if (!dataforseoCredentialsPresent()) {
+      if (shouldAutoOpenDataSetup(args)) {
+        const handoff = runDataSetupHandoff();
+        if (!handoff.ok) throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
+      }
+      if (!dataforseoCredentialsPresent()) throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+    }
+    const summary = await dataforseoRequest("POST", "/v3/backlinks/summary/live", summaryPayload, Boolean(args.sandbox));
+    const referringDomains = await dataforseoRequest("POST", "/v3/backlinks/referring_domains/live", [{ ...detailPayload, order_by: ["backlinks,desc"] }], Boolean(args.sandbox));
+    const anchors = await dataforseoRequest("POST", "/v3/backlinks/anchors/live", [{ ...detailPayload, order_by: ["backlinks,desc"] }], Boolean(args.sandbox));
+    const backlinks = await dataforseoRequest("POST", "/v3/backlinks/backlinks/live", [{ ...detailPayload, mode: args.backlink_mode || "as_is", order_by: ["rank,desc"] }], Boolean(args.sandbox));
+    source = {
+      mode: "live",
+      requested_mode: mode,
+      mode_note: mode === "standard" ? "DataForSEO Backlinks API supports only Live retrieval; standard maps to live for backlinks." : undefined,
+      settings: { limit, include_subdomains: includeSubdomains, backlinks_status_type: statusType, backlink_mode: args.backlink_mode || "as_is" },
+      endpoints: ["/v3/backlinks/summary/live", "/v3/backlinks/referring_domains/live", "/v3/backlinks/anchors/live", "/v3/backlinks/backlinks/live"],
+      summary,
+      referring_domains: referringDomains,
+      anchors,
+      backlinks,
+    };
   } else if (mode === "async") throw new CliError("DataForSEO Backlinks API supports only Live retrieval in v3; async is not available for backlink-analysis.");
-  else source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode live or --mode standard to fetch DataForSEO backlink data." };
-  const result = source.tasks?.length ? source.tasks[0].result?.[0] || {} : {};
-  const normalized = { target, provider: source.tasks?.length ? "dataforseo" : "offline", mode: source.mode || "unknown", timestamp: nowIso(), backlinks: result.backlinks, referring_domains: result.referring_domains, referring_main_domains: result.referring_main_domains, rank: result.rank, spam_score: result.backlinks_spam_score, note: source.mode_note || (source.tasks?.length ? null : "Backlink metrics unavailable without a provider call.") };
+  else
+    source = {
+      status_code: "offline",
+      mode: "offline",
+      requested_mode: mode,
+      tasks: [],
+      settings: { limit, include_subdomains: includeSubdomains, backlinks_status_type: statusType, backlink_mode: args.backlink_mode || "as_is" },
+      endpoints: ["/v3/backlinks/summary/live", "/v3/backlinks/referring_domains/live", "/v3/backlinks/anchors/live", "/v3/backlinks/backlinks/live"],
+      note: "Run with --mode live or --mode standard to fetch DataForSEO backlink data.",
+    };
+  const normalized = normalizeBacklinkReport(target, competitors, source, args);
   const base = path.join(p, "sources", "backlinks", `${stamp()}-${slugify(target)}`);
   writeJson(`${base}.raw.json`, source);
   writeJson(path.join(p, "workbench", "backlinks", `${stamp()}-${slugify(target)}.json`), normalized);
