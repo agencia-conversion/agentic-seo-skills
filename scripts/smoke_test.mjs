@@ -34,7 +34,7 @@ function main() {
   run("keyword-research", "--keyword", "seo agêntico", "--mode", "offline");
   run("serp-extract", "--keyword", "seo agêntico", "--mode", "offline");
   run("seo-analysis", "--keyword", "seo agêntico");
-  run("topic-cluster", "--seed", "seo agêntico");
+  run("topic-cluster", "--seed", "seo agêntico", "--hypothesis-only");
   const eeatInit = spawnSync("node", [path.join(ROOT, "scripts", "eeat.mjs"), "init", "--mode", "wiki", "--slug", "smoke"], {
     cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR },
   });
