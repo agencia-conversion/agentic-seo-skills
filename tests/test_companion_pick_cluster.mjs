@@ -96,7 +96,7 @@ const supportingInput = (proposal, decisions) =>
   const wiki = readFileSync(result.wiki, "utf8");
   assert.ok(wiki.includes("status: draft"));
   assert.ok(wiki.includes("Cluster: SEO Agêntico"));
-  assert.ok(wiki.includes("Supporting pages"));
+  assert.ok(wiki.includes("Páginas de apoio"));
 }
 
 // production with kept < 3: blocks wiki, writes JSON as needs-supporting
@@ -135,7 +135,7 @@ const supportingInput = (proposal, decisions) =>
   const md = buildClusterMarkdown(proposal, kept);
   assert.ok(md.startsWith("---\ntitle:"));
   assert.ok(md.includes("status: draft"));
-  assert.ok(md.includes("**Pillar:** SEO Agêntico"));
+  assert.ok(md.includes("**Pilar:** SEO Agêntico"));
   assert.ok(md.includes("1. **Support 1**"));
 }
 

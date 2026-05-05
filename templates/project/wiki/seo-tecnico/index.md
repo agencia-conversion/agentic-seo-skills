@@ -1,5 +1,5 @@
 ---
-title: "SEO tecnico"
+title: "SEO técnico"
 status: draft
 pillar: seo-tecnico
 owner: shared
@@ -10,15 +10,15 @@ sources: []
 judgment_level: operational
 ---
 
-# SEO tecnico
+# SEO técnico
 
-Mapa de checks, achados e prioridades tecnicas de SEO.
+Mapa de checks, achados e prioridades técnicas de SEO.
 
 ## Checks principais
 
-| Area | Status | Evidencia |
+| Área | Status | Evidência |
 | --- | --- | --- |
-| Indexacao | gap |  |
+| Indexação | gap |  |
 | Metadados | gap |  |
 | Canonicals | gap |  |
 | Sitemap e robots | gap |  |
@@ -26,7 +26,6 @@ Mapa de checks, achados e prioridades tecnicas de SEO.
 | Performance | gap |  |
 | Links internos | gap |  |
 
-## Relatorios
+## Relatórios
 
-Registrar aqui os relatorios relevantes em `reports/technical-seo/` e as fontes em `../sources/`.
-
+Registrar aqui os relatórios relevantes em `reports/technical-seo/` e as fontes em `../sources/`.

@@ -13,13 +13,13 @@ judgment_level: operational
 
 # Schema da Wiki
 
-Esta Wiki separa fontes brutas, sintese gerada, operacao e julgamento humano.
+Esta Wiki separa fontes brutas, síntese gerada, operação e julgamento humano.
 
 ## Vault Obsidian
 
-Abra `project/wiki/` como vault no Obsidian. A Wiki contem apenas paginas de conhecimento, mapas, sinteses, decisoes, briefings e logs.
+Abra `project/wiki/` como vault no Obsidian. A Wiki contém apenas páginas de conhecimento, mapas, sínteses, decisões, briefings e logs.
 
-Arquivos brutos ficam fora do vault, em `project/sources/`. Para apontar para uma fonte bruta, use link Markdown relativo, por exemplo `[entrevista](../sources/manual/arquivo.md)`. Use wikilinks Obsidian somente para paginas reais dentro de `wiki/`.
+Arquivos brutos ficam fora do vault, em `project/sources/`. Para apontar para uma fonte bruta, use link Markdown relativo, por exemplo `[entrevista](../sources/manual/arquivo.md)`. Use wikilinks Obsidian somente para páginas reais dentro de `wiki/`.
 
 ## Arquitetura inicial
 
@@ -49,57 +49,57 @@ wiki/
     index.md
 ```
 
-## Tipos de pagina
+## Tipos de página
 
-- Mapa: pagina `index.md` que organiza navegacao, status e proximas leituras.
-- Estrategica: contexto que muda decisoes de negocio, posicionamento, tecnologia ou tom de voz.
-- Operacional: checklist, processo, backlog, decisao tecnica validada por verificacao.
-- Observacional: log, fonte catalogada, dado extraido ou resultado de auditoria.
-- Editorial: briefing, pauta, artigo, cluster e revisao de conteudo.
+- Mapa: página `index.md` que organiza navegação, status e próximas leituras.
+- Estratégica: contexto que muda decisões de negócio, posicionamento, tecnologia ou tom de voz.
+- Operacional: checklist, processo, backlog, decisão técnica validada por verificação.
+- Observacional: log, fonte catalogada, dado extraído ou resultado de auditoria.
+- Editorial: briefing, pauta, artigo, cluster e revisão de conteúdo.
 
 ## Status
 
-- `draft`: rascunho criado ou alterado por agente. Estado de transicao; nao deve permanecer em paginas estrategicas.
-- `needs-review`: precisa de revisao humana por mudanca relevante, contradicao ou desatualizacao.
-- `needs-evidence`: humano revisou e marcou que faltam fontes ou provas; bloqueia aprovacao ate que evidencias sejam coletadas.
+- `draft`: rascunho criado ou alterado por agente. Estado de transição; não deve permanecer em páginas estratégicas.
+- `needs-review`: precisa de revisão humana por mudança relevante, contradição ou desatualização.
+- `needs-evidence`: humano revisou e marcou que faltam fontes ou provas; bloqueia aprovação até que evidências sejam coletadas.
 - `approved`: aprovado explicitamente pelo humano.
-- `rejected`: humano rejeitou a versao atual; agente deve reescrever.
-- `archived`: preservado para historico, mas fora do contexto ativo.
+- `rejected`: humano rejeitou a versão atual; agente deve reescrever.
+- `archived`: preservado para histórico, mas fora do contexto ativo.
 
-A wiki nao recebe rascunho ou hipotese permanente. Hipoteses ficam em `project/reports/` ate serem promovidas por aprovacao humana (paginas estrategicas) ou checks automaticos (paginas operacionais).
+A wiki não recebe rascunho ou hipótese permanente. Hipóteses ficam em `project/reports/` até serem promovidas por aprovação humana (páginas estratégicas) ou checks automáticos (páginas operacionais).
 
-## Niveis de julgamento
+## Níveis de julgamento
 
-- `strategic`: exige aprovacao humana.
+- `strategic`: exige aprovação humana.
 - `editorial`: agente pode propor; humano calibra.
-- `operational`: agente pode atualizar quando verificacoes passam.
-- `observational`: dado factual extraido ou log.
+- `operational`: agente pode atualizar quando verificações passam.
+- `observational`: dado factual extraído ou log.
 
 ## Links
 
-Use links Obsidian para paginas reais da Wiki. Exemplos conceituais devem ser escritos sem colchetes duplos para nao parecerem links quebrados.
+Use links Obsidian para páginas reais da Wiki. Exemplos conceituais devem ser escritos sem colchetes duplos para não parecerem links quebrados.
 
-## Fontes e evidencias
+## Fontes e evidências
 
-- `sources/` e imutavel ou append-only.
+- `sources/` é imutável ou append-only.
 - `wiki/fontes/index.md` cataloga fontes e aponta para caminhos em `../sources/`.
 - Fatos importantes devem citar fonte ou marcar lacuna.
-- Sintese de LLM deve dizer de onde veio e quando precisa de julgamento humano.
+- Síntese de LLM deve dizer de onde veio e quando precisa de julgamento humano.
 
 ## Logs
 
-`wiki/log/index.md` e append-only. Use um titulo por evento. Cada entrada declara um `Type`:
+`wiki/log/index.md` é append-only. Use um título por evento. Cada entrada declara um `Type`:
 
-- `strategic-approval`: decisao humana sobre pagina estrategica (eeat, tom-de-voz, tecnologia, index e similares).
-- `operational-decision`: decisao humana sobre pagina operacional ou editorial (clusters, briefings, configuracoes).
+- `strategic-approval`: decisão humana sobre página estratégica (eeat, tom-de-voz, tecnologia, index e similares).
+- `operational-decision`: decisão humana sobre página operacional ou editorial (clusters, briefings, configurações).
 
 ```md
-## [YYYY-MM-DD] event-type | Titulo curto
+## [YYYY-MM-DD] event-type | Título curto
 
 - Type: strategic-approval|operational-decision
 - Actor: nome-do-aprovador
 - Files: [[index]]
 - Decision: approved|rejected|needs-evidence
 - Summary: o que mudou
-- Notes: observacao opcional
+- Notes: observação opcional
 ```
