@@ -49,7 +49,10 @@ After loading, invoke plugin skills with the namespace:
 /seo-brain:project-init
 /seo-brain:seo-analysis
 /seo-brain:technical-seo
+/seo-brain:autoresearch
 ```
+
+`/seo-brain:autoresearch` runs a Karpathy-style autonomous research loop on any artifact. Engine: `node scripts/autoresearch.mjs <subcommand>`. Doctrine: `program.md`. Schemas: `skills/_shared/references/autoresearch-protocol.md`.
 
 After changing skills or agents during an interactive session, run:
 

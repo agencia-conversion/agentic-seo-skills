@@ -1011,7 +1011,7 @@ async function commandUxWeb(args: AnyRecord): Promise<void> {
   printJson({ ok: true, dashboard: out });
 }
 
-async function commandAutoresearch(args: AnyRecord): Promise<void> {
+async function commandAuditSkills(args: AnyRecord): Promise<void> {
   const skillDir = path.join(ROOT, "skills");
   const results = fs
     .readdirSync(skillDir)
@@ -1019,12 +1019,12 @@ async function commandAutoresearch(args: AnyRecord): Promise<void> {
     .sort()
     .map((name) => {
       const text = fs.readFileSync(path.join(skillDir, name, "SKILL.md"), "utf8");
-      const checks = { frontmatter: text.startsWith("---\n"), contract: text.includes("## Contract"), required_behavior: text.includes("## Required Behavior"), done_criteria: text.includes("## Done Criteria"), shared_reference: text.includes("operating-model.md") || ["technical-seo", "data-setup"].includes(name) };
+      const checks = { frontmatter: text.startsWith("---\n"), contract: text.includes("## Contract"), required_behavior: text.includes("## Required Behavior"), done_criteria: text.includes("## Done Criteria"), shared_reference: text.includes("operating-model.md") || ["technical-seo", "data-setup", "autoresearch"].includes(name) };
       const score = Object.values(checks).filter(Boolean).length * 20;
       return { skill: name, score, checks, promoted: score >= Number(args.threshold || 90) };
     });
   const report = { timestamp: nowIso(), threshold: Number(args.threshold || 90), results, ok: results.every((r) => r.promoted) };
-  writeJson(path.join(ROOT, "runs", stamp(), "autoresearch-report.json"), report);
+  writeJson(path.join(ROOT, "runs", stamp(), "audit-skills-report.json"), report);
   printJson(report);
 }
 
@@ -1054,7 +1054,7 @@ const COMMANDS: Record<string, (args: AnyRecord) => Promise<void>> = {
   "next-website-creator": commandNextWebsiteCreator,
   "payload-cms": commandPayloadCms,
   "ux-web": commandUxWeb,
-  autoresearch: commandAutoresearch,
+  "audit-skills": commandAuditSkills,
 };
 
 function parseArgs(argv: string[]): { command: string; args: AnyRecord } {
