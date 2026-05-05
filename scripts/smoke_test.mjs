@@ -31,16 +31,15 @@ function main() {
   const lint = run("wiki-lint");
   if (!lint.ok) throw new Error("Wiki lint failed");
   run("data-setup");
-  run("keyword-research", "--keyword", "seo agentico", "--mode", "offline");
-  run("serp-extract", "--keyword", "seo agentico", "--mode", "offline");
-  run("seo-analysis", "--keyword", "seo agentico");
-  run("topic-cluster", "--seed", "seo agentico");
-  run("eeat", "--claim", "Metodologia propria de SEO Agentico", "--status", "gap");
-  run("content-seo", "--topic", "O que e SEO agentico", "--keyword", "seo agentico");
+  run("keyword-research", "--keyword", "seo agêntico", "--mode", "offline");
+  run("serp-extract", "--keyword", "seo agêntico", "--mode", "offline");
+  run("seo-analysis", "--keyword", "seo agêntico");
+  run("topic-cluster", "--seed", "seo agêntico");
+  run("eeat", "--claim", "Metodologia própria de SEO agêntico", "--status", "gap");
+  run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico");
   run("backlink-analysis", "--target", "example.com", "--mode", "offline");
   run("next-website-creator");
   run("payload-cms");
-  run("ux-web");
   const technical = run(
     "technical-seo",
     "--html-file",

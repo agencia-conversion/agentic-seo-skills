@@ -28,5 +28,5 @@ Mapa de dados coletados, relatórios gerados e lacunas de medição.
 
 | Relatório | Local | Uso |
 | --- | --- | --- |
-| SEO analysis | `../reports/seo-analysis/` | Gate para clusters e conteúdo |
-| Wiki lint | `../reports/wiki-lint.json` | Qualidade da Wiki |
+| SEO analysis | `../workbench/seo-analysis/` | Gate para clusters e conteúdo |
+| Wiki lint | `../workbench/wiki-lint.json` | Qualidade da Wiki |

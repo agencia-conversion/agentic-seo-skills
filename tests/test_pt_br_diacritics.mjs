@@ -51,19 +51,19 @@ try {
   run("topic-cluster", "--seed", "seo agêntico");
   run("eeat", "--claim", "Metodologia própria de SEO agêntico", "--status", "gap");
   run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico");
-  run("ux-web");
+  run("technical-seo", "--html-file", join(root, "tests", "fixtures", "technical-seo-valid.html"), "--page-type", "blog-post");
+  run("next-website-creator");
 
-  const markdown = walk(join(project, "wiki"))
+  const markdown = [...walk(join(project, "wiki")), ...walk(join(project, "workbench"))]
     .filter((file) => file.endsWith(".md"))
     .map((file) => markdownProse(readFileSync(file, "utf8")))
     .join("\n");
-  const briefs = walk(join(project, "workbench"))
+  const jsonOutput = walk(join(project, "workbench"))
     .filter((file) => file.endsWith(".json"))
     .flatMap((file) => jsonHumanStrings(JSON.parse(readFileSync(file, "utf8"))))
     .join("\n");
-  const dashboard = readFileSync(join(project, "artifacts", "dashboard", "index.html"), "utf8")
-    .replace(/<li>[^<]*(?:workbench|artifacts|sources|wiki)[^<]*<\/li>/g, "");
-  const humanText = `${markdown}\n${briefs}\n${dashboard}`;
+  const webText = walk(join(project, "web")).filter((file) => file.endsWith(".tsx")).map((file) => readFileSync(file, "utf8")).join("\n");
+  const humanText = `${markdown}\n${jsonOutput}\n${webText}`;
 
   for (const term of ["aprovacao", "pagina", "conteudo", "analise", "evidencia", "nao", "ate", "tecnico"]) {
     assert.doesNotMatch(humanText, new RegExp(`\\b${term}\\b`, "i"), `unaccented pt-BR term leaked: ${term}`);

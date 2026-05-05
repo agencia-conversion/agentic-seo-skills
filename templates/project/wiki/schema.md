@@ -66,7 +66,7 @@ wiki/
 - `rejected`: humano rejeitou a versão atual; agente deve reescrever.
 - `archived`: preservado para histórico, mas fora do contexto ativo.
 
-A wiki não recebe rascunho ou hipótese permanente. Hipóteses ficam em `project/reports/` até serem promovidas por aprovação humana (páginas estratégicas) ou checks automáticos (páginas operacionais).
+A wiki não recebe rascunho ou hipótese permanente. Hipóteses ficam em `project/workbench/` até serem promovidas por aprovação humana (páginas estratégicas) ou checks automáticos (páginas operacionais).
 
 ## Níveis de julgamento
 

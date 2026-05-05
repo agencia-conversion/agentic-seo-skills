@@ -44,7 +44,6 @@ Recommended plugin layout:
   plugin.json
 skills/
   project-init/
-  ux-web/
   wiki-maintainer/
   topic-cluster/
   eeat/
@@ -167,17 +166,14 @@ Exit criteria:
 - technical audit produces JSON and human-readable report;
 - golden-path pages pass deterministic baseline.
 
-### Phase 6: UX Web App
+### Phase 6: Companion Browser Handoffs
 
 Deliverables:
 
-- local dashboard;
-- project selector;
-- Wiki status panel;
-- approvals panel;
-- artifact viewer;
-- provider setup page;
-- site preview links.
+- approval handoffs for strategic Wiki pages;
+- sensitive provider setup without echoing secrets;
+- option-selection handoffs for workflows that need human judgment;
+- review handoffs for multi-file Wiki changes.
 
 Exit criteria:
 
@@ -223,7 +219,7 @@ SEO Brain adapts this as:
 
 ## Open Questions
 
-1. Should v0.1 include a working local dashboard from day one, or can the first milestone expose generated Markdown reports before the dashboard is complete?
+1. What is the smallest future dashboard surface worth building beyond the existing companion handoffs?
 2. Which backlink provider should be authoritative for v0.1: DataForSEO backlinks, Semrush, or a provider abstraction with whichever credential is available?
 3. Should generated project data remain entirely local, or should SEO Brain support creating a separate git repo for the project?
 4. Should `version` remain omitted until public release, or should v0.1 use explicit semver tags from the start?
