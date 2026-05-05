@@ -28,7 +28,7 @@ export function buildClusterMarkdown(proposal, kept) {
   const rows = kept.map((s, i) => {
     const title = s.user_overrides?.display_title || s.title;
     const judgment = s.user_overrides?.judgment || s.judgment;
-    return `${i + 1}. **${title}** · intent: \`${s.intent}\` · ${judgment}`;
+    return `${i + 1}. **${title}** · intenção: \`${s.intent}\` · ${judgment}`;
   });
   return [
     "---",
@@ -40,7 +40,7 @@ export function buildClusterMarkdown(proposal, kept) {
     "approved_by: null",
     "approved_at: null",
     "sources:",
-    `  - reports/topic-cluster/${proposal.seed}.json`,
+    `  - workbench/topic-cluster/${proposal.seed}.json`,
     "judgment_level: editorial",
     "---",
     "",
@@ -48,9 +48,9 @@ export function buildClusterMarkdown(proposal, kept) {
     "",
     `## Cluster: ${proposal.pillar.user_overrides?.display_title || proposal.pillar.title}`,
     "",
-    `**Pillar:** ${proposal.pillar.user_overrides?.display_title || proposal.pillar.title} · intent \`${proposal.pillar.intent}\` · ${proposal.pillar.user_overrides?.judgment || proposal.pillar.judgment || ""}`,
+    `**Pilar:** ${proposal.pillar.user_overrides?.display_title || proposal.pillar.title} · intenção \`${proposal.pillar.intent}\` · ${proposal.pillar.user_overrides?.judgment || proposal.pillar.judgment || ""}`,
     "",
-    "### Supporting pages (priorizadas)",
+    "### Páginas de apoio (priorizadas)",
     "",
     ...rows,
     "",
@@ -120,7 +120,7 @@ export async function handleSubmit(body, ctx) {
 
   const reportPath = join(
     ctx.projectRoot,
-    "reports",
+    "workbench",
     "topic-cluster",
     `${ctx.proposal.seed}.json`,
   );

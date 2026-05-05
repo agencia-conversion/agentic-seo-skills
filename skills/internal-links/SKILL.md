@@ -15,7 +15,7 @@ Inputs:; domain or URL scope; one URL/topic or a batch list; `direction` in `inb
 
 Writes only:
 
-- `project/reports/internal-links/`
+- `project/workbench/internal-links/`
 - `project/artifacts/internal-links/`
 - `project/wiki/log/index.md`
 

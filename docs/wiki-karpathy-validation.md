@@ -76,10 +76,10 @@ project/
     fontes/
     log/
   artifacts/                # generated previews, reports, charts, prototypes
-  reports/                  # exported human-readable deliverables
+  workbench/                # agent working outputs before promotion
 ```
 
-`sources/` should be treated as the evidence base. `wiki/` should cite `sources/` with normal Markdown links to `../sources/...`; `wiki/fontes/index.md` is a catalog, not a raw-source folder. `artifacts/` and `reports/` can be regenerated or revised.
+`sources/` should be treated as the evidence base. `wiki/` should cite `sources/` with normal Markdown links to `../sources/...`; `wiki/fontes/index.md` is a catalog, not a raw-source folder. `artifacts/` and `workbench/` can be regenerated or revised.
 
 ## Index and Log Decision
 

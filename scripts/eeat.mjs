@@ -101,7 +101,7 @@ const SUBCOMMANDS = {
     const targetSlug = slugify(args.slug || (mode === "url" ? new URL(value).hostname : "wiki"));
     const proj = projectDir(cwd);
     const runId = `${stamp()}-${targetSlug}`;
-    const runDir = path.join(proj, "reports", "eeat", runId);
+    const runDir = path.join(proj, "workbench", "eeat", runId);
     fs.mkdirSync(path.join(runDir, "raters"), { recursive: true });
     let pages;
     if (args["pages-file"]) pages = readJson(args["pages-file"]);
@@ -133,7 +133,7 @@ const SUBCOMMANDS = {
   consensus(args, cwd) {
     if (!args.run) fail("--run required");
     const proj = projectDir(cwd);
-    const runDir = path.isAbsolute(args.run) ? args.run : path.join(proj, "reports", "eeat", args.run);
+    const runDir = path.isAbsolute(args.run) ? args.run : path.join(proj, "workbench", "eeat", args.run);
     const manifest = readJson(path.join(runDir, "manifest.json"));
     const rawRaters = [1, 2, 3].map((n) => readJson(path.join(runDir, "raters", `rater-${n}.json`)));
     const report = buildReport({ manifest, rawRaters, onError: fail });
@@ -147,7 +147,7 @@ const SUBCOMMANDS = {
   synthesize(args, cwd) {
     if (!args.run) fail("--run required");
     const proj = projectDir(cwd);
-    const runDir = path.isAbsolute(args.run) ? args.run : path.join(proj, "reports", "eeat", args.run);
+    const runDir = path.isAbsolute(args.run) ? args.run : path.join(proj, "workbench", "eeat", args.run);
     let narrative;
     if (args["narrative-file"]) narrative = fs.readFileSync(args["narrative-file"], "utf8").trim();
     else if (typeof args.narrative === "string") narrative = args.narrative.trim();

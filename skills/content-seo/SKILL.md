@@ -24,12 +24,12 @@ Inputs:
 Writes only:
 
 - `project/wiki/conteudos/<topic-slug>.md`
-- `project/reports/content/<topic-slug>.brief.json`
+- `project/workbench/content/<topic-slug>.brief.json`
 - `project/artifacts/`
 
 ## Hard Precondition
 
-`reports/seo-analysis/<keyword-slug>.json` must exist before a brief or draft is generated. If absent, refuse and tell the user the exact `seo-analysis` command to run. The only legal bypass is `--skip-data --skip-data-reason "<motivo>"`, and the reason is recorded in the brief and in the project log.
+`workbench/seo-analysis/<keyword-slug>.json` must exist before a brief or draft is generated. If absent, refuse and tell the user the exact `seo-analysis` command to run. The only legal bypass is `--skip-data --skip-data-reason "<motivo>"`, and the reason is recorded in the brief and in the project log.
 
 ## Required Behavior
 

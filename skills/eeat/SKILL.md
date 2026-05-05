@@ -25,10 +25,10 @@ Inputs:
 
 Writes only:
 
-- `project/reports/eeat/<run-id>/manifest.json`
-- `project/reports/eeat/<run-id>/raters/rater-{1,2,3}.json` (written by sub-agents, not the engine)
-- `project/reports/eeat/<run-id>/report.json`
-- `project/reports/eeat/<run-id>/report.md`
+- `project/workbench/eeat/<run-id>/manifest.json`
+- `project/workbench/eeat/<run-id>/raters/rater-{1,2,3}.json` (written by sub-agents, not the engine)
+- `project/workbench/eeat/<run-id>/report.json`
+- `project/workbench/eeat/<run-id>/report.md`
 - `project/wiki/eeat.md` only when the user explicitly approves a sync, with `status: needs-review`.
 
 Engine: `node scripts/eeat.mjs <init|validate|consensus|synthesize> [args]`.
@@ -47,7 +47,7 @@ Engine: `node scripts/eeat.mjs <init|validate|consensus|synthesize> [args]`.
 
 ## Done Criteria
 
-- `report.json` and `report.md` exist in `project/reports/eeat/<run-id>/`.
+- `report.json` and `report.md` exist in `project/workbench/eeat/<run-id>/`.
 - `score` is a number 0–100, derived from continuous numeric scores per pillar (ratio × 100).
 - `consolidated_narrative` is set in `report.json` and rendered in `report.md` as the single "Análise" section. No per-rater divergence appears in the user-facing markdown.
 - `risk_flags` lists every triggered gate and divergence signal.

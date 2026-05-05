@@ -47,7 +47,7 @@ Expected output:
 - creates `project`;
 - creates initial Wiki pages with frontmatter;
 - creates project config;
-- creates empty `sources`, `reports`, and `artifacts`;
+- creates empty `sources`, `workbench`, and `artifacts`;
 - starts from templates without writing real secrets.
 
 Acceptance criteria:
@@ -57,21 +57,21 @@ Acceptance criteria:
 - never overwrites approved Wiki pages without a diff and approval;
 - logs creation in `wiki/log/index.md`.
 
-### ux-web
+### Companion browser handoffs
 
 Expected output:
 
-- starts a local web app;
-- shows project dashboard, Wiki status, artifacts, previews, and approvals;
+- opens local browser handoffs through `scripts/companion.mjs`;
+- supports approvals, sensitive setup, option selection, and review flows;
 - hides terminal complexity from nontechnical users;
-- supports credential setup without echoing secrets.
+- never echoes secrets.
 
 Acceptance criteria:
 
 - works on a fresh project;
-- shows all pending approvals;
-- can render Markdown, reports, and web previews;
-- gracefully explains missing credentials.
+- validates host/origin/token boundaries;
+- appends the appropriate Wiki log entry after submit or cancel;
+- gracefully explains missing credentials without exposing stack traces.
 
 ### wiki-maintainer
 
@@ -285,4 +285,3 @@ Acceptance criteria:
 - can validate DataForSEO credentials;
 - writes `.env.local` or project config only with explicit user action;
 - creates `.env.example` without real values.
-

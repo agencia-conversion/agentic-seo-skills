@@ -17,17 +17,18 @@ Read first when needed:
 Inputs:
 
 - keyword;
-- location, language, device, and depth.
+- optional location, language, device, and depth.
 
 Writes only:
 
 - `project/sources/serp/`
-- `project/reports/serp/`
+- `project/workbench/serp/`
 
 ## Required Behavior
 
 - Store raw provider response.
 - Default to `standard` mode (`task_post` + `task_get`), unless the user asks for `live`, `async`, or `offline`.
+- Default location and language come from `.seo-brain/project.json` / `wiki/index.md`; do not silently use an English/global SERP for a project whose country/language is Brazil/pt-BR.
 - Normalize organic results and SERP features into stable JSON.
 - Record timestamp, provider, location, language, and device.
 - Deduplicate URLs.

@@ -24,7 +24,7 @@ Writes only:
 
 - `project/wiki/`
 - `project/sources/` for newly captured raw sources;
-- `project/reports/` for Wiki lint reports.
+- `project/workbench/` for Wiki lint reports.
 
 ## Required Behavior
 

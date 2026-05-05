@@ -26,7 +26,7 @@ Writes only:
 - `project/`
 - `project/wiki/`
 - `project/sources/`
-- `project/reports/`
+- `project/workbench/`
 - `project/artifacts/`
 - `project/.seo-brain/`
 
@@ -36,6 +36,7 @@ Writes only:
 - Create all required directories idempotently.
 - Create initial Wiki pages from templates.
 - Create six-pillar Wiki maps and `wiki/fontes/index.md` as the evidence catalog.
+- Write country/market/language explicitly in `wiki/index.md` and `.seo-brain/project.json`; downstream SERP, keyword, and content skills must use this context by default.
 - Mark strategic pages as `status: draft`.
 - Append a creation entry to `wiki/log/index.md`.
 - Do not write secrets.
@@ -47,5 +48,6 @@ Writes only:
 - Project folder exists.
 - Required Wiki pages exist.
 - Strategic pages are drafts.
+- `wiki/index.md` declares the country/market and primary language.
 - Log has a project creation entry.
 - Review pass concluído: `no-op` registrado no log, ou aprovação humana sobre a versão revisada, ou rejeição explícita registrada.

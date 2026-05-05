@@ -1,5 +1,5 @@
 ---
-title: "Estrategia"
+title: "Estratégia"
 status: approved
 pillar: estrategia
 owner: agent
@@ -10,22 +10,21 @@ sources: []
 judgment_level: operational
 ---
 
-# Estrategia
+# Estratégia
 
-Mapa das paginas estrategicas e das hipoteses que precisam de aprovacao humana.
+Mapa das páginas estratégicas e das hipóteses que precisam de aprovação humana.
 
 ## Contexto aprovado
 
-| Area | Pagina | Regra |
+| Área | Página | Regra |
 | --- | --- | --- |
-| Projeto | [[index]] | Exige aprovacao humana |
-| EEAT | [[eeat]] | Exige aprovacao humana |
-| Tecnologia | [[tecnologia/index]] | Exige aprovacao humana |
-| Tom de voz | [[tom-de-voz/index]] | Exige aprovacao humana |
+| Projeto | [[index]] | Exige aprovação humana |
+| EEAT | [[eeat]] | Exige aprovação humana |
+| Tecnologia | [[tecnologia/index]] | Exige aprovação humana |
+| Tom de voz | [[tom-de-voz/index]] | Exige aprovação humana |
 
-## Hipoteses estrategicas
+## Hipóteses estratégicas
 
 - Topic clusters: [[conteudos/topic-clusters]].
 - Lacunas de prova: [[eeat]].
-- Decisoes pendentes: [[index]].
-
+- Decisões pendentes: [[index]].

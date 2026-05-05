@@ -24,7 +24,7 @@ Writes only:
 
 - `project/web/`
 - `project/wiki/tecnologia/`
-- `project/reports/`
+- `project/workbench/`
 
 ## Required Behavior
 

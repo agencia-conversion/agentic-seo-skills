@@ -22,7 +22,7 @@ Inputs:
 Writes only:
 
 - `project/sources/keyword-research/`
-- `project/reports/keyword-research/`
+- `project/workbench/keyword-research/`
 
 ## Required Behavior
 

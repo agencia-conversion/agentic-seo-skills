@@ -12,20 +12,19 @@ judgment_level: operational
 
 # LLM Wiki
 
-Mapa de manutencao da Wiki para agentes e humanos.
+Mapa de manutenção da Wiki para agentes e humanos.
 
 ## Como agentes devem ler
 
 1. Ler [[schema]] para regras.
-2. Ler [[index]] para contexto do projeto e status de aprovacao.
-3. Usar apenas paginas aprovadas como contexto estrategico.
-4. Consultar [[fontes/index]] para evidencia bruta.
-5. Registrar mudancas importantes em [[log/index]].
+2. Ler [[index]] para contexto do projeto e status de aprovação.
+3. Usar apenas páginas aprovadas como contexto estratégico.
+4. Consultar [[fontes/index]] para evidência bruta.
+5. Registrar mudanças importantes em [[log/index]].
 
 ## Qualidade do conhecimento
 
 - Fato sem fonte deve ser marcado como lacuna.
-- Sintese deve separar extracao, interpretacao e julgamento.
-- Contradicoes devem virar `needs-review`, nao ser resolvidas silenciosamente.
-- Links Obsidian devem apontar apenas para paginas dentro de `wiki/`.
-
+- Síntese deve separar extração, interpretação e julgamento.
+- Contradições devem virar `needs-review`, não ser resolvidas silenciosamente.
+- Links Obsidian devem apontar apenas para páginas dentro de `wiki/`.
