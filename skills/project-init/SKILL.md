@@ -10,6 +10,7 @@ Use this skill when the user asks to create, initialize, or prepare a new SEO Br
 Read first when needed:
 
 - `skills/_shared/references/operating-model.md`
+- `skills/_shared/references/wiki-review.md`
 - `templates/project/`
 
 ## Contract
@@ -39,6 +40,7 @@ Writes only:
 - Append a creation entry to `wiki/log/index.md`.
 - Do not write secrets.
 - Do not overwrite approved Wiki pages without showing the user what would change.
+- Antes de declarar `done`, executar o protocolo em `skills/_shared/references/wiki-review.md` sobre todos os arquivos `wiki/**` criados ou modificados neste run. Não persistir versão revisada sem aprovação humana quando o reviewer propuser mudanças.
 
 ## Done Criteria
 
@@ -46,3 +48,4 @@ Writes only:
 - Required Wiki pages exist.
 - Strategic pages are drafts.
 - Log has a project creation entry.
+- Review pass concluído: `no-op` registrado no log, ou aprovação humana sobre a versão revisada, ou rejeição explícita registrada.
