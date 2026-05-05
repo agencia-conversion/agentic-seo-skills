@@ -39,6 +39,7 @@ exports.taskResultReady = taskResultReady;
 const node_buffer_1 = require("node:buffer");
 const fs = __importStar(require("node:fs"));
 const path = __importStar(require("node:path"));
+const player_score_1 = require("./lib/player-score");
 const ROOT = path.resolve(__dirname, "..");
 const PROJECT_DIR = resolveProjectDir();
 const TEMPLATES_DIR = path.join(ROOT, "templates", "project");
@@ -662,6 +663,38 @@ function loadKeywordMetrics(projectDir, keyword) {
         return null;
     return { search_volume: primary.search_volume, competition: primary.competition, cpc: primary.cpc, source_path: path.relative(projectDir, file) };
 }
+function projectSettings(projectDir) {
+    const config = path.join(projectDir, ".seo-brain", "project.json");
+    const wikiIndex = path.join(projectDir, "wiki", "index.md");
+    let data = {};
+    if (fs.existsSync(config)) {
+        try {
+            data = readJson(config);
+        }
+        catch {
+            data = {};
+        }
+    }
+    if (fs.existsSync(wikiIndex)) {
+        try {
+            const [fm] = parseFrontmatter(fs.readFileSync(wikiIndex, "utf8"));
+            data = { ...data, ...fm };
+        }
+        catch {
+            // Keep project.json/defaults when the Wiki index is not parseable.
+        }
+    }
+    const clean = (value, fallback) => String(value || fallback).trim().replace(/^["']|["']$/g, "");
+    const market = clean(data.market, "Brasil");
+    const language = clean(data.language, "pt-BR");
+    return {
+        market,
+        country: clean(data.country, market),
+        language,
+        dataforseo_location: clean(data.dataforseo_location, market.toLowerCase() === "brasil" ? "Brazil" : market),
+        dataforseo_language: clean(data.dataforseo_language, language.toLowerCase().startsWith("pt") ? "pt" : language.slice(0, 2).toLowerCase()),
+    };
+}
 function projectDisplayName(projectDir) {
     const config = path.join(projectDir, ".seo-brain", "project.json");
     if (!fs.existsSync(config))
@@ -676,10 +709,18 @@ function projectDisplayName(projectDir) {
 async function commandProjectInit(args) {
     const name = args._[0] || "SEO Brain Project";
     const p = PROJECT_DIR;
+    const language = args.language || "pt-BR";
+    const market = args.market || "Brasil";
+    const country = args.country || market;
     for (const dir of ["wiki", "web", "sources", "workbench", "artifacts", ".seo-brain"])
         mkdirp(path.join(p, dir));
     copyDir(path.join(TEMPLATES_DIR, "wiki"), path.join(p, "wiki"));
-    writeJson(path.join(p, ".seo-brain", "project.json"), { name, created_at: nowIso(), language: args.language || "pt-BR", market: args.market || "Brasil", status: "draft" });
+    writeJson(path.join(p, ".seo-brain", "project.json"), { name, created_at: nowIso(), language, market, country, status: "draft" });
+    const wikiIndex = path.join(p, "wiki", "index.md");
+    setFrontmatterValue(wikiIndex, { language: JSON.stringify(language), market: JSON.stringify(market), country: JSON.stringify(country) });
+    writeText(wikiIndex, fs.readFileSync(wikiIndex, "utf8")
+        .replace(/- Pais\/mercado de atuacao: .*/, `- Pais/mercado de atuacao: ${country}.`)
+        .replace(/- Idioma principal: .*/, `- Idioma principal: ${language}.`));
     appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado.`, "pending");
     printJson({ ok: true, project_dir: p });
 }
@@ -799,8 +840,11 @@ async function commandDataSetup(args) {
 async function commandSerpExtract(args) {
     const keyword = required(args, "keyword");
     const p = ensureProject();
+    const settings = projectSettings(p);
     const mode = resolveDataforseoMode(args);
-    const payload = [{ keyword, location_name: args.location || "Brazil", language_code: args.language || "pt", device: args.device || "desktop", depth: Number(args.depth || 10) }];
+    const location = args.location || settings.dataforseo_location;
+    const language = args.language || settings.dataforseo_language;
+    const payload = [{ keyword, location_name: location, language_code: language, device: args.device || "desktop", depth: Number(args.depth || 10) }];
     let source;
     if (mode === "live")
         source = { ...(await dataforseoRequest("POST", "/v3/serp/google/organic/live/advanced", payload, Boolean(args.sandbox))), mode: "live" };
@@ -810,7 +854,7 @@ async function commandSerpExtract(args) {
         source = await dataforseoAsyncTask("/v3/serp/google/organic/task_post", payload, Boolean(args.sandbox), args.pingback_url, args.postback_url, args.postback_data || "advanced");
     else
         source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode standard or --mode live to fetch DataForSEO SERP data." };
-    const normalized = normalizeSerp(source, keyword, args.location || "Brazil", args.language || "pt", args.device || "desktop");
+    const normalized = normalizeSerp(source, keyword, location, language, args.device || "desktop");
     const base = path.join(p, "sources", "serp", `${stamp()}-${slugify(keyword)}`);
     writeJson(`${base}.raw.json`, source);
     writeJson(`${base}.normalized.json`, normalized);
@@ -821,8 +865,11 @@ async function commandSerpExtract(args) {
 async function commandKeywordResearch(args) {
     const keyword = required(args, "keyword");
     const p = ensureProject();
+    const settings = projectSettings(p);
     const mode = resolveDataforseoMode(args);
-    const payload = [{ keywords: [keyword], location_name: args.location || "Brazil", language_code: args.language || "pt" }];
+    const location = args.location || settings.dataforseo_location;
+    const language = args.language || settings.dataforseo_language;
+    const payload = [{ keywords: [keyword], location_name: location, language_code: language }];
     let source;
     if (mode === "live")
         source = { ...(await dataforseoRequest("POST", "/v3/keywords_data/google_ads/search_volume/live", payload, Boolean(args.sandbox))), mode: "live" };
@@ -832,7 +879,7 @@ async function commandKeywordResearch(args) {
         source = await dataforseoAsyncTask("/v3/keywords_data/google_ads/search_volume/task_post", payload, Boolean(args.sandbox), args.pingback_url, args.postback_url, args.postback_data || "advanced");
     else
         source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode standard or --mode live to fetch DataForSEO keyword metrics." };
-    const normalized = normalizeKeywords(source, keyword, args.location || "Brazil", args.language || "pt");
+    const normalized = normalizeKeywords(source, keyword, location, language);
     const base = path.join(p, "sources", "keyword-research", `${stamp()}-${slugify(keyword)}`);
     writeJson(`${base}.raw.json`, source);
     writeJson(`${base}.normalized.json`, normalized);
@@ -866,6 +913,7 @@ async function commandBacklinkAnalysis(args) {
 async function commandSeoAnalysis(args) {
     const keyword = required(args, "keyword");
     const p = ensureProject();
+    const settings = projectSettings(p);
     const decision = resolveSeoProvider(args.provider || "auto");
     const organic = decision.provider === "dataforseo" ? loadDataforseoSerpResults(p, keyword, args.serp_file) : loadWebsearchResults(p, keyword, args.websearch_file);
     const keywordMetrics = decision.provider === "dataforseo" ? loadKeywordMetrics(p, keyword) : null;
@@ -891,10 +939,18 @@ async function commandSeoAnalysis(args) {
         limitations.push(`Nenhum resultado em sources/websearch/${slugify(keyword)}.json. Rode WebSearch e grave o JSON antes de reexecutar.`);
     if (decision.provider === "dataforseo" && keywordMetrics === null)
         limitations.push("Sem keyword-research recente para enriquecer keyword_metrics.");
-    const report = {
+    let report = {
         keyword,
         provider: decision.provider,
         provider_reason: decision.reason,
+        market_context: {
+            market: args.market || settings.market,
+            country: args.country || settings.country,
+            language: args.language || settings.language,
+            location: args.location || settings.dataforseo_location,
+            provider_language: args.provider_language || settings.dataforseo_language,
+            device: args.device || "desktop",
+        },
         keyword_metrics: keywordMetrics,
         top_results: topResults,
         competitors,
@@ -908,9 +964,26 @@ async function commandSeoAnalysis(args) {
         incomplete,
         generated_at: nowIso(),
     };
+    if (args.player_score) {
+        report = await (0, player_score_1.buildPlayerScoreReport)(args, report, {
+            rootDir: ROOT,
+            projectDir: p,
+            required,
+            normalizePageType,
+            readJson,
+            writeJson,
+            writeText,
+            fetchUrl,
+            extractHtml,
+            auditTechnicalSeo,
+            renderTechnicalMarkdown,
+            slugify,
+            stamp,
+        });
+    }
     const out = path.join(p, "workbench", "seo-analysis", `${slugify(keyword)}.json`);
     writeJson(out, report);
-    appendLog("seo-analysis", keyword, [path.relative(p, out)], `Analise SEO via ${decision.provider} (${topResults.length} resultados).`, "not-required");
+    appendLog("seo-analysis", keyword, [path.relative(p, out), ...(report.technical_seo_reports || [])], `Analise SEO via ${decision.provider} (${topResults.length} resultados${args.player_score ? "; player score ativo" : ""}).`, "not-required");
     printJson(report);
 }
 async function commandTopicCluster(args) {

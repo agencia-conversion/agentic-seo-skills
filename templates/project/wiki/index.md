@@ -8,6 +8,9 @@ approved_by: null
 approved_at: null
 sources: []
 judgment_level: strategic
+country: "Brasil"
+market: "Brasil"
+language: "pt-BR"
 ---
 
 # Mapa do projeto
@@ -16,6 +19,8 @@ Esta e a pagina inicial da Wiki do projeto. Ela deve funcionar como mapa para hu
 
 ## Contexto estrategico
 
+- Pais/mercado de atuacao: Brasil.
+- Idioma principal: pt-BR.
 - Proposta, publico, oferta e mercado: preencher.
 - Como o SEO gera resultado financeiro: preencher com demanda organica, conversao, ticket, margem e ciclo de venda.
 - Posicionamento de marca: preencher com o que a marca defende, evita, para quem e diferente e por que isso importa.
