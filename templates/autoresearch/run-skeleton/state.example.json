@@ -1,0 +1,15 @@
+{
+  "run_id": "20260504-205755-melhorar-headline-x",
+  "problem": "Melhorar a headline da página inicial para X",
+  "mode": "general",
+  "max_iter": 8,
+  "threshold": 8,
+  "plateau_window": 3,
+  "phase": "framing",
+  "iter": 0,
+  "best": { "iter": null, "score": null, "path": null },
+  "history": [],
+  "project_slug": "agencia-conversion-seo-brain",
+  "created_at": "2026-05-04T20:57:55.000Z",
+  "updated_at": "2026-05-04T20:57:55.000Z"
+}

@@ -46,8 +46,8 @@ function main() {
     "blog-post",
   );
   if (!technical.ok) throw new Error("Technical SEO valid fixture failed");
-  const autoresearch = run("autoresearch");
-  if (!autoresearch.ok) throw new Error("Autoresearch failed");
+  const auditSkills = run("audit-skills");
+  if (!auditSkills.ok) throw new Error("audit-skills failed");
   process.stdout.write(JSON.stringify({ ok: true, project }) + "\n");
 }
 
