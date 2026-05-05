@@ -31,3 +31,8 @@ runs/
 experiments/
 artifacts/
 reports/generated/
+
+# Locally installed external skills and lockfile.
+.agents/
+.claude/
+skills-lock.json
