@@ -28,6 +28,5 @@ Mapa de dados coletados, relatorios gerados e lacunas de medicao.
 
 | Relatorio | Local | Uso |
 | --- | --- | --- |
-| SEO analysis | `../reports/seo-analysis/` | Gate para clusters e conteudo |
-| Wiki lint | `../reports/wiki-lint.json` | Qualidade da Wiki |
-
+| SEO analysis | `../workbench/seo-analysis/` | Gate para clusters e conteudo |
+| Wiki lint | `../workbench/wiki-lint.json` | Qualidade da Wiki |

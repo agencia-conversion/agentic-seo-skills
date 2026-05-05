@@ -28,5 +28,4 @@ Mapa de checks, achados e prioridades tecnicas de SEO.
 
 ## Relatorios
 
-Registrar aqui os relatorios relevantes em `reports/technical-seo/` e as fontes em `../sources/`.
-
+Registrar aqui os relatorios relevantes em `../workbench/technical-seo/` e as fontes em `../sources/`.
