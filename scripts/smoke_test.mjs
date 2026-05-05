@@ -40,7 +40,6 @@ function main() {
   run("backlink-analysis", "--target", "example.com", "--mode", "offline");
   run("next-website-creator");
   run("payload-cms");
-  run("ux-web");
   const technical = run(
     "technical-seo",
     "--html-file",
