@@ -2,7 +2,7 @@
 
 import { validateRaterOutput } from "./validate.mjs";
 import { normalizeRaterOutput, scoreRater } from "./scoring.mjs";
-import { consensusFromScored, consensusItems, clusterRemediation, unionReputation, divergenceFlags, recomputeGateFlags, partitionRiskSignals } from "./consensus.mjs";
+import { consensusFromScored, consensusItems, consensusIssues, clusterRemediation, unionReputation, divergenceFlags, recomputeGateFlags, partitionRiskSignals } from "./consensus.mjs";
 
 export function buildReport({ manifest, rawRaters, onError }) {
   const normalized = [];
@@ -17,6 +17,7 @@ export function buildReport({ manifest, rawRaters, onError }) {
   const scored = normalized.map((r) => scoreRater(r, { mode: manifest.target.mode }));
   const cons = consensusFromScored(scored);
   const items = consensusItems(normalized);
+  const issues = consensusIssues(normalized);
   const remediation = clusterRemediation(normalized);
   const reputation = unionReputation(normalized);
   const divergence = divergenceFlags(cons, items);
@@ -33,8 +34,10 @@ export function buildReport({ manifest, rawRaters, onError }) {
     numeric_scores: cons.numeric_scores,
     gate_flags: gateFlags,
     risk_flags: riskFlags,
+    page_type: normalized[0]?.page_type ?? manifest.target.page_type ?? "homepage",
     consolidated_narrative: null,
     checklist_consensus: items,
+    issues,
     remediation,
     reputation_research: reputation,
     rater_observations,

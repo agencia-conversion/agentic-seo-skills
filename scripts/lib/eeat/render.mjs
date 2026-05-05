@@ -16,6 +16,7 @@ export function renderMarkdown(r) {
   pillarTable(out, r);
   signalsSection(out, r);
   narrativeSection(out, r);
+  issuesSection(out, r);
   remediationSection(out, r);
   evidenceSection(out, r);
   reputationSection(out, r);
@@ -29,8 +30,20 @@ function header(out, r) {
   out.push("");
   out.push(`- **Score**: ${r.score} / 100`);
   out.push(`- **Page quality**: ${r.page_quality}`);
+  out.push(`- **Tipo de página**: ${r.page_type ?? "homepage"}`);
   out.push(`- **YMYL**: ${r.ymyl ? "sim" : "não"}`);
   out.push(`- **Run**: ${r.run_id}`);
+  out.push("");
+}
+
+function issuesSection(out, r) {
+  out.push("## Issues priorizadas");
+  out.push("");
+  if (!r.issues?.length) { out.push("- nenhuma issue estruturada"); out.push(""); return; }
+  for (const issue of r.issues) {
+    const evidence = issue.evidence ? ` Evidência: ${issue.evidence}` : "";
+    out.push(`- **[${issue.severity}]** \`${issue.issue_type}\` (${issue.criterion_id}, ${issue.page_type}) — ${issue.recommendation}${evidence}`);
+  }
   out.push("");
 }
 
@@ -84,12 +97,13 @@ function evidenceSection(out, r) {
   for (const pillar of PILLARS_ORDER) {
     out.push(`### ${PILLAR_LABELS[pillar]} — ${r.numeric_scores[pillar].toFixed(1)} / 100`);
     out.push("");
-    out.push("| Item | Estado | Evidência |");
-    out.push("| --- | --- | --- |");
+    out.push("| Item | Critério | Aplicabilidade | Estado | Score | Evidência |");
+    out.push("| --- | --- | --- | --- | ---: | --- |");
     const sorted = [...r.checklist_consensus[pillar]].sort(naturalIdCompare);
     for (const it of sorted) {
       const quote = (it.evidence_quotes?.[0]?.quote || "").replace(/\|/g, "\\|").slice(0, 200);
-      out.push(`| ${it.id} | ${it.consensus_state} | ${quote ? `"${quote}"` : "—"} |`);
+      const score = it.criterion_score === null || it.criterion_score === undefined ? "—" : `${it.criterion_score}`;
+      out.push(`| ${it.id} | ${it.label ?? it.id} | ${it.applicability ?? "expected"} | ${it.consensus_state} | ${score} | ${quote ? `"${quote}"` : "—"} |`);
     }
     out.push("");
   }

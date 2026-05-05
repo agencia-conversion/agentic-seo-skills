@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { scoreRater } from "../scripts/lib/eeat/scoring.mjs";
-import { consensusFromScored, consensusItems, clusterRemediation, unionReputation, divergenceFlags, recomputeGateFlags, partitionRiskSignals } from "../scripts/lib/eeat/consensus.mjs";
+import { consensusFromScored, consensusItems, consensusIssues, clusterRemediation, unionReputation, divergenceFlags, recomputeGateFlags, partitionRiskSignals } from "../scripts/lib/eeat/consensus.mjs";
 import { buildRater, statesAllPresent, statesAllAbsent } from "./fixtures/eeat/rater-builder.mjs";
 
 // happy path consensus
@@ -42,15 +42,24 @@ assert.equal(ex1.consensus_state, "absent");
 assert.equal(ex1.agreement, 2);
 assert.ok(divergenceFlags(consMixed, itemsConsensus).includes("high_rater_divergence"));
 
-// risk_flag vocabulary partition: trust_gate_triggered from rater free-text is filtered out
+// legacy risk flags are observations; gates are still filtered out
 const partitioned = partitionRiskSignals([
   buildRater({ raterId: "rater-1", states: statesAllAbsent() }),
   buildRater({ raterId: "rater-2", states: statesAllAbsent() }),
   buildRater({ raterId: "rater-3", states: statesAllAbsent() }),
 ].map((r) => ({ ...r, risk_flags: ["no_about_page", "trust_gate_triggered", "Reivindicação não-substanciada de superlativo"] })));
-assert.deepEqual(partitioned.risk_flags.sort(), ["no_about_page"]);
-assert.equal(partitioned.rater_observations.length, 3, "free-text routed to observations");
+assert.deepEqual(partitioned.risk_flags.sort(), []);
+assert.equal(partitioned.rater_observations.length, 6, "legacy/free-text flags routed to observations");
 assert.ok(partitioned.rater_observations[0].rater_id);
+
+const issues = consensusIssues([
+  buildRater({ raterId: "rater-1", issues: [{ severity: "medium", criterion_id: "tr3", page_type: "homepage", issue_type: "unsupported_material_claim", applicability_reason: "Homepage claims must be substantiated.", evidence: "maior agência", recommendation: "Add independent evidence for the leadership claim." }] }),
+  buildRater({ raterId: "rater-2", issues: [{ severity: "medium", criterion_id: "tr3", page_type: "homepage", issue_type: "unsupported_material_claim", applicability_reason: "Homepage claims must be substantiated.", evidence: "maior agência", recommendation: "Add independent evidence for the leadership claim." }] }),
+  buildRater({ raterId: "rater-3" }),
+]);
+assert.equal(issues.length, 1);
+assert.equal(issues[0].agreement_count, 2);
+assert.equal(issues[0].issue_type, "unsupported_material_claim");
 
 // clustering: 3 raters phrasing the same fix differently still merge
 const clustered = clusterRemediation([

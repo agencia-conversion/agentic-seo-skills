@@ -47,6 +47,10 @@ assert.equal(reportJson.numeric_scores.trust, 100);
 
 const mdBeforeSynth = readFileSync(resolve(root, consensus.report_md), "utf8");
 assert.ok(mdBeforeSynth.includes("Score por pilar"));
+assert.ok(mdBeforeSynth.includes("Tipo de página"));
+assert.ok(mdBeforeSynth.includes("Issues priorizadas"));
+assert.ok(mdBeforeSynth.includes("Critério"));
+assert.ok(mdBeforeSynth.includes("| Item | Critério | Aplicabilidade | Estado | Score | Evidência |"));
 assert.ok(!mdBeforeSynth.includes("Scores por rater"), "per-rater divergence block removed");
 assert.ok(!mdBeforeSynth.includes("rater-1"), "individual rater ids not surfaced in md");
 assert.ok(mdBeforeSynth.includes("Narrativa consolidada ainda não foi sintetizada"));
@@ -71,6 +75,8 @@ assert.equal(consensus2.score, 0);
 assert.equal(consensus2.page_quality, "Lowest");
 const report2 = JSON.parse(readFileSync(resolve(root, consensus2.report_json), "utf8"));
 assert.ok(report2.gate_flags.includes("trust_gate_triggered"));
+assert.equal(report2.page_type, "homepage");
+assert.equal(reportJson.checklist_consensus.experience.find((i) => i.id === "ex1").criterion_score, 100);
 
 let invalidThrew = false;
 try {
