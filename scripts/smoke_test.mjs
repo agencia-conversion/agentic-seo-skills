@@ -35,7 +35,12 @@ function main() {
   run("serp-extract", "--keyword", "seo agentico", "--mode", "offline");
   run("seo-analysis", "--keyword", "seo agentico");
   run("topic-cluster", "--seed", "seo agentico");
-  run("eeat", "--claim", "Metodologia propria de SEO Agentico", "--status", "gap");
+  const eeatInit = spawnSync("node", [path.join(ROOT, "scripts", "eeat.mjs"), "init", "--mode", "wiki", "--slug", "smoke"], {
+    cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR },
+  });
+  if (eeatInit.status !== 0) throw new Error(`eeat init failed: ${eeatInit.stderr}`);
+  const eeatRun = JSON.parse(eeatInit.stdout);
+  if (!eeatRun.run_id) throw new Error("eeat init did not return run_id");
   run("content-seo", "--topic", "O que e SEO agentico", "--keyword", "seo agentico");
   run("backlink-analysis", "--target", "example.com", "--mode", "offline");
   run("next-website-creator");
