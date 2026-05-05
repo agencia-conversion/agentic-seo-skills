@@ -53,9 +53,25 @@ claude --plugin-dir .
 
 Running plain `claude` from this repository does not load the plugin. It only opens the repository as a normal project. Plugin skills are available only after loading with `--plugin-dir` or installing the plugin from a marketplace.
 
+When loaded, SEO Brain runs a `SessionStart` hook that injects the runtime context and records a lightweight session marker. The canonical user-facing context skill is:
+
+```text
+/seo-brain:seo-brain
+```
+
+`AGENTS.md` and `CLAUDE.md` are development guidance; `/seo-brain:seo-brain` is the runtime orientation for user-facing SEO work.
+
+The optional Claude Code statusline is installed explicitly so existing user statuslines are preserved:
+
+```bash
+node scripts/install-statusline.mjs --dry-run
+node scripts/install-statusline.mjs --apply
+```
+
 Once loaded, skills are namespaced:
 
 ```text
+/seo-brain:seo-brain
 /seo-brain:project-init
 /seo-brain:seo-analysis
 /seo-brain:technical-seo
