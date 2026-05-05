@@ -59,10 +59,14 @@ wiki/
 
 ## Status
 
-- `draft`: rascunho criado ou alterado por agente.
+- `draft`: rascunho criado ou alterado por agente. Estado de transicao; nao deve permanecer em paginas estrategicas.
+- `needs-review`: precisa de revisao humana por mudanca relevante, contradicao ou desatualizacao.
+- `needs-evidence`: humano revisou e marcou que faltam fontes ou provas; bloqueia aprovacao ate que evidencias sejam coletadas.
 - `approved`: aprovado explicitamente pelo humano.
-- `needs-review`: precisa de revisao por mudanca relevante, contradicao ou desatualizacao.
+- `rejected`: humano rejeitou a versao atual; agente deve reescrever.
 - `archived`: preservado para historico, mas fora do contexto ativo.
+
+A wiki nao recebe rascunho ou hipotese permanente. Hipoteses ficam em `projects/<slug>/reports/` ate serem promovidas por aprovacao humana (paginas estrategicas) ou checks automaticos (paginas operacionais).
 
 ## Niveis de julgamento
 
@@ -84,13 +88,18 @@ Use links Obsidian para paginas reais da Wiki. Exemplos conceituais devem ser es
 
 ## Logs
 
-`wiki/log/index.md` e append-only. Use um titulo por evento:
+`wiki/log/index.md` e append-only. Use um titulo por evento. Cada entrada declara um `Type`:
+
+- `strategic-approval`: decisao humana sobre pagina estrategica (eeat, tom-de-voz, tecnologia, index e similares).
+- `operational-decision`: decisao humana sobre pagina operacional ou editorial (clusters, briefings, configuracoes).
 
 ```md
 ## [YYYY-MM-DD] event-type | Titulo curto
 
-- Actor: agent|human
+- Type: strategic-approval|operational-decision
+- Actor: nome-do-aprovador
 - Files: [[index]]
+- Decision: approved|rejected|needs-evidence
 - Summary: o que mudou
-- Approval: not-required|pending|approved|rejected
+- Notes: observacao opcional
 ```

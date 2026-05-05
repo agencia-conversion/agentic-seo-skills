@@ -21,6 +21,9 @@ __pycache__/
 projects/*
 !projects/.gitkeep
 
+# Web companion runtime state (handoff drafts, results, identity).
+.companion/
+
 # Autoresearch experiment artifacts.
 runs/
 experiments/
