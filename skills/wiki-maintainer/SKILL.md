@@ -10,6 +10,7 @@ Use this skill when the user asks to ingest sources, update the Wiki, lint proje
 Read first when needed:
 
 - `skills/_shared/references/operating-model.md`
+- `skills/_shared/references/wiki-review.md`
 - `docs/wiki-karpathy-validation.md`
 
 ## Contract
@@ -35,9 +36,11 @@ Writes only:
 - Append important changes to `wiki/log/index.md`.
 - Keep strategic pages in `draft` or `needs-review` until explicit approval.
 - Flag contradictions, stale claims, missing citations, orphan pages, and broken links.
+- Antes de declarar `done`, executar o protocolo em `skills/_shared/references/wiki-review.md` sobre todos os arquivos `wiki/**` modificados neste run. Não persistir versão revisada sem aprovação humana quando o reviewer propuser mudanças.
 
 ## Done Criteria
 
 - Changed pages cite their sources or mark gaps.
 - Index/log are updated.
 - Approval status is correct.
+- Review pass concluído: `no-op` registrado no log, ou aprovação humana sobre a versão revisada, ou rejeição explícita registrada.
