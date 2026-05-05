@@ -12,16 +12,23 @@ assert.equal(allAbsent.score, 0);
 assert.equal(allAbsent.page_quality, "Lowest");
 assert.ok(allAbsent.gate_flags.includes("trust_gate_triggered"));
 
-// fine-grained pillar score, not bucketed: 5 of 11 weighted points → 5/11 ≈ 45.5
+// fine-grained pillar score, not bucketed: 3.5 of 5 points → 70
 const partialExp = statesAllAbsent();
-partialExp.ex1 = "present"; // weight 2
-partialExp.ex3 = "present"; // weight 1
-partialExp.ex4 = "partial"; // weight 1, value 0.5
+partialExp.ex1 = "present";
+partialExp.ex2 = "present";
+partialExp.ex3 = "present";
+partialExp.ex4 = "partial";
 const partial = scoreRater(buildRater({ raterId: "rater-1", states: partialExp }), { mode: "wiki" });
-assert.ok(partial.numeric_scores.experience > 30 && partial.numeric_scores.experience < 40, `expected ~35.7, got ${partial.numeric_scores.experience}`);
+assert.equal(partial.numeric_scores.experience, 70);
+
+const notApplicableExp = statesAllAbsent();
+notApplicableExp.ex1 = "present";
+for (const id of ["ex2","ex3","ex4","ex5"]) notApplicableExp[id] = "not_applicable";
+const naScore = scoreRater(buildRater({ raterId: "rater-1", states: notApplicableExp }), { mode: "wiki" });
+assert.equal(naScore.numeric_scores.experience, 100, "not_applicable items must be excluded from denominator");
 
 const trustOnly = statesAllAbsent();
-for (const id of ["tr1","tr2","tr3","tr4","tr5","tr6","tr7","tr8","tr9","tr10"]) trustOnly[id] = "present";
+for (const id of ["tr1","tr2","tr3","tr4","tr5"]) trustOnly[id] = "present";
 const trustGood = scoreRater(buildRater({ raterId: "rater-1", states: trustOnly }), { mode: "wiki" });
 assert.equal(trustGood.numeric_scores.trust, 100);
 assert.equal(trustGood.numeric_scores.experience, 0);
@@ -35,8 +42,8 @@ const reputationOk = scoreRater(buildRater({ raterId: "rater-1", states: statesA
 assert.equal(reputationOk.numeric_scores.authoritativeness, 100);
 
 const ymylBad = statesAllAbsent();
-for (const id of ["tr1","tr2","tr3","tr4","tr5","tr6","tr7","tr8","tr9","tr10"]) ymylBad[id] = "present";
-for (const id of ["eq1","eq2","eq3","eq4"]) ymylBad[id] = "present";
+for (const id of ["tr1","tr2","tr3","tr4","tr5"]) ymylBad[id] = "present";
+for (const id of ["eq1","eq2"]) ymylBad[id] = "present";
 const ymyl = scoreRater(buildRater({ raterId: "rater-1", states: ymylBad, ymyl: true }), { mode: "wiki" });
 assert.ok(ymyl.gate_flags.includes("ymyl_below_floor"));
 

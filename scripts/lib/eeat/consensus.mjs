@@ -2,15 +2,7 @@
 // Strategy: median of numeric scores per pillar, mode of ratings (for page_quality only),
 // vocab-filtered risk_flags, engine-recomputed gate_flags, clustered remediation.
 
-import { PILLARS } from "./checklist.mjs";
-
-const RISK_VOCAB = new Set([
-  "anonymous_authorship",
-  "no_about_page",
-  "outdated_content",
-  "unverifiable_credentials",
-  "fabrication_risk",
-]);
+import { PILLARS, CRITERION_SCORES, criterionById, applicabilityFor } from "./checklist.mjs";
 
 const GATE_VOCAB = new Set([
   "trust_gate_triggered",
@@ -54,18 +46,44 @@ export function recomputeGateFlags({ numeric_scores, ymyl, mode: targetMode, rep
 }
 
 export function partitionRiskSignals(rawRaters) {
-  const validFlags = new Set();
   const observations = [];
   for (let i = 0; i < rawRaters.length; i += 1) {
     const raterId = rawRaters[i].rater_id ?? `rater-${i + 1}`;
     for (const flag of rawRaters[i].risk_flags ?? []) {
       const text = String(flag).trim();
-      if (RISK_VOCAB.has(text)) validFlags.add(text);
-      else if (GATE_VOCAB.has(text)) continue;
-      else observations.push({ rater_id: raterId, observation: text });
+      if (!GATE_VOCAB.has(text)) observations.push({ rater_id: raterId, observation: text });
     }
   }
-  return { risk_flags: [...validFlags], rater_observations: observations };
+  return { risk_flags: [], rater_observations: observations };
+}
+
+export function consensusIssues(rawRaters) {
+  const all = [];
+  for (let i = 0; i < rawRaters.length; i += 1) {
+    const raterId = rawRaters[i].rater_id ?? `rater-${i + 1}`;
+    for (const issue of rawRaters[i].issues ?? []) {
+      all.push({ ...issue, rater_id: raterId });
+    }
+  }
+  const buckets = new Map();
+  for (const issue of all) {
+    const key = [
+      issue.severity ?? "medium",
+      issue.issue_type ?? "issue",
+      issue.criterion_id ?? "",
+      issue.page_type ?? "",
+      normalize(issue.recommendation ?? issue.evidence ?? ""),
+    ].join("|");
+    const bucket = buckets.get(key) ?? { ...issue, raters: new Set(), evidence_items: [] };
+    bucket.raters.add(issue.rater_id);
+    if (issue.evidence) bucket.evidence_items.push({ rater_id: issue.rater_id, evidence: issue.evidence });
+    buckets.set(key, bucket);
+  }
+  const order = { high: 0, medium: 1, low: 2 };
+  return [...buckets.values()].map((issue) => {
+    const { raters, rater_id, ...rest } = issue;
+    return { ...rest, agreement_count: raters.size, evidence_items: issue.evidence_items?.slice(0, 3) ?? [] };
+  }).sort((a, b) => order[a.severity] - order[b.severity] || b.agreement_count - a.agreement_count);
 }
 
 export function consensusItems(rawRaters) {
@@ -81,11 +99,24 @@ export function consensusItems(rawRaters) {
       const states = found.map((it) => it?.state ?? "unclear");
       const consensus = mode(states) ?? "unclear";
       const agreement = states.filter((s) => s === consensus).length;
+      const criterion = criterionById(id);
+      const pageType = rawRaters.find((r) => r.page_type)?.page_type ?? rawRaters[0]?.target?.page_type ?? "homepage";
+      const applicability = found.find((it) => it?.applicability)?.applicability ?? applicabilityFor(id, pageType);
       const evidenceQuotes = [];
       for (const it of found) {
         if (it?.evidence_quote) evidenceQuotes.push({ quote: it.evidence_quote, locator: it.evidence_locator ?? null });
       }
-      out[pillar].push({ id, consensus_state: consensus, agreement, states, evidence_quotes: evidenceQuotes.slice(0, 3) });
+      out[pillar].push({
+        id,
+        label: criterion?.label ?? id,
+        description: criterion?.description ?? "",
+        applicability,
+        consensus_state: consensus,
+        criterion_score: CRITERION_SCORES[consensus],
+        agreement,
+        states,
+        evidence_quotes: evidenceQuotes.slice(0, 3),
+      });
     }
     out[pillar].sort((a, b) => a.id.localeCompare(b.id));
   }
@@ -128,6 +159,10 @@ function mode(values) {
 }
 
 function round1(n) { return Math.round(n * 10) / 10; }
+
+function normalize(text) {
+  return String(text).toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^\w\s]/g, " ").replace(/\s+/g, " ").trim();
+}
 
 function scoreToPageQualityFallback(score) {
   if (score >= 85) return "Highest";
