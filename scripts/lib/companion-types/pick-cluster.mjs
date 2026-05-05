@@ -40,7 +40,7 @@ export function buildClusterMarkdown(proposal, kept) {
     "approved_by: null",
     "approved_at: null",
     "sources:",
-    `  - reports/topic-cluster/${proposal.seed}.json`,
+    `  - workbench/topic-cluster/${proposal.seed}.json`,
     "judgment_level: editorial",
     "---",
     "",
@@ -120,7 +120,7 @@ export async function handleSubmit(body, ctx) {
 
   const reportPath = join(
     ctx.projectRoot,
-    "reports",
+    "workbench",
     "topic-cluster",
     `${ctx.proposal.seed}.json`,
   );

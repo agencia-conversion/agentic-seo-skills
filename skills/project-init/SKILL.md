@@ -26,7 +26,7 @@ Writes only:
 - `project/`
 - `project/wiki/`
 - `project/sources/`
-- `project/reports/`
+- `project/workbench/`
 - `project/artifacts/`
 - `project/.seo-brain/`
 

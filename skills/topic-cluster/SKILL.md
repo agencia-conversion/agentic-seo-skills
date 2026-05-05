@@ -24,11 +24,11 @@ Inputs:
 Writes only:
 
 - `project/wiki/conteudos/topic-clusters.md`
-- `project/reports/topic-cluster/<seed-slug>.json`
+- `project/workbench/topic-cluster/<seed-slug>.json`
 
 ## Hard Precondition
 
-`reports/seo-analysis/<seed-slug>.json` must exist before a production-grade cluster is generated. If absent, the only legal alternative is `--hypothesis-only`, which produces a cluster with `status: hypothesis` clearly marked in the JSON and in the Wiki entry.
+`workbench/seo-analysis/<seed-slug>.json` must exist before a production-grade cluster is generated. If absent, the only legal alternative is `--hypothesis-only`, which produces a cluster with `status: hypothesis` clearly marked in the JSON and in the Wiki entry.
 
 ## Required Behavior
 

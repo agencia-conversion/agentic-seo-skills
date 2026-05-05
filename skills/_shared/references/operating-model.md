@@ -18,7 +18,7 @@ project/
   wiki/
   web/
   sources/
-  reports/
+  workbench/
   artifacts/
   .seo-brain/
 ```
@@ -100,7 +100,7 @@ The default sequence for a new SEO Brain project:
 1. `project-init`: create the project folder and initial Wiki.
 2. Strategic approval: humans approve `wiki/index.md`, `wiki/eeat.md`, `wiki/tecnologia/index.md`, `wiki/tom-de-voz/index.md`.
 3. `data-setup`: confirm provider status. DataForSEO is the default when configured; otherwise the system uses websearch.
-4. `seo-analysis`: produce `reports/seo-analysis/<keyword-slug>.json` for any topic that will receive content. This is the canonical gate for steps 5 and 6.
+4. `seo-analysis`: produce `workbench/seo-analysis/<keyword-slug>.json` for any topic that will receive content. This is the canonical gate for steps 5 and 6.
 5. `topic-cluster`: requires the seo-analysis report unless `--hypothesis-only` is passed.
 6. `content-seo`: requires the seo-analysis report unless `--skip-data --skip-data-reason "<motivo>"` is passed.
 

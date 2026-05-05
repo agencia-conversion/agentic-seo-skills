@@ -47,7 +47,7 @@ Expected output:
 - creates `project`;
 - creates initial Wiki pages with frontmatter;
 - creates project config;
-- creates empty `sources`, `reports`, and `artifacts`;
+- creates empty `sources`, `workbench`, and `artifacts`;
 - starts from templates without writing real secrets.
 
 Acceptance criteria:
@@ -285,4 +285,3 @@ Acceptance criteria:
 - can validate DataForSEO credentials;
 - writes `.env.local` or project config only with explicit user action;
 - creates `.env.example` without real values.
-

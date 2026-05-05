@@ -628,7 +628,7 @@ function loadWebsearchResults(projectDir: string, keyword: string, override?: st
 }
 
 function loadKeywordMetrics(projectDir: string, keyword: string): AnyRecord | null {
-  const file = latestFile(path.join(projectDir, "reports", "keyword-research"), `-${slugify(keyword)}.json`);
+  const file = latestFile(path.join(projectDir, "workbench", "keyword-research"), `-${slugify(keyword)}.json`);
   if (!file) return null;
   const primary = (readJson(file).keywords || [])[0];
   if (!primary || (primary.search_volume == null && primary.competition == null)) return null;
@@ -648,7 +648,7 @@ function projectDisplayName(projectDir: string): string {
 async function commandProjectInit(args: AnyRecord): Promise<void> {
   const name = args._[0] || "SEO Brain Project";
   const p = PROJECT_DIR;
-  for (const dir of ["wiki", "web", "sources", "reports", "artifacts", ".seo-brain"]) mkdirp(path.join(p, dir));
+  for (const dir of ["wiki", "web", "sources", "workbench", "artifacts", ".seo-brain"]) mkdirp(path.join(p, dir));
   copyDir(path.join(TEMPLATES_DIR, "wiki"), path.join(p, "wiki"));
   writeJson(path.join(p, ".seo-brain", "project.json"), { name, created_at: nowIso(), language: args.language || "pt-BR", market: args.market || "Brasil", status: "draft" });
   appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado.`, "pending");
@@ -676,15 +676,15 @@ async function commandWikiLint(args: AnyRecord): Promise<void> {
   }
   findings.push(...lintContentPublication(p));
   const result = { ok: !findings.some((f) => f.severity === "error"), findings };
-  writeJson(path.join(p, "reports", "wiki-lint.json"), result);
-  appendLog("lint", "Wiki lint", ["reports/wiki-lint.json"], `${findings.length} apontamentos encontrados.`, "not-required");
+  writeJson(path.join(p, "workbench", "wiki-lint.json"), result);
+  appendLog("lint", "Wiki lint", ["workbench/wiki-lint.json"], `${findings.length} apontamentos encontrados.`, "not-required");
   printJson(result);
 }
 
 function lintContentPublication(projectDir: string): AnyRecord[] {
   const findings: AnyRecord[] = [];
   const contentDir = path.join(projectDir, "wiki", "conteudos");
-  const briefsDir = path.join(projectDir, "reports", "content");
+  const briefsDir = path.join(projectDir, "workbench", "content");
   if (!fs.existsSync(contentDir)) return findings;
   for (const name of fs.readdirSync(contentDir)) {
     if (!name.endsWith(".md") || ["index.md", "topic-clusters.md"].includes(name)) continue;
@@ -775,7 +775,7 @@ async function commandSerpExtract(args: AnyRecord): Promise<void> {
   const base = path.join(p, "sources", "serp", `${stamp()}-${slugify(keyword)}`);
   writeJson(`${base}.raw.json`, source);
   writeJson(`${base}.normalized.json`, normalized);
-  writeJson(path.join(p, "reports", "serp", `${stamp()}-${slugify(keyword)}.json`), normalized);
+  writeJson(path.join(p, "workbench", "serp", `${stamp()}-${slugify(keyword)}.json`), normalized);
   appendLog("serp", keyword, [path.relative(p, `${base}.normalized.json`)], "SERP extraida e normalizada.", "not-required");
   printJson(normalized);
 }
@@ -794,7 +794,7 @@ async function commandKeywordResearch(args: AnyRecord): Promise<void> {
   const base = path.join(p, "sources", "keyword-research", `${stamp()}-${slugify(keyword)}`);
   writeJson(`${base}.raw.json`, source);
   writeJson(`${base}.normalized.json`, normalized);
-  writeJson(path.join(p, "reports", "keyword-research", `${stamp()}-${slugify(keyword)}.json`), normalized);
+  writeJson(path.join(p, "workbench", "keyword-research", `${stamp()}-${slugify(keyword)}.json`), normalized);
   appendLog("keyword-research", keyword, [path.relative(p, `${base}.normalized.json`)], "Pesquisa de keyword registrada.", "not-required");
   printJson(normalized);
 }
@@ -814,7 +814,7 @@ async function commandBacklinkAnalysis(args: AnyRecord): Promise<void> {
   const normalized = { target, provider: source.tasks?.length ? "dataforseo" : "offline", mode: source.mode || "unknown", timestamp: nowIso(), backlinks: result.backlinks, referring_domains: result.referring_domains, referring_main_domains: result.referring_main_domains, rank: result.rank, spam_score: result.backlinks_spam_score, note: source.mode_note || (source.tasks?.length ? null : "Backlink metrics unavailable without a provider call.") };
   const base = path.join(p, "sources", "backlinks", `${stamp()}-${slugify(target)}`);
   writeJson(`${base}.raw.json`, source);
-  writeJson(path.join(p, "reports", "backlinks", `${stamp()}-${slugify(target)}.json`), normalized);
+  writeJson(path.join(p, "workbench", "backlinks", `${stamp()}-${slugify(target)}.json`), normalized);
   appendLog("backlinks", target, [path.relative(p, `${base}.raw.json`)], "Analise de backlinks registrada.", "not-required");
   printJson(normalized);
 }
@@ -861,7 +861,7 @@ async function commandSeoAnalysis(args: AnyRecord): Promise<void> {
     incomplete,
     generated_at: nowIso(),
   };
-  const out = path.join(p, "reports", "seo-analysis", `${slugify(keyword)}.json`);
+  const out = path.join(p, "workbench", "seo-analysis", `${slugify(keyword)}.json`);
   writeJson(out, report);
   appendLog("seo-analysis", keyword, [path.relative(p, out)], `Analise SEO via ${decision.provider} (${topResults.length} resultados).`, "not-required");
   printJson(report);
@@ -871,14 +871,14 @@ async function commandTopicCluster(args: AnyRecord): Promise<void> {
   const seed = required(args, "seed");
   const p = ensureProject();
   const seedSlug = slugify(seed);
-  const analysisFile = path.join(p, "reports", "seo-analysis", `${seedSlug}.json`);
+  const analysisFile = path.join(p, "workbench", "seo-analysis", `${seedSlug}.json`);
   if (!fs.existsSync(analysisFile) && !args.hypothesis_only) throw new CliError(`Missing seo-analysis for this seed. Run: bin/seo-brain seo-analysis --keyword "${seed}" or rerun with --hypothesis-only to produce a hypothesis-grade cluster.`);
   const analysisData = fs.existsSync(analysisFile) ? readJson(analysisFile) : null;
   const intent = analysisData?.intent || "to-be-validated";
   const clusterStatus = args.hypothesis_only && !analysisData ? "hypothesis" : "draft";
   const supportingPages = [`O que é ${seed}`, `Como avaliar ${seed}`, `${seed}: exemplos brasileiros`].map((title) => ({ title, intent, judgment: clusterStatus }));
   const cluster = { seed, seed_slug: seedSlug, status: clusterStatus, generated_at: nowIso(), pillar_page: `/${seedSlug}/`, supporting_pages: supportingPages, business_hypothesis: "Precisa de validacao humana: conectar demanda organica a oferta, conversao e margem.", data_provenance: { seo_analysis: analysisData ? { path: path.relative(p, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason } : { path: null, provider: null, provider_reason: "hypothesis-only run" } } };
-  writeJson(path.join(p, "reports", "topic-cluster", `${seedSlug}.json`), cluster);
+  writeJson(path.join(p, "workbench", "topic-cluster", `${seedSlug}.json`), cluster);
   fs.appendFileSync(path.join(p, "wiki", "conteudos", "topic-clusters.md"), `\n\n## ${seed}\n\n- Página pilar: \`${cluster.pillar_page}\`\n- Status: ${clusterStatus}\n- Intenção dominante: ${intent}\n- Hipótese de negócio: precisa de validação humana.\n${supportingPages.map((page) => `- ${page.title} (${page.intent})`).join("\n")}\n`, "utf8");
   appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], `Cluster em status ${clusterStatus}.`, "pending");
   printJson(cluster);
@@ -891,7 +891,7 @@ async function commandEeat(args: AnyRecord): Promise<void> {
   const evidence = { claim: args.claim || "Evidencia a mapear", source: args.source || "sem fonte", status: args.status || "gap", timestamp: nowIso() };
   const report = { timestamp: nowIso(), evidence, rules: ["Nao inventar experiencia, clientes, credenciais, premios ou provas.", "Marcar alegacoes sem fonte como gap.", "Manter wiki/eeat.md em draft ou needs-review ate aprovacao explicita."] };
   fs.appendFileSync(page, `\n\n## Evidencia registrada\n\n- Alegacao: ${evidence.claim}\n- Fonte: ${evidence.source}\n- Status: ${evidence.status}\n`, "utf8");
-  const out = path.join(p, "reports", "eeat", `${stamp()}.json`);
+  const out = path.join(p, "workbench", "eeat", `${stamp()}.json`);
   writeJson(out, report);
   appendLog("eeat", "Evidencia EEAT", ["eeat", path.relative(p, out)], "Evidencia ou lacuna EEAT registrada.", "pending");
   printJson(report);
@@ -903,7 +903,7 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
   const topicSlug = slugify(topic);
   const keyword = args.keyword || topic;
   const keywordSlug = slugify(keyword);
-  const analysisFile = path.join(p, "reports", "seo-analysis", `${keywordSlug}.json`);
+  const analysisFile = path.join(p, "workbench", "seo-analysis", `${keywordSlug}.json`);
   if (!fs.existsSync(analysisFile) && !args.skip_data) throw new CliError(`Missing seo-analysis for this topic. Run: bin/seo-brain seo-analysis --keyword "${keyword}" or rerun content-seo with --skip-data --skip-data-reason "motivo claro" para gerar um briefing sem proveniencia de SERP.`);
   if (args.skip_data && !args.skip_data_reason) throw new CliError('--skip-data requires --skip-data-reason "motivo claro".');
   const analysisData = fs.existsSync(analysisFile) ? readJson(analysisFile) : null;
@@ -926,8 +926,8 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
     must_not_mention_in_prose: mustNotMention,
     draft_status: "outline",
   };
-  writeJson(path.join(p, "reports", "content", `${topicSlug}.brief.json`), report);
-  writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), `---\ntitle: "${topic}"\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${topicSlug}/"\nprimary_keyword: "${keyword}"\nsources: []\n---\n\n# ${topic}\n\n## Briefing\n\nIntencao, angulo e argumentos foram derivados de reports/seo-analysis/${keywordSlug}.json.\nReescrever para o leitor de blog: sem expor URL interna em prosa, sem voz de Wiki.\n\n## Estrutura proposta\n\n1. Resposta direta no topo.\n2. Definicao clara, com escopo e limites.\n3. Criterios praticos.\n4. Exemplos brasileiros verificaveis.\n5. Proximo passo concreto.\n\n## Revisao anti-slop e registro de publicacao\n\n- Titulo em frase normal, sem padrao americano.\n- Nenhum path interno aparece em prosa.\n- Links internos usam o titulo da pagina de destino como anchor text.\n- Cada frase com link continua coerente sem o link.\n- Evitar sequencia longa de paragrafos de uma linha.\n- Reduzir bullets quando a explicacao pedir desenvolvimento.\n`);
+  writeJson(path.join(p, "workbench", "content", `${topicSlug}.brief.json`), report);
+  writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), `---\ntitle: "${topic}"\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${topicSlug}/"\nprimary_keyword: "${keyword}"\nsources: []\n---\n\n# ${topic}\n\n## Briefing\n\nIntencao, angulo e argumentos foram derivados de workbench/seo-analysis/${keywordSlug}.json.\nReescrever para o leitor de blog: sem expor URL interna em prosa, sem voz de Wiki.\n\n## Estrutura proposta\n\n1. Resposta direta no topo.\n2. Definicao clara, com escopo e limites.\n3. Criterios praticos.\n4. Exemplos brasileiros verificaveis.\n5. Proximo passo concreto.\n\n## Revisao anti-slop e registro de publicacao\n\n- Titulo em frase normal, sem padrao americano.\n- Nenhum path interno aparece em prosa.\n- Links internos usam o titulo da pagina de destino como anchor text.\n- Cada frase com link continua coerente sem o link.\n- Evitar sequencia longa de paragrafos de uma linha.\n- Reduzir bullets quando a explicacao pedir desenvolvimento.\n`);
   appendLog("content", topic, [`conteudos/${topicSlug}`], "Briefing e estrutura de conteudo criados.", "pending");
   printJson(report);
 }
@@ -954,8 +954,8 @@ async function commandTechnicalSeo(args: AnyRecord): Promise<void> {
   const result = auditTechnicalSeo(extracted, { pageType, source, status, headers });
   const p = ensureProject();
   const basename = `${stamp()}-${pageType}`;
-  const outJson = path.join(p, "reports", "technical-seo", `${basename}.json`);
-  const outMd = path.join(p, "reports", "technical-seo", `${basename}.md`);
+  const outJson = path.join(p, "workbench", "technical-seo", `${basename}.json`);
+  const outMd = path.join(p, "workbench", "technical-seo", `${basename}.md`);
   writeJson(outJson, result);
   writeText(outMd, renderTechnicalMarkdown(result));
   appendLog("technical-seo", pageType, [path.relative(p, outJson), path.relative(p, outMd)], "Auditoria tecnica deterministica executada.", "not-required");
@@ -992,7 +992,7 @@ async function commandUxWeb(args: AnyRecord): Promise<void> {
   const p = ensureProject();
   const projectName = projectDisplayName(p);
   const reportLinks: string[] = [];
-  walk(path.join(p, "reports"), (file) => reportLinks.push(`<li>${path.relative(p, file)}</li>`));
+  walk(path.join(p, "workbench"), (file) => reportLinks.push(`<li>${path.relative(p, file)}</li>`));
   const pending: string[] = [];
   for (const rel of STRATEGIC_PAGES) {
     const file = path.join(p, "wiki", rel);

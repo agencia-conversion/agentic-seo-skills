@@ -16,4 +16,4 @@ Prefer:
 bin/seo-brain eeat --claim "<claim>" --source "<source>" --status gap
 ```
 
-Write only to the target project's Wiki, sources, and reports. Keep `wiki/eeat.md` as `draft` or `needs-review` until explicit approval.
+Write only to the target project's Wiki, sources, and workbench. Keep `wiki/eeat.md` as `draft` or `needs-review` until explicit approval.

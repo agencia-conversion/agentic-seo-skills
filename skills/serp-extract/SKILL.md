@@ -22,7 +22,7 @@ Inputs:
 Writes only:
 
 - `project/sources/serp/`
-- `project/reports/serp/`
+- `project/workbench/serp/`
 
 ## Required Behavior
 
