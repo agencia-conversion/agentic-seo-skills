@@ -12,27 +12,27 @@ judgment_level: strategic
 
 # EEAT
 
-Esta pagina registra provas, lacunas e limites de experiencia, especialidade, autoridade e confianca. Nenhuma alegacao sem fonte deve virar contexto aprovado.
+Esta página registra provas, lacunas e limites de experiência, especialidade, autoridade e confiança. Nenhuma alegação sem fonte deve virar contexto aprovado.
 
-## Experiencia
+## Experiência
 
-Fatos comprovaveis sobre experiencia real da marca, equipe, autores, clientes, casos, pesquisas e operacao.
+Fatos comprováveis sobre experiência real da marca, equipe, autores, clientes, casos, pesquisas e operação.
 
 ## Especialidade
 
-Formacao, credenciais, pratica, metodologia, processos e demonstracoes concretas de conhecimento.
+Formação, credenciais, prática, metodologia, processos e demonstrações concretas de conhecimento.
 
 ## Autoridade
 
-Mencoes, referencias externas, parcerias, cases, citacoes, backlinks editoriais e reconhecimento publico.
+Menções, referências externas, parcerias, cases, citações, backlinks editoriais e reconhecimento público.
 
-## Confianca
+## Confiança
 
-Transparencia, contato, politicas, revisao editorial, seguranca, fontes, atualizacao e responsabilidade.
+Transparência, contato, políticas, revisão editorial, segurança, fontes, atualização e responsabilidade.
 
-## Evidencias
+## Evidências
 
-| Evidencia | Fonte | Status |
+| Evidência | Fonte | Status |
 | --- | --- | --- |
 |  |  | gap |
 

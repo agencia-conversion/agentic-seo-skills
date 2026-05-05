@@ -3,7 +3,9 @@
 import { Buffer } from "node:buffer";
 import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
+import { homedir } from "node:os";
 import * as path from "node:path";
+import { buildPlayerScoreReport } from "./lib/player-score";
 
 type AnyRecord = Record<string, any>;
 type Severity = "critical" | "error" | "warning" | "info";
@@ -12,6 +14,7 @@ const ROOT = path.resolve(__dirname, "..");
 const PROJECT_DIR = resolveProjectDir();
 const TEMPLATES_DIR = path.join(ROOT, "templates", "project");
 const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
+const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
 const REQUIRED_WIKI_PAGES = [
   "index.md",
   "eeat.md",
@@ -176,8 +179,24 @@ function readEnvFile(file = path.join(ROOT, ".env")): Record<string, string> {
   return values;
 }
 
+function readHomeCredentials(): AnyRecord {
+  const file = path.join(homedir(), ".seo-brain", "credentials.json");
+  if (!fs.existsSync(file)) return {};
+  try {
+    return readJson(file);
+  } catch {
+    return {};
+  }
+}
+
 function getSecret(name: string): string {
-  return process.env[name] || readEnvFile()[name] || "";
+  const home = readHomeCredentials();
+  const homeKey = {
+    DATAFORSEO_LOGIN: "dataforseo_login",
+    DATAFORSEO_PASSWORD: "dataforseo_password",
+    SEO_BRAIN_DATAFORSEO_MODE: "dataforseo_mode",
+  }[name];
+  return process.env[name] || readEnvFile()[name] || (homeKey ? home[homeKey] : "") || "";
 }
 
 function mask(value?: string): string {
@@ -190,6 +209,19 @@ function dataforseoCredentialsPresent(): boolean {
   const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
   const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
   return Boolean(login && password);
+}
+
+export function dataforseoCredentialStatus(): AnyRecord {
+  const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
+  const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
+  const home = readHomeCredentials();
+  return {
+    dataforseo_login: mask(login),
+    dataforseo_password: mask(password),
+    dataforseo_configured: Boolean(login && password),
+    home_credentials_present: Boolean(home.dataforseo_login && home.dataforseo_password),
+    home_mode: home.dataforseo_mode || null,
+  };
 }
 
 function resolveSeoProvider(prefer?: string): AnyRecord {
@@ -230,10 +262,31 @@ function resolveDataforseoMode(args: AnyRecord): string {
     process.env.CLAUDE_PLUGIN_OPTION_dataforseo_mode ||
     process.env.SEO_BRAIN_DATAFORSEO_MODE ||
     readEnvFile().SEO_BRAIN_DATAFORSEO_MODE ||
+    getSecret("SEO_BRAIN_DATAFORSEO_MODE") ||
     "standard";
   const mode = String(configured).trim().toLowerCase();
   if (!DATAFORSEO_MODES.has(mode)) throw new CliError(`Unsupported DataForSEO mode: ${mode}. Use one of: ${Array.from(DATAFORSEO_MODES).sort().join(", ")}.`);
   return mode;
+}
+
+function boolArg(value: unknown, fallback: boolean): boolean {
+  if (value === undefined) return fallback;
+  if (typeof value === "boolean") return value;
+  return !["0", "false", "no", "nao", "não"].includes(String(value).trim().toLowerCase());
+}
+
+function intArg(value: unknown, fallback: number, min: number, max: number): number {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(parsed)));
+}
+
+function listArg(value: unknown): string[] {
+  if (!value) return [];
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function taskIdsFromResponse(response: AnyRecord): string[] {
@@ -628,6 +681,125 @@ function normalizeKeywords(source: AnyRecord, keyword: string, location: string,
   };
 }
 
+function taskForTarget(source: AnyRecord, target: string, index = 0): AnyRecord {
+  const tasks = source.tasks || [];
+  return tasks.find((task: AnyRecord) => task.data?.target === target) || tasks[index] || {};
+}
+
+function taskResult(source: AnyRecord, target: string, index = 0): AnyRecord {
+  return taskForTarget(source, target, index).result?.[0] || {};
+}
+
+function taskItems(source: AnyRecord, target: string, index = 0): AnyRecord[] {
+  return taskResult(source, target, index).items || [];
+}
+
+function taskResultValue(source: AnyRecord, target: string, key: string, index = 0): unknown {
+  return taskResult(source, target, index)[key] ?? null;
+}
+
+function endpointStatus(source: AnyRecord, endpoint: string): AnyRecord {
+  const task = (source.tasks || [])[0] || {};
+  return {
+    endpoint,
+    status_code: source.status_code ?? null,
+    status_message: source.status_message || null,
+    task_status_code: task.status_code ?? null,
+    task_status_message: task.status_message || null,
+    cost: task.cost ?? null,
+  };
+}
+
+function backlinkPayload(args: AnyRecord, target: string, limit: number): AnyRecord {
+  return {
+    target,
+    limit,
+    include_subdomains: boolArg(args.include_subdomains, true),
+    backlinks_status_type: args.backlinks_status || "live",
+  };
+}
+
+function backlinkSummary(result: AnyRecord): AnyRecord {
+  return {
+    backlinks: result.backlinks ?? null,
+    referring_domains: result.referring_domains ?? null,
+    referring_main_domains: result.referring_main_domains ?? null,
+    rank: result.rank ?? null,
+    spam_score: result.backlinks_spam_score ?? null,
+  };
+}
+
+export function normalizeBacklinkReport(target: string, competitors: string[], source: AnyRecord, args: AnyRecord = {}): AnyRecord {
+  const summarySource = source.summary || source;
+  const ownSummary = backlinkSummary(taskResult(summarySource, target, 0));
+  const backlinksTotalCount = taskResultValue(source.backlinks || {}, target, "total_count");
+  const competitorComparison = competitors.map((competitor, i) => {
+    const summary = backlinkSummary(taskResult(summarySource, competitor, i + 1));
+    return {
+      target: competitor,
+      ...summary,
+      backlink_delta_vs_target: summary.backlinks == null || ownSummary.backlinks == null ? null : summary.backlinks - ownSummary.backlinks,
+      referring_domain_delta_vs_target: summary.referring_domains == null || ownSummary.referring_domains == null ? null : summary.referring_domains - ownSummary.referring_domains,
+    };
+  });
+  const topReferringDomains = taskItems(source.referring_domains || {}, target).map((item) => ({
+    domain: item.domain || item.domain_from || null,
+    backlinks: item.backlinks ?? null,
+    rank: item.rank ?? null,
+    first_seen: item.first_seen || null,
+    dofollow: item.backlinks_dofollow ?? null,
+  }));
+  const topAnchors = taskItems(source.anchors || {}, target).map((item) => ({
+    anchor: item.anchor || null,
+    backlinks: item.backlinks ?? null,
+    referring_domains: item.referring_domains ?? null,
+    rank: item.rank ?? null,
+    spam_score: item.backlinks_spam_score ?? null,
+  }));
+  const sampleBacklinks = taskItems(source.backlinks || {}, target).map((item) => ({
+    from: item.url_from || null,
+    to: item.url_to || null,
+    anchor: item.anchor || null,
+    domain_from: item.domain_from || null,
+    rank: item.rank ?? item.page_from_rank ?? null,
+    dofollow: item.dofollow ?? null,
+    first_seen: item.first_seen || null,
+  }));
+  const hasData = (summarySource.tasks || []).length > 0;
+  const endpointStatuses = [
+    source.summary ? endpointStatus(source.summary, "/v3/backlinks/summary/live") : null,
+    source.referring_domains ? endpointStatus(source.referring_domains, "/v3/backlinks/referring_domains/live") : null,
+    source.anchors ? endpointStatus(source.anchors, "/v3/backlinks/anchors/live") : null,
+    source.backlinks ? endpointStatus(source.backlinks, "/v3/backlinks/backlinks/live") : null,
+  ].filter(Boolean);
+  return {
+    target,
+    competitors,
+    provider: hasData ? "dataforseo" : "offline",
+    mode: source.mode || "unknown",
+    requested_mode: source.requested_mode || args.mode || null,
+    timestamp: nowIso(),
+    settings: source.settings || {},
+    endpoints: source.endpoints || [],
+    backlinks: ownSummary.backlinks ?? backlinksTotalCount,
+    referring_domains: ownSummary.referring_domains,
+    referring_main_domains: ownSummary.referring_main_domains,
+    rank: ownSummary.rank,
+    spam_score: ownSummary.spam_score,
+    summary: ownSummary,
+    top_referring_domains: topReferringDomains,
+    top_anchors: topAnchors,
+    sample_backlinks: sampleBacklinks,
+    competitor_comparison: competitorComparison,
+    endpoint_statuses: endpointStatuses,
+    note:
+      source.mode_note ||
+      (source.mode === "offline"
+        ? "Backlink metrics unavailable without a provider call."
+        : "DataForSEO Backlinks API v3 is live-only; standard requests are executed through live endpoints for this skill."),
+  };
+}
+
 function latestFile(directory: string, suffix: string): string | null {
   if (!fs.existsSync(directory)) return null;
   const files = fs
@@ -660,6 +832,37 @@ function loadKeywordMetrics(projectDir: string, keyword: string): AnyRecord | nu
   return { search_volume: primary.search_volume, competition: primary.competition, cpc: primary.cpc, source_path: path.relative(projectDir, file) };
 }
 
+function projectSettings(projectDir: string): AnyRecord {
+  const config = path.join(projectDir, ".seo-brain", "project.json");
+  const wikiIndex = path.join(projectDir, "wiki", "index.md");
+  let data: AnyRecord = {};
+  if (fs.existsSync(config)) {
+    try {
+      data = readJson(config);
+    } catch {
+      data = {};
+    }
+  }
+  if (fs.existsSync(wikiIndex)) {
+    try {
+      const [fm] = parseFrontmatter(fs.readFileSync(wikiIndex, "utf8"));
+      data = { ...data, ...fm };
+    } catch {
+      // Keep project.json/defaults when the Wiki index is not parseable.
+    }
+  }
+  const clean = (value: unknown, fallback: string) => String(value || fallback).trim().replace(/^["']|["']$/g, "");
+  const market = clean(data.market, "Brasil");
+  const language = clean(data.language, "pt-BR");
+  return {
+    market,
+    country: clean(data.country, market),
+    language,
+    dataforseo_location: clean(data.dataforseo_location, market.toLowerCase() === "brasil" ? "Brazil" : market),
+    dataforseo_language: clean(data.dataforseo_language, language.toLowerCase().startsWith("pt") ? "pt" : language.slice(0, 2).toLowerCase()),
+  };
+}
+
 function projectDisplayName(projectDir: string): string {
   const config = path.join(projectDir, ".seo-brain", "project.json");
   if (!fs.existsSync(config)) return "SEO Brain";
@@ -670,12 +873,40 @@ function projectDisplayName(projectDir: string): string {
   }
 }
 
+function shouldAutoOpenDataSetup(args: AnyRecord): boolean {
+  if (args.handoff || args.web) return true;
+  if (args.no_handoff || args.check || process.env.CI === "true") return false;
+  return !dataforseoCredentialsPresent() && Boolean(process.stdin.isTTY || process.stdout.isTTY);
+}
+
+function runDataSetupHandoff(): AnyRecord {
+  const result = spawnSync(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "collect-env"], {
+    cwd: ROOT,
+    env: process.env,
+    stdio: "inherit",
+  });
+  if (result.error) return { ok: false, reason: result.error.message };
+  if (result.status !== 0) return { ok: false, reason: `handoff-exit-${result.status}` };
+  return { ok: true };
+}
+
 async function commandProjectInit(args: AnyRecord): Promise<void> {
   const name = args._[0] || "SEO Brain Project";
   const p = PROJECT_DIR;
+  const language = args.language || "pt-BR";
+  const market = args.market || "Brasil";
+  const country = args.country || market;
   for (const dir of ["wiki", "web", "sources", "workbench", "artifacts", ".seo-brain"]) mkdirp(path.join(p, dir));
   copyDir(path.join(TEMPLATES_DIR, "wiki"), path.join(p, "wiki"));
-  writeJson(path.join(p, ".seo-brain", "project.json"), { name, created_at: nowIso(), language: args.language || "pt-BR", market: args.market || "Brasil", status: "draft" });
+  writeJson(path.join(p, ".seo-brain", "project.json"), { name, created_at: nowIso(), language, market, country, status: "draft" });
+  const wikiIndex = path.join(p, "wiki", "index.md");
+  setFrontmatterValue(wikiIndex, { language: JSON.stringify(language), market: JSON.stringify(market), country: JSON.stringify(country) });
+  writeText(
+    wikiIndex,
+    fs.readFileSync(wikiIndex, "utf8")
+      .replace(/- Pa[ií]s\/mercado de atua[cç][aã]o: .*/, `- País/mercado de atuação: ${country}.`)
+      .replace(/- Idioma principal: .*/, `- Idioma principal: ${language}.`),
+  );
   appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado.`, "pending");
   printJson({ ok: true, project_dir: p });
 }
@@ -736,7 +967,7 @@ async function commandWikiApprove(args: AnyRecord): Promise<void> {
   const file = path.join(ensureProject(), "wiki", rel);
   if (!fs.existsSync(file)) throw new CliError(`Wiki page not found: ${file}`);
   setFrontmatterValue(file, { status: "approved", approved_by: JSON.stringify(by), approved_at: JSON.stringify(nowIso()), last_reviewed: JSON.stringify(today()) });
-  appendLog("approval", rel, [rel.replace(/\.md$/, "")], `Pagina ${rel} aprovada por ${by}.`, "approved");
+  appendLog("approval", rel, [rel.replace(/\.md$/, "")], `Página ${rel} aprovada por ${by}.`, "approved");
   printJson({ ok: true, approved: rel, by });
 }
 
@@ -752,26 +983,34 @@ async function commandWikiIngest(args: AnyRecord): Promise<void> {
 }
 
 async function commandDataSetup(args: AnyRecord): Promise<void> {
+  if (shouldAutoOpenDataSetup(args)) {
+    const handoff = runDataSetupHandoff();
+    if (!handoff.ok) throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
+  }
   const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
   const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
   const mode = resolveDataforseoMode(args);
   const decision = resolveSeoProvider();
+  const credentialStatus = dataforseoCredentialStatus();
   const status: AnyRecord = {
-    dataforseo_login: mask(login),
-    dataforseo_password: mask(password),
+    dataforseo_login: credentialStatus.dataforseo_login,
+    dataforseo_password: credentialStatus.dataforseo_password,
     default_mode: mode,
-    dataforseo_configured: Boolean(login && password),
+    dataforseo_configured: credentialStatus.dataforseo_configured,
+    home_credentials_present: credentialStatus.home_credentials_present,
     websearch_available: true,
     provider_default: decision.provider,
     provider_default_reason: decision.reason,
     modes: {
-      live: "ultrarrapido: usa endpoints /live; retorna em segundos e costuma custar mais.",
-      standard: "medio: usa task_post + polling task_get; padrao do SEO Brain.",
-      async: "assincrono: usa task_post com pingback_url/postback_url quando informado.",
-      offline: "teste local: nao chama a DataForSEO.",
+      live: "ultrarrápido: usa endpoints /live; retorna em segundos e costuma custar mais.",
+      standard: "médio: usa task_post + polling task_get; padrão do SEO Brain.",
+      async: "assíncrono: usa task_post com pingback_url/postback_url quando informado.",
+      offline: "teste local: não chama a DataForSEO.",
     },
     credentials_present: Boolean(login && password),
     checked_live: Boolean(args.check),
+    setup_handoff_available: true,
+    setup_handoff_command: "bin/seo-brain data-setup --handoff",
   };
   if (args.check) {
     try {
@@ -789,14 +1028,17 @@ async function commandDataSetup(args: AnyRecord): Promise<void> {
 async function commandSerpExtract(args: AnyRecord): Promise<void> {
   const keyword = required(args, "keyword");
   const p = ensureProject();
+  const settings = projectSettings(p);
   const mode = resolveDataforseoMode(args);
-  const payload = [{ keyword, location_name: args.location || "Brazil", language_code: args.language || "pt", device: args.device || "desktop", depth: Number(args.depth || 10) }];
+  const location = args.location || settings.dataforseo_location;
+  const language = args.language || settings.dataforseo_language;
+  const payload = [{ keyword, location_name: location, language_code: language, device: args.device || "desktop", depth: Number(args.depth || 10) }];
   let source: AnyRecord;
   if (mode === "live") source = { ...(await dataforseoRequest("POST", "/v3/serp/google/organic/live/advanced", payload, Boolean(args.sandbox))), mode: "live" };
   else if (mode === "standard") source = await dataforseoStandardTask("/v3/serp/google/organic/task_post", "/v3/serp/google/organic/task_get/advanced/{id}", payload, Boolean(args.sandbox), Number(args.poll_interval || 10), Number(args.timeout || 180));
   else if (mode === "async") source = await dataforseoAsyncTask("/v3/serp/google/organic/task_post", payload, Boolean(args.sandbox), args.pingback_url, args.postback_url, args.postback_data || "advanced");
   else source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode standard or --mode live to fetch DataForSEO SERP data." };
-  const normalized = normalizeSerp(source, keyword, args.location || "Brazil", args.language || "pt", args.device || "desktop");
+  const normalized = normalizeSerp(source, keyword, location, language, args.device || "desktop");
   const base = path.join(p, "sources", "serp", `${stamp()}-${slugify(keyword)}`);
   writeJson(`${base}.raw.json`, source);
   writeJson(`${base}.normalized.json`, normalized);
@@ -808,14 +1050,17 @@ async function commandSerpExtract(args: AnyRecord): Promise<void> {
 async function commandKeywordResearch(args: AnyRecord): Promise<void> {
   const keyword = required(args, "keyword");
   const p = ensureProject();
+  const settings = projectSettings(p);
   const mode = resolveDataforseoMode(args);
-  const payload = [{ keywords: [keyword], location_name: args.location || "Brazil", language_code: args.language || "pt" }];
+  const location = args.location || settings.dataforseo_location;
+  const language = args.language || settings.dataforseo_language;
+  const payload = [{ keywords: [keyword], location_name: location, language_code: language }];
   let source: AnyRecord;
   if (mode === "live") source = { ...(await dataforseoRequest("POST", "/v3/keywords_data/google_ads/search_volume/live", payload, Boolean(args.sandbox))), mode: "live" };
   else if (mode === "standard") source = await dataforseoStandardTask("/v3/keywords_data/google_ads/search_volume/task_post", "/v3/keywords_data/google_ads/search_volume/task_get/{id}", payload, Boolean(args.sandbox), Number(args.poll_interval || 10), Number(args.timeout || 180));
   else if (mode === "async") source = await dataforseoAsyncTask("/v3/keywords_data/google_ads/search_volume/task_post", payload, Boolean(args.sandbox), args.pingback_url, args.postback_url, args.postback_data || "advanced");
   else source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode standard or --mode live to fetch DataForSEO keyword metrics." };
-  const normalized = normalizeKeywords(source, keyword, args.location || "Brazil", args.language || "pt");
+  const normalized = normalizeKeywords(source, keyword, location, language);
   const base = path.join(p, "sources", "keyword-research", `${stamp()}-${slugify(keyword)}`);
   writeJson(`${base}.raw.json`, source);
   writeJson(`${base}.normalized.json`, normalized);
@@ -828,25 +1073,66 @@ async function commandBacklinkAnalysis(args: AnyRecord): Promise<void> {
   const target = required(args, "target");
   const p = ensureProject();
   const mode = resolveDataforseoMode(args);
-  const payload = [{ target, include_subdomains: true, backlinks_status_type: "live" }];
+  const competitors = listArg(args.competitors || args.competitor);
+  const limit = intArg(args.limit, 10, 1, 1000);
+  const includeSubdomains = boolArg(args.include_subdomains, true);
+  const statusType = String(args.backlinks_status || "live").trim().toLowerCase();
+  if (!BACKLINK_STATUS_TYPES.has(statusType)) throw new CliError(`Unsupported backlinks status: ${statusType}. Use all, live, or lost.`);
+  args.backlinks_status = statusType;
+  const summaryPayload = [target, ...competitors].map((item) => ({
+    target: item,
+    internal_list_limit: limit,
+    include_subdomains: includeSubdomains,
+    backlinks_status_type: statusType,
+  }));
+  const detailPayload = backlinkPayload(args, target, limit);
   let source: AnyRecord;
   if (mode === "live" || mode === "standard") {
-    source = { ...(await dataforseoRequest("POST", "/v3/backlinks/summary/live", payload, Boolean(args.sandbox))), mode: "live" };
-    if (mode === "standard") source.mode_note = "DataForSEO Backlinks API supports only Live retrieval; standard maps to live for backlinks.";
+    if (!dataforseoCredentialsPresent()) {
+      if (shouldAutoOpenDataSetup(args)) {
+        const handoff = runDataSetupHandoff();
+        if (!handoff.ok) throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
+      }
+      if (!dataforseoCredentialsPresent()) throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+    }
+    const summary = await dataforseoRequest("POST", "/v3/backlinks/summary/live", summaryPayload, Boolean(args.sandbox));
+    const referringDomains = await dataforseoRequest("POST", "/v3/backlinks/referring_domains/live", [{ ...detailPayload, order_by: ["backlinks,desc"] }], Boolean(args.sandbox));
+    const anchors = await dataforseoRequest("POST", "/v3/backlinks/anchors/live", [{ ...detailPayload, order_by: ["backlinks,desc"] }], Boolean(args.sandbox));
+    const backlinks = await dataforseoRequest("POST", "/v3/backlinks/backlinks/live", [{ ...detailPayload, mode: args.backlink_mode || "as_is", order_by: ["rank,desc"] }], Boolean(args.sandbox));
+    source = {
+      mode: "live",
+      requested_mode: mode,
+      mode_note: mode === "standard" ? "DataForSEO Backlinks API supports only Live retrieval; standard maps to live for backlinks." : undefined,
+      settings: { limit, include_subdomains: includeSubdomains, backlinks_status_type: statusType, backlink_mode: args.backlink_mode || "as_is" },
+      endpoints: ["/v3/backlinks/summary/live", "/v3/backlinks/referring_domains/live", "/v3/backlinks/anchors/live", "/v3/backlinks/backlinks/live"],
+      summary,
+      referring_domains: referringDomains,
+      anchors,
+      backlinks,
+    };
   } else if (mode === "async") throw new CliError("DataForSEO Backlinks API supports only Live retrieval in v3; async is not available for backlink-analysis.");
-  else source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode live or --mode standard to fetch DataForSEO backlink data." };
-  const result = source.tasks?.length ? source.tasks[0].result?.[0] || {} : {};
-  const normalized = { target, provider: source.tasks?.length ? "dataforseo" : "offline", mode: source.mode || "unknown", timestamp: nowIso(), backlinks: result.backlinks, referring_domains: result.referring_domains, referring_main_domains: result.referring_main_domains, rank: result.rank, spam_score: result.backlinks_spam_score, note: source.mode_note || (source.tasks?.length ? null : "Backlink metrics unavailable without a provider call.") };
+  else
+    source = {
+      status_code: "offline",
+      mode: "offline",
+      requested_mode: mode,
+      tasks: [],
+      settings: { limit, include_subdomains: includeSubdomains, backlinks_status_type: statusType, backlink_mode: args.backlink_mode || "as_is" },
+      endpoints: ["/v3/backlinks/summary/live", "/v3/backlinks/referring_domains/live", "/v3/backlinks/anchors/live", "/v3/backlinks/backlinks/live"],
+      note: "Run with --mode live or --mode standard to fetch DataForSEO backlink data.",
+    };
+  const normalized = normalizeBacklinkReport(target, competitors, source, args);
   const base = path.join(p, "sources", "backlinks", `${stamp()}-${slugify(target)}`);
   writeJson(`${base}.raw.json`, source);
   writeJson(path.join(p, "workbench", "backlinks", `${stamp()}-${slugify(target)}.json`), normalized);
-  appendLog("backlinks", target, [path.relative(p, `${base}.raw.json`)], "Analise de backlinks registrada.", "not-required");
+  appendLog("backlinks", target, [path.relative(p, `${base}.raw.json`)], "Análise de backlinks registrada.", "not-required");
   printJson(normalized);
 }
 
 async function commandSeoAnalysis(args: AnyRecord): Promise<void> {
   const keyword = required(args, "keyword");
   const p = ensureProject();
+  const settings = projectSettings(p);
   const decision = resolveSeoProvider(args.provider || "auto");
   const organic = decision.provider === "dataforseo" ? loadDataforseoSerpResults(p, keyword, args.serp_file) : loadWebsearchResults(p, keyword, args.websearch_file);
   const keywordMetrics = decision.provider === "dataforseo" ? loadKeywordMetrics(p, keyword) : null;
@@ -869,10 +1155,18 @@ async function commandSeoAnalysis(args: AnyRecord): Promise<void> {
   if (incomplete) limitations.push(`Apenas ${topResults.length} resultados disponíveis; ideal >=5.`);
   if (decision.provider === "websearch" && !topResults.length) limitations.push(`Nenhum resultado em sources/websearch/${slugify(keyword)}.json. Rode WebSearch e grave o JSON antes de reexecutar.`);
   if (decision.provider === "dataforseo" && keywordMetrics === null) limitations.push("Sem keyword-research recente para enriquecer keyword_metrics.");
-  const report = {
+  let report: AnyRecord = {
     keyword,
     provider: decision.provider,
     provider_reason: decision.reason,
+    market_context: {
+      market: args.market || settings.market,
+      country: args.country || settings.country,
+      language: args.language || settings.language,
+      location: args.location || settings.dataforseo_location,
+      provider_language: args.provider_language || settings.dataforseo_language,
+      device: args.device || "desktop",
+    },
     keyword_metrics: keywordMetrics,
     top_results: topResults,
     competitors,
@@ -880,15 +1174,32 @@ async function commandSeoAnalysis(args: AnyRecord): Promise<void> {
     heading_patterns: competitors
       .map((c: AnyRecord) => ({ url: c.serp.url, h1: (c.page.headings || []).find((h: AnyRecord) => h.level === "h1")?.text || "", h2_count: (c.page.headings || []).filter((h: AnyRecord) => h.level === "h2").length }))
       .filter((item) => item.h1 || item.h2_count),
-    gaps: ["Mapear entidades e subtopicos pouco cobertos pelo top 3.", "Confirmar formato dominante: artigo, listicle, guia passo a passo.", "Identificar perguntas reais do leitor nao respondidas pelos competidores."],
-    improvement_hypotheses: ["Cobertura mais densa de exemplos brasileiros do que os concorrentes.", "EEAT explicito com autoria e proveniencia declarada, ausente em parte do top 3.", "Estrutura de heading que responda a intencao observada antes de aprofundar."],
+    gaps: ["Mapear entidades e subtópicos pouco cobertos pelo top 3.", "Confirmar formato dominante: artigo, listicle, guia passo a passo.", "Identificar perguntas reais do leitor não respondidas pelos competidores."],
+    improvement_hypotheses: ["Cobertura mais densa de exemplos brasileiros do que os concorrentes.", "EEAT explícito com autoria e proveniência declarada, ausente em parte do top 3.", "Estrutura de heading que responda à intenção observada antes de aprofundar."],
     limitations,
     incomplete,
     generated_at: nowIso(),
   };
+  if (args.player_score) {
+    report = await buildPlayerScoreReport(args, report, {
+      rootDir: ROOT,
+      projectDir: p,
+      required,
+      normalizePageType,
+      readJson,
+      writeJson,
+      writeText,
+      fetchUrl,
+      extractHtml,
+      auditTechnicalSeo,
+      renderTechnicalMarkdown,
+      slugify,
+      stamp,
+    });
+  }
   const out = path.join(p, "workbench", "seo-analysis", `${slugify(keyword)}.json`);
   writeJson(out, report);
-  appendLog("seo-analysis", keyword, [path.relative(p, out)], `Analise SEO via ${decision.provider} (${topResults.length} resultados).`, "not-required");
+  appendLog("seo-analysis", keyword, [path.relative(p, out), ...(report.technical_seo_reports || [])], `Análise SEO via ${decision.provider} (${topResults.length} resultados${args.player_score ? "; player score ativo" : ""}).`, "not-required");
   printJson(report);
 }
 
@@ -902,24 +1213,17 @@ async function commandTopicCluster(args: AnyRecord): Promise<void> {
   const intent = analysisData?.intent || "to-be-validated";
   const clusterStatus = args.hypothesis_only && !analysisData ? "hypothesis" : "draft";
   const supportingPages = [`O que é ${seed}`, `Como avaliar ${seed}`, `${seed}: exemplos brasileiros`].map((title) => ({ title, intent, judgment: clusterStatus }));
-  const cluster = { seed, seed_slug: seedSlug, status: clusterStatus, generated_at: nowIso(), pillar_page: `/${seedSlug}/`, supporting_pages: supportingPages, business_hypothesis: "Precisa de validacao humana: conectar demanda organica a oferta, conversao e margem.", data_provenance: { seo_analysis: analysisData ? { path: path.relative(p, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason } : { path: null, provider: null, provider_reason: "hypothesis-only run" } } };
+  const cluster = { seed, seed_slug: seedSlug, status: clusterStatus, generated_at: nowIso(), pillar_page: `/${seedSlug}/`, supporting_pages: supportingPages, business_hypothesis: "Precisa de validação humana: conectar demanda orgânica a oferta, conversão e margem.", data_provenance: { seo_analysis: analysisData ? { path: path.relative(p, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason } : { path: null, provider: null, provider_reason: "hypothesis-only run" } } };
   writeJson(path.join(p, "workbench", "topic-cluster", `${seedSlug}.json`), cluster);
   fs.appendFileSync(path.join(p, "wiki", "conteudos", "topic-clusters.md"), `\n\n## ${seed}\n\n- Página pilar: \`${cluster.pillar_page}\`\n- Status: ${clusterStatus}\n- Intenção dominante: ${intent}\n- Hipótese de negócio: precisa de validação humana.\n${supportingPages.map((page) => `- ${page.title} (${page.intent})`).join("\n")}\n`, "utf8");
   appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], `Cluster em status ${clusterStatus}.`, "pending");
   printJson(cluster);
 }
 
-async function commandEeat(args: AnyRecord): Promise<void> {
-  const p = ensureProject();
-  const page = path.join(p, "wiki", "eeat.md");
-  if (!fs.existsSync(page)) fs.copyFileSync(path.join(TEMPLATES_DIR, "wiki", "eeat.md"), page);
-  const evidence = { claim: args.claim || "Evidencia a mapear", source: args.source || "sem fonte", status: args.status || "gap", timestamp: nowIso() };
-  const report = { timestamp: nowIso(), evidence, rules: ["Nao inventar experiencia, clientes, credenciais, premios ou provas.", "Marcar alegacoes sem fonte como gap.", "Manter wiki/eeat.md em draft ou needs-review ate aprovacao explicita."] };
-  fs.appendFileSync(page, `\n\n## Evidencia registrada\n\n- Alegacao: ${evidence.claim}\n- Fonte: ${evidence.source}\n- Status: ${evidence.status}\n`, "utf8");
-  const out = path.join(p, "workbench", "eeat", `${stamp()}.json`);
-  writeJson(out, report);
-  appendLog("eeat", "Evidencia EEAT", ["eeat", path.relative(p, out)], "Evidencia ou lacuna EEAT registrada.", "pending");
-  printJson(report);
+async function commandEeat(_args: AnyRecord): Promise<void> {
+  const message = "The eeat command is now driven by the /seo-brain:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. Run: node scripts/eeat.mjs init --mode wiki   (or --mode url --url https://...). See skills/eeat/SKILL.md for the contract.";
+  printJson({ ok: false, error: message });
+  throw new CliError(message);
 }
 
 function yamlString(value: unknown): string {
@@ -927,14 +1231,14 @@ function yamlString(value: unknown): string {
 }
 
 function buildContentOutline(topic: string, analysisData: AnyRecord | null): AnyRecord[] {
-  const gap = analysisData?.gaps?.[0] || "subtopicos pouco cobertos pelo resultado atual";
-  const hypothesis = analysisData?.improvement_hypotheses?.[0] || "um angulo mais claro e verificavel para o leitor";
+  const gap = analysisData?.gaps?.[0] || "subtópicos pouco cobertos pelo resultado atual";
+  const hypothesis = analysisData?.improvement_hypotheses?.[0] || "um ângulo mais claro e verificável para o leitor";
   return [
-    { level: 1, title: topic, purpose: "Abrir com resposta direta alinhada a intencao de busca." },
+    { level: 1, title: topic, purpose: "Abrir com resposta direta alinhada à intenção de busca." },
     { level: 2, title: "O que considerar primeiro", purpose: `Cobrir ${gap}.` },
-    { level: 2, title: "Como estruturar a decisao", purpose: `Transformar ${hypothesis} em criterios praticos.` },
-    { level: 2, title: "Cuidados editoriais", purpose: "Separar evidencia, hipotese e recomendacao sem slop de IA." },
-    { level: 2, title: "Proximo passo", purpose: "Fechar com uma acao concreta e verificavel para o leitor." },
+    { level: 2, title: "Como estruturar a decisão", purpose: `Transformar ${hypothesis} em critérios práticos.` },
+    { level: 2, title: "Cuidados editoriais", purpose: "Separar evidência, hipótese e recomendação sem slop de IA." },
+    { level: 2, title: "Próximo passo", purpose: "Fechar com uma ação concreta e verificável para o leitor." },
   ];
 }
 
@@ -948,9 +1252,9 @@ function renderContentDraft(report: AnyRecord): string {
   const sectionTitles = outline.filter((item: AnyRecord) => Number(item.level) === 2).map((item: AnyRecord) => String(item.title));
   const voiceStatus = String(report.voice_context?.status || "missing");
   const firstInclude = String(mustInclude[0] || "uma resposta direta");
-  const secondInclude = String(mustInclude[1] || "criterios praticos");
-  const [first, second, third, fourth] = [...sectionTitles, "O que considerar primeiro", "Como estruturar a decisao", "Cuidados editoriais", "Proximo passo"];
-  return `---\ntitle: ${yamlString(topic)}\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${slug}/"\nprimary_keyword: ${yamlString(keyword)}\nbrief_status: approved\nvoice_status: ${yamlString(voiceStatus)}\nsources: []\n---\n\n# ${topic}\n\nQuem pesquisa por ${keyword} precisa de uma resposta clara antes de entrar em detalhes. Como a intencao principal e ${intent}, o primeiro bloco deve entregar ${firstInclude} e depois aprofundar conceitos, criterios e proximos passos.\n\n## ${first}\n\nComece delimitando o problema que o leitor quer resolver. Separe o que ja esta sustentado por evidencia do que ainda depende de validacao, sem transformar hipotese em promessa.\n\n## ${second}\n\nUse ${secondInclude} para ajudar o leitor a comparar caminhos possiveis. Quando houver exemplos, eles devem ser verificaveis e relevantes para o contexto brasileiro.\n\n## ${third}\n\nO texto deve evitar excesso de listas, ritmo artificial de paragrafos muito curtos e frases promocionais sem prova. Links e citacoes entram apenas quando ajudam a sustentar uma afirmacao especifica.\n\n## ${fourth}\n\nDefina a acao mais util para o leitor depois da explicacao principal. Se houver uma recomendacao, deixe claro quais evidencias sustentam essa orientacao e quais pontos ainda precisam ser confirmados.\n`;
+  const secondInclude = String(mustInclude[1] || "critérios práticos");
+  const [first, second, third, fourth] = [...sectionTitles, "O que considerar primeiro", "Como estruturar a decisão", "Cuidados editoriais", "Próximo passo"];
+  return `---\ntitle: ${yamlString(topic)}\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${slug}/"\nprimary_keyword: ${yamlString(keyword)}\nbrief_status: approved\nvoice_status: ${yamlString(voiceStatus)}\nsources: []\n---\n\n# ${topic}\n\nQuem pesquisa por ${keyword} precisa de uma resposta clara antes de entrar em detalhes. Como a intenção principal é ${intent}, o primeiro bloco deve entregar ${firstInclude} e depois aprofundar conceitos, critérios e próximos passos.\n\n## ${first}\n\nComece delimitando o problema que o leitor quer resolver. Separe o que já está sustentado por evidência do que ainda depende de validação, sem transformar hipótese em promessa.\n\n## ${second}\n\nUse ${secondInclude} para ajudar o leitor a comparar caminhos possíveis. Quando houver exemplos, eles devem ser verificáveis e relevantes para o contexto brasileiro.\n\n## ${third}\n\nO texto deve evitar excesso de listas, ritmo artificial de parágrafos muito curtos e frases promocionais sem prova. Links e citações entram apenas quando ajudam a sustentar uma afirmação específica.\n\n## ${fourth}\n\nDefina a ação mais útil para o leitor depois da explicação principal. Se houver uma recomendação, deixe claro quais evidências sustentam essa orientação e quais pontos ainda precisam ser confirmados.\n`;
 }
 
 async function commandContentSeo(args: AnyRecord): Promise<void> {
@@ -987,12 +1291,12 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
       : null,
     brief: {
       intent: analysisData?.intent || "to-be-validated",
-      reader_need: "Responder com profundidade, sem cair em padroes genericos de IA.",
-      must_include: ["definicao direta no inicio", "criterios praticos de decisao", "exemplos brasileiros verificaveis", "proximos passos para o leitor"],
-      must_avoid: ["titulo em padrao americano", "URL ou slug interno em prosa", "voz de Wiki em texto publico", "anchor text generico tipo clique aqui", "mencao em prosa a dominio que aparece no top_results da analise SEO", "referencia a fonte externa fora de backlink Markdown", "sequencia longa de paragrafos de uma linha", "metaforas traduzidas literalmente do ingles", "adjetivos vazios como robusto, completo, lider"],
+      reader_need: "Responder com profundidade, sem cair em padrões genéricos de IA.",
+      must_include: ["definição direta no início", "critérios práticos de decisão", "exemplos brasileiros verificáveis", "próximos passos para o leitor"],
+      must_avoid: ["título em padrão americano", "URL ou slug interno em prosa", "voz de Wiki em texto público", "anchor text genérico tipo clique aqui", "menção em prosa a domínio que aparece no top_results da análise SEO", "referência a fonte externa fora de backlink Markdown", "sequência longa de parágrafos de uma linha", "metáforas traduzidas literalmente do inglês", "adjetivos vazios como robusto, completo, líder"],
       outline: buildContentOutline(topic, analysisData),
     },
-    voice_check: { audience: "leitor de blog publico que entende SEO", tense_perspective: "terceira pessoa, voz informativa", link_test: "remover qualquer link e a frase deve continuar coerente" },
+    voice_check: { audience: "leitor de blog público que entende SEO", tense_perspective: "terceira pessoa, voz informativa", link_test: "remover qualquer link e a frase deve continuar coerente" },
     voice_context: voiceContext,
     must_not_mention_in_prose: mustNotMention,
     approval: {
@@ -1046,7 +1350,7 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
   approvedReport.draft_status = "draft";
   writeJson(briefPath, approvedReport);
   writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), renderContentDraft(approvedReport));
-  appendOperationalLog("content-draft", topic, [`conteudos/${topicSlug}`], "draft", "Conteudo escrito a partir de briefing aprovado e tom de voz registrado.");
+  appendOperationalLog("content-draft", topic, [`conteudos/${topicSlug}`], "draft", "Conteúdo escrito a partir de briefing aprovado e tom de voz registrado.");
   printJson(approvedReport);
 }
 
@@ -1076,7 +1380,7 @@ async function commandTechnicalSeo(args: AnyRecord): Promise<void> {
   const outMd = path.join(p, "workbench", "technical-seo", `${basename}.md`);
   writeJson(outJson, result);
   writeText(outMd, renderTechnicalMarkdown(result));
-  appendLog("technical-seo", pageType, [path.relative(p, outJson), path.relative(p, outMd)], "Auditoria tecnica deterministica executada.", "not-required");
+  appendLog("technical-seo", pageType, [path.relative(p, outJson), path.relative(p, outMd)], "Auditoria técnica determinística executada.", "not-required");
   printJson(result);
 }
 
@@ -1090,7 +1394,7 @@ async function commandNextWebsiteCreator(args: AnyRecord): Promise<void> {
   writeJson(path.join(web, "package.json"), { scripts: { dev: "next dev", build: "next build", start: "next start" }, dependencies: { next: "latest", react: "latest", "react-dom": "latest" }, devDependencies: { typescript: "latest", "@types/react": "latest", "@types/node": "latest" } });
   writeText(path.join(web, "app", "layout.tsx"), 'export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang="pt-BR"><body>{children}</body></html>; }\n');
   writeText(path.join(web, "app", "page.tsx"), `export default function Page() { return <main><h1>${projectName}</h1><p>Site SEO Brain em rascunho.</p></main>; }\n`);
-  writeText(path.join(web, "app", "servicos", "page.tsx"), "export default function Page() { return <main><h1>Servicos</h1></main>; }\n");
+  writeText(path.join(web, "app", "servicos", "page.tsx"), "export default function Page() { return <main><h1>Serviços</h1></main>; }\n");
   writeText(path.join(web, "app", "contato", "page.tsx"), "export default function Page() { return <main><h1>Contato</h1></main>; }\n");
   writeText(path.join(web, "app", "blog", "page.tsx"), "export default function Page() { return <main><h1>Blog</h1></main>; }\n");
   writeText(path.join(web, "app", "blog", "[slug]", "page.tsx"), "export default function Page() { return <main><h1>Post</h1></main>; }\n");
@@ -1104,26 +1408,6 @@ async function commandPayloadCms(args: AnyRecord): Promise<void> {
   writeText(path.join(web, "payload.config.ts"), "import { buildConfig } from 'payload'\n\nexport default buildConfig({\n  collections: [\n    { slug: 'pages', fields: [{ name: 'title', type: 'text', required: true }, { name: 'seoTitle', type: 'text' }, { name: 'seoDescription', type: 'textarea' }] },\n    { slug: 'posts', fields: [{ name: 'title', type: 'text', required: true }, { name: 'slug', type: 'text', required: true }, { name: 'content', type: 'richText' }] },\n    { slug: 'authors', fields: [{ name: 'name', type: 'text', required: true }, { name: 'bio', type: 'textarea' }] }\n  ]\n})\n");
   appendLog("technology", "Payload CMS", ["web/payload.config.ts"], "Config inicial do Payload criada.", "pending");
   printJson({ ok: true, payload_config: path.join(web, "payload.config.ts") });
-}
-
-async function commandUxWeb(args: AnyRecord): Promise<void> {
-  const p = ensureProject();
-  const projectName = projectDisplayName(p);
-  const reportLinks: string[] = [];
-  walk(path.join(p, "workbench"), (file) => reportLinks.push(`<li>${path.relative(p, file)}</li>`));
-  const pending: string[] = [];
-  for (const rel of STRATEGIC_PAGES) {
-    const file = path.join(p, "wiki", rel);
-    if (fs.existsSync(file)) {
-      const [fm] = parseFrontmatter(fs.readFileSync(file, "utf8"));
-      if (fm.status !== "approved") pending.push(`<li>${rel}: ${fm.status || "sem status"}</li>`);
-    }
-  }
-  const html = `<!doctype html>\n<html lang="pt-BR">\n<meta charset="utf-8">\n<title>SEO Brain - ${projectName}</title>\n<body>\n  <main>\n    <h1>SEO Brain: ${projectName}</h1>\n    <h2>Aprovacoes pendentes</h2>\n    <ul>${pending.join("") || "<li>Nenhuma</li>"}</ul>\n    <h2>Relatorios</h2>\n    <ul>${reportLinks.join("") || "<li>Nenhum relatorio gerado</li>"}</ul>\n  </main>\n</body>\n</html>\n`;
-  const out = path.join(p, "artifacts", "dashboard", "index.html");
-  writeText(out, html);
-  appendLog("ux", "Dashboard", [path.relative(p, out)], "Dashboard HTML gerado.", "not-required");
-  printJson({ ok: true, dashboard: out });
 }
 
 async function commandAuditSkills(args: AnyRecord): Promise<void> {
@@ -1143,15 +1427,6 @@ async function commandAuditSkills(args: AnyRecord): Promise<void> {
   printJson(report);
 }
 
-function walk(dir: string, cb: (file: string) => void): void {
-  if (!fs.existsSync(dir)) return;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(p, cb);
-    else cb(p);
-  }
-}
-
 const COMMANDS: Record<string, (args: AnyRecord) => Promise<void>> = {
   "project-init": commandProjectInit,
   "wiki-lint": commandWikiLint,
@@ -1168,7 +1443,6 @@ const COMMANDS: Record<string, (args: AnyRecord) => Promise<void>> = {
   "technical-seo": commandTechnicalSeo,
   "next-website-creator": commandNextWebsiteCreator,
   "payload-cms": commandPayloadCms,
-  "ux-web": commandUxWeb,
   "audit-skills": commandAuditSkills,
 };
 

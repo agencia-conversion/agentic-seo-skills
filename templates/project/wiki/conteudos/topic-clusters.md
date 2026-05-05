@@ -12,14 +12,14 @@ judgment_level: strategic
 
 # Topic clusters
 
-Clusters conectam estrategia, demanda organica e plano editorial. Ate aprovacao humana, tratam-se de hipoteses.
+Clusters conectam estratégia, demanda orgânica e plano editorial. Até aprovação humana, tratam-se de hipóteses.
 
 ## Clusters
 
-| Cluster | Pagina pilar | Objetivo de negocio | Status |
+| Cluster | Página pilar | Objetivo de negócio | Status |
 | --- | --- | --- | --- |
 |  |  |  | draft |
 
 ## Lacunas de completude
 
-- Mapear temas que precisam existir para cobrir a informacao com profundidade.
+- Mapear temas que precisam existir para cobrir a informação com profundidade.

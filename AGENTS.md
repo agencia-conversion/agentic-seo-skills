@@ -45,6 +45,15 @@ The default is to follow the full documented process. Do not skip analysis, appr
 - Approval of an artifact is not approval of an undisclosed bypass. Approval requests must show missing analysis, missing sources, and skipped checks before the user decides.
 - If a required process cannot run, stop at the gate and provide the exact next command or approval handoff instead of silently substituting a weaker process.
 
+## Language Fidelity
+
+SEO Brain is English-first and supports Brazilian Portuguese as an official second language, but generated natural-language output should work in any requested language.
+
+- Preserve the spelling, accents, and diacritics of the output language in all human-facing prose, headings, UI text, Markdown, logs, reports, prompts, and review notes.
+- For pt-BR, write correct Portuguese with accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
+- ASCII transliteration is allowed only for slugs, file paths, IDs, enum values, command names, provider payloads, code identifiers, or verbatim source text that originally has no diacritics.
+- Never strip accents from user-provided names, titles, claims, excerpts, anchors, or editorial text while summarizing, extracting, reviewing, or rewriting.
+
 ## Wiki Rules
 
 Every SEO Brain project should use Obsidian-compatible Markdown and separate sources from synthesis.
