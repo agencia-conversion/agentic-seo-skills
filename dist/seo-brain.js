@@ -904,7 +904,7 @@ async function commandProjectInit(args) {
     const wikiIndex = path.join(p, "wiki", "index.md");
     setFrontmatterValue(wikiIndex, { language: JSON.stringify(language), market: JSON.stringify(market), country: JSON.stringify(country) });
     writeText(wikiIndex, fs.readFileSync(wikiIndex, "utf8")
-        .replace(/- Pais\/mercado de atuacao: .*/, `- Pais/mercado de atuacao: ${country}.`)
+        .replace(/- Pa[ií]s\/mercado de atua[cç][aã]o: .*/, `- País/mercado de atuação: ${country}.`)
         .replace(/- Idioma principal: .*/, `- Idioma principal: ${language}.`));
     appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado.`, "pending");
     printJson({ ok: true, project_dir: p });
@@ -973,7 +973,7 @@ async function commandWikiApprove(args) {
     if (!fs.existsSync(file))
         throw new CliError(`Wiki page not found: ${file}`);
     setFrontmatterValue(file, { status: "approved", approved_by: JSON.stringify(by), approved_at: JSON.stringify(nowIso()), last_reviewed: JSON.stringify(today()) });
-    appendLog("approval", rel, [rel.replace(/\.md$/, "")], `Pagina ${rel} aprovada por ${by}.`, "approved");
+    appendLog("approval", rel, [rel.replace(/\.md$/, "")], `Página ${rel} aprovada por ${by}.`, "approved");
     printJson({ ok: true, approved: rel, by });
 }
 async function commandWikiIngest(args) {
@@ -1008,10 +1008,10 @@ async function commandDataSetup(args) {
         provider_default: decision.provider,
         provider_default_reason: decision.reason,
         modes: {
-            live: "ultrarrapido: usa endpoints /live; retorna em segundos e costuma custar mais.",
-            standard: "medio: usa task_post + polling task_get; padrao do SEO Brain.",
-            async: "assincrono: usa task_post com pingback_url/postback_url quando informado.",
-            offline: "teste local: nao chama a DataForSEO.",
+            live: "ultrarrápido: usa endpoints /live; retorna em segundos e costuma custar mais.",
+            standard: "médio: usa task_post + polling task_get; padrão do SEO Brain.",
+            async: "assíncrono: usa task_post com pingback_url/postback_url quando informado.",
+            offline: "teste local: não chama a DataForSEO.",
         },
         credentials_present: Boolean(login && password),
         checked_live: Boolean(args.check),
@@ -1142,7 +1142,7 @@ async function commandBacklinkAnalysis(args) {
     const base = path.join(p, "sources", "backlinks", `${stamp()}-${slugify(target)}`);
     writeJson(`${base}.raw.json`, source);
     writeJson(path.join(p, "workbench", "backlinks", `${stamp()}-${slugify(target)}.json`), normalized);
-    appendLog("backlinks", target, [path.relative(p, `${base}.raw.json`)], "Analise de backlinks registrada.", "not-required");
+    appendLog("backlinks", target, [path.relative(p, `${base}.raw.json`)], "Análise de backlinks registrada.", "not-required");
     printJson(normalized);
 }
 async function commandSeoAnalysis(args) {
@@ -1193,8 +1193,8 @@ async function commandSeoAnalysis(args) {
         heading_patterns: competitors
             .map((c) => ({ url: c.serp.url, h1: (c.page.headings || []).find((h) => h.level === "h1")?.text || "", h2_count: (c.page.headings || []).filter((h) => h.level === "h2").length }))
             .filter((item) => item.h1 || item.h2_count),
-        gaps: ["Mapear entidades e subtopicos pouco cobertos pelo top 3.", "Confirmar formato dominante: artigo, listicle, guia passo a passo.", "Identificar perguntas reais do leitor nao respondidas pelos competidores."],
-        improvement_hypotheses: ["Cobertura mais densa de exemplos brasileiros do que os concorrentes.", "EEAT explicito com autoria e proveniencia declarada, ausente em parte do top 3.", "Estrutura de heading que responda a intencao observada antes de aprofundar."],
+        gaps: ["Mapear entidades e subtópicos pouco cobertos pelo top 3.", "Confirmar formato dominante: artigo, listicle, guia passo a passo.", "Identificar perguntas reais do leitor não respondidas pelos competidores."],
+        improvement_hypotheses: ["Cobertura mais densa de exemplos brasileiros do que os concorrentes.", "EEAT explícito com autoria e proveniência declarada, ausente em parte do top 3.", "Estrutura de heading que responda à intenção observada antes de aprofundar."],
         limitations,
         incomplete,
         generated_at: nowIso(),
@@ -1218,7 +1218,7 @@ async function commandSeoAnalysis(args) {
     }
     const out = path.join(p, "workbench", "seo-analysis", `${slugify(keyword)}.json`);
     writeJson(out, report);
-    appendLog("seo-analysis", keyword, [path.relative(p, out), ...(report.technical_seo_reports || [])], `Analise SEO via ${decision.provider} (${topResults.length} resultados${args.player_score ? "; player score ativo" : ""}).`, "not-required");
+    appendLog("seo-analysis", keyword, [path.relative(p, out), ...(report.technical_seo_reports || [])], `Análise SEO via ${decision.provider} (${topResults.length} resultados${args.player_score ? "; player score ativo" : ""}).`, "not-required");
     printJson(report);
 }
 async function commandTopicCluster(args) {
@@ -1232,7 +1232,7 @@ async function commandTopicCluster(args) {
     const intent = analysisData?.intent || "to-be-validated";
     const clusterStatus = args.hypothesis_only && !analysisData ? "hypothesis" : "draft";
     const supportingPages = [`O que é ${seed}`, `Como avaliar ${seed}`, `${seed}: exemplos brasileiros`].map((title) => ({ title, intent, judgment: clusterStatus }));
-    const cluster = { seed, seed_slug: seedSlug, status: clusterStatus, generated_at: nowIso(), pillar_page: `/${seedSlug}/`, supporting_pages: supportingPages, business_hypothesis: "Precisa de validacao humana: conectar demanda organica a oferta, conversao e margem.", data_provenance: { seo_analysis: analysisData ? { path: path.relative(p, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason } : { path: null, provider: null, provider_reason: "hypothesis-only run" } } };
+    const cluster = { seed, seed_slug: seedSlug, status: clusterStatus, generated_at: nowIso(), pillar_page: `/${seedSlug}/`, supporting_pages: supportingPages, business_hypothesis: "Precisa de validação humana: conectar demanda orgânica a oferta, conversão e margem.", data_provenance: { seo_analysis: analysisData ? { path: path.relative(p, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason } : { path: null, provider: null, provider_reason: "hypothesis-only run" } } };
     writeJson(path.join(p, "workbench", "topic-cluster", `${seedSlug}.json`), cluster);
     fs.appendFileSync(path.join(p, "wiki", "conteudos", "topic-clusters.md"), `\n\n## ${seed}\n\n- Página pilar: \`${cluster.pillar_page}\`\n- Status: ${clusterStatus}\n- Intenção dominante: ${intent}\n- Hipótese de negócio: precisa de validação humana.\n${supportingPages.map((page) => `- ${page.title} (${page.intent})`).join("\n")}\n`, "utf8");
     appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], `Cluster em status ${clusterStatus}.`, "pending");
@@ -1243,12 +1243,12 @@ async function commandEeat(args) {
     const page = path.join(p, "wiki", "eeat.md");
     if (!fs.existsSync(page))
         fs.copyFileSync(path.join(TEMPLATES_DIR, "wiki", "eeat.md"), page);
-    const evidence = { claim: args.claim || "Evidencia a mapear", source: args.source || "sem fonte", status: args.status || "gap", timestamp: nowIso() };
-    const report = { timestamp: nowIso(), evidence, rules: ["Nao inventar experiencia, clientes, credenciais, premios ou provas.", "Marcar alegacoes sem fonte como gap.", "Manter wiki/eeat.md em draft ou needs-review ate aprovacao explicita."] };
-    fs.appendFileSync(page, `\n\n## Evidencia registrada\n\n- Alegacao: ${evidence.claim}\n- Fonte: ${evidence.source}\n- Status: ${evidence.status}\n`, "utf8");
+    const evidence = { claim: args.claim || "Evidência a mapear", source: args.source || "sem fonte", status: args.status || "gap", timestamp: nowIso() };
+    const report = { timestamp: nowIso(), evidence, rules: ["Não inventar experiência, clientes, credenciais, prêmios ou provas.", "Marcar alegações sem fonte como gap.", "Manter wiki/eeat.md em draft ou needs-review até aprovação explícita."] };
+    fs.appendFileSync(page, `\n\n## Evidência registrada\n\n- Alegação: ${evidence.claim}\n- Fonte: ${evidence.source}\n- Status: ${evidence.status}\n`, "utf8");
     const out = path.join(p, "workbench", "eeat", `${stamp()}.json`);
     writeJson(out, report);
-    appendLog("eeat", "Evidencia EEAT", ["eeat", path.relative(p, out)], "Evidencia ou lacuna EEAT registrada.", "pending");
+    appendLog("eeat", "Evidência EEAT", ["eeat", path.relative(p, out)], "Evidência ou lacuna EEAT registrada.", "pending");
     printJson(report);
 }
 async function commandContentSeo(args) {
@@ -1259,7 +1259,7 @@ async function commandContentSeo(args) {
     const keywordSlug = slugify(keyword);
     const analysisFile = path.join(p, "workbench", "seo-analysis", `${keywordSlug}.json`);
     if (!fs.existsSync(analysisFile) && !args.skip_data)
-        throw new CliError(`Missing seo-analysis for this topic. Run: bin/seo-brain seo-analysis --keyword "${keyword}" or rerun content-seo with --skip-data --skip-data-reason "motivo claro" para gerar um briefing sem proveniencia de SERP.`);
+        throw new CliError(`Missing seo-analysis for this topic. Run: bin/seo-brain seo-analysis --keyword "${keyword}" or rerun content-seo with --skip-data --skip-data-reason "motivo claro" para gerar um briefing sem proveniência de SERP.`);
     if (args.skip_data && !args.skip_data_reason)
         throw new CliError('--skip-data requires --skip-data-reason "motivo claro".');
     const analysisData = fs.existsSync(analysisFile) ? readJson(analysisFile) : null;
@@ -1274,17 +1274,17 @@ async function commandContentSeo(args) {
         data_provenance: { seo_analysis: provenance },
         brief: {
             intent: analysisData?.intent || "to-be-validated",
-            reader_need: "Responder com profundidade, sem cair em padroes genericos de IA.",
-            must_include: ["definicao direta no inicio", "criterios praticos de decisao", "exemplos brasileiros verificaveis", "proximos passos para o leitor"],
-            must_avoid: ["titulo em padrao americano", "URL ou slug interno em prosa", "voz de Wiki em texto publico", "anchor text generico tipo clique aqui", "mencao em prosa a dominio que aparece no top_results da analise SEO", "referencia a fonte externa fora de backlink Markdown", "sequencia longa de paragrafos de uma linha", "metaforas traduzidas literalmente do ingles", "adjetivos vazios como robusto, completo, lider"],
+            reader_need: "Responder com profundidade, sem cair em padrões genéricos de IA.",
+            must_include: ["definição direta no início", "critérios práticos de decisão", "exemplos brasileiros verificáveis", "próximos passos para o leitor"],
+            must_avoid: ["título em padrão americano", "URL ou slug interno em prosa", "voz de Wiki em texto público", "anchor text genérico tipo clique aqui", "menção em prosa a domínio que aparece no top_results da análise SEO", "referência a fonte externa fora de backlink Markdown", "sequência longa de parágrafos de uma linha", "metáforas traduzidas literalmente do inglês", "adjetivos vazios como robusto, completo, líder"],
         },
-        voice_check: { audience: "leitor de blog publico que entende SEO", tense_perspective: "terceira pessoa, voz informativa", link_test: "remover qualquer link e a frase deve continuar coerente" },
+        voice_check: { audience: "leitor de blog público que entende SEO", tense_perspective: "terceira pessoa, voz informativa", link_test: "remover qualquer link e a frase deve continuar coerente" },
         must_not_mention_in_prose: mustNotMention,
         draft_status: "outline",
     };
     writeJson(path.join(p, "workbench", "content", `${topicSlug}.brief.json`), report);
-    writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), `---\ntitle: "${topic}"\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${topicSlug}/"\nprimary_keyword: "${keyword}"\nsources: []\n---\n\n# ${topic}\n\n## Briefing\n\nIntencao, angulo e argumentos foram derivados de workbench/seo-analysis/${keywordSlug}.json.\nReescrever para o leitor de blog: sem expor URL interna em prosa, sem voz de Wiki.\n\n## Estrutura proposta\n\n1. Resposta direta no topo.\n2. Definicao clara, com escopo e limites.\n3. Criterios praticos.\n4. Exemplos brasileiros verificaveis.\n5. Proximo passo concreto.\n\n## Revisao anti-slop e registro de publicacao\n\n- Titulo em frase normal, sem padrao americano.\n- Nenhum path interno aparece em prosa.\n- Links internos usam o titulo da pagina de destino como anchor text.\n- Cada frase com link continua coerente sem o link.\n- Evitar sequencia longa de paragrafos de uma linha.\n- Reduzir bullets quando a explicacao pedir desenvolvimento.\n`);
-    appendLog("content", topic, [`conteudos/${topicSlug}`], "Briefing e estrutura de conteudo criados.", "pending");
+    writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), `---\ntitle: "${topic}"\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${topicSlug}/"\nprimary_keyword: "${keyword}"\nsources: []\n---\n\n# ${topic}\n\n## Briefing\n\nIntenção, ângulo e argumentos foram derivados de workbench/seo-analysis/${keywordSlug}.json.\nReescrever para o leitor de blog: sem expor URL interna em prosa, sem voz de Wiki.\n\n## Estrutura proposta\n\n1. Resposta direta no topo.\n2. Definição clara, com escopo e limites.\n3. Critérios práticos.\n4. Exemplos brasileiros verificáveis.\n5. Próximo passo concreto.\n\n## Revisão anti-slop e registro de publicação\n\n- Título em frase normal, sem padrão americano.\n- Nenhum path interno aparece em prosa.\n- Links internos usam o título da página de destino como anchor text.\n- Cada frase com link continua coerente sem o link.\n- Evitar sequência longa de parágrafos de uma linha.\n- Reduzir bullets quando a explicação pedir desenvolvimento.\n`);
+    appendLog("content", topic, [`conteudos/${topicSlug}`], "Briefing e estrutura de conteúdo criados.", "pending");
     printJson(report);
 }
 async function commandTechnicalSeo(args) {
@@ -1315,7 +1315,7 @@ async function commandTechnicalSeo(args) {
     const outMd = path.join(p, "workbench", "technical-seo", `${basename}.md`);
     writeJson(outJson, result);
     writeText(outMd, renderTechnicalMarkdown(result));
-    appendLog("technical-seo", pageType, [path.relative(p, outJson), path.relative(p, outMd)], "Auditoria tecnica deterministica executada.", "not-required");
+    appendLog("technical-seo", pageType, [path.relative(p, outJson), path.relative(p, outMd)], "Auditoria técnica determinística executada.", "not-required");
     printJson(result);
 }
 async function commandNextWebsiteCreator(args) {
@@ -1328,7 +1328,7 @@ async function commandNextWebsiteCreator(args) {
     writeJson(path.join(web, "package.json"), { scripts: { dev: "next dev", build: "next build", start: "next start" }, dependencies: { next: "latest", react: "latest", "react-dom": "latest" }, devDependencies: { typescript: "latest", "@types/react": "latest", "@types/node": "latest" } });
     writeText(path.join(web, "app", "layout.tsx"), 'export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang="pt-BR"><body>{children}</body></html>; }\n');
     writeText(path.join(web, "app", "page.tsx"), `export default function Page() { return <main><h1>${projectName}</h1><p>Site SEO Brain em rascunho.</p></main>; }\n`);
-    writeText(path.join(web, "app", "servicos", "page.tsx"), "export default function Page() { return <main><h1>Servicos</h1></main>; }\n");
+    writeText(path.join(web, "app", "servicos", "page.tsx"), "export default function Page() { return <main><h1>Serviços</h1></main>; }\n");
     writeText(path.join(web, "app", "contato", "page.tsx"), "export default function Page() { return <main><h1>Contato</h1></main>; }\n");
     writeText(path.join(web, "app", "blog", "page.tsx"), "export default function Page() { return <main><h1>Blog</h1></main>; }\n");
     writeText(path.join(web, "app", "blog", "[slug]", "page.tsx"), "export default function Page() { return <main><h1>Post</h1></main>; }\n");

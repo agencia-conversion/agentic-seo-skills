@@ -1,5 +1,5 @@
 ---
-title: "Dados e analise"
+title: "Dados e análise"
 status: approved
 pillar: dados-e-analise
 owner: agent
@@ -10,9 +10,9 @@ sources: []
 judgment_level: observational
 ---
 
-# Dados e analise
+# Dados e análise
 
-Mapa de dados coletados, relatorios gerados e lacunas de medicao.
+Mapa de dados coletados, relatórios gerados e lacunas de medição.
 
 ## Fontes de dados
 
@@ -24,9 +24,9 @@ Mapa de dados coletados, relatorios gerados e lacunas de medicao.
 | Backlinks | `../sources/backlinks/` | gap |
 | Analytics | `../sources/analytics/` | gap |
 
-## Relatorios
+## Relatórios
 
-| Relatorio | Local | Uso |
+| Relatório | Local | Uso |
 | --- | --- | --- |
-| SEO analysis | `../workbench/seo-analysis/` | Gate para clusters e conteudo |
+| SEO analysis | `../workbench/seo-analysis/` | Gate para clusters e conteúdo |
 | Wiki lint | `../workbench/wiki-lint.json` | Qualidade da Wiki |

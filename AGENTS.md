@@ -35,6 +35,15 @@ This repository root is the plugin root.
 - Prefer local web UI artifacts for previews, approvals, and reports.
 - Do not commit secrets, raw user project data, generated runs, or provider responses from real clients.
 
+## Language Fidelity
+
+SEO Brain is English-first and supports Brazilian Portuguese as an official second language, but generated natural-language output should work in any requested language.
+
+- Preserve the spelling, accents, and diacritics of the output language in all human-facing prose, headings, UI text, Markdown, logs, reports, prompts, and review notes.
+- For pt-BR, write correct Portuguese with accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
+- ASCII transliteration is allowed only for slugs, file paths, IDs, enum values, command names, provider payloads, code identifiers, or verbatim source text that originally has no diacritics.
+- Never strip accents from user-provided names, titles, claims, excerpts, anchors, or editorial text while summarizing, extracting, reviewing, or rewriting.
+
 ## Wiki Rules
 
 Every SEO Brain project should use Obsidian-compatible Markdown and separate sources from synthesis.

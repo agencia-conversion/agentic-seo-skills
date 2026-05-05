@@ -25,7 +25,7 @@ assert.equal(config.language, "pt-PT");
 assert.ok(wikiIndex.includes('country: "Portugal"'));
 assert.ok(wikiIndex.includes('market: "Portugal"'));
 assert.ok(wikiIndex.includes('language: "pt-PT"'));
-assert.ok(wikiIndex.includes("- Pais/mercado de atuacao: Portugal."));
+assert.ok(wikiIndex.includes("- País/mercado de atuação: Portugal."));
 assert.ok(wikiIndex.includes("- Idioma principal: pt-PT."));
 
 rmSync(tmp, { recursive: true, force: true });

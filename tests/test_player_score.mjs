@@ -88,9 +88,9 @@ function assertScoreBounds(report) {
 }
 
 writeSerp([
-  { position: 1, title: "SEO player score guia completo", url: "https://competitor.example/seo-player-score", snippet: "Compare players da SERP com dados, tecnica e julgamento.", domain: "competitor.example" },
+  { position: 1, title: "SEO player score guia completo", url: "https://competitor.example/seo-player-score", snippet: "Compare players da SERP com dados, técnica e julgamento.", domain: "competitor.example" },
   { position: 2, title: "SEO player score para URL alvo", url: "https://target.example/seo-player-score", snippet: "Analise uma URL alvo por palavra-chave.", domain: "target.example" },
-  { position: 3, title: "Pagina curta", url: "https://weak.example/page", snippet: "Resultado fraco e pouco relevante.", domain: "weak.example" },
+  { position: 3, title: "Página curta", url: "https://weak.example/page", snippet: "Resultado fraco e pouco relevante.", domain: "weak.example" },
 ]);
 const exact = run("https://target.example/seo-player-score?utm=1");
 assert.equal(exact.target_status, "exact_url_ranking");
@@ -98,9 +98,9 @@ assert.ok(exact.player_scores.some((player) => player.is_target && player.positi
 assertScoreBounds(exact);
 
 writeSerp([
-  { position: 1, title: "SEO player score guia completo", url: "https://competitor.example/seo-player-score", snippet: "Compare players da SERP com dados, tecnica e julgamento.", domain: "competitor.example" },
-  { position: 2, title: "Outro resultado do dominio", url: "https://target.example/other", snippet: "O dominio aparece, mas a URL desejada nao.", domain: "target.example" },
-  { position: 3, title: "Pagina curta", url: "https://weak.example/page", snippet: "Resultado fraco e pouco relevante.", domain: "weak.example" },
+  { position: 1, title: "SEO player score guia completo", url: "https://competitor.example/seo-player-score", snippet: "Compare players da SERP com dados, técnica e julgamento.", domain: "competitor.example" },
+  { position: 2, title: "Outro resultado do domínio", url: "https://target.example/other", snippet: "O domínio aparece, mas a URL desejada não.", domain: "target.example" },
+  { position: 3, title: "Página curta", url: "https://weak.example/page", snippet: "Resultado fraco e pouco relevante.", domain: "weak.example" },
 ]);
 const wrongUrl = run("https://target.example/wanted");
 assert.equal(wrongUrl.target_status, "same_domain_wrong_url");
@@ -116,8 +116,8 @@ assert.ok(domain.player_scores.some((player) => player.is_target && player.posit
 assertScoreBounds(domain);
 
 writeSerp([
-  { position: 1, title: "SEO player score guia completo", url: "https://competitor.example/seo-player-score", snippet: "Compare players da SERP com dados, tecnica e julgamento.", domain: "competitor.example" },
-  { position: 2, title: "Pagina curta", url: "https://weak.example/page", snippet: "Resultado fraco e pouco relevante.", domain: "weak.example" },
+  { position: 1, title: "SEO player score guia completo", url: "https://competitor.example/seo-player-score", snippet: "Compare players da SERP com dados, técnica e julgamento.", domain: "competitor.example" },
+  { position: 2, title: "Página curta", url: "https://weak.example/page", snippet: "Resultado fraco e pouco relevante.", domain: "weak.example" },
 ]);
 const absent = run("https://target.example/wanted");
 assert.equal(absent.target_status, "not_ranking");

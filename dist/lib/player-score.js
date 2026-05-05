@@ -130,8 +130,8 @@ function scoreJudgment(player, keyword, targetStatus) {
         score: intentFit + contentQuality + opportunity,
         components: {
             intent_fit: { score: intentFit, rationale: "Estimado por alinhamento entre keyword, snippet, URL e H1.", evidence_refs: ["serp.title", "serp.snippet", "url", h1 ? "page.headings.h1" : "page.headings"] },
-            content_quality_and_proof: { score: contentQuality, rationale: "Estimado por profundidade crawlable e estrutura de H2 observada; nao considera provas nao verificadas.", evidence_refs: ["page.word_count", "page.h2_count"] },
-            competitive_threat_or_opportunity: { score: opportunity, rationale: "Estimado por posicao, lacunas tecnicas e status do URL alvo na SERP.", evidence_refs: ["serp.position", "technical_seo.findings", "target_status"] },
+            content_quality_and_proof: { score: contentQuality, rationale: "Estimado por profundidade crawlable e estrutura de H2 observada; não considera provas não verificadas.", evidence_refs: ["page.word_count", "page.h2_count"] },
+            competitive_threat_or_opportunity: { score: opportunity, rationale: "Estimado por posição, lacunas técnicas e status do URL alvo na SERP.", evidence_refs: ["serp.position", "technical_seo.findings", "target_status"] },
         },
     };
 }
@@ -148,7 +148,7 @@ function confidenceForPlayer(provider, topResults, player) {
     }
     if (!player.fetch_ok) {
         score -= 0.3;
-        reasons.push("Pagina nao foi buscada; auditoria tecnica e estrutura podem estar incompletas.");
+        reasons.push("Página não foi buscada; auditoria técnica e estrutura podem estar incompletas.");
     }
     if (!player.technical_seo) {
         score -= 0.2;
@@ -259,7 +259,7 @@ async function buildPlayerScoreReport(args, base, deps) {
         serp_terms: serpTerms,
         player_scores: playerScores,
         score_model: PLAYER_SCORE_MODEL,
-        limitations: [...base.limitations, ...(base.provider === "websearch" ? ["Player score via websearch depende da qualidade do arquivo de resultados fornecido pelo agente."] : []), ...players.filter((p) => !p.fetch_ok).map((p) => `Nao foi possivel buscar ${p.url}: ${p.fetch_error || "erro desconhecido"}`)],
+        limitations: [...base.limitations, ...(base.provider === "websearch" ? ["Player score via websearch depende da qualidade do arquivo de resultados fornecido pelo agente."] : []), ...players.filter((p) => !p.fetch_ok).map((p) => `Não foi possível buscar ${p.url}: ${p.fetch_error || "erro desconhecido"}`)],
         technical_seo_reports: technicalFiles,
     };
 }

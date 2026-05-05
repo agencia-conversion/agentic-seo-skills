@@ -24,4 +24,4 @@ DataForSEO Backlinks API v3 is live-only for this flow. SEO Brain accepts `stand
 
 If credentials are missing, run `bin/seo-brain data-setup --handoff` and retry the backlink command after the user submits the local web form.
 
-The CLI collects summary, top referring domains, top anchors, and sample backlinks from DataForSEO; raw responses go to `project/sources/backlinks/`, normalized reports go to `project/reports/backlinks/`. Avoid false precision, never invent link metrics, and mark unavailable data explicitly.
+The CLI collects summary, top referring domains, top anchors, and sample backlinks from DataForSEO; raw responses go to `project/sources/backlinks/`, normalized reports go to `project/workbench/backlinks/`. Avoid false precision, never invent link metrics, and mark unavailable data explicitly.

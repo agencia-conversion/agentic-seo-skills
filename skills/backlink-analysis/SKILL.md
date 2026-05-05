@@ -72,4 +72,4 @@ bin/seo-brain backlink-analysis --target <domain> --competitors "competitor-a.co
 - Provider and timestamp are recorded.
 - Competitor comparison is explicit when requested.
 - Raw provider responses are saved under `project/sources/backlinks/`.
-- Normalized report is saved under `project/reports/backlinks/`.
+- Normalized report is saved under `project/workbench/backlinks/`.
