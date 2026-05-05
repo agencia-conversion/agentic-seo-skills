@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node tests/test_dataforseo_modes.mjs && node tests/test_technical_seo.mjs && node tests/test_frontmatter.mjs && node tests/test_companion_collect_env.mjs && node tests/test_companion_approve_page.mjs && node tests/test_companion_pick_cluster.mjs && node scripts/smoke_test.mjs",
+    "test": "npm run build && node tests/test_dataforseo_modes.mjs && node tests/test_technical_seo.mjs && node tests/test_frontmatter.mjs && node tests/test_companion_collect_env.mjs && node tests/test_companion_approve_page.mjs && node tests/test_companion_pick_cluster.mjs && node tests/autoresearch_state.mjs && node tests/autoresearch_stop.mjs && node tests/autoresearch_journal.mjs && node tests/autoresearch_contract.mjs && node tests/autoresearch_e2e.mjs && node scripts/smoke_test.mjs",
     "validate:skills": "node scripts/validate_skills.mjs"
   },
   "devDependencies": {

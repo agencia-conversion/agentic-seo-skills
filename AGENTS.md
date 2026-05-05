@@ -71,7 +71,7 @@ Use these rules when changing manifests, skills, shared references, templates, s
 
 - Keep agent files short; put durable workflow detail in `skills/<skill>/SKILL.md`, `skills/_shared/references/`, scripts, fixtures, or templates.
 - Treat every skill change as a verifiable workflow change. Before implementation is complete, define the skill contract, inputs, outputs, fixture strategy, and pass/fail criteria.
-- Prefer Autoresearch-style loops: one skill or subsystem per run, baseline first, fixed fixtures or budget, explicit metric or rubric, and a keep/reject decision. For deeper context, see `karpathy/autoresearch`.
+- Prefer Autoresearch-style loops: one skill or subsystem per run, baseline first, fixed fixtures or budget, explicit metric or rubric, and a keep/reject decision. For deeper context, see `karpathy/autoresearch`. The runtime engine is `scripts/autoresearch.mjs` (skill: `/seo-brain:autoresearch`, doctrine: `program.md`, schemas: `skills/_shared/references/autoresearch-protocol.md`). Use `bin/seo-brain audit-skills` for one-shot quality scoring of all skills.
 - Validate meaningful skill changes with sub-agents that run or simulate the target skill against fixtures. Use one executor-style sub-agent and, for nontrivial changes, one reviewer-style sub-agent focused on contract drift, hallucination risk, source separation, and approval gates.
 - Sub-agent output is evidence, not approval. The main agent remains responsible for integration, and humans still approve strategic context.
 - Keep eval artifacts reviewable. Save development run notes in `.context/skill-evals/`; commit only reusable fixtures, scripts, templates, and concise docs.
