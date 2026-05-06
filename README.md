@@ -1,128 +1,147 @@
 # SEO Brain
 
-SEO Brain is a Claude Code-first plugin for operating one Agentic SEO project with persistent wiki context, deterministic SEO workflows, and human approval for strategic judgment. The repository root is the plugin root.
+SEO Brain is officially available as a Claude Code plugin.
 
-The current repository state includes the plugin manifests, skill contracts, Wiki templates, implementation plan, Autoresearch loop, and validation script.
+It is an Agentic SEO framework for building strategy with human judgment and agent scale. Humans approve strategic context; agents execute research, analysis, content workflows, technical checks, and Wiki maintenance.
 
-## Core Idea
+## Install in Claude Code
 
-SEO Brain turns SEO work into an AI-first operating system:
+Run these commands in a terminal where Claude Code is available as `claude`:
 
-- humans define strategy, judgment, positioning, and approval;
-- agents execute repeatable intelligence with explicit criteria;
-- the project Wiki compounds decisions, sources, feedback, and operating rules;
-- technical implementation favors Next.js, SSG, Payload CMS, Vercel, and deterministic SEO checks;
-- every skill is tested independently before it becomes part of the default workflow.
+```bash
+claude plugin marketplace add agencia-conversion/seo-brain
+claude plugin install seo-brain@seo-brain-marketplace
+```
 
-## Local Secrets
+Then restart Claude Code or run:
 
-Credentials must stay in `.env`, which is gitignored. Commit only `.env.example` when the implementation starts.
+```text
+/reload-plugins
+```
 
-## Development
+Start SEO Brain with:
 
-Install the TypeScript toolchain:
+```text
+/seo-brain:start
+```
+
+If you installed an older private beta from another GitHub repository, remove that marketplace first and then run the install commands above.
+
+## Update
+
+```bash
+claude plugin marketplace update seo-brain-marketplace
+claude plugin update seo-brain@seo-brain-marketplace
+```
+
+Then restart Claude Code or run `/reload-plugins`.
+
+## Test Locally Without Installing
+
+To load the plugin from a local checkout without installing it:
+
+```bash
+git clone https://github.com/agencia-conversion/seo-brain.git
+cd seo-brain
+claude --plugin-dir .
+```
+
+Running plain `claude` from this repository opens the folder as a normal project. Plugin skills are available only after loading with `--plugin-dir` or installing SEO Brain through the Claude Code plugin marketplace.
+
+For local development, validate the plugin and marketplace manifests:
 
 ```bash
 npm install
 npm run build
-```
-
-Validate the Claude Code plugin:
-
-```bash
 claude plugin validate .claude-plugin/plugin.json
-```
-
-Validate the optional local marketplace:
-
-```bash
 claude plugin validate .claude-plugin/marketplace.json
+npm test
 ```
 
-Validate SEO Brain skill contracts:
+## Other IDEs and Agents
 
-```bash
-node scripts/validate_skills.mjs
-```
+SEO Brain is officially supported only as a Claude Code plugin in v0.1.
 
-Load locally in Claude Code:
+Other IDEs and agents can test the portable parts of the framework, but not the complete plugin experience. What can be tested:
 
-```bash
-claude --plugin-dir .
-```
+- reading `AGENTS.md` for cross-agent operating rules;
+- reading `skills/<skill-name>/SKILL.md` files as portable skill instructions;
+- running the local CLI commands after cloning the repository;
+- using `templates/` and `docs/` as reference material;
+- validating source separation, Wiki layout, and approval-aware workflows manually.
 
-Running plain `claude` from this repository does not load the plugin. It only opens the repository as a normal project. Plugin skills are available only after loading with `--plugin-dir` or installing the plugin from a marketplace.
+What is Claude Code-specific and should not be expected to work in other IDEs:
 
-When loaded, SEO Brain runs a `SessionStart` hook that injects the runtime context and records a lightweight session marker. The canonical user-facing context skill is:
+- `/seo-brain:*` plugin slash commands;
+- Claude Code plugin installation through `.claude-plugin/plugin.json`;
+- `SessionStart` hooks and plugin runtime context injection;
+- Claude Code `userConfig` for sensitive settings;
+- plugin-scoped browser handoff behavior;
+- marketplace install/update semantics.
+
+Codex compatibility is best-effort through `AGENTS.md`, `.codex-plugin/plugin.json`, and standard `skills/<skill-name>/SKILL.md` directories. Cursor, Windsurf, Copilot, and similar tools may be able to use the Markdown instructions after opening or copying the repository, but this is not the official distribution path.
+
+## How SEO Brain Works
+
+SEO Brain organizes Agentic SEO around six pillars:
+
+1. Strategy
+2. LLM Wiki
+3. Technology
+4. Technical SEO
+5. Content
+6. Data and Analysis
+
+The operating model is simple:
+
+- humans own strategy, judgment, positioning, and approvals;
+- agents execute repeatable intelligence with explicit criteria;
+- project knowledge compounds in an Obsidian-compatible Wiki;
+- raw sources stay separate from synthesized knowledge;
+- strategic pages require explicit human approval before they become canonical context.
+
+SEO Brain is English-first and officially supports Brazilian Portuguese. Generated prose preserves spelling, accents, and diacritics in the requested language.
+
+## Main Workflows
+
+Once installed, skills are namespaced under `/seo-brain`.
 
 ```text
-/seo-brain:seo-brain
-```
-
-`AGENTS.md` and `CLAUDE.md` are development guidance; `/seo-brain:seo-brain` is the runtime orientation for user-facing SEO work.
-
-The optional Claude Code statusline is installed explicitly so existing user statuslines are preserved:
-
-```bash
-node scripts/install-statusline.mjs --dry-run
-node scripts/install-statusline.mjs --apply
-```
-
-Once loaded, skills are namespaced:
-
-```text
+/seo-brain:start
 /seo-brain:seo-brain
 /seo-brain:project-init
 /seo-brain:seo-analysis
 /seo-brain:technical-seo
+/seo-brain:content-seo
+/seo-brain:keyword-research
+/seo-brain:topic-cluster
+/seo-brain:eeat
 ```
 
-For a persistent local install in Claude Code:
-
-```text
-/plugin marketplace add /Users/diego/Codex/seo-brain-codex
-/plugin install seo-brain@seo-brain-marketplace
-```
-
-Run the offline v0.1 smoke test:
+The local CLI also exposes deterministic commands used by the skills and tests:
 
 ```bash
-npm test
-```
-
-Use the local CLI directly:
-
-```bash
-bin/seo-brain project-init "Meu projeto"
+bin/seo-brain project-init "My project"
 bin/seo-brain data-setup
-bin/seo-brain keyword-research --keyword "seo agentico"
-bin/seo-brain serp-extract --keyword "seo agentico"
-bin/seo-brain seo-analysis --keyword "seo agentico"
-bin/seo-brain topic-cluster --seed "seo agentico"
-bin/seo-brain eeat --claim "Prova de autoridade" --status gap
-bin/seo-brain content-seo --topic "O que e SEO agentico" --brief-approval handoff
-bin/seo-brain backlink-analysis --target example.com --mode standard --limit 10
+bin/seo-brain keyword-research --keyword "agentic seo"
+bin/seo-brain serp-extract --keyword "agentic seo"
+bin/seo-brain seo-analysis --keyword "agentic seo"
+bin/seo-brain topic-cluster --seed "agentic seo"
+bin/seo-brain content-seo --topic "What is agentic SEO"
 bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-home.html --page-type inicial
-bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-ecommerce-product.html --page-type produto-ecommerce
-bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-service.html --page-type produto-ou-servico
-bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-valid.html --page-type blog
-bin/seo-brain technical-seo --html-file tests/fixtures/technical-seo-about.html --page-type quem-somos
-bin/seo-brain next-website-creator
-bin/seo-brain payload-cms
 ```
 
-Provider calls can consume credits unless `--mode offline` or DataForSEO sandbox is used. DataForSEO defaults to `--mode standard` for SERP and keyword data. Backlink analysis accepts `standard` but maps it to DataForSEO live-only endpoints and records that in the report. Use `--mode live` for ultrafast results and `--mode async` for callback-based SERP/keyword tasks. See `docs/dataforseo-integration.md`.
+Provider calls can consume credits unless an offline mode or provider sandbox is used. DataForSEO defaults to `standard` mode for SERP and keyword data.
 
-Runtime SEO outputs are YAML by default (`sources/serp/*.normalized.yaml`, `workbench/seo-analysis/*.yaml`, `workbench/content/**/*.yaml`, `artifacts/contents/**/*.yaml`). Raw provider payloads remain `.raw.json` when preserving the original response is useful. WebSearch is a secondary bypass and must be explicitly confirmed with a reason.
+## Release
 
-## Main Planning Docs
+SEO Brain 0.1.0 is distributed through:
 
-- `docs/product-spec-v0.1.md`
-- `docs/wiki-karpathy-validation.md`
-- `docs/skill-quality-criteria.md`
-- `docs/plans/implementation-plan-v0.1.md`
-- `program.md`
-- `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
-- `AGENTS.md`
-- `CHANGELOG.md`
+- GitHub repository: `agencia-conversion/seo-brain`
+- Claude Code marketplace: `.claude-plugin/marketplace.json`
+- Claude Code plugin id: `seo-brain@seo-brain-marketplace`
+- Claude plugin release tag: `seo-brain--v0.1.0`
+
+## Security
+
+Do not commit secrets, raw client data, generated runs, or provider responses from real clients. Credentials belong in Claude Code plugin user configuration or local ignored environment files.

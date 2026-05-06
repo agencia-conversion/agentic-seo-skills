@@ -2,9 +2,9 @@
 
 ## Current State
 
-The repository is the plugin root. It contains Claude Code and Codex manifests, initial skill contracts, Wiki templates, planning artifacts, and a local `.env`. It is not initialized as a git repository yet.
+The repository is the plugin root. It contains Claude Code and Codex manifests, initial skill contracts, Wiki templates, planning artifacts, and ignored local runtime files.
 
-Local credentials are present and must remain private. The observed keys are enough to support DataForSEO, AI providers, scraping providers, email, and external execution later.
+Credentials must remain private. Public documentation and fixtures should describe required environment variables without naming observed local secrets or committing real provider values.
 
 ## Key Product Decision
 
