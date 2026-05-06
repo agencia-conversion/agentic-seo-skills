@@ -68,7 +68,7 @@ function resolveProjectDir(): string {
 }
 
 function ensureProject(): string {
-  if (!fs.existsSync(PROJECT_DIR)) throw new CliError(`Project not found: ${PROJECT_DIR}. Run: bin/seo-brain project-init "Project name"`);
+  if (!fs.existsSync(PROJECT_DIR)) throw new CliError(`Project not found: ${PROJECT_DIR}. Initialize the SEO Brain project first.`);
   return PROJECT_DIR;
 }
 
@@ -339,14 +339,22 @@ function readHomeCredentials(): AnyRecord {
   }
 }
 
+const HOME_CREDENTIAL_KEYS: Record<string, string> = {
+  DATAFORSEO_LOGIN: "dataforseo_login",
+  DATAFORSEO_PASSWORD: "dataforseo_password",
+  SEO_BRAIN_DATAFORSEO_MODE: "dataforseo_mode",
+};
+
 function getSecret(name: string): string {
   const home = readHomeCredentials();
-  const homeKey = {
-    DATAFORSEO_LOGIN: "dataforseo_login",
-    DATAFORSEO_PASSWORD: "dataforseo_password",
-    SEO_BRAIN_DATAFORSEO_MODE: "dataforseo_mode",
-  }[name];
-  return process.env[name] || readEnvFile()[name] || (homeKey ? home[homeKey] : "") || "";
+  const homeKey = HOME_CREDENTIAL_KEYS[name];
+  return (
+    process.env[name] ||
+    readEnvFile(path.join(PROJECT_DIR, ".env.local"))[name] ||
+    (homeKey && home[homeKey] ? String(home[homeKey]) : "") ||
+    readEnvFile()[name] ||
+    ""
+  );
 }
 
 function mask(value?: string): string {
@@ -490,6 +498,22 @@ async function dataforseoStandardTask(
   if (pending.size) return { mode: "standard", status: "pending_timeout", post_response: postResponse, pending_task_ids: Array.from(pending).sort(), task_get_responses: taskGetResponses };
   if (taskGetResponses.length === 1) return { ...taskGetResponses[0], mode: "standard", post_response: postResponse };
   return { mode: "standard", post_response: postResponse, task_get_responses: taskGetResponses };
+}
+
+type DataforseoEndpoints = {
+  liveEndpoint: string;
+  taskPostEndpoint: string | null;
+  taskGetEndpoint: string | null;
+};
+
+async function runDataforseoCall(endpoints: DataforseoEndpoints, payload: AnyRecord[], args: AnyRecord): Promise<AnyRecord> {
+  const requested = resolveDataforseoMode(args);
+  const liveOnly = !endpoints.taskPostEndpoint || !endpoints.taskGetEndpoint;
+  const mode = liveOnly && (requested === "standard" || requested === "async") ? "live" : requested;
+  if (mode === "live") return { ...(await dataforseoRequest("POST", endpoints.liveEndpoint, payload, Boolean(args.sandbox))), mode: "live" };
+  if (mode === "standard") return await dataforseoStandardTask(endpoints.taskPostEndpoint!, endpoints.taskGetEndpoint!, payload, Boolean(args.sandbox), Number(args.poll_interval || 10), Number(args.timeout || 180));
+  if (mode === "async") return await dataforseoAsyncTask(endpoints.taskPostEndpoint!, payload, Boolean(args.sandbox), args.pingback_url, args.postback_url, args.postback_data || "advanced");
+  return { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode standard or --mode live to fetch DataForSEO data." };
 }
 
 async function dataforseoAsyncTask(
@@ -683,7 +707,7 @@ function headingHierarchyOk(headings: AnyRecord[]): boolean {
 }
 
 function check(pass: boolean, id: string, name: string, severity: Severity, weight: number, evidence: unknown, repair: string): AnyRecord {
-  return { id, name, severity, weight, passed: pass, score_awarded: pass ? weight : 0, evidence, repair };
+  return { id, name, severity, weight, passed: pass, score: pass ? 100 : 0, points_awarded: pass ? weight : 0, evidence, repair };
 }
 
 function auditTechnicalSeo(extracted: AnyRecord, options: { pageType: PageType; source: string; status: number | null; headers?: Record<string, string> }): AnyRecord {
@@ -737,7 +761,7 @@ function auditTechnicalSeo(extracted: AnyRecord, options: { pageType: PageType; 
   }
 
   const totalWeight = checks.reduce((sum, item) => sum + item.weight, 0);
-  const awarded = checks.reduce((sum, item) => sum + item.score_awarded, 0);
+  const awarded = checks.reduce((sum, item) => sum + item.points_awarded, 0);
   const score = totalWeight ? Math.round((awarded / totalWeight) * 100) : 0;
   const findings = checks
     .filter((item) => !item.passed)
@@ -794,40 +818,101 @@ function renderTechnicalMarkdown(report: AnyRecord): string {
 }
 
 function normalizeSerp(source: AnyRecord, keyword: string, location: string, language: string, device: string): AnyRecord {
-  let tasks = source.tasks || [];
+  const [normalized] = normalizeSerpBatch(source, [keyword], location, language, device);
+  return normalized;
+}
+
+export function normalizeSerpBatch(source: AnyRecord, keywords: string[], location: string, language: string, device: string): AnyRecord[] {
+  if (!Array.isArray(keywords) || keywords.length === 0) throw new Error("normalizeSerpBatch requires a non-empty keywords array.");
+  let tasks: AnyRecord[] = source.tasks || [];
   if (source.task_get_responses) tasks = source.task_get_responses.flatMap((r: AnyRecord) => r.tasks || []);
-  const items = tasks.length && tasks[0].result?.length ? tasks[0].result[0].items || [] : [];
-  const organicResults = items
-    .filter((item: AnyRecord) => item.type === "organic")
-    .map((item: AnyRecord) => ({ rank_group: item.rank_group, rank_absolute: item.rank_absolute, title: item.title, url: item.url, domain: item.domain, snippet: item.description || item.snippet }));
-  return {
+  const baseProvider = tasks.length ? "dataforseo" : source.mode === "async" ? "dataforseo" : "offline";
+  const buildEntry = (keyword: string, items: AnyRecord[]): AnyRecord => ({
     keyword,
-    provider: tasks.length ? "dataforseo" : source.mode === "async" ? "dataforseo" : "offline",
+    provider: items.length ? "dataforseo" : baseProvider,
     mode: source.mode || "unknown",
-    task_ids: source.task_ids || taskIdsFromResponse(source.post_response || {}),
-    pending_task_ids: source.pending_task_ids || [],
     timestamp: nowIso(),
     location,
     language,
     device,
-    organic_results: organicResults,
-    serp_features: Array.from(new Set(items.filter((item: AnyRecord) => item.type !== "organic").map((item: AnyRecord) => item.type || ""))).sort(),
-  };
+    organic_results: items
+      .filter((item: AnyRecord) => item.type === "organic")
+      .map((item: AnyRecord) => ({ rank_group: item.rank_group, rank_absolute: item.rank_absolute, title: item.title, url: item.url, domain: item.domain, snippet: item.description || item.snippet })),
+    serp_features: Array.from(new Set(items.filter((item: AnyRecord) => item.type !== "organic").map((item: AnyRecord) => String(item.type || "").trim()))).filter(Boolean).sort(),
+  });
+  const nameKey = (s: string): string => String(s).trim().toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
+  const byInputKey = new Map<string, number>();
+  keywords.forEach((kw, i) => byInputKey.set(nameKey(kw), i));
+  const byIndex = new Map<number, AnyRecord>();
+  const usedTasks = new Set<number>();
+  for (let i = 0; i < tasks.length; i += 1) {
+    const task = tasks[i];
+    const items = task.result?.[0]?.items || [];
+    const responseKw = String(task.result?.[0]?.keyword || task.data?.keyword || "").trim();
+    const matchIdx = byInputKey.get(nameKey(responseKw));
+    if (matchIdx !== undefined && !byIndex.has(matchIdx)) {
+      byIndex.set(matchIdx, buildEntry(keywords[matchIdx], items));
+      usedTasks.add(i);
+    }
+  }
+  let cursor = 0;
+  for (let i = 0; i < tasks.length; i += 1) {
+    if (usedTasks.has(i)) continue;
+    const task = tasks[i];
+    const items = task.result?.[0]?.items || [];
+    while (cursor < keywords.length && byIndex.has(cursor)) cursor += 1;
+    if (cursor >= keywords.length) break;
+    byIndex.set(cursor, buildEntry(keywords[cursor], items));
+    cursor += 1;
+  }
+  const taskIds = source.task_ids || taskIdsFromResponse(source.post_response || {});
+  const pending = source.pending_task_ids || [];
+  return keywords.map((keyword, i) => {
+    const entry = byIndex.get(i) || buildEntry(keyword, []);
+    return { ...entry, task_ids: taskIds, pending_task_ids: pending };
+  });
 }
 
-function normalizeKeywords(source: AnyRecord, keyword: string, location: string, language: string): AnyRecord {
+const SERP_ENDPOINTS: DataforseoEndpoints = {
+  liveEndpoint: "/v3/serp/google/organic/live/advanced",
+  taskPostEndpoint: "/v3/serp/google/organic/task_post",
+  taskGetEndpoint: "/v3/serp/google/organic/task_get/advanced/{id}",
+};
+
+export async function serpForKeywords(keywords: string[], args: AnyRecord): Promise<{ source: AnyRecord; normalized: AnyRecord[] }> {
+  if (!keywords.length) throw new CliError("serpForKeywords requires at least one keyword.");
+  const location = args.location || "Brazil";
+  const language = args.language || "pt";
+  const device = args.device || "desktop";
+  const depth = Number(args.depth || 10);
+  const payload = keywords.map((keyword) => ({ keyword, location_name: location, language_code: language, device, depth }));
+  const requested = resolveDataforseoMode(args);
+  let source: AnyRecord;
+  if (requested === "live") {
+    const responses = await Promise.all(payload.map((p) => dataforseoRequest("POST", SERP_ENDPOINTS.liveEndpoint, [p], Boolean(args.sandbox))));
+    source = { mode: "live", tasks: responses.flatMap((r) => r.tasks || []) };
+  } else {
+    source = await runDataforseoCall(SERP_ENDPOINTS, payload, args);
+  }
+  const normalized = normalizeSerpBatch(source, keywords, location, language, device);
+  return { source, normalized };
+}
+
+export function normalizeKeywords(source: AnyRecord, keywords: string[], location: string, language: string): AnyRecord {
+  if (!Array.isArray(keywords) || keywords.length === 0) throw new Error("normalizeKeywords requires a non-empty keywords array.");
   let tasks = source.tasks || [];
   if (source.task_get_responses) tasks = source.task_get_responses.flatMap((r: AnyRecord) => r.tasks || []);
   let items: AnyRecord[] = [];
   if (tasks.length) {
     for (const result of tasks[0].result || []) {
-      items.push({ keyword: result.keyword || keyword, search_volume: result.search_volume, competition: result.competition, cpc: result.cpc, monthly_searches: result.monthly_searches });
+      items.push({ keyword: result.keyword || "", search_volume: result.search_volume ?? null, competition: result.competition ?? null, cpc: result.cpc ?? null, monthly_searches: result.monthly_searches ?? null });
     }
   } else {
-    items = [{ keyword, search_volume: null, competition: null, cpc: null, monthly_searches: null }];
+    items = keywords.map((keyword) => ({ keyword, search_volume: null, competition: null, cpc: null, monthly_searches: null }));
   }
   return {
-    keyword,
+    keyword: keywords[0],
+    keywords_input: keywords,
     provider: tasks.length ? "dataforseo" : source.mode === "async" ? "dataforseo" : "offline",
     mode: source.mode || "unknown",
     task_ids: source.task_ids || taskIdsFromResponse(source.post_response || {}),
@@ -838,6 +923,67 @@ function normalizeKeywords(source: AnyRecord, keyword: string, location: string,
     keywords: items,
     note: source.mode === "async" ? "Async task created; collect results via pingback/postback or task_get." : source.pending_task_ids ? "Task still pending; rerun task_get later." : tasks.length ? null : "Metrics unavailable without a provider call.",
   };
+}
+
+export function normalizeSuggestions(source: AnyRecord, seed: string, location: string, language: string): AnyRecord {
+  let tasks = source.tasks || [];
+  if (source.task_get_responses) tasks = source.task_get_responses.flatMap((r: AnyRecord) => r.tasks || []);
+  const seen = new Set<string>();
+  const items: AnyRecord[] = [];
+  const pushItem = (raw: AnyRecord): void => {
+    if (!raw || typeof raw !== "object") return;
+    const keyword = String(raw.keyword || "").trim();
+    if (!keyword) return;
+    const key = keyword.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    const ki = raw.keyword_info || {};
+    items.push({
+      keyword,
+      search_volume: ki.search_volume ?? raw.search_volume ?? null,
+      competition: ki.competition ?? raw.competition ?? null,
+      cpc: ki.cpc ?? raw.cpc ?? null,
+      monthly_searches: ki.monthly_searches ?? raw.monthly_searches ?? null,
+      keyword_difficulty: raw.keyword_difficulty ?? null,
+      search_intent_info: raw.search_intent_info ?? null,
+    });
+  };
+  if (tasks.length) {
+    for (const result of tasks[0].result || []) {
+      if (result.seed_keyword_data) pushItem(result.seed_keyword_data);
+      if (Array.isArray(result.items)) for (const item of result.items) pushItem(item);
+      else if (!result.items && !result.seed_keyword_data) pushItem(result);
+    }
+  }
+  return {
+    seed,
+    type: "suggestions",
+    provider: tasks.length ? "dataforseo" : source.mode === "async" ? "dataforseo" : "offline",
+    mode: source.mode || "unknown",
+    task_ids: source.task_ids || taskIdsFromResponse(source.post_response || {}),
+    pending_task_ids: source.pending_task_ids || [],
+    timestamp: nowIso(),
+    location,
+    language,
+    keywords: items,
+    note: source.mode === "async" ? "Async task created; collect results via pingback/postback or task_get." : source.pending_task_ids ? "Task still pending; rerun task_get later." : tasks.length ? null : "Suggestions unavailable without a provider call.",
+  };
+}
+
+export function collectKeywords(args: AnyRecord): string[] {
+  const list: string[] = [];
+  if (args.keyword) list.push(String(args.keyword));
+  if (args.keywords_file) {
+    const file = String(args.keywords_file);
+    if (!fs.existsSync(file)) throw new CliError(`keywords-file not found: ${file}`);
+    for (const raw of fs.readFileSync(file, "utf8").split(/\r?\n/)) {
+      const trimmed = raw.trim();
+      if (trimmed && !trimmed.startsWith("#")) list.push(trimmed);
+    }
+  }
+  if (Array.isArray(args._)) for (const item of args._) if (typeof item === "string" && item.trim()) list.push(item.trim());
+  if (!list.length) throw new CliError('Missing keywords. Provide --keyword "X", --keywords-file <path>, or positional keywords.');
+  return Array.from(new Set(list));
 }
 
 function taskForTarget(source: AnyRecord, target: string, index = 0): AnyRecord {
@@ -1250,7 +1396,11 @@ async function commandDataSetup(args: AnyRecord): Promise<void> {
     credentials_present: Boolean(login && password),
     checked_live: Boolean(args.check),
     setup_handoff_available: true,
-    setup_handoff_command: "bin/seo-brain data-setup --handoff",
+    setup_handoff_action: {
+      type: "browser-handoff",
+      handoff: "collect-env",
+      user_instruction: "Abra a configuração local de credenciais pelo agente e preencha os dados na página segura.",
+    },
   };
   if (args.check) {
     try {
@@ -1294,33 +1444,88 @@ async function commandSerpExtract(args: AnyRecord): Promise<void> {
   printJson(normalized);
 }
 
+const VOLUME_ENDPOINTS: DataforseoEndpoints = {
+  liveEndpoint: "/v3/keywords_data/google_ads/search_volume/live",
+  taskPostEndpoint: "/v3/keywords_data/google_ads/search_volume/task_post",
+  taskGetEndpoint: "/v3/keywords_data/google_ads/search_volume/task_get/{id}",
+};
+
+const SUGGESTIONS_ENDPOINTS: DataforseoEndpoints = {
+  liveEndpoint: "/v3/dataforseo_labs/google/keyword_suggestions/live",
+  taskPostEndpoint: null,
+  taskGetEndpoint: null,
+};
+
+const KEYWORD_IDEAS_ENDPOINTS: DataforseoEndpoints = {
+  liveEndpoint: "/v3/dataforseo_labs/google/keyword_ideas/live",
+  taskPostEndpoint: null,
+  taskGetEndpoint: null,
+};
+
 async function commandKeywordResearch(args: AnyRecord): Promise<void> {
-  const keyword = required(args, "keyword");
   const p = ensureProject();
-  const settings = projectSettings(p);
-  const mode = resolveDataforseoMode(args);
-  if (mode !== "offline" && !dataforseoCredentialsPresent()) {
-    if (shouldAutoOpenDataSetup(args)) {
-      const handoff = runDataSetupHandoff();
-      if (!handoff.ok) throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
-    }
-    if (!dataforseoCredentialsPresent()) throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
-  }
+  if (args.suggestions) return runKeywordSuggestions(args, p);
+  return runKeywordVolume(args, p);
+}
+
+async function runKeywordVolume(args: AnyRecord, projectDir: string): Promise<void> {
+  const settings = projectSettings(projectDir);
+  const keywords = collectKeywords(args);
+  const isBulk = keywords.length > 1;
   const location = args.location || settings.dataforseo_location;
   const language = args.language || settings.dataforseo_language;
-  const payload = [{ keywords: [keyword], location_name: location, language_code: language }];
-  let source: AnyRecord;
-  if (mode === "live") source = { ...(await dataforseoRequest("POST", "/v3/keywords_data/google_ads/search_volume/live", payload, Boolean(args.sandbox))), mode: "live" };
-  else if (mode === "standard") source = await dataforseoStandardTask("/v3/keywords_data/google_ads/search_volume/task_post", "/v3/keywords_data/google_ads/search_volume/task_get/{id}", payload, Boolean(args.sandbox), Number(args.poll_interval || 10), Number(args.timeout || 180));
-  else if (mode === "async") source = await dataforseoAsyncTask("/v3/keywords_data/google_ads/search_volume/task_post", payload, Boolean(args.sandbox), args.pingback_url, args.postback_url, args.postback_data || "advanced");
-  else source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode standard or --mode live to fetch DataForSEO keyword metrics." };
-  const normalized = normalizeKeywords(source, keyword, location, language);
-  const base = path.join(p, "sources", "keyword-research", `${stamp()}-${slugify(keyword)}`);
+  const payload = [{ keywords, location_name: location, language_code: language }];
+  const source = await runDataforseoCall(VOLUME_ENDPOINTS, payload, args);
+  const normalized = normalizeKeywords(source, keywords, location, language);
+  const slug = isBulk ? `bulk-${keywords.length}` : slugify(keywords[0]);
+  const ts = stamp();
+  const base = path.join(projectDir, "sources", "keyword-research", `${ts}-${slug}`);
   writeJson(`${base}.raw.json`, source);
   writeYaml(`${base}.normalized.yaml`, normalized);
-  writeYaml(path.join(p, "workbench", "keyword-research", `${stamp()}-${slugify(keyword)}.yaml`), normalized);
-  appendLog("keyword-research", keyword, [path.relative(p, `${base}.normalized.yaml`)], "Pesquisa de keyword registrada.", "not-required");
+  writeYaml(path.join(projectDir, "workbench", "keyword-research", `${ts}-${slug}.yaml`), normalized);
+  const logTitle = isBulk ? `bulk (${keywords.length} keywords)` : keywords[0];
+  appendLog("keyword-research", logTitle, [path.relative(projectDir, `${base}.normalized.yaml`)], "Pesquisa de keyword registrada.", "not-required");
   printJson(normalized);
+}
+
+async function runKeywordSuggestions(args: AnyRecord, projectDir: string): Promise<void> {
+  const seed = required(args, "keyword");
+  const limit = Math.max(1, Math.min(1000, Number(args.limit || 100)));
+  const settings = projectSettings(projectDir);
+  const location = args.location || settings.dataforseo_location;
+  const language = args.language || settings.dataforseo_language;
+  const payload = [{ keyword: seed, location_name: location, language_code: language, limit, include_seed_keyword: true }];
+  const source = await runDataforseoCall(SUGGESTIONS_ENDPOINTS, payload, args);
+  const normalized = normalizeSuggestions(source, seed, location, language);
+  const slug = slugify(seed);
+  const ts = stamp();
+  const base = path.join(projectDir, "sources", "keyword-research", `${ts}-${slug}.suggestions`);
+  writeJson(`${base}.raw.json`, source);
+  writeJson(`${base}.normalized.json`, normalized);
+  writeJson(path.join(projectDir, "workbench", "keyword-research", `${ts}-${slug}.suggestions.json`), normalized);
+  appendLog("keyword-suggestions", seed, [path.relative(projectDir, `${base}.normalized.json`)], `Sugestões de keyword registradas (${normalized.keywords.length} itens).`, "not-required");
+  printJson(normalized);
+}
+
+async function commandKwVolume(args: AnyRecord): Promise<void> {
+  const p = ensureProject();
+  const settings = projectSettings(p);
+  const keywords = collectKeywords(args);
+  const location = args.location || settings.dataforseo_location;
+  const language = args.language || settings.dataforseo_language;
+  const payload = [{ keywords, location_name: location, language_code: language }];
+  const source = await runDataforseoCall(VOLUME_ENDPOINTS, payload, args);
+  const normalized = normalizeKeywords(source, keywords, location, language);
+  const lean = {
+    provider: normalized.provider,
+    mode: normalized.mode,
+    timestamp: normalized.timestamp,
+    location: normalized.location,
+    language: normalized.language,
+    items: (normalized.keywords || []).map((k: AnyRecord) => ({ keyword: k.keyword, volume: k.search_volume ?? null, cpc: k.cpc ?? null, competition: k.competition ?? null })),
+    note: normalized.note,
+  };
+  printJson(lean);
 }
 
 async function commandBacklinkAnalysis(args: AnyRecord): Promise<void> {
@@ -1347,7 +1552,7 @@ async function commandBacklinkAnalysis(args: AnyRecord): Promise<void> {
         const handoff = runDataSetupHandoff();
         if (!handoff.ok) throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
       }
-      if (!dataforseoCredentialsPresent()) throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+      if (!dataforseoCredentialsPresent()) throw new CliError("DataForSEO credentials missing. Use the local credential setup handoff before running live backlink analysis.");
     }
     const summary = await dataforseoRequest("POST", "/v3/backlinks/summary/live", summaryPayload, Boolean(args.sandbox));
     const referringDomains = await dataforseoRequest("POST", "/v3/backlinks/referring_domains/live", [{ ...detailPayload, order_by: ["backlinks,desc"] }], Boolean(args.sandbox));
@@ -1465,25 +1670,302 @@ async function commandSeoAnalysis(args: AnyRecord): Promise<void> {
   printJson(report);
 }
 
+function loadExistingCluster(projectDir: string, seedSlug: string): AnyRecord | null {
+  const file = path.join(projectDir, "workbench", "topic-cluster", `${seedSlug}.json`);
+  if (!fs.existsSync(file)) return null;
+  try { return readJson(file); } catch { return null; }
+}
+
+export function buildClusterPage(role: "pillar" | "support", item: { keyword: string; volume: number | null }, serp: AnyRecord | undefined): AnyRecord {
+  return {
+    role,
+    title: null,
+    slug: slugify(item.keyword),
+    entity: null,
+    keyword_principal: { keyword: item.keyword, volume: item.volume },
+    keywords_secondary: [],
+    funnel_stage: null,
+    serp_intent: null,
+    judgment: null,
+    serp_evidence: serp ? { provider: serp.provider, organic_top: (serp.organic_results || []).slice(0, 5), serp_features: serp.serp_features || [] } : null,
+  };
+}
+
+function pageSlug(page: AnyRecord): string {
+  if (page.slug) return String(page.slug);
+  if (page.keyword_principal?.keyword) return slugify(String(page.keyword_principal.keyword));
+  if (page.title) return slugify(String(page.title));
+  return "";
+}
+
+export function mergeClusterPage(existing: AnyRecord | undefined, fresh: AnyRecord): AnyRecord {
+  if (!existing) return fresh;
+  const existingSecondary = Array.isArray(existing.keywords_secondary) && existing.keywords_secondary.length ? existing.keywords_secondary : null;
+  return {
+    ...fresh,
+    title: existing.title ?? fresh.title,
+    entity: existing.entity ?? fresh.entity,
+    keywords_secondary: existingSecondary ?? fresh.keywords_secondary,
+    funnel_stage: existing.funnel_stage ?? fresh.funnel_stage,
+    serp_intent: existing.serp_intent ?? existing.intent ?? fresh.serp_intent,
+    judgment: existing.judgment ?? fresh.judgment,
+  };
+}
+
+export function mergeClusterPages(existingPages: AnyRecord[], freshPages: AnyRecord[]): AnyRecord[] {
+  const bySlug = new Map<string, AnyRecord>();
+  for (const ep of existingPages) {
+    const slug = pageSlug(ep);
+    if (slug) bySlug.set(slug, ep);
+  }
+  const merged: AnyRecord[] = [];
+  const seen = new Set<string>();
+  for (const fresh of freshPages) {
+    const slug = pageSlug(fresh);
+    merged.push(mergeClusterPage(bySlug.get(slug), fresh));
+    seen.add(slug);
+  }
+  for (const ep of existingPages) {
+    const slug = pageSlug(ep);
+    if (!slug || seen.has(slug)) continue;
+    merged.push({
+      role: ep.role === "pillar" ? "pillar" : "support",
+      title: ep.title ?? null,
+      slug,
+      entity: ep.entity ?? null,
+      keyword_principal: ep.keyword_principal ?? { keyword: ep.title || slug, volume: null },
+      keywords_secondary: Array.isArray(ep.keywords_secondary) ? ep.keywords_secondary : [],
+      funnel_stage: ep.funnel_stage ?? null,
+      serp_intent: ep.serp_intent ?? ep.intent ?? null,
+      judgment: ep.judgment ?? null,
+      serp_evidence: ep.serp_evidence ?? null,
+    });
+  }
+  return merged;
+}
+
 async function commandTopicCluster(args: AnyRecord): Promise<void> {
   const seed = required(args, "seed");
   const p = ensureProject();
   const seedSlug = slugify(seed);
-  const analysisFile = seoAnalysisFile(p, seedSlug);
-  if (!analysisFile && !args.hypothesis_only) throw new CliError(`Missing seo-analysis for this seed. Run: bin/seo-brain seo-analysis --keyword "${seed}" or rerun with --hypothesis-only to produce a hypothesis-grade cluster.`);
-  const analysisData = analysisFile ? readDataFile(analysisFile) : null;
-  const intent = analysisData?.intent || "to-be-validated";
-  const clusterStatus = args.hypothesis_only && !analysisData ? "hypothesis" : "draft";
-  const supportingPages = [`O que é ${seed}`, `Como avaliar ${seed}`, `${seed}: exemplos brasileiros`].map((title) => ({ title, intent, judgment: clusterStatus }));
-  const cluster = { seed, seed_slug: seedSlug, status: clusterStatus, generated_at: nowIso(), pillar_page: `/${seedSlug}/`, supporting_pages: supportingPages, business_hypothesis: "Precisa de validação humana: conectar demanda orgânica a oferta, conversão e margem.", data_provenance: { seo_analysis: analysisData && analysisFile ? { path: path.relative(p, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason } : { path: null, provider: null, provider_reason: "hypothesis-only run" } } };
-  writeYaml(path.join(p, "workbench", "topic-cluster", `${seedSlug}.yaml`), cluster);
-  fs.appendFileSync(path.join(p, "wiki", "conteudos", "topic-clusters.md"), `\n\n## ${seed}\n\n- Página pilar: \`${cluster.pillar_page}\`\n- Status: ${clusterStatus}\n- Intenção dominante: ${intent}\n- Hipótese de negócio: precisa de validação humana.\n${supportingPages.map((page) => `- ${page.title} (${page.intent})`).join("\n")}\n`, "utf8");
-  appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], `Cluster em status ${clusterStatus}.`, "pending");
+  const clusterFile = path.join(p, "workbench", "topic-cluster", `${seedSlug}.json`);
+  const existingCluster = loadExistingCluster(p, seedSlug);
+
+  if (args.render_only) {
+    if (!existingCluster) throw new CliError(`No cluster JSON found for seed "${seed}". Run topic-cluster first.`);
+    renderTopicClustersWiki(p);
+    appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], "Wiki rerenderizada a partir dos JSONs.", "not-required");
+    printJson({ ok: true, rendered: true, file: clusterFile });
+    return;
+  }
+
+  const settings = projectSettings(p);
+  const requestedHypothesisOnly = Boolean(args.hypothesis_only);
+  const credsMissing = !dataforseoCredentialsPresent();
+  const hypothesisOnly = requestedHypothesisOnly || credsMissing;
+  const maxSupports = Math.max(1, Math.min(20, Number(args.max_supports || 7)));
+  const language = args.language || settings.language || "pt-BR";
+  const location = args.location || settings.dataforseo_location || "Brazil";
+  const langCode = settings.dataforseo_language || String(language).split("-")[0] || "pt";
+
+  let suggestions: AnyRecord = { keywords: [], provider: null };
+  let ideas: AnyRecord = { keywords: [], provider: null };
+  let serpProvider: string | null = null;
+  const serpByKeyword = new Map<string, AnyRecord>();
+
+  if (!hypothesisOnly) {
+    const limit = Math.max(maxSupports * 4, 50);
+    const tsSugg = stamp();
+    const baseSugg = path.join(p, "sources", "keyword-research", `${tsSugg}-${seedSlug}.suggestions`);
+    const suggestionsSource = await runDataforseoCall(SUGGESTIONS_ENDPOINTS, [{ keyword: seed, location_name: location, language_code: langCode, limit, include_seed_keyword: true }], args);
+    suggestions = normalizeSuggestions(suggestionsSource, seed, location, language);
+    writeJson(`${baseSugg}.raw.json`, suggestionsSource);
+    writeJson(`${baseSugg}.normalized.json`, suggestions);
+    writeJson(path.join(p, "workbench", "keyword-research", `${tsSugg}-${seedSlug}.suggestions.json`), suggestions);
+
+    const minPoolTarget = Math.max(maxSupports * 2, 20);
+    if ((suggestions.keywords || []).length < minPoolTarget) {
+      const tsIdeas = stamp();
+      const baseIdeas = path.join(p, "sources", "keyword-research", `${tsIdeas}-${seedSlug}.ideas`);
+      const ideasSource = await runDataforseoCall(KEYWORD_IDEAS_ENDPOINTS, [{ keywords: [seed], location_name: location, language_code: langCode, limit, closely_variants: true }], args);
+      ideas = normalizeSuggestions(ideasSource, seed, location, language);
+      writeJson(`${baseIdeas}.raw.json`, ideasSource);
+      writeJson(`${baseIdeas}.normalized.json`, ideas);
+      writeJson(path.join(p, "workbench", "keyword-research", `${tsIdeas}-${seedSlug}.ideas.json`), ideas);
+    }
+  }
+
+  const seen = new Set<string>();
+  const pool: AnyRecord[] = [];
+  for (const item of [...(suggestions.keywords || []), ...(ideas.keywords || [])]) {
+    const keyword = String(item.keyword || "").trim();
+    if (!keyword) continue;
+    const key = keyword.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    pool.push({ keyword, volume: item.search_volume ?? null, cpc: item.cpc ?? null, competition: item.competition ?? null });
+  }
+  const seedLower = seed.trim().toLowerCase();
+  const seedInPool = pool.find((k: AnyRecord) => k.keyword.toLowerCase() === seedLower);
+  const pillarKeyword = seedInPool || { keyword: seed, volume: null, cpc: null, competition: null };
+  const supportPool = pool.filter((k: AnyRecord) => k.keyword.toLowerCase() !== pillarKeyword.keyword.toLowerCase());
+  supportPool.sort((a: AnyRecord, b: AnyRecord) => (b.volume ?? 0) - (a.volume ?? 0));
+  const topSupports = supportPool.slice(0, maxSupports);
+
+  if (!hypothesisOnly) {
+    const allKeywords = [pillarKeyword.keyword, ...topSupports.map((s: AnyRecord) => s.keyword)];
+    if (allKeywords.length) {
+      const { source, normalized } = await serpForKeywords(allKeywords, args);
+      const baseSerp = path.join(p, "sources", "serp", `${stamp()}-cluster-${seedSlug}`);
+      writeJson(`${baseSerp}.raw.json`, source);
+      writeJson(`${baseSerp}.normalized.json`, normalized);
+      for (const entry of normalized) serpByKeyword.set(entry.keyword, entry);
+      serpProvider = "dataforseo";
+    }
+  }
+
+  const freshPillar = buildClusterPage("pillar", { keyword: pillarKeyword.keyword, volume: pillarKeyword.volume ?? null }, serpByKeyword.get(pillarKeyword.keyword));
+  const freshSupports = topSupports.map((item: AnyRecord) => buildClusterPage("support", { keyword: item.keyword, volume: item.volume ?? null }, serpByKeyword.get(item.keyword)));
+  const existingSupports = Array.isArray(existingCluster?.supporting_pages) ? existingCluster!.supporting_pages : [];
+  const mergedPillar = mergeClusterPage(existingCluster?.pillar, freshPillar);
+  const mergedSupports = mergeClusterPages(existingSupports, freshSupports);
+
+  const status = hypothesisOnly ? "hypothesis" : (suggestions.keywords?.length ? "draft" : "hypothesis");
+  const cluster = {
+    seed,
+    seed_slug: seedSlug,
+    status,
+    language,
+    location,
+    generated_at: nowIso(),
+    business_goal: existingCluster?.business_goal ?? { primary: null, secondary: [], notes: null },
+    data_provenance: {
+      suggestions: suggestions.keywords?.length ? { provider: suggestions.provider, count: suggestions.keywords.length, endpoint: "dataforseo_labs/keyword_suggestions" } : null,
+      ideas: ideas.keywords?.length ? { provider: ideas.provider, count: ideas.keywords.length, endpoint: "dataforseo_labs/keyword_ideas" } : null,
+      pool_size: pool.length,
+      serp: serpByKeyword.size ? { provider: serpProvider, keyword_count: serpByKeyword.size } : null,
+      hypothesis_only: hypothesisOnly || null,
+      hypothesis_reason: hypothesisOnly ? (requestedHypothesisOnly ? "requested" : "dataforseo-credentials-missing") : null,
+    },
+    pillar: mergedPillar,
+    supporting_pages: mergedSupports,
+    keyword_pool: pool,
+    completeness_gaps: existingCluster?.completeness_gaps ?? [],
+    open_questions: existingCluster?.open_questions ?? [],
+    approval: existingCluster?.approval ?? { approved_by: null, approved_at: null, status: "draft" },
+  };
+
+  writeJson(clusterFile, cluster);
+  renderTopicClustersWiki(p);
+  appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}).`, "pending");
   printJson(cluster);
 }
 
+export function renderTopicClustersWiki(projectDir: string): void {
+  const dir = path.join(projectDir, "workbench", "topic-cluster");
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".json")).sort() : [];
+  const clusters: AnyRecord[] = [];
+  for (const f of files) {
+    try { clusters.push(readJson(path.join(dir, f))); } catch { /* skip malformed JSON */ }
+  }
+  writeText(path.join(projectDir, "wiki", "conteudos", "topic-clusters.md"), renderTopicClustersMarkdown(clusters));
+}
+
+export function renderTopicClustersMarkdown(clusters: AnyRecord[]): string {
+  const lines: string[] = [];
+  lines.push("---");
+  lines.push('title: "Topic clusters"');
+  lines.push("status: draft");
+  lines.push("pillar: estrategia");
+  lines.push("owner: shared");
+  lines.push(`last_reviewed: "${today()}"`);
+  lines.push("approved_by: null");
+  lines.push("approved_at: null");
+  lines.push("sources: []");
+  lines.push("judgment_level: strategic");
+  lines.push("auto_generated: true");
+  lines.push("---");
+  lines.push("");
+  lines.push("# Topic clusters");
+  lines.push("");
+  lines.push("Auto-gerado a partir de `workbench/topic-cluster/*.json`. Os campos de julgamento (title, entity, keywords_secondary, funnel_stage, serp_intent, judgment) são editados nos JSONs; rode `bin/seo-brain topic-cluster --seed <seed> --render-only` para regenerar esta página.");
+  lines.push("");
+  if (!clusters.length) {
+    lines.push("Nenhum cluster registrado.");
+    lines.push("");
+    return lines.join("\n");
+  }
+  lines.push("## Visão geral");
+  lines.push("");
+  lines.push("| Cluster | Pillar | Status | Suportes | Idioma |");
+  lines.push("| --- | --- | --- | --- | --- |");
+  for (const c of clusters) {
+    const pillarKw = c.pillar?.keyword_principal?.keyword || c.pillar?.title || c.seed || "—";
+    const supports = Array.isArray(c.supporting_pages) ? c.supporting_pages.length : 0;
+    lines.push(`| ${escapeCell(String(c.seed || "—"))} | ${escapeCell(String(pillarKw))} | ${c.status || "—"} | ${supports} | ${c.language || "—"} |`);
+  }
+  lines.push("");
+  for (const c of clusters) {
+    lines.push(...renderClusterSection(c));
+    lines.push("");
+  }
+  return lines.join("\n") + "\n";
+}
+
+function renderClusterSection(c: AnyRecord): string[] {
+  const lines: string[] = [];
+  lines.push(`## Cluster: ${c.seed || "(sem seed)"}`);
+  lines.push("");
+  const dp = c.data_provenance || {};
+  const provBits: string[] = [];
+  if (dp.suggestions) provBits.push(`suggestions: ${dp.suggestions.provider || "—"} (${dp.suggestions.count || 0} itens)`);
+  if (dp.serp) provBits.push(`SERP: ${dp.serp.provider || "—"} (${dp.serp.keyword_count || 0} keywords)`);
+  if (dp.hypothesis_only) provBits.push("modo: hypothesis-only");
+  lines.push(`- Status: ${c.status || "—"}`);
+  lines.push(`- Idioma/Localidade: ${c.language || "—"} / ${c.location || "—"}`);
+  lines.push(`- Gerado em: ${c.generated_at || "—"}`);
+  if (provBits.length) lines.push(`- Provenance: ${provBits.join(" · ")}`);
+  if (c.business_goal?.primary) lines.push(`- Objetivo de negócio: ${c.business_goal.primary}`);
+  lines.push("");
+  lines.push("| Papel | Entidade | KW principal | Volume | KW Secundárias | Funil | Intenção de Busca |");
+  lines.push("| --- | --- | --- | --- | --- | --- | --- |");
+  if (c.pillar) lines.push(renderPageRow({ ...c.pillar, role: "pillar" }));
+  for (const s of c.supporting_pages || []) lines.push(renderPageRow({ ...s, role: s.role === "pillar" ? "pillar" : "support" }));
+  if (Array.isArray(c.completeness_gaps) && c.completeness_gaps.length) {
+    lines.push("");
+    lines.push("### Lacunas de completude");
+    lines.push("");
+    for (const g of c.completeness_gaps) lines.push(`- ${g}`);
+  }
+  if (Array.isArray(c.open_questions) && c.open_questions.length) {
+    lines.push("");
+    lines.push("### Questões abertas");
+    lines.push("");
+    for (const q of c.open_questions) lines.push(`- ${q}`);
+  }
+  return lines;
+}
+
+function renderPageRow(page: AnyRecord): string {
+  const role = page.role === "pillar" ? "Pillar" : "Suporte";
+  const entity = page.entity ?? "—";
+  const kp = page.keyword_principal || {};
+  const kpKw = kp.keyword ?? "—";
+  const kpVol = kp.volume == null ? "—" : String(kp.volume);
+  const secondary = Array.isArray(page.keywords_secondary) && page.keywords_secondary.length
+    ? page.keywords_secondary.map((s: AnyRecord) => `${s.keyword || "?"} (${s.volume == null ? "—" : s.volume})`).join(", ")
+    : "—";
+  const funnel = page.funnel_stage ?? "—";
+  const intent = page.serp_intent ?? "—";
+  return `| ${role} | ${escapeCell(String(entity))} | ${escapeCell(String(kpKw))} | ${kpVol} | ${escapeCell(secondary)} | ${escapeCell(String(funnel))} | ${escapeCell(String(intent))} |`;
+}
+
+function escapeCell(value: string): string {
+  return value.replace(/\|/g, "\\|").replace(/\n/g, " ");
+}
+
 async function commandEeat(_args: AnyRecord): Promise<void> {
-  const message = "The eeat command is now driven by the /seo-brain:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. Run: node scripts/eeat.mjs init --mode wiki   (or --mode url --url https://...). See skills/eeat/SKILL.md for the contract.";
+  const message = "The eeat command is now driven by the /seo-brain:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. See skills/eeat/SKILL.md for the contract.";
   printJson({ ok: false, error: message });
   throw new CliError(message);
 }
@@ -2415,6 +2897,7 @@ const COMMANDS: Record<string, (args: AnyRecord) => Promise<void>> = {
   "data-setup": commandDataSetup,
   "serp-extract": commandSerpExtract,
   "keyword-research": commandKeywordResearch,
+  "kw-volume": commandKwVolume,
   "backlink-analysis": commandBacklinkAnalysis,
   "seo-analysis": commandSeoAnalysis,
   "topic-cluster": commandTopicCluster,

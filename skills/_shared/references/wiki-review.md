@@ -42,6 +42,7 @@ Regras duras — qualquer violação dispara `proposed-changes`:
 4. Sem `Próximos passos`, `Hipóteses a validar`, `Decisões pendentes` em página com `judgment_level: strategic`. O Wiki guarda estado aprovado ou medido, nunca hipótese (regra do `AGENTS.md`). Ação concreta vai para a página operacional certa; ideia vaga é cortada.
 5. Toda alegação factual deve ser rastreável em algum arquivo listado em `sources:` da própria página. Suavizar ou cortar quando a fonte não cobre.
 6. Anti-slop em português brasileiro (do `AGENTS.md`): sem title case americano, sem metáforas literais do inglês, sem cadeia longa de parágrafos de uma linha, sem excesso de bullets, sem filler de IA.
+7. Páginas estratégicas devem descrever estado, posicionamento e narrativa em prosa afirmativa, não em voz de briefing, instrução futura ou plano de execução. Exemplo ruim: "Diego Ivo deve ser posicionado como referência...". Exemplo bom: "Diego Ivo é uma referência...". Exemplo ruim: "O site deve apresentar Diego como...". Exemplo bom: "A narrativa pública apresenta Diego como...".
 
 Sinais leves — flag, nunca auto-edita:
 
@@ -55,7 +56,7 @@ Se o reviewer retornar `proposed-changes`, a skill chamadora:
 1. NÃO persiste as mudanças em silêncio.
 2. Pergunta ao usuário qual mecanismo de revisão usar:
    - in-chat: resumo em prosa + bloco de diff por arquivo;
-   - browser handoff: peça permissão para abrir uma janela local no navegador e, com aceite, abra o companion de revisão. A página local contém editor por arquivo (textarea pré-carregado com o v2 do reviewer, frontmatter editável), tabs de diff (vs v1, vs proposta), tabs de notas do reviewer (seções removidas, alegações suavizadas, AI-tells), botões de restaurar v1 / restaurar proposta. O usuário não aprova ou rejeita: ele submete o conteúdo final por arquivo. O ato de submeter é a aprovação. Não mostre comandos `node scripts/companion.mjs ...` como UX principal.
+   - browser handoff: peça permissão para abrir uma janela local no navegador e, com aceite, a skill chamadora executa o companion local. A página contém editor por arquivo (textarea pré-carregado com o v2 do reviewer, frontmatter editável), tabs de diff (vs v1, vs proposta), tabs de notas do reviewer (seções removidas, alegações suavizadas, AI-tells), botões de restaurar v1 / restaurar proposta. O usuário não aprova ou rejeita: ele submete o conteúdo final por arquivo. O ato de submeter é a aprovação. Não mostre comandos `node scripts/companion.mjs ...` como UX principal.
    Sugestão padrão: in-chat para ≤ 2 arquivos; handoff acima disso. A escolha é sempre confirmada com o usuário.
 
    Formato do `proposal.json` consumido pelo handoff:

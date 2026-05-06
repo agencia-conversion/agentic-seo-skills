@@ -33,6 +33,14 @@ const PLAYER_SCORE_MODEL = {
 
 const TERM_STOPWORDS = new Set(["a", "ao", "aos", "as", "ate", "até", "com", "como", "da", "das", "de", "do", "dos", "e", "em", "esse", "esta", "este", "mais", "mas", "na", "nas", "no", "nos", "o", "os", "ou", "para", "por", "que", "se", "sem", "sua", "suas", "seu", "seus", "um", "uma", "sobre", "guia", "melhor", "melhores"]);
 
+function round1(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function weightedPoints(score: number, weight: number): number {
+  return round1((score * weight) / 100);
+}
+
 function normalizeText(value: string): string {
   return value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
 }
@@ -94,7 +102,7 @@ function scoreQueryRelevance(keyword: string, player: AnyRecord): AnyRecord {
   const blob = `${player.serp?.title || ""} ${player.serp?.snippet || ""} ${player.url} ${h1}`;
   const normalized = ` ${textTokens(blob).join(" ")} `;
   const matched = tokens.filter((token) => normalized.includes(` ${token} `));
-  return { score: tokens.length ? Math.round((matched.length / tokens.length) * 150) / 10 : 0, evidence: { keyword_tokens: tokens, matched_tokens: matched, missing_tokens: tokens.filter((token) => !matched.includes(token)), h1 } };
+  return { score: tokens.length ? round1((matched.length / tokens.length) * 100) : 0, evidence: { keyword_tokens: tokens, matched_tokens: matched, missing_tokens: tokens.filter((token) => !matched.includes(token)), h1 } };
 }
 
 function scoreTermCoverage(serpTerms: AnyRecord[], player: AnyRecord): AnyRecord {
@@ -103,47 +111,52 @@ function scoreTermCoverage(serpTerms: AnyRecord[], player: AnyRecord): AnyRecord
   const h2s = (player.page?.headings || []).filter((h: AnyRecord) => h.level === "h2").map((h: AnyRecord) => h.text).join(" ");
   const blob = ` ${textTokens(`${player.serp?.title || ""} ${player.serp?.snippet || ""} ${h1} ${h2s}`).join(" ")} `;
   const matched = terms.filter((term) => blob.includes(` ${term} `));
-  return { score: terms.length ? Math.round((matched.length / terms.length) * 150) / 10 : 0, evidence: { evaluated_terms: terms, matched_terms: matched, missing_terms: terms.filter((term) => !matched.includes(term)) } };
+  return { score: terms.length ? round1((matched.length / terms.length) * 100) : 0, evidence: { evaluated_terms: terms, matched_terms: matched, missing_terms: terms.filter((term) => !matched.includes(term)) } };
 }
 
-function scoreJudgment(player: AnyRecord, keyword: string, targetStatus: string): AnyRecord {
+function scoreJudgment(player: AnyRecord, queryRelevance: AnyRecord, targetStatus: string): AnyRecord {
   const h1 = (player.page?.headings || []).find((h: AnyRecord) => h.level === "h1")?.text || "";
   const h2Count = (player.page?.headings || []).filter((h: AnyRecord) => h.level === "h2").length;
   const wordCount = Number(player.page?.word_count || 0);
   const hasCriticalIssue = Boolean(player.technical_seo?.findings?.some((f: AnyRecord) => f.severity === "critical" || f.severity === "error"));
-  const intentFit = Math.max(0, Math.min(10, Math.round((scoreQueryRelevance(keyword, player).score / 15) * 10)));
-  const contentQuality = Math.max(0, Math.min(10, Math.round((Math.min(wordCount, 1200) / 1200) * 6 + Math.min(h2Count, 4))));
-  const opportunity = Math.max(0, Math.min(10, 10 - Math.round(Number(player.position || 11) / 2) + (hasCriticalIssue ? 2 : 0) + (targetStatus !== "exact_url_ranking" && player.is_target ? 2 : 0)));
+  const intentFit = Math.max(0, Math.min(100, round1(queryRelevance.score)));
+  const contentQuality = Math.max(0, Math.min(100, round1(((Math.min(wordCount, 1200) / 1200) * 6 + Math.min(h2Count, 4)) * 10)));
+  const opportunity = Math.max(0, Math.min(100, round1((10 - Math.round(Number(player.position || 11) / 2) + (hasCriticalIssue ? 2 : 0) + (targetStatus !== "exact_url_ranking" && player.is_target ? 2 : 0)) * 10)));
+  const intentFitPoints = weightedPoints(intentFit, 10);
+  const contentQualityPoints = weightedPoints(contentQuality, 10);
+  const opportunityPoints = weightedPoints(opportunity, 10);
+  const totalPoints = round1(intentFitPoints + contentQualityPoints + opportunityPoints);
   return {
-    score: intentFit + contentQuality + opportunity,
+    score: round1((totalPoints / 30) * 100),
+    weighted_points: totalPoints,
     components: {
-      intent_fit: { score: intentFit, rationale: "Estimado por alinhamento entre keyword, snippet, URL e H1.", evidence_refs: ["serp.title", "serp.snippet", "url", h1 ? "page.headings.h1" : "page.headings"] },
-      content_quality_and_proof: { score: contentQuality, rationale: "Estimado por profundidade crawlable e estrutura de H2 observada; não considera provas não verificadas.", evidence_refs: ["page.word_count", "page.h2_count"] },
-      competitive_threat_or_opportunity: { score: opportunity, rationale: "Estimado por posição, lacunas técnicas e status do URL alvo na SERP.", evidence_refs: ["serp.position", "technical_seo.findings", "target_status"] },
+      intent_fit: { score: intentFit, weighted_points: intentFitPoints, rationale: "Estimado por alinhamento entre keyword, snippet, URL e H1.", evidence_refs: ["serp.title", "serp.snippet", "url", h1 ? "page.headings.h1" : "page.headings"] },
+      content_quality_and_proof: { score: contentQuality, weighted_points: contentQualityPoints, rationale: "Estimado por profundidade crawlable e estrutura de H2 observada; não considera provas não verificadas.", evidence_refs: ["page.word_count", "page.h2_count"] },
+      competitive_threat_or_opportunity: { score: opportunity, weighted_points: opportunityPoints, rationale: "Estimado por posição, lacunas técnicas e status do URL alvo na SERP.", evidence_refs: ["serp.position", "technical_seo.findings", "target_status"] },
     },
   };
 }
 
 function confidenceForPlayer(provider: string, topResults: AnyRecord[], player: AnyRecord): AnyRecord {
-  let score = 1;
+  let score = 100;
   const reasons: string[] = [];
   if (provider === "websearch") {
-    score -= 0.15;
+    score -= 15;
     reasons.push("Provider websearch tem menor metadata que DataForSEO.");
   }
   if (topResults.length < 5) {
-    score -= 0.2;
+    score -= 20;
     reasons.push(`SERP incompleta: ${topResults.length} resultados; ideal >=5.`);
   }
   if (!player.fetch_ok) {
-    score -= 0.3;
+    score -= 30;
     reasons.push("Página não foi buscada; auditoria técnica e estrutura podem estar incompletas.");
   }
   if (!player.technical_seo) {
-    score -= 0.2;
+    score -= 20;
     reasons.push("Auditoria technical-seo ausente.");
   }
-  return { score: Math.max(0, Math.round(score * 100) / 100), reasons };
+  return { score: Math.max(0, round1(score)), reasons };
 }
 
 async function loadPlayerPage(url: string, fixtures: AnyRecord, deps: PlayerScoreDeps): Promise<{ html: string; status: number | null; source: string; headers: Record<string, string>; ok: boolean; error?: string }> {
@@ -213,15 +226,21 @@ export async function buildPlayerScoreReport(args: AnyRecord, base: AnyRecord, d
 
   const serpTerms = extractSerpTerms(base.top_results, players);
   for (const player of players) {
-    const serpVisibility = player.position ? Math.round(Math.max(0, ((playersLimit - player.position + 1) / playersLimit) * 250) / 10) : 0;
+    const serpVisibility = player.position ? round1(Math.max(0, ((playersLimit - player.position + 1) / playersLimit) * 100)) : 0;
     const queryRelevance = scoreQueryRelevance(keyword, player);
     const termCoverage = scoreTermCoverage(serpTerms, player);
-    const technicalSeoScore = player.technical_seo ? Math.round(player.technical_seo.score * 1.5) / 10 : 0;
-    const deterministicTotal = Math.round((serpVisibility + queryRelevance.score + termCoverage.score + technicalSeoScore) * 10) / 10;
-    const judgment = scoreJudgment(player, keyword, targetStatus);
+    const technicalSeoScore = player.technical_seo ? round1(player.technical_seo.score) : 0;
+    const deterministicPoints = round1(
+      weightedPoints(serpVisibility, 25)
+      + weightedPoints(queryRelevance.score, 15)
+      + weightedPoints(termCoverage.score, 15)
+      + weightedPoints(technicalSeoScore, 15)
+    );
+    const judgment = scoreJudgment(player, queryRelevance, targetStatus);
+    const overallPoints = round1(deterministicPoints + judgment.weighted_points);
     player.score = {
-      overall: Math.min(100, Math.round((deterministicTotal + judgment.score) * 10) / 10),
-      deterministic: { total: deterministicTotal, components: { serp_visibility: { score: serpVisibility, evidence: { position: player.position, players_limit: playersLimit } }, query_relevance: queryRelevance, term_structure_coverage: termCoverage, technical_seo: { score: technicalSeoScore, evidence: player.technical_seo ? { source_score: player.technical_seo.score, report_path: player.technical_seo.report_path } : { source_score: null, report_path: null } } } },
+      overall: Math.min(100, overallPoints),
+      deterministic: { score: round1((deterministicPoints / 70) * 100), weighted_points: deterministicPoints, components: { serp_visibility: { score: serpVisibility, weighted_points: weightedPoints(serpVisibility, 25), evidence: { position: player.position, players_limit: playersLimit } }, query_relevance: { ...queryRelevance, weighted_points: weightedPoints(queryRelevance.score, 15) }, term_structure_coverage: { ...termCoverage, weighted_points: weightedPoints(termCoverage.score, 15) }, technical_seo: { score: technicalSeoScore, weighted_points: weightedPoints(technicalSeoScore, 15), evidence: player.technical_seo ? { source_score: player.technical_seo.score, report_path: player.technical_seo.report_path } : { source_score: null, report_path: null } } } },
       judgment,
     };
     player.confidence = confidenceForPlayer(base.provider, base.top_results, player);

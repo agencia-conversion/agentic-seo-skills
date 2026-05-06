@@ -19,11 +19,19 @@ File-size limits per artifact type. Treat the target as the goal and the max as 
 
 ### Known debt
 
-- `src/seo-brain.ts` (1116 lines) violates the 500-line max. Tracked for split-by-subcommand refactor.
+- `src/seo-brain.ts` (~1500 lines) violates the 500-line max. Tracked for split-by-subcommand refactor.
 
 ## Claude Code Plugin Loading
 
 Running plain `claude` inside this repository does not enable the plugin. It loads this folder as a normal project only.
+
+When the plugin is loaded, the `SessionStart` hook injects SEO Brain runtime context. The canonical user-facing context skill is:
+
+```text
+/seo-brain:seo-brain
+```
+
+`AGENTS.md` and `CLAUDE.md` remain development guidance. Use `/seo-brain:seo-brain` to orient user-facing SEO work before selecting a specific workflow skill.
 
 For development, start Claude Code with:
 
@@ -47,12 +55,22 @@ After loading, invoke plugin skills with the namespace:
 
 ```text
 /seo-brain:project-init
+/seo-brain:seo-brain
 /seo-brain:seo-analysis
 /seo-brain:technical-seo
 /seo-brain:autoresearch
 ```
 
 `/seo-brain:autoresearch` runs a Karpathy-style autonomous research loop on any artifact. Engine: `node scripts/autoresearch.mjs <subcommand>`. Doctrine: `program.md`. Schemas: `skills/_shared/references/autoresearch-protocol.md`.
+
+The optional Claude Code statusline is not shipped through plugin settings because plugin default settings do not own the main `statusLine`. Install it explicitly:
+
+```bash
+node scripts/install-statusline.mjs --dry-run
+node scripts/install-statusline.mjs --apply
+```
+
+The installer preserves any existing statusline by wrapping it and appending `SEO Brain: carregado` when the `SessionStart` marker exists.
 
 After changing skills or agents during an interactive session, run:
 

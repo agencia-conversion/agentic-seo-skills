@@ -8,18 +8,11 @@ approved_by: null
 approved_at: null
 sources: []
 judgment_level: strategic
+auto_generated: true
 ---
 
 # Topic clusters
 
-Clusters conectam estratégia, demanda orgânica e plano editorial. Até aprovação humana, tratam-se de hipóteses.
+Auto-gerado a partir de `workbench/topic-cluster/*.json`. Os campos de julgamento (title, entity, keywords_secondary, funnel_stage, serp_intent, judgment) são editados nos JSONs; rode `bin/seo-brain topic-cluster --seed <seed> --render-only` para regenerar esta página.
 
-## Clusters
-
-| Cluster | Página pilar | Objetivo de negócio | Status |
-| --- | --- | --- | --- |
-|  |  |  | draft |
-
-## Lacunas de completude
-
-- Mapear temas que precisam existir para cobrir a informação com profundidade.
+Nenhum cluster registrado.

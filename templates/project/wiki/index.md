@@ -15,7 +15,7 @@ language: "pt-BR"
 
 # Mapa do projeto
 
-Esta é a página inicial da Wiki do projeto. Ela deve funcionar como mapa para humanos no Obsidian e como contexto de entrada para agentes.
+Esta é a página inicial da Wiki do projeto. Ela funciona como mapa para humanos no Obsidian e como contexto de entrada para agentes.
 
 ## Contexto estratégico
 

@@ -18,3 +18,4 @@ bin/seo-brain wiki-approve --page <wiki-page.md> --by "<user>"
 
 Never convert a strategic draft into approved context unless the user explicitly approved it.
 Keep raw evidence under `sources/` and use `wiki/fontes/index.md` only as the Obsidian-readable catalog.
+Return `proposed-changes` when a strategic page uses briefing voice or future instructions for positioning, such as "deve ser posicionado" or "o site deve apresentar"; rewrite as affirmative state, such as "é" or "a narrativa pública apresenta".

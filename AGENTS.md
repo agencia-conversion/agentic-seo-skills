@@ -31,6 +31,7 @@ This repository root is the plugin root.
 
 - Keep skill bodies in standard `SKILL.md` directories so Claude Code and Codex can discover them.
 - Keep cross-tool behavior in `AGENTS.md`, not only in Claude-specific files.
+- Keep user-facing runtime behavior in the canonical `seo-brain` skill; `AGENTS.md` and `CLAUDE.md` are development guidance.
 - Do not rely on terminal output as the primary UX for nontechnical users.
 - Prefer local web UI artifacts for previews, approvals, and reports.
 - Do not commit secrets, raw user project data, generated runs, or provider responses from real clients.
@@ -43,7 +44,7 @@ The default is to follow the full documented process. Do not skip analysis, appr
 - Existing drafts, previous briefings, homepage-only context, or agent confidence do not waive preconditions.
 - When a bypass is explicit, record it in the artifact and log before presenting the result. State clearly that the artifact is not data-backed for the skipped dimension.
 - Approval of an artifact is not approval of an undisclosed bypass. Approval requests must show missing analysis, missing sources, and skipped checks before the user decides.
-- If a required process cannot run, stop at the gate and provide the approval handoff or next action instead of silently substituting a weaker process.
+- If a required process cannot run, stop at the gate, run the local browser handoff as the agent when possible, and present only a friendly user instruction. Do not hand bash commands to the user as the UX for approvals or gates.
 
 ## Language Fidelity
 
@@ -122,4 +123,4 @@ File-size limits per artifact type. Treat the target as the goal and the max as 
 
 ### Known debt
 
-- `src/seo-brain.ts` (1116 lines) violates the 500-line max. Tracked for split-by-subcommand refactor.
+- `src/seo-brain.ts` (~1500 lines) violates the 500-line max. Tracked for split-by-subcommand refactor.

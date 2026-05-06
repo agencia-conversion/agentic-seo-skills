@@ -1,34 +1,31 @@
-# Consenso entre 3 raters
+# Consenso E-E-A-T v2
 
-3 sub-agents independentes produzem cada um um `rater-N.json`. O engine combina as 3 saídas em um relatório único. Estratégia escolhida: **mediana do score + união das findings**.
+Três raters independentes avaliam o mesmo alvo. O engine valida JSON, normaliza evidência e gera um relatório único.
 
-## Passos do engine
+## Combinação
 
-1. **Validação por rater**. Cada `rater-N.json` é validado contra o schema. Itens `present`/`partial` sem `evidence_quote` são rebaixados para `unclear` antes de qualquer cálculo. Se um rater entregar JSON inválido o engine falha a run inteira (não há substituição automática).
-2. **Score por rater**. O engine calcula, para cada rater isoladamente:
-   - rating por pilar (a partir do ratio dos itens, conforme rubrica);
-   - pontos por pilar (rating → pontos);
-   - aplicação dos gates (Trust gate, Reputation cap em modo URL, YMYL elevation);
-   - score final do rater (0–100).
-3. **Mediana**. O score consensuado é a **mediana** dos 3 scores. O page_quality consensuado é o **modo** dos 3 page_quality; em caso de tripla divergência, escolhe o rating correspondente ao score mediano.
-4. **Por pilar**. Para cada pilar, a rating consensuada é o modo dos 3 ratings; em tripla divergência usa-se o rating do rater cujo score do pilar é o mediano.
-5. **Itens do checklist**. Para cada item, registra-se a distribuição de estados entre os 3 raters (`agreement`: 3, 2 ou 1). Estado consensuado é o modo; empate triplo cai para `unclear`.
-6. **YMYL**. Se 2 ou mais raters marcaram `ymyl: true`, o consenso é `true`.
-7. **Reputation research (modo URL)**. União das fontes de todos os raters, deduplicada por `source_url`.
-8. **Risk flags**. União das três listas, deduplicada.
-9. **Remediation**. União das três listas, deduplicada por par `(priority, what)` normalizado (lowercased trim). Ordenar por prioridade `high → medium → low` e por contagem de raters que sugeriram.
-10. **Findings**. Cada finding consensuado declara `agreement_count: 1|2|3`. Findings com `agreement_count = 1` são preservadas mas marcadas `low_confidence: true`.
+1. `present` ou `partial` sem `evidence_quote` vira `unclear`.
+2. `not_applicable` fica fora do denominador do critério.
+3. Score por pilar usa os cinco critérios aplicáveis do pilar.
+4. Score final usa pesos: Trust 35%, Expertise 25%, Experience 20%, Authoritativeness 20%.
+5. O consenso usa a mediana dos três scores por pilar e do score final.
+6. `ymyl` vira verdadeiro quando pelo menos dois raters marcam verdadeiro.
+7. `reputation_research` é unido e deduplicado por URL.
+8. `issues[]` é deduplicado por severidade, tipo, critério, page_type e recomendação.
+9. `remediation[]` continua agrupado por ids de checklist e similaridade textual.
+10. Divergência alta gera `risk_flag: high_rater_divergence`.
 
-## Divergência sinalizada, não escondida
+## Relatório
 
-O `report.json` inclui um bloco `divergence` que registra, por dimensão e por item:
+O Markdown deve mostrar:
 
-- ratings/estados de cada rater individual;
-- desvio máximo (diferença em pontos entre o maior e o menor score por pilar);
-- itens com `agreement = 1` (apenas um rater viu).
+- `page_type`;
+- critérios usados, estado, aplicabilidade e evidência;
+- score de cada critério em escala 0–100;
+- critérios `not_applicable`;
+- score por pilar e score final;
+- issues priorizadas;
+- ações recomendadas;
+- limitações e pesquisa de reputação.
 
-Divergência alta (`max_pilar_spread > 25 pontos` ou >30% dos itens com agreement=1) gera `risk_flag: high_rater_divergence` e o `rater_narrative` final pede revisão humana.
-
-## Narrativa final
-
-O engine não escreve narrativa. Ele preserva os 3 `rater_narrative` originais em `report.json["rater_narratives"]` e o `report.md` os apresenta lado a lado. O agente principal pode (opcionalmente, fora do engine) sintetizar uma narrativa unificada — mas isso é uma etapa separada e marcada como `synthesized_by_main_agent: true`.
+O relatório público não expõe opiniões lado a lado por rater; detalhes ficam em `report.json._audit`.

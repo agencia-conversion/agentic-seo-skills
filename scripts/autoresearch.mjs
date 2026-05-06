@@ -49,7 +49,7 @@ const SUBCOMMANDS = {
       problem: args.problem,
       mode: args.mode ?? "general",
       maxIter: args["max-iter"] ? Number(args["max-iter"]) : 8,
-      threshold: args.threshold ? Number(args.threshold) : 8,
+      threshold: args.threshold ? Number(args.threshold) : 80,
       plateauWindow: args.plateau ? Number(args.plateau) : 3,
     });
     ok({ run_id: created.runId, run_dir: created.runDir, phase: created.state.phase });

@@ -62,11 +62,11 @@ function stamp() {
 
 function defaultPagesForWiki(projDir) {
   return [
-    { id: "wiki/eeat", path: "wiki/eeat.md" },
-    { id: "wiki/index", path: "wiki/index.md" },
-    { id: "wiki/estrategia", path: "wiki/estrategia/index.md" },
-    { id: "wiki/tom-de-voz", path: "wiki/tom-de-voz/index.md" },
-    { id: "wiki/fontes", path: "wiki/fontes/index.md" },
+    { id: "wiki/eeat", path: "wiki/eeat.md", page_type: "about" },
+    { id: "wiki/index", path: "wiki/index.md", page_type: "homepage" },
+    { id: "wiki/estrategia", path: "wiki/estrategia/index.md", page_type: "service" },
+    { id: "wiki/tom-de-voz", path: "wiki/tom-de-voz/index.md", page_type: "policy" },
+    { id: "wiki/fontes", path: "wiki/fontes/index.md", page_type: "policy" },
   ].filter((p) => fs.existsSync(path.join(projDir, p.path)));
 }
 
@@ -74,15 +74,15 @@ function defaultPagesForUrl(rootUrl) {
   const u = new URL(rootUrl);
   const base = `${u.protocol}//${u.host}`;
   return [
-    { id: "home", url: base },
-    { id: "about", candidates: [`${base}/sobre/`, `${base}/quem-somos/`, `${base}/about/`, `${base}/about-us/`] },
-    { id: "contact", candidates: [`${base}/contato/`, `${base}/contact/`, `${base}/fale-conosco/`] },
-    { id: "privacy", candidates: [`${base}/politica-de-privacidade/`, `${base}/privacy/`, `${base}/privacy-policy/`] },
-    { id: "terms", candidates: [`${base}/termos/`, `${base}/termos-de-uso/`, `${base}/terms/`] },
-    { id: "blog_index", candidates: [`${base}/blog/`, `${base}/news/`, `${base}/insights/`, `${base}/artigos/`] },
-    { id: "blog_sample_a", candidates: [], note: "rater picks one recent article from the blog index and resolves URL" },
-    { id: "blog_sample_b", candidates: [], note: "rater picks a second article on a different topic for breadth" },
-    { id: "cases_or_authors", candidates: [`${base}/cases/`, `${base}/clientes/`, `${base}/work/`, `${base}/autores/`, `${base}/equipe/`, `${base}/team/`] },
+    { id: "home", url: base, page_type: "homepage" },
+    { id: "about", page_type: "about", candidates: [`${base}/sobre/`, `${base}/quem-somos/`, `${base}/about/`, `${base}/about-us/`] },
+    { id: "contact", page_type: "contact", candidates: [`${base}/contato/`, `${base}/contact/`, `${base}/fale-conosco/`] },
+    { id: "privacy", page_type: "policy", candidates: [`${base}/politica-de-privacidade/`, `${base}/privacy/`, `${base}/privacy-policy/`] },
+    { id: "terms", page_type: "policy", candidates: [`${base}/termos/`, `${base}/termos-de-uso/`, `${base}/terms/`] },
+    { id: "blog_index", page_type: "article", candidates: [`${base}/blog/`, `${base}/news/`, `${base}/insights/`, `${base}/artigos/`] },
+    { id: "blog_sample_a", page_type: "article", candidates: [], note: "rater picks one recent article from the blog index and resolves URL" },
+    { id: "blog_sample_b", page_type: "article", candidates: [], note: "rater picks a second article on a different topic for breadth" },
+    { id: "cases_or_authors", page_type: "case_study", candidates: [`${base}/cases/`, `${base}/clientes/`, `${base}/work/`, `${base}/autores/`, `${base}/equipe/`, `${base}/team/`] },
   ];
 }
 

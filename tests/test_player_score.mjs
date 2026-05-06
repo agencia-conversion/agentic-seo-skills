@@ -82,15 +82,31 @@ function runDomain(targetDomain) {
   return JSON.parse(stdout);
 }
 
+function assertNamedScores0To100(value, path = "report") {
+  if (!value || typeof value !== "object") return;
+  for (const [key, child] of Object.entries(value)) {
+    const childPath = `${path}.${key}`;
+    if (key === "score" && typeof child === "number") {
+      assert.ok(child >= 0 && child <= 100, `${childPath} must be 0-100`);
+    }
+    assertNamedScores0To100(child, childPath);
+  }
+}
+
 function assertScoreBounds(report) {
   assert.equal(report.score_model.version, "player-score-v1");
   assert.ok(report.serp_terms.length > 0);
+  assertNamedScores0To100(report);
   for (const player of report.player_scores) {
-    assert.ok(player.score.deterministic.total <= 70);
-    assert.ok(player.score.judgment.score <= 30);
+    assert.ok(player.score.deterministic.score <= 100);
+    assert.ok(player.score.deterministic.weighted_points <= 70);
+    assert.ok(player.score.judgment.score <= 100);
+    assert.ok(player.score.judgment.weighted_points <= 30);
     assert.ok(player.score.overall <= 100);
+    assert.ok(player.confidence.score <= 100);
     const sourceScore = player.technical_seo?.score ?? 0;
-    assert.equal(player.score.deterministic.components.technical_seo.score, Math.round(sourceScore * 0.15 * 10) / 10);
+    assert.equal(player.score.deterministic.components.technical_seo.score, sourceScore);
+    assert.equal(player.score.deterministic.components.technical_seo.weighted_points, Math.round(sourceScore * 0.15 * 10) / 10);
   }
 }
 

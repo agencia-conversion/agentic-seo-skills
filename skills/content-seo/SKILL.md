@@ -1,17 +1,19 @@
 ---
 name: content-seo
-description: Create public SEO content through research, Skyscraper briefing, human approval, artifact draft, review, checks, and publication. Use for SEO articles, landing pages, outlines, refreshes, and editorial reviews.
+description: Create, brief, rewrite, review, or optimize public SEO content through research, Skyscraper briefing, human approval, artifact draft, checks, and publication.
 ---
 
 # Content SEO
 
-Use this skill for public SEO content. The reader is external; the body is never internal Wiki documentation.
+Use this skill for public SEO content: briefings, outlines, articles, blog posts, landing-page copy, editorial pages, refreshes, and ranking-oriented content. The reader is external; the body is never internal Wiki documentation.
 
 ## Contract
 
 Inputs: `topic`, optional `keyword`, optional `phase`, and explicit bypass flags only after current-user approval.
 
 Writes are phase-bound: construction in `workbench/content/<slug>/`, delivered drafts/checks in `artifacts/contents/<slug>/`, and published content in `wiki/conteudos/` only with `status: published`.
+
+Any public article, post, blogpost, editorial page, or ranking-oriented content must enter through this skill. Do not write public article bodies directly in another workflow.
 
 ## Required Behavior
 

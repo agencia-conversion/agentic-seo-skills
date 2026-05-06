@@ -1,70 +1,64 @@
-# Rubrica E-E-A-T
+# Rubrica E-E-A-T v2
 
-Ratings inspirados no Search Quality Rater Guidelines (QRG) do Google. O julgamento está nas notas; a aritmética é fixa.
+O score mede a adequação da página ao seu propósito. Critérios irrelevantes para o `page_type` não penalizam.
 
-## Estados de item
+## Estados
 
-| Estado | Valor | Notas |
-|---|---|---|
-| present | 1.0 | item plenamente atendido com evidência citada |
-| partial | 0.5 | item parcialmente atendido, ainda há lacunas |
-| absent | 0.0 | item ausente, com declaração explícita de ausência |
-| unclear | 0.0 | rater não conseguiu decidir; vira `risk_flag` |
+| Estado | Valor |
+| --- | ---: |
+| present | 100 |
+| partial | 50 |
+| absent | 0 |
+| unclear | 0 |
+| not_applicable | excluído |
 
-## Rating por pilar
+Aplicabilidade pesa o denominador:
 
-Para cada pilar, calcular `ratio = soma(valor × weight) / soma(weights)`.
+| Aplicabilidade | Peso |
+| --- | ---: |
+| required | 1.25 |
+| expected | 1.0 |
+| optional | 0.5 |
+| not_applicable | excluído |
 
-| Faixa de ratio | Rating |
-|---|---|
-| 0.85–1.00 | Highest |
-| 0.65–0.84 | High |
-| 0.40–0.64 | Medium |
-| 0.20–0.39 | Low |
-| 0.00–0.19 | Lowest |
+## Score
 
-## Rating → pontos
+`pillar_score = soma(score_do_critério × peso_aplicabilidade) / soma(peso_aplicabilidade)`.
 
-| Rating | Pontos |
-|---|---|
-| Highest | 100 |
-| High | 75 |
-| Medium | 50 |
-| Low | 25 |
-| Lowest | 0 |
+`score_final = Trust × 0.35 + Expertise × 0.25 + Experience × 0.20 + Authoritativeness × 0.20`.
 
-## Score final
+Trust pesa mais porque, nas diretrizes do Google, Experience, Expertise e Authoritativeness sustentam a confiança.
 
-`score = média simples(pontos das 4 letras)`, depois aplicar gates abaixo.
+## Ratings
 
-## Gates
-
-1. **Trust gate**: se `Trust = Lowest`, `page_quality = Lowest` independentemente das demais. O score numérico não é zerado, mas o `page_quality` final é forçado para Lowest e isso deve aparecer no `rater_narrative`.
-2. **Reputation cap (modo URL)**: se `reputation_research` está vazio ou só contém auto-publicações, Authoritativeness é capada em Medium (máx. 50 pontos). Item `au1` não pode ser `present` sem fonte externa.
-3. **YMYL elevation**: se `ymyl = true`, qualquer pilar abaixo de Medium subtrai 15 pontos do score final (uma vez, mesmo que múltiplos pilares estejam abaixo). E o `risk_flags` recebe `ymyl_below_floor`.
-4. **Quote-required**: itens `present` ou `partial` sem `evidence_quote` literal são rebaixados para `unclear` pelo engine na validação. Sem citação não há rating.
-
-## page_quality global
-
-Mapeamento do score (após gates) para o rating QRG agregado:
-
-| Score | page_quality |
-|---|---|
+| Score | Rating |
+| --- | --- |
 | 85–100 | Highest |
 | 65–84 | High |
 | 40–64 | Medium |
 | 20–39 | Low |
 | 0–19 | Lowest |
 
-Trust gate sobrescreve esta tabela quando aplicável.
+## Gates
 
-## Risk flags padronizados
+- `trust_gate_triggered`: Trust abaixo de 20 força `page_quality = Lowest`.
+- `reputation_only_self_published`: no modo URL, Authoritativeness fica limitado a 50 quando não há reputação externa.
+- `ymyl_below_floor`: em YMYL, qualquer pilar abaixo de 40 subtrai 15 pontos.
 
-- `anonymous_authorship` — conteúdo sem autor identificável
-- `no_about_page` — sem `/sobre` ou equivalente acessível
-- `outdated_content` — datas de revisão antigas para tópico que muda rápido
-- `unverifiable_credentials` — credenciais alegadas sem fonte
-- `reputation_only_self_published` — modo URL sem fontes externas reais
-- `ymyl_below_floor` — pilar abaixo de Medium em YMYL
-- `fabrication_risk` — rater detectou afirmação forte sem fonte; sinaliza para revisão humana
-- `trust_gate_triggered` — Trust = Lowest acionou o gate
+## Issues estruturadas
+
+Não use flags genéricas como `anonymous_authorship`, `unverifiable_credentials` ou `fabrication_risk`.
+
+Use `issues[]` com: `severity`, `page_type`, `criterion_id`, `issue_type`, `applicability_reason`, `evidence`, `recommendation`.
+
+Tipos aceitos:
+
+- `missing_expected_author`
+- `unsupported_material_claim`
+- `verification_needed`
+- `insufficient_reputation_evidence`
+- `missing_business_contact`
+- `missing_required_policy`
+- `outdated_or_undated_editorial_content`
+- `missing_responsible_entity`
+- `deceptive_or_unsafe_experience`
