@@ -24,6 +24,7 @@ for (const required of [
   "aprovação humana",
   "project/sources/",
   "project/workbench/",
+  "project/workbench/specs/",
   "browser handoff",
   "página",
   "conteúdo",
@@ -35,6 +36,7 @@ for (const required of [
   "até",
   "Never fabricate",
   "content-seo",
+  "spec-driven",
   "topic-cluster",
   "seo-analysis",
   "keyword-research",
@@ -48,6 +50,15 @@ for (const required of [
   "não somos afiliados",
   "Next.js",
   "SSG",
+  "two or more deliverables",
+  "approval-gated workflows",
+  "Compound requests",
+  "simple design",
+  "Stop at the content gate",
+  "not create a final stub",
+  "run `content-seo` brief",
+  "request an explicit bypass",
+  "declare the dependent deliverable blocked",
 ]) {
   assert.ok(skill.includes(required), `missing runtime rule: ${required}`);
 }
