@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SEO Brain · Selecionar topic cluster</title>
+<!--CONTEXT-->
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f5f7; --card: #ffffff; --border: #e3e3e8;
+    --text: #1c1c1e; --muted: #6e6e73; --accent: #0a84ff;
+    --ok: #2f9e44; --danger: #ff3b30;
+    --warn-bg: rgba(255,159,10,0.08); --warn-border: rgba(255,159,10,0.30); --warn-text: #b25a00;
+    --pillar-bg: rgba(10,132,255,0.06); --pillar-border: rgba(10,132,255,0.30);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000; --card: #1c1c1e; --border: #2c2c2e; --text: #f5f5f7; --muted: #98989d; --warn-text: #ffb84d; }
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 24px 16px; line-height: 1.5; }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; color: var(--muted); }
+  h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: -0.01em; }
+  h1 code { background: var(--bg); padding: 2px 8px; border-radius: 6px; font-size: 16px; }
+
+  .banner-hyp { padding: 12px 16px; background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 10px; color: var(--warn-text); margin: 12px 0 18px; font-size: 13px; }
+  .banner-hyp strong { display: block; margin-bottom: 2px; }
+
+  .pillar-card { background: var(--pillar-bg); border: 1px solid var(--pillar-border); border-radius: 12px; padding: 18px 20px; margin: 18px 0; }
+  .pillar-card .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 8px; }
+  .pillar-card .field { margin-bottom: 10px; }
+  .pillar-card .field-label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .pillar-card input.title-input { width: 100%; padding: 8px 10px; border: 1px solid var(--pillar-border); border-radius: 6px; background: var(--card); color: var(--text); font-size: 16px; font-weight: 600; font-family: inherit; }
+  .pillar-card textarea.judgment-input { width: 100%; padding: 8px 10px; border: 1px solid var(--pillar-border); border-radius: 6px; background: var(--card); color: var(--text); font-size: 13px; font-family: inherit; min-height: 48px; resize: vertical; line-height: 1.4; }
+  .pillar-card input.title-input:focus, .pillar-card textarea.judgment-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .pillar-card .meta { display: flex; gap: 14px; font-size: 12px; color: var(--muted); flex-wrap: wrap; margin-top: 6px; }
+  .pillar-card .meta strong { color: var(--text); }
+  .pillar-card .slug-row { font-family: ui-monospace, SFMono-Regular, monospace; color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr.dropped { opacity: 0.45; }
+  td input[type=text], td textarea { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; }
+  td textarea { min-height: 52px; resize: vertical; line-height: 1.45; }
+  td input[type=number] { width: 56px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; text-align: center; }
+  td input[type=text]:focus, td textarea:focus, td input[type=number]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .slug { font-family: ui-monospace, SFMono-Regular, monospace; color: var(--muted); font-size: 11px; margin-top: 4px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+  .num { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+  form.bottom { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; padding: 20px 0 0; border-top: 1px solid var(--border); }
+  form.bottom h2 { margin: 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  form.bottom label.field-label { font-size: 13px; }
+  form.bottom textarea, form.bottom input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; resize: vertical; }
+  form.bottom textarea { min-height: 60px; }
+  .summary { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+  .summary strong { color: var(--text); }
+  .summary .alert { color: var(--danger); }
+  .actions { display: flex; gap: 10px; justify-content: flex-end; }
+  button { padding: 11px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .primary { background: var(--accent); color: #fff; }
+  .primary:disabled { opacity: 0.5; cursor: wait; }
+  .primary.warn { background: var(--warn-text); }
+  .ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .alert-box, .ok-box { padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+  .alert-box { background: rgba(255,59,48,0.10); color: var(--danger); }
+  .ok-box { background: rgba(47,158,68,0.12); color: var(--ok); }
+  .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <span>SEO Brain · Web Companion · seleção de cluster</span>
+    <span id="approver-display"></span>
+  </div>
+  <h1>Cluster <code id="seed">seed</code></h1>
+
+  <div id="banner-hyp" class="banner-hyp" style="display:none;">
+    <strong>Modo hipótese — sem dados de SERP</strong>
+    Os números abaixo são suposições, não medições. O cluster vai gravar apenas em <code>workbench/topic-cluster/</code>; a wiki só recebe quando houver <code>seo-analysis</code> real.
+  </div>
+
+  <div class="pillar-card" id="pillar-card">
+    <div class="label">Pillar — sempre incluso (slug e intent são read-only)</div>
+    <div class="field">
+      <label class="field-label" for="pillar-title-input">Título (editável)</label>
+      <input type="text" id="pillar-title-input" class="title-input" />
+      <div class="slug-row" id="pillar-slug">—</div>
+    </div>
+    <div class="field">
+      <label class="field-label" for="pillar-judgment-input">Judgment (editável)</label>
+      <textarea id="pillar-judgment-input" class="judgment-input"></textarea>
+    </div>
+    <div class="meta">
+      <span>intent: <strong id="pillar-intent">—</strong></span>
+      <span id="pillar-vol-row">volume: <strong id="pillar-vol">—</strong></span>
+      <span id="pillar-diff-row">difficulty: <strong id="pillar-diff">—</strong></span>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 60px;">manter</th>
+          <th style="width: 80px;">ordem</th>
+          <th style="width: 28%;">title (editável)</th>
+          <th style="width: 110px;">intent</th>
+          <th>judgment (editável)</th>
+          <th style="width: 70px;" class="num">volume</th>
+          <th style="width: 70px;" class="num">diff.</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <form class="bottom" id="form" autocomplete="off">
+    <div>
+      <h2>Decisão</h2>
+      <div class="summary" id="summary"></div>
+    </div>
+    <div>
+      <label class="field-label" for="approver">Aprovando como</label>
+      <input id="approver" name="approver" type="text" required placeholder="Seu nome" />
+    </div>
+    <div>
+      <label class="field-label" for="notes">Observação (opcional)</label>
+      <textarea id="notes" name="notes" placeholder="Justificativa de cortes, prioridades, próximos passos..."></textarea>
+    </div>
+    <div id="error" class="alert-box" style="display:none;"></div>
+    <div id="success" class="ok-box" style="display:none;">Decisão registrada. Pode fechar esta aba.</div>
+    <div class="actions">
+      <button type="button" class="ghost" id="cancel-btn">Cancelar</button>
+      <button type="submit" class="primary" id="submit-btn">Confirmar</button>
+    </div>
+  </form>
+
+  <div class="footer">Janela local · 127.0.0.1 efêmero · seleção de topic cluster</div>
+</div>
+
+<script>
+(function () {
+  const ctx = window.__CONTEXT__ || {};
+  const path = window.location.pathname;
+  const escape = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+
+  document.getElementById("seed").textContent = ctx.seed || "(seed)";
+  if (ctx.identity?.name) {
+    document.getElementById("approver").value = ctx.identity.name;
+    document.getElementById("approver-display").textContent = "aprovando como " + ctx.identity.name;
+  }
+  if (ctx.mode === "hypothesis-only") {
+    document.getElementById("banner-hyp").style.display = "";
+  }
+
+  const p = ctx.pillar || {};
+  const pillarTitleInput = document.getElementById("pillar-title-input");
+  const pillarJudgmentInput = document.getElementById("pillar-judgment-input");
+  pillarTitleInput.value = p.title || "";
+  pillarJudgmentInput.value = p.judgment || "";
+  document.getElementById("pillar-slug").textContent = p.slug || "";
+  document.getElementById("pillar-intent").textContent = p.intent || "—";
+  document.getElementById("pillar-vol").textContent = (p.volume ?? "—");
+  document.getElementById("pillar-diff").textContent = (p.difficulty ?? "—");
+  if (p.volume == null) document.getElementById("pillar-vol-row").style.display = "none";
+  if (p.difficulty == null) document.getElementById("pillar-diff-row").style.display = "none";
+
+  const rowsEl = document.getElementById("rows");
+  const supporting = ctx.supporting || [];
+  const state = supporting.map((s, i) => ({
+    slug: s.slug,
+    title: s.title,
+    originalTitle: s.title,
+    intent: s.intent,
+    judgment: s.judgment || "",
+    originalJudgment: s.judgment || "",
+    volume: s.volume,
+    difficulty: s.difficulty,
+    kept: true,
+    priority: i + 1,
+  }));
+
+  function renderRows() {
+    const indexed = state.map((row, i) => ({ row, i }));
+    indexed.sort((a, b) => {
+      if (a.row.kept !== b.row.kept) return a.row.kept ? -1 : 1;
+      return a.row.priority - b.row.priority;
+    });
+    rowsEl.innerHTML = indexed.map(({ row, i }) => `
+      <tr class="${row.kept ? "" : "dropped"}" data-i="${i}">
+        <td><input type="checkbox" data-action="kept" ${row.kept ? "checked" : ""} /></td>
+        <td><input type="number" min="1" max="99" data-action="priority" value="${row.priority}" ${row.kept ? "" : "disabled"} /></td>
+        <td>
+          <input type="text" data-action="title" value="${escape(row.title)}" />
+          <div class="slug">${escape(row.slug)}</div>
+        </td>
+        <td><span class="badge">${escape(row.intent)}</span></td>
+        <td><textarea data-action="judgment" rows="2">${escape(row.judgment)}</textarea></td>
+        <td class="num">${row.volume ?? "—"}</td>
+        <td class="num">${row.difficulty ?? "—"}</td>
+      </tr>
+    `).join("");
+  }
+
+  function updateSummary() {
+    const keptCount = state.filter((s) => s.kept).length;
+    const total = state.length;
+    const isHyp = ctx.mode === "hypothesis-only";
+    const summary = document.getElementById("summary");
+    const btn = document.getElementById("submit-btn");
+    btn.classList.remove("warn");
+
+    if (isHyp) {
+      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>relatório JSON</strong> (sem wiki, modo hipótese)</span>`;
+      btn.textContent = "Salvar como hipótese";
+      btn.classList.add("warn");
+    } else if (keptCount >= 3) {
+      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>wiki + relatório JSON</strong></span>`;
+      btn.textContent = "Salvar cluster (rascunho na wiki)";
+    } else {
+      summary.innerHTML = `<span class="alert"><strong>${keptCount}/${total}</strong> mantidas — mínimo 3 para entrar na wiki</span><span>destino atual: <strong>relatório JSON</strong> com status <code>needs-supporting</code></span>`;
+      btn.textContent = "Salvar como needs-supporting (sem wiki)";
+    }
+  }
+
+  rowsEl.addEventListener("input", (e) => {
+    const tr = e.target.closest("tr");
+    if (!tr) return;
+    const i = Number(tr.dataset.i);
+    const action = e.target.dataset.action;
+    const row = state[i];
+    if (action === "kept") {
+      row.kept = e.target.checked;
+      renderRows();
+    } else if (action === "title") {
+      row.title = e.target.value;
+    } else if (action === "judgment") {
+      row.judgment = e.target.value;
+    }
+    updateSummary();
+  });
+
+  rowsEl.addEventListener("change", (e) => {
+    const tr = e.target.closest("tr");
+    if (!tr) return;
+    const i = Number(tr.dataset.i);
+    if (e.target.dataset.action === "priority") {
+      state[i].priority = Number(e.target.value) || state[i].priority;
+      renderRows();
+      updateSummary();
+    }
+  });
+
+  renderRows();
+  updateSummary();
+
+  const form = document.getElementById("form");
+  const errEl = document.getElementById("error");
+  const okEl = document.getElementById("success");
+  const btn = document.getElementById("submit-btn");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errEl.style.display = "none";
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = "Registrando...";
+    const data = {
+      approver: document.getElementById("approver").value,
+      notes: document.getElementById("notes").value,
+      pillar: {
+        display_title: pillarTitleInput.value,
+        judgment: pillarJudgmentInput.value,
+      },
+      supporting: state.map((row) => ({
+        slug: row.slug,
+        kept: row.kept,
+        priority: row.priority,
+        display_title: row.title,
+        judgment: row.judgment,
+      })),
+    };
+    try {
+      const resp = await fetch(path + "/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const json = await resp.json();
+      if (json.ok) {
+        okEl.style.display = "";
+        setTimeout(() => { try { window.close(); } catch (_) {} }, 1500);
+      } else {
+        errEl.textContent = "Erro: " + (json.reason || "desconhecido") + (json.details ? " — " + json.details : "");
+        errEl.style.display = "";
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    } catch (err) {
+      errEl.textContent = "Erro de rede: " + err.message;
+      errEl.style.display = "";
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  });
+
+  document.getElementById("cancel-btn").addEventListener("click", async () => {
+    try { await fetch(path + "/cancel", { method: "POST" }); } catch (_) {}
+    try { window.close(); } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>

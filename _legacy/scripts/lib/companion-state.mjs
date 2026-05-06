@@ -1,0 +1,104 @@
+import { homedir } from "node:os";
+import { mkdirSync, readFileSync, writeFileSync, existsSync, chmodSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { randomBytes, createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
+
+const ROOT = resolve(fileURLToPath(import.meta.url), "..", "..", "..");
+
+export const PATHS = {
+  root: ROOT,
+  companionDir: join(ROOT, ".companion"),
+  handoffsDir: join(ROOT, ".companion", "handoffs"),
+  identityFile: join(ROOT, ".companion", "identity.json"),
+  sessionFile: join(ROOT, ".companion", "session.json"),
+  templatesDir: join(ROOT, "templates", "companion"),
+  homeDir: join(homedir(), ".seo-brain"),
+  homeCredentials: join(homedir(), ".seo-brain", "credentials.json"),
+};
+
+export function ensureDirs() {
+  for (const dir of [PATHS.companionDir, PATHS.handoffsDir, PATHS.homeDir]) {
+    mkdirSync(dir, { recursive: true });
+  }
+}
+
+export function newHandoffId() {
+  return randomBytes(8).toString("hex");
+}
+
+export function newToken() {
+  return randomBytes(32).toString("hex");
+}
+
+export function sha256(content) {
+  return createHash("sha256").update(content).digest("hex");
+}
+
+export function readIdentity() {
+  if (!existsSync(PATHS.identityFile)) return null;
+  try {
+    return JSON.parse(readFileSync(PATHS.identityFile, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+export function writeIdentity(name) {
+  ensureDirs();
+  const data = { name, set_at: new Date().toISOString() };
+  writeFileSync(PATHS.identityFile, JSON.stringify(data, null, 2));
+  return data;
+}
+
+export function writeHandoffResult(id, payload) {
+  ensureDirs();
+  const path = join(PATHS.handoffsDir, `${id}.result.json`);
+  writeFileSync(path, JSON.stringify(payload, null, 2));
+  return path;
+}
+
+export function maskSecret(value, visible = 4) {
+  if (!value) return "";
+  if (value.length <= visible) return "*".repeat(value.length);
+  return "*".repeat(value.length - visible) + value.slice(-visible);
+}
+
+export function homeRelativePath(absolute) {
+  const home = homedir();
+  return absolute.startsWith(home) ? "~" + absolute.slice(home.length) : absolute;
+}
+
+export function readHomeCredentials() {
+  if (!existsSync(PATHS.homeCredentials)) return null;
+  try {
+    return JSON.parse(readFileSync(PATHS.homeCredentials, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+export function readSessionPort() {
+  if (!existsSync(PATHS.sessionFile)) return 0;
+  try {
+    const data = JSON.parse(readFileSync(PATHS.sessionFile, "utf8"));
+    return Number.isInteger(data?.port) && data.port > 0 ? data.port : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function writeSessionPort(port) {
+  ensureDirs();
+  writeFileSync(
+    PATHS.sessionFile,
+    JSON.stringify({ port, updated_at: new Date().toISOString() }, null, 2),
+  );
+}
+
+export function writeHomeCredentials(payload) {
+  ensureDirs();
+  writeFileSync(PATHS.homeCredentials, JSON.stringify(payload, null, 2));
+  chmodSync(PATHS.homeCredentials, 0o600);
+  return PATHS.homeCredentials;
+}
