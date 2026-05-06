@@ -1,6 +1,6 @@
 ---
 name: spec-driven
-description: Clarify and plan compound SEO Brain requests before execution. Use when a user asks for two or more different deliverables, skills, pillars, or approval-gated workflows in one task, such as sources plus Wiki plus content plus website.
+description: MUST USE PROACTIVELY before executing any user message that contains two or more distinct deliverables, tasks, skills, pillars, or approval gates. Required for compound requests such as (analyze sources + build Wiki), (Wiki + website), (research + strategic page + public artifact), (content + site), or any bulleted/multi-paragraph list of separate outcomes. Triggers include "e também", "depois", "além disso", numbered or bullet lists with different verbs (analyze, create, write, build, deploy), or any mix of source-gathering, Wiki, content, technical SEO, and website tasks in one message. Decomposes the request, drafts a simple design for human approval, then writes spec/plan/result-check under project/workbench/specs/<slug>/ before any downstream skill runs. Do not use for a single clear task.
 ---
 
 # Spec Driven
