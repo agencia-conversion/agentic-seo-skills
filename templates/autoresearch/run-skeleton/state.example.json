@@ -3,7 +3,7 @@
   "problem": "Melhorar a headline da página inicial para X",
   "mode": "general",
   "max_iter": 8,
-  "threshold": 8,
+  "threshold": 80,
   "plateau_window": 3,
   "phase": "framing",
   "iter": 0,

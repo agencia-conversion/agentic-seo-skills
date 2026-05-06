@@ -59,7 +59,7 @@ function atomicWriteJson(filePath, value) {
   renameSync(tmp, filePath);
 }
 
-export function createRun({ cwd, problem, mode = "general", maxIter = 8, threshold = 8, plateauWindow = 3 }) {
+export function createRun({ cwd, problem, mode = "general", maxIter = 8, threshold = 80, plateauWindow = 3 }) {
   const now = new Date();
   const runId = generateRunId(problem, now);
   const runDir = resolveRunDir(cwd, runId);

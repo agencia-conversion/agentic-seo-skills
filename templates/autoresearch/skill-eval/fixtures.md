@@ -30,14 +30,14 @@ expectations/         # optional; one per fixture
       "type": "judge",
       "source": "the candidate SKILL.md preserves the original Contract section unchanged or with strict supersets",
       "weight": 2,
-      "scoring": "0_to_1"
+      "scoring": "0_to_100"
     },
     {
       "id": "fixture-pass-rate",
       "type": "judge",
       "source": "fraction of fixtures where the candidate skill produces output matching the expectation",
       "weight": 3,
-      "scoring": "0_to_1"
+      "scoring": "0_to_100"
     },
     {
       "id": "size-budget",
@@ -48,7 +48,7 @@ expectations/         # optional; one per fixture
     }
   ],
   "aggregation": "weighted_mean",
-  "scale": "0_to_10"
+  "scale": "0_to_100"
 }
 ```
 

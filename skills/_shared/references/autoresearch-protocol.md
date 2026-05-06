@@ -46,7 +46,7 @@ Files inside the run directory:
   "problem": "<original problem text>",
   "mode": "general",
   "max_iter": 8,
-  "threshold": 8,
+  "threshold": 80,
   "plateau_window": 3,
   "phase": "framing|baselined|looping|finalized",
   "iter": 0,
@@ -77,26 +77,25 @@ Files inside the run directory:
       "type": "judge",
       "source": "alinhamento com tom-de-voz aprovado da marca",
       "weight": 2,
-      "scoring": "0_to_1"
+      "scoring": "0_to_100"
     }
   ],
   "aggregation": "weighted_mean",
-  "scale": "0_to_10"
+  "scale": "0_to_100"
 }
 ```
 
 Rules:
 
 - `type`: `executable` (deterministic, agent runs and captures number) or `judge` (LLM-as-judge against rubric prose).
-- `scoring`: `binary` (0|1) or `0_to_1` (continuous). All scores normalize to 0-1 internally; `scale` only applies to the aggregated final score.
+- `scoring`: `binary` (0|100) or `0_to_100` (continuous). All metric scores and aggregated scores are 0-100.
 - `weight`: positive integer.
 - `aggregation`: `weighted_mean` (v1 only).
 
 Aggregation formula:
 
 ```
-agg_normalized = Σ(score_i * weight_i) / Σ(weight_i)
-agg_final = round(agg_normalized * 10, 2)   // when scale = "0_to_10"
+agg_final = round(Σ(score_i * weight_i) / Σ(weight_i), 2)
 ```
 
 ## journal.jsonl events
@@ -104,11 +103,11 @@ agg_final = round(agg_normalized * 10, 2)   // when scale = "0_to_10"
 One JSON object per line. Events:
 
 ```jsonl
-{"ts":"<ISO>","event":"baseline","artifact_path":"baseline.md","scores":{"title-length":1,"brand-voice":0.5},"agg":6.67}
+{"ts":"<ISO>","event":"baseline","artifact_path":"baseline.md","scores":{"title-length":100,"brand-voice":50},"agg":66.67}
 {"ts":"<ISO>","event":"metrics_committed","metrics_count":2}
-{"ts":"<ISO>","event":"iteration","iter":1,"variation_path":"iter-1.md","rationale":"varia o gancho da headline para incluir benefício explícito","scores":{"title-length":1,"brand-voice":0.8},"agg":8.67,"keep":true}
-{"ts":"<ISO>","event":"decision","iter":1,"decision":"continue","best_score":8.67,"reason":"abaixo do threshold, sem plateau"}
-{"ts":"<ISO>","event":"finalize","best":{"iter":3,"score":9.0,"path":"iter-3.md"},"reason":"stop:threshold"}
+{"ts":"<ISO>","event":"iteration","iter":1,"variation_path":"iter-1.md","rationale":"varia o gancho da headline para incluir benefício explícito","scores":{"title-length":100,"brand-voice":80},"agg":86.67,"keep":true}
+{"ts":"<ISO>","event":"decision","iter":1,"decision":"continue","best_score":86.67,"reason":"abaixo do threshold, sem plateau"}
+{"ts":"<ISO>","event":"finalize","best":{"iter":3,"score":90.0,"path":"iter-3.md"},"reason":"stop:threshold"}
 ```
 
 ## Stop rules

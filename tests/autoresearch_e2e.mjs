@@ -18,7 +18,7 @@ function run(...args) {
 }
 
 // 1) init
-const init = run("init", "--problem", "Improve hero headline", "--max-iter", "4", "--threshold", "9", "--plateau", "2");
+const init = run("init", "--problem", "Improve hero headline", "--max-iter", "4", "--threshold", "90", "--plateau", "2");
 assert.match(init.run_id, /^\d{8}-\d{6}-improve-hero-headline$/);
 assert.equal(init.phase, "framing");
 const runId = init.run_id;
@@ -28,10 +28,10 @@ const candidatesPath = join(sandbox, "candidates.json");
 writeFileSync(candidatesPath, JSON.stringify({
   metrics: [
     { id: "len", type: "executable", source: "title.length <= 60", weight: 1, scoring: "binary" },
-    { id: "voice", type: "judge", source: "alinhamento com tom de voz", weight: 2, scoring: "0_to_1" },
+    { id: "voice", type: "judge", source: "alinhamento com tom de voz", weight: 2, scoring: "0_to_100" },
   ],
   aggregation: "weighted_mean",
-  scale: "0_to_10",
+  scale: "0_to_100",
 }));
 const framed = run("frame-metrics", "--run", runId, "--candidates", candidatesPath);
 assert.equal(framed.status, "framed");
@@ -43,30 +43,30 @@ assert.equal(committed.count, 2);
 // 4) set-baseline
 const baselinePath = join(sandbox, "baseline.md");
 writeFileSync(baselinePath, "# baseline headline (long, off-voice)\n");
-const baseline = run("set-baseline", "--run", runId, "--artifact", baselinePath, "--scores", JSON.stringify({ len: 0, voice: 0.3 }));
+const baseline = run("set-baseline", "--run", runId, "--artifact", baselinePath, "--scores", JSON.stringify({ len: 0, voice: 30 }));
 assert.equal(baseline.status, "baseline_set");
-assert.equal(baseline.agg, 2.0);
+assert.equal(baseline.agg, 20);
 
-// 5) record 3 iterations with rising scores; threshold=9 should stop us at iter 3
+// 5) record 3 iterations with rising scores; threshold=90 should stop us at iter 3
 const iter1 = join(sandbox, "iter-1.md");
 writeFileSync(iter1, "# headline v1\n");
-const r1 = run("record", "--run", runId, "--variation", iter1, "--rationale", "shortens to fit length budget", "--scores", JSON.stringify({ len: 1, voice: 0.5 }));
+const r1 = run("record", "--run", runId, "--variation", iter1, "--rationale", "shortens to fit length budget", "--scores", JSON.stringify({ len: 100, voice: 50 }));
 assert.equal(r1.decision, "continue");
 assert.equal(r1.iter, 1);
 
 const iter2 = join(sandbox, "iter-2.md");
 writeFileSync(iter2, "# headline v2 with brand voice\n");
-const r2 = run("record", "--run", runId, "--variation", iter2, "--rationale", "iter 1 was on length but flat; this adds brand voice cue", "--scores", JSON.stringify({ len: 1, voice: 0.8 }));
+const r2 = run("record", "--run", runId, "--variation", iter2, "--rationale", "iter 1 was on length but flat; this adds brand voice cue", "--scores", JSON.stringify({ len: 100, voice: 80 }));
 assert.equal(r2.decision, "continue");
 assert.equal(r2.iter, 2);
 assert.equal(r2.best.iter, 2);
 
 const iter3 = join(sandbox, "iter-3.md");
 writeFileSync(iter3, "# headline v3 sharper\n");
-const r3 = run("record", "--run", runId, "--variation", iter3, "--rationale", "iter 2 hit voice but lacks specificity; this adds the proof", "--scores", JSON.stringify({ len: 1, voice: 1 }));
-assert.equal(r3.decision, "stop:threshold", "should stop on threshold (10 >= 9)");
+const r3 = run("record", "--run", runId, "--variation", iter3, "--rationale", "iter 2 hit voice but lacks specificity; this adds the proof", "--scores", JSON.stringify({ len: 100, voice: 100 }));
+assert.equal(r3.decision, "stop:threshold", "should stop on threshold (100 >= 90)");
 assert.equal(r3.best.iter, 3);
-assert.equal(r3.best.score, 10);
+assert.equal(r3.best.score, 100);
 
 // 6) finalize
 const fin = run("finalize", "--run", runId);
@@ -76,7 +76,7 @@ assert.equal(fin.reason, "stop:threshold");
 
 const summaryText = readFileSync(fin.summary, "utf8");
 assert.match(summaryText, /Iterations: 3/);
-assert.match(summaryText, /Best score: 10/);
+assert.match(summaryText, /Best score: 100/);
 assert.match(summaryText, /Stop reason: stop:threshold/);
 
 // 7) journal coherence
@@ -95,7 +95,7 @@ assert.equal(resumed.state.phase, "finalized");
 assert.equal(resumed.state.iter, 3);
 
 // 9) anti-duplicate: re-recording iter-3 byte-identical should fail
-const dupRes = spawnSync("node", [cli, "record", "--run", runId, "--variation", iter3, "--rationale", "dup", "--scores", JSON.stringify({ len: 1, voice: 1 })], { cwd: sandbox, encoding: "utf8" });
+const dupRes = spawnSync("node", [cli, "record", "--run", runId, "--variation", iter3, "--rationale", "dup", "--scores", JSON.stringify({ len: 100, voice: 100 })], { cwd: sandbox, encoding: "utf8" });
 assert.notEqual(dupRes.status, 0);
 assert.match(dupRes.stderr, /byte-identical/);
 

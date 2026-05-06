@@ -548,7 +548,7 @@ function headingHierarchyOk(headings: AnyRecord[]): boolean {
 }
 
 function check(pass: boolean, id: string, name: string, severity: Severity, weight: number, evidence: unknown, repair: string): AnyRecord {
-  return { id, name, severity, weight, passed: pass, score_awarded: pass ? weight : 0, evidence, repair };
+  return { id, name, severity, weight, passed: pass, score: pass ? 100 : 0, points_awarded: pass ? weight : 0, evidence, repair };
 }
 
 function auditTechnicalSeo(extracted: AnyRecord, options: { pageType: PageType; source: string; status: number | null; headers?: Record<string, string> }): AnyRecord {
@@ -602,7 +602,7 @@ function auditTechnicalSeo(extracted: AnyRecord, options: { pageType: PageType; 
   }
 
   const totalWeight = checks.reduce((sum, item) => sum + item.weight, 0);
-  const awarded = checks.reduce((sum, item) => sum + item.score_awarded, 0);
+  const awarded = checks.reduce((sum, item) => sum + item.points_awarded, 0);
   const score = totalWeight ? Math.round((awarded / totalWeight) * 100) : 0;
   const findings = checks
     .filter((item) => !item.passed)

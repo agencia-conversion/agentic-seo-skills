@@ -45,7 +45,7 @@ const created = createRun({
   problem: "Improve hero headline",
   mode: "general",
   maxIter: 8,
-  threshold: 8,
+  threshold: 80,
   plateauWindow: 3,
 });
 assert.ok(existsSync(created.runDir), "runDir created");
@@ -57,13 +57,13 @@ assert.deepEqual(created.state.history, []);
 assert.equal(created.state.project_root, join(projectRoot, "project"));
 
 // --- saveState / loadState round-trip ---
-const mutated = { ...created.state, iter: 2, phase: "looping", history: [{ iter: 1, score: 6.5 }, { iter: 2, score: 7.2 }] };
+const mutated = { ...created.state, iter: 2, phase: "looping", history: [{ iter: 1, score: 65 }, { iter: 2, score: 72 }] };
 saveState(created.runDir, mutated);
 const loaded = loadState(created.runDir);
 assert.equal(loaded.iter, 2);
 assert.equal(loaded.phase, "looping");
 assert.equal(loaded.history.length, 2);
-assert.equal(loaded.history[1].score, 7.2);
+assert.equal(loaded.history[1].score, 72);
 assert.notEqual(loaded.updated_at, created.state.updated_at, "updated_at refreshed on save");
 
 // --- atomic write does not leave stray .tmp ---
@@ -74,10 +74,10 @@ assert.ok(!existsSync(stray), "no leftover .tmp file");
 const metrics = {
   metrics: [
     { id: "title-length", type: "executable", source: "title.length <= 60", weight: 1, scoring: "binary" },
-    { id: "brand-voice", type: "judge", source: "alinhamento com tom-de-voz", weight: 2, scoring: "0_to_1" },
+    { id: "brand-voice", type: "judge", source: "alinhamento com tom-de-voz", weight: 2, scoring: "0_to_100" },
   ],
   aggregation: "weighted_mean",
-  scale: "0_to_10",
+  scale: "0_to_100",
 };
 saveMetrics(created.runDir, metrics);
 const loadedMetrics = loadMetrics(created.runDir);
