@@ -106,14 +106,16 @@ Use these rules when changing manifests, skills, shared references, templates, s
 
 ## Size & Language Budgets
 
-File-size limits per artifact type. Treat the target as the goal and the max as a hard ceiling — exceeding the max means refactor before merging.
+Use size as an editorial principle, not as a contract that forces under-explained skills. Keep artifacts focused, but let user-facing skills carry enough context to guide agents without excessive reference chasing.
 
-| Artifact | Path | Target | Max | Overflow strategy |
+| Artifact | Path | Guideline | Structural trigger | Overflow strategy |
 |---|---|---|---|---|
-| Skill body | `skills/*/SKILL.md` | ≤ 60 lines | 100 | Move detail to `references/` or `templates/` (progressive discovery). |
-| Utility script | `scripts/*.mjs` | ≤ 100 lines | 200 | Extract modules into `scripts/lib/`. |
-| Production code | `src/**/*.ts` | ≤ 300 lines | 500 | Split by subcommand or domain into multiple files. |
+| Skill body | `skills/*/SKILL.md` | 60-120 lines for most skills | >250 lines means review structure | Move durable detail to `references/`, `templates/`, or a specific skill. Canonical/router skills may be longer when it improves routing, safety, or reduces scattered context. |
+| Utility script | `scripts/*.mjs` | ≤ 100 lines | 200 lines is a hard ceiling | Extract modules into `scripts/lib/`. |
+| Production code | `src/**/*.ts` | ≤ 300 lines | 500 lines is a hard ceiling | Split by subcommand or domain into multiple files. |
 | Test case | `tests/*.mjs` | ≤ 80 lines | — | Split scenarios into separate files. |
+
+Skill bodies should still use progressive discovery. The point of the 250-line trigger is to prompt review, not to reward long prompts. Prefer a longer skill only when the extra guidance prevents predictable workflow mistakes.
 
 ### TypeScript vs MJS
 
