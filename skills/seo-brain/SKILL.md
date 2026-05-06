@@ -67,6 +67,7 @@ Writes only through the specific downstream skill being used:
 ## Tecnologia
 
 - Prefer `next-website-creator` for SEO Brain websites: Next.js with SSG by default, Vercel-first deployment, static page types, metadata, sitemap, robots, canonical rules, and schema foundation.
+- Website work is not complete when the agent only prints commands. The agent must install dependencies when needed, run the build from `project/web/`, and start or attempt a local preview before reporting done.
 - Prefer structured files over a CMS for websites up to 100 pages, including blog posts. The operational cost of a CMS is usually not worth it at that size.
 - Recommend CMS-backed workflows for sites above 500 pages, large editorial teams, frequent nontechnical publishing, or complex content models; route those projects to `payload-cms`.
 - Public posts in generated websites must consume approved `content-seo` artifacts. If content is missing, stop at the content gate instead of inventing copy.
