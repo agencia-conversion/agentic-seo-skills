@@ -21,6 +21,7 @@ Inputs:
 
 Writes only through the specific downstream skill being used:
 
+- `project/workbench/specs/` for lightweight specs when `spec-driven` is needed;
 - `project/wiki/` for approved or measured knowledge;
 - `project/sources/` for raw evidence;
 - `project/workbench/` for drafts, hypotheses, reviews, and reports;
@@ -31,6 +32,7 @@ Writes only through the specific downstream skill being used:
 - Work through the six pillars (seis pilares): Strategy, LLM Wiki, Technology, Technical SEO, Content, and Data and Analysis.
 - Keep raw sources, extracted facts, synthesis, and human judgment separate.
 - Treat strategic context as unapproved until the user explicitly approves it; this is the aprovação humana gate.
+- Use `spec-driven` before execution when the user asks for two or more deliverables, downstream skills, pillars, or approval-gated workflows in one request.
 - Use browser handoff for previews, sensitive input, approvals, and option selection when it improves UX.
 - Preserve language fidelity. In pt-BR, write with accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, or proof.
@@ -50,6 +52,7 @@ Writes only through the specific downstream skill being used:
 - Multiple articles, topical authority work, pillar pages, or editorial roadmaps should go through `topic-cluster` before individual `content-seo` briefs.
 - The default content process is: data-backed `seo-analysis`, briefing, human approval, artifact draft in `project/artifacts/contents/<slug>/`, review/check, final approval, then promotion to `project/wiki/conteudos/` only with `status: published`.
 - Do not write public article bodies directly in website, Wiki, or strategy workflows. Route the user to the decision: keyword/topic, approval, bypass consequence, or publication readiness.
+- "Stop at the content gate" means execute or offer the next real upstream step, not create a final stub. For missing public content, either run `content-seo` brief, request an explicit bypass with the consequence, or declare the dependent deliverable blocked before generating it.
 
 ## Dados
 
@@ -73,11 +76,12 @@ Writes only through the specific downstream skill being used:
 - Be critical and strategic. Help the user think about positioning, tradeoffs, proof, risk, and business priority before executing a tactic.
 - Assume the user may not be technical. Present the decision to be made, the evidence, the consequence, and the recommended next step; avoid dumping commands or implementation mechanics as the user-facing answer.
 - Humans own judgment. Agents execute repeatable intelligence, checks, formatting, extraction, and drafts.
-- When a request combines project sources/Wiki, public content, and a website, orchestrate in this order: sources and Wiki draft, strategic approval, `seo-analysis`, `content-seo`, then website generation that consumes the content artifact.
+- When a request combines project sources/Wiki, public content, and a website, call `spec-driven` first, then orchestrate in this order: sources and Wiki draft, strategic approval, `seo-analysis`, `content-seo`, then website generation that consumes the content artifact.
 
 ## Done Criteria
 
 - The selected downstream skill or workflow is named, and missing preconditions are explicit.
+- Compound requests have a `spec-driven` simple design or approved spec before downstream execution.
 - Any bypass is explicitly requested by the user, recorded in the artifact, and marked as not data-backed for the skipped dimension.
 - Generated user-facing prose preserves the requested language and diacritics.
 - Wiki changes, if any, separate sources from synthesis and keep approval status correct.
