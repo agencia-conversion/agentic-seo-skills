@@ -33,6 +33,9 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setFrontmatterValue = setFrontmatterValue;
 exports.dataforseoCredentialStatus = dataforseoCredentialStatus;
@@ -50,9 +53,11 @@ exports.renderTopicClustersWiki = renderTopicClustersWiki;
 exports.renderTopicClustersMarkdown = renderTopicClustersMarkdown;
 const node_buffer_1 = require("node:buffer");
 const node_child_process_1 = require("node:child_process");
+const node_crypto_1 = require("node:crypto");
 const fs = __importStar(require("node:fs"));
 const node_os_1 = require("node:os");
 const path = __importStar(require("node:path"));
+const yaml_1 = __importDefault(require("yaml"));
 const player_score_1 = require("./lib/player-score");
 const ROOT = path.resolve(__dirname, "..");
 const PROJECT_DIR = resolveProjectDir();
@@ -125,6 +130,122 @@ function writeText(file, text) {
 function readJson(file) {
     return JSON.parse(fs.readFileSync(file, "utf8"));
 }
+function writeYaml(file, data) {
+    mkdirp(path.dirname(file));
+    const text = yaml_1.default.stringify(data, { lineWidth: 0 });
+    fs.writeFileSync(file, text.endsWith("\n") ? text : `${text}\n`, "utf8");
+}
+function readYaml(file) {
+    const data = yaml_1.default.parse(fs.readFileSync(file, "utf8"));
+    if (!data || typeof data !== "object" || Array.isArray(data))
+        throw new Error(`YAML root must be an object: ${file}`);
+    return data;
+}
+function readDataFile(file) {
+    return file.endsWith(".yaml") || file.endsWith(".yml") ? readYaml(file) : readJson(file);
+}
+function dataFile(projectDir, relNoExt) {
+    const yaml = path.join(projectDir, `${relNoExt}.yaml`);
+    if (fs.existsSync(yaml))
+        return yaml;
+    const json = path.join(projectDir, `${relNoExt}.json`);
+    if (fs.existsSync(json))
+        return json;
+    return null;
+}
+function readContentBrief(file) {
+    return readDataFile(file);
+}
+function writeContentBrief(file, data) {
+    if (file.endsWith(".json"))
+        writeJson(file, data);
+    else
+        writeYaml(file, data);
+}
+const WORD_COUNT_METHOD = {
+    name: "seo-brain-visible-unicode-words",
+    version: "1.0.0",
+    excludes: ["frontmatter", "code fences", "inline code", "script/style blocks", "HTML tags"],
+};
+function sha256Text(text) {
+    return (0, node_crypto_1.createHash)("sha256").update(text, "utf8").digest("hex");
+}
+function countUnicodeWords(text) {
+    const matches = text.normalize("NFC").match(/[\p{L}\p{N}]+(?:[-'’][\p{L}\p{N}]+)*/gu);
+    return matches ? matches.length : 0;
+}
+function markdownVisibleText(text) {
+    const [, body] = parseFrontmatter(text);
+    return body
+        .replace(/```[\s\S]*?```/g, " ")
+        .replace(/`[^`]*`/g, " ")
+        .replace(/<script[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style[\s\S]*?<\/style>/gi, " ")
+        .replace(/<!--[\s\S]*?-->/g, " ")
+        .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
+        .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
+        .replace(/^#{1,6}\s+/gm, "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/[_*~>|#-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+function htmlVisibleText(html) {
+    return stripTags(html
+        .replace(/```[\s\S]*?```/g, " ")
+        .replace(/<script[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style[\s\S]*?<\/style>/gi, " ")
+        .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+        .replace(/<!--[\s\S]*?-->/g, " ")
+        .replace(/<\/(?:p|div|section|article|main|aside|header|footer|li|h[1-6]|tr|td|th|br)>/gi, " "));
+}
+function countVisibleMarkdownWords(text) {
+    return {
+        words: countUnicodeWords(markdownVisibleText(text)),
+        method: WORD_COUNT_METHOD,
+    };
+}
+function countVisibleHtmlWords(html) {
+    return {
+        words: countUnicodeWords(htmlVisibleText(html)),
+        method: WORD_COUNT_METHOD,
+    };
+}
+function roundUpToHundred(value) {
+    return Math.ceil(value / 100) * 100;
+}
+function contentBriefFile(projectDir, slug) {
+    const current = path.join(projectDir, "workbench", "content", slug, "brief.yaml");
+    if (fs.existsSync(current))
+        return current;
+    const base = path.join(projectDir, "workbench", "content", slug);
+    const yaml = `${base}.brief.yaml`;
+    if (fs.existsSync(yaml))
+        return yaml;
+    const json = `${base}.brief.json`;
+    return fs.existsSync(json) ? json : null;
+}
+function contentWorkbenchDir(projectDir, slug) {
+    return path.join(projectDir, "workbench", "content", slug);
+}
+function contentArtifactsDir(projectDir, slug) {
+    return path.join(projectDir, "artifacts", "contents", slug);
+}
+function seoAnalysisFile(projectDir, keywordSlug) {
+    return dataFile(projectDir, path.join("workbench", "seo-analysis", keywordSlug));
+}
+function contentDraftFile(projectDir, slug) {
+    return path.join(contentArtifactsDir(projectDir, slug), "draft.md");
+}
+function contentCheckFile(projectDir, slug) {
+    return path.join(contentArtifactsDir(projectDir, slug), "publication-check.yaml");
+}
+function contentWordCountFile(projectDir, slug) {
+    return path.join(contentArtifactsDir(projectDir, slug), "word-count.yaml");
+}
+function contentReviewFile(projectDir, slug) {
+    return path.join(contentArtifactsDir(projectDir, slug), "review.yaml");
+}
 function copyDir(src, dest) {
     if (!fs.existsSync(src))
         return;
@@ -138,16 +259,26 @@ function copyDir(src, dest) {
             fs.copyFileSync(from, to);
     }
 }
+function formatLogFileRefs(files) {
+    if (!files.length)
+        return "n/a";
+    return files.map((f) => {
+        const normalized = f.replace(/\\/g, "/").replace(/\.md$/, "");
+        if (normalized.startsWith("workbench/") || normalized.startsWith("artifacts/") || normalized.startsWith("../") || normalized.startsWith("sources/") || normalized.includes("."))
+            return f;
+        return `[[${normalized}]]`;
+    }).join(", ");
+}
 function appendLog(eventType, title, files, summary, approval) {
     const wikiLog = path.join(PROJECT_DIR, "wiki", "log", "index.md");
     mkdirp(path.dirname(wikiLog));
-    const links = files.length ? files.map((f) => `[[${f}]]`).join(", ") : "n/a";
+    const links = formatLogFileRefs(files);
     fs.appendFileSync(wikiLog, `\n\n## [${today()}] ${eventType} | ${title}\n\n- Actor: agent\n- Files: ${links}\n- Summary: ${summary}\n- Approval: ${approval}\n`, "utf8");
 }
 function appendOperationalLog(eventType, title, files, decision, summary, notes) {
     const wikiLog = path.join(PROJECT_DIR, "wiki", "log", "index.md");
     mkdirp(path.dirname(wikiLog));
-    const links = files.length ? files.map((f) => `[[${f.replace(/\.md$/, "")}]]`).join(", ") : "n/a";
+    const links = formatLogFileRefs(files);
     const lines = [
         "",
         "",
@@ -171,6 +302,14 @@ function parseFrontmatter(text) {
         return [{}, text];
     const raw = text.slice(4, end);
     const body = text.slice(end + 4).replace(/^\n/, "");
+    try {
+        const parsed = yaml_1.default.parse(raw);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed))
+            return [parsed, body];
+    }
+    catch {
+        // Fall through to a tiny parser for malformed legacy frontmatter.
+    }
     const data = {};
     for (const line of raw.split(/\r?\n/)) {
         const idx = line.indexOf(":");
@@ -267,21 +406,30 @@ function dataforseoCredentialStatus() {
         home_mode: home.dataforseo_mode || null,
     };
 }
-function resolveSeoProvider(prefer) {
+function seoProviderDefaultStatus() {
+    if (dataforseoCredentialsPresent())
+        return { provider: "dataforseo", reason: "DataForSEO credentials present in environment." };
+    return { provider: "dataforseo", reason: "DataForSEO credentials absent; setup required before SERP-backed SEO analysis.", setup_required: true };
+}
+function resolveSeoProvider(args = {}) {
+    const prefer = args.provider || "auto";
     const choice = (prefer || "auto").trim().toLowerCase();
     const hasCreds = dataforseoCredentialsPresent();
-    if (choice === "websearch")
-        return { provider: "websearch", reason: "Forced by --provider websearch." };
+    if (choice === "websearch") {
+        if (!args.websearch_confirmed || !args.websearch_reason)
+            throw new CliError('WebSearch is secondary for ranking research. Use --provider websearch --websearch-confirmed --websearch-reason "motivo claro" only after explicitly accepting this bypass.');
+        return { provider: "websearch", reason: `Explicit WebSearch bypass: ${String(args.websearch_reason).trim()}`, bypass: { step: "serp-extract-dataforseo", reason: String(args.websearch_reason).trim(), consequence: "SERP/ranking data is WebSearch-derived and not DataForSEO-backed." } };
+    }
     if (choice === "dataforseo") {
         if (!hasCreds)
-            throw new CliError("DataForSEO credentials missing. Set DATAFORSEO_LOGIN/DATAFORSEO_PASSWORD or use --provider websearch.");
+            throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
         return { provider: "dataforseo", reason: "Forced by --provider dataforseo." };
     }
     if (choice !== "auto")
         throw new CliError(`Unsupported provider preference: ${choice}. Use dataforseo, websearch, or auto.`);
     if (hasCreds)
         return { provider: "dataforseo", reason: "DataForSEO credentials present in environment." };
-    return { provider: "websearch", reason: "DataForSEO credentials absent; falling back to websearch." };
+    throw new CliError("DataForSEO credentials missing. SEO analysis no longer falls back to WebSearch automatically. Run: bin/seo-brain data-setup --handoff");
 }
 async function dataforseoRequest(method, endpoint, payload, sandbox = false) {
     const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
@@ -476,7 +624,7 @@ function extractHtml(html, sourceUrl) {
     }
     const htmlAttrs = parseAttrs((html.match(/<html\b([^>]*)>/i) || [])[1] || "");
     const body = (html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i) || [])[1] || html;
-    const bodyText = stripTags(body);
+    const bodyText = htmlVisibleText(body);
     const sourceHost = sourceUrl ? safeHost(sourceUrl) : "";
     const internalLinks = anchors.filter((a) => isInternalHref(a.href || "", sourceHost));
     const externalLinks = anchors.filter((a) => a.href && !isInternalHref(a.href, sourceHost) && !String(a.href).startsWith("#"));
@@ -504,7 +652,7 @@ function extractHtml(html, sourceUrl) {
         schema_types: Array.from(new Set(structuredData.map((item) => item.type).filter(Boolean))).sort(),
         open_graph: Object.fromEntries(Object.entries(meta).filter(([key]) => key.startsWith("og:"))),
         twitter: Object.fromEntries(Object.entries(meta).filter(([key]) => key.startsWith("twitter:"))),
-        word_count: bodyText ? bodyText.split(/\s+/).filter(Boolean).length : 0,
+        word_count: countUnicodeWords(bodyText),
         body_text_sample: bodyText.slice(0, 1000),
         forms_count: tags(html, "form").length,
         buttons_count: tags(html, "button").length,
@@ -997,24 +1145,41 @@ function latestFile(directory, suffix) {
         .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
     return files[0] || null;
 }
+function latestFileAny(directory, suffixes) {
+    if (!fs.existsSync(directory))
+        return null;
+    const files = fs
+        .readdirSync(directory)
+        .filter((name) => suffixes.some((suffix) => name.endsWith(suffix)))
+        .map((name) => path.join(directory, name))
+        .filter((file) => fs.statSync(file).isFile())
+        .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+    return files[0] || null;
+}
 function loadDataforseoSerpResults(projectDir, keyword, override) {
-    const file = override || latestFile(path.join(projectDir, "sources", "serp"), `-${slugify(keyword)}.normalized.json`);
+    const file = dataforseoSerpFile(projectDir, keyword, override);
     if (!file || !fs.existsSync(file))
         return [];
-    return readJson(file).organic_results || [];
+    return readDataFile(file).organic_results || [];
+}
+function dataforseoSerpFile(projectDir, keyword, override) {
+    return override || latestFileAny(path.join(projectDir, "sources", "serp"), [`-${slugify(keyword)}.normalized.yaml`, `-${slugify(keyword)}.normalized.json`]);
+}
+function websearchSourceFile(projectDir, keyword, override) {
+    return override || dataFile(projectDir, path.join("sources", "websearch", slugify(keyword)));
 }
 function loadWebsearchResults(projectDir, keyword, override) {
-    const file = override || path.join(projectDir, "sources", "websearch", `${slugify(keyword)}.json`);
-    if (!fs.existsSync(file))
+    const file = websearchSourceFile(projectDir, keyword, override);
+    if (!file || !fs.existsSync(file))
         return [];
-    const data = readJson(file);
+    const data = readDataFile(file);
     return data.results || data.organic_results || [];
 }
 function loadKeywordMetrics(projectDir, keyword) {
-    const file = latestFile(path.join(projectDir, "workbench", "keyword-research"), `-${slugify(keyword)}.json`);
+    const file = latestFileAny(path.join(projectDir, "workbench", "keyword-research"), [`-${slugify(keyword)}.yaml`, `-${slugify(keyword)}.json`]);
     if (!file)
         return null;
-    const primary = (readJson(file).keywords || [])[0];
+    const primary = (readDataFile(file).keywords || [])[0];
     if (!primary || (primary.search_volume == null && primary.competition == null))
         return null;
     return { search_volume: primary.search_volume, competition: primary.competition, cpc: primary.cpc, source_path: path.relative(projectDir, file) };
@@ -1130,31 +1295,99 @@ async function commandWikiLint(args) {
 function lintContentPublication(projectDir) {
     const findings = [];
     const contentDir = path.join(projectDir, "wiki", "conteudos");
-    const briefsDir = path.join(projectDir, "workbench", "content");
     if (!fs.existsSync(contentDir))
         return findings;
     for (const name of fs.readdirSync(contentDir)) {
         if (!name.endsWith(".md") || ["index.md", "topic-clusters.md"].includes(name))
             continue;
-        const brief = path.join(briefsDir, `${path.basename(name, ".md")}.brief.json`);
-        if (!fs.existsSync(brief))
+        const brief = contentBriefFile(projectDir, path.basename(name, ".md"));
+        if (!brief)
             continue;
         let data;
         try {
-            data = readJson(brief);
+            data = readContentBrief(brief);
         }
         catch {
-            findings.push({ severity: "warning", file: `conteudos/${name}`, message: `brief is not valid JSON: ${path.relative(projectDir, brief)}` });
+            findings.push({ severity: "warning", file: `conteudos/${name}`, message: `brief is not valid YAML/JSON: ${path.relative(projectDir, brief)}` });
             continue;
         }
-        const forbidden = (data.must_not_mention_in_prose || []).map((d) => String(d).trim().toLowerCase()).filter(Boolean);
-        const [, body] = parseFrontmatter(fs.readFileSync(path.join(contentDir, name), "utf8"));
-        const clean = body.replace(/```[\s\S]*?```/g, "").toLowerCase();
-        for (const domain of forbidden)
-            if (clean.includes(domain))
-                findings.push({ severity: "error", file: `conteudos/${name}`, message: `forbidden domain mentioned in prose: ${domain}` });
+        const text = fs.readFileSync(path.join(contentDir, name), "utf8");
+        const issues = validatePublicContentDraft(text, data);
+        for (const issue of issues)
+            findings.push({ severity: "error", file: `conteudos/${name}`, message: issue });
     }
     return findings;
+}
+function frontmatterListValue(fm, key) {
+    const value = fm[key];
+    if (Array.isArray(value))
+        return value.map(String).filter(Boolean);
+    if (typeof value === "string" && value.trim())
+        return [value.trim()];
+    return [];
+}
+function markdownLinks(body) {
+    const out = [];
+    for (const match of body.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)) {
+        const idx = match.index || 0;
+        const start = Math.max(body.lastIndexOf(".", idx), body.lastIndexOf("\n", idx));
+        const endDot = body.indexOf(".", idx);
+        const endBreak = body.indexOf("\n", idx);
+        const ends = [endDot, endBreak].filter((n) => n > idx);
+        const end = ends.length ? Math.min(...ends) : body.length;
+        out.push({ anchor: match[1].trim(), href: match[2].trim(), sentence: body.slice(start + 1, end).trim() });
+    }
+    return out;
+}
+function validatePublicContentDraft(text, brief) {
+    const issues = [];
+    const [fm, body] = parseFrontmatter(text);
+    const cleanBody = body.replace(/```[\s\S]*?```/g, "");
+    const lower = cleanBody.toLowerCase();
+    const topicalText = [brief.topic, brief.keyword, brief.brief?.promise].map((v) => String(v || "").toLowerCase()).join(" ");
+    const allowAgentTerm = /\bag[eê]nt/i.test(topicalText);
+    const forbidden = [
+        ...(brief.forbidden_prose_terms || []),
+        ...(brief.serp_competitor_domains || []),
+        ...(brief.must_not_mention_in_prose || []),
+    ].map((d) => String(d).trim().toLowerCase()).filter(Boolean);
+    for (const term of Array.from(new Set(forbidden))) {
+        if (lower.includes(term))
+            issues.push(`forbidden term mentioned in public prose: ${term}`);
+    }
+    const internalPatterns = [
+        /\bworkbench\b/i,
+        /\bbriefing\b/i,
+        /\bwiki\b/i,
+        /\blog\b/i,
+        ...(allowAgentTerm ? [] : [/\bagente?s?\b/i]),
+        /project\/(?:workbench|wiki|sources|artifacts)\//i,
+        /\.\.\/(?:\.\.\/)?sources\//i,
+        /\.brief\.(?:ya?ml|json)\b/i,
+    ];
+    for (const pattern of internalPatterns) {
+        if (pattern.test(cleanBody))
+            issues.push(`internal process language or path leaked: ${pattern.source}`);
+    }
+    const links = markdownLinks(cleanBody);
+    const genericAnchors = new Set(["aqui", "clique aqui", "saiba mais", "link", "neste link", "leia mais"]);
+    for (const link of links) {
+        const anchor = link.anchor.toLowerCase();
+        if (genericAnchors.has(anchor))
+            issues.push(`generic Markdown anchor: ${link.anchor}`);
+        if (/^(?:\.{1,2}\/|\/Users\/|project\/|workbench\/|wiki\/|sources\/)/i.test(link.href))
+            issues.push(`non-public link target in public body: ${link.href}`);
+        const withoutLink = link.sentence.replace(`[${link.anchor}](${link.href})`, link.anchor).trim();
+        if (withoutLink.length < 20 || !/\s/.test(withoutLink))
+            issues.push(`linked sentence fails link-removed test: ${link.anchor}`);
+    }
+    if (cleanFrontmatterValue(fm.public_content) !== "true")
+        issues.push("missing public_content: true frontmatter");
+    if (!cleanFrontmatterValue(fm.primary_keyword))
+        issues.push("missing primary_keyword frontmatter");
+    if (!frontmatterListValue(fm, "sources").length)
+        issues.push("empty sources frontmatter");
+    return Array.from(new Set(issues));
 }
 async function commandWikiApprove(args) {
     const rel = required(args, "page").replace(/^\/+/, "");
@@ -1186,7 +1419,7 @@ async function commandDataSetup(args) {
     const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
     const password = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_password || getSecret("DATAFORSEO_PASSWORD");
     const mode = resolveDataforseoMode(args);
-    const decision = resolveSeoProvider();
+    const decision = seoProviderDefaultStatus();
     const credentialStatus = dataforseoCredentialStatus();
     const status = {
         dataforseo_login: credentialStatus.dataforseo_login,
@@ -1230,6 +1463,15 @@ async function commandSerpExtract(args) {
     const p = ensureProject();
     const settings = projectSettings(p);
     const mode = resolveDataforseoMode(args);
+    if (mode !== "offline" && !dataforseoCredentialsPresent()) {
+        if (shouldAutoOpenDataSetup(args)) {
+            const handoff = runDataSetupHandoff();
+            if (!handoff.ok)
+                throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
+        }
+        if (!dataforseoCredentialsPresent())
+            throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+    }
     const location = args.location || settings.dataforseo_location;
     const language = args.language || settings.dataforseo_language;
     const payload = [{ keyword, location_name: location, language_code: language, device: args.device || "desktop", depth: Number(args.depth || 10) }];
@@ -1245,9 +1487,9 @@ async function commandSerpExtract(args) {
     const normalized = normalizeSerp(source, keyword, location, language, args.device || "desktop");
     const base = path.join(p, "sources", "serp", `${stamp()}-${slugify(keyword)}`);
     writeJson(`${base}.raw.json`, source);
-    writeJson(`${base}.normalized.json`, normalized);
-    writeJson(path.join(p, "workbench", "serp", `${stamp()}-${slugify(keyword)}.json`), normalized);
-    appendLog("serp", keyword, [path.relative(p, `${base}.normalized.json`)], "SERP extraida e normalizada.", "not-required");
+    writeYaml(`${base}.normalized.yaml`, normalized);
+    writeYaml(path.join(p, "workbench", "serp", `${stamp()}-${slugify(keyword)}.yaml`), normalized);
+    appendLog("serp", keyword, [path.relative(p, `${base}.normalized.yaml`)], "SERP extraída e normalizada.", "not-required");
     printJson(normalized);
 }
 const VOLUME_ENDPOINTS = {
@@ -1284,10 +1526,10 @@ async function runKeywordVolume(args, projectDir) {
     const ts = stamp();
     const base = path.join(projectDir, "sources", "keyword-research", `${ts}-${slug}`);
     writeJson(`${base}.raw.json`, source);
-    writeJson(`${base}.normalized.json`, normalized);
-    writeJson(path.join(projectDir, "workbench", "keyword-research", `${ts}-${slug}.json`), normalized);
+    writeYaml(`${base}.normalized.yaml`, normalized);
+    writeYaml(path.join(projectDir, "workbench", "keyword-research", `${ts}-${slug}.yaml`), normalized);
     const logTitle = isBulk ? `bulk (${keywords.length} keywords)` : keywords[0];
-    appendLog("keyword-research", logTitle, [path.relative(projectDir, `${base}.normalized.json`)], "Pesquisa de keyword registrada.", "not-required");
+    appendLog("keyword-research", logTitle, [path.relative(projectDir, `${base}.normalized.yaml`)], "Pesquisa de keyword registrada.", "not-required");
     printJson(normalized);
 }
 async function runKeywordSuggestions(args, projectDir) {
@@ -1388,7 +1630,7 @@ async function commandBacklinkAnalysis(args) {
     const normalized = normalizeBacklinkReport(target, competitors, source, args);
     const base = path.join(p, "sources", "backlinks", `${stamp()}-${slugify(target)}`);
     writeJson(`${base}.raw.json`, source);
-    writeJson(path.join(p, "workbench", "backlinks", `${stamp()}-${slugify(target)}.json`), normalized);
+    writeYaml(path.join(p, "workbench", "backlinks", `${stamp()}-${slugify(target)}.yaml`), normalized);
     appendLog("backlinks", target, [path.relative(p, `${base}.raw.json`)], "Análise de backlinks registrada.", "not-required");
     printJson(normalized);
 }
@@ -1396,8 +1638,11 @@ async function commandSeoAnalysis(args) {
     const keyword = required(args, "keyword");
     const p = ensureProject();
     const settings = projectSettings(p);
-    const decision = resolveSeoProvider(args.provider || "auto");
+    const decision = resolveSeoProvider(args);
+    const serpSourceFile = decision.provider === "dataforseo" ? dataforseoSerpFile(p, keyword, args.serp_file) : websearchSourceFile(p, keyword, args.websearch_file);
     const organic = decision.provider === "dataforseo" ? loadDataforseoSerpResults(p, keyword, args.serp_file) : loadWebsearchResults(p, keyword, args.websearch_file);
+    if (decision.provider === "dataforseo" && !organic.length)
+        throw new CliError(`Missing DataForSEO SERP for "${keyword}". Run: bin/seo-brain serp-extract --keyword "${keyword}"`);
     const keywordMetrics = decision.provider === "dataforseo" ? loadKeywordMetrics(p, keyword) : null;
     const topResults = organic.map((item, idx) => ({ position: item.rank_absolute || item.rank_group || item.position || idx + 1, title: item.title || "", url: item.url || "", snippet: item.snippet || item.description || "", domain: item.domain || "" }));
     const competitors = [];
@@ -1418,13 +1663,19 @@ async function commandSeoAnalysis(args) {
     if (incomplete)
         limitations.push(`Apenas ${topResults.length} resultados disponíveis; ideal >=5.`);
     if (decision.provider === "websearch" && !topResults.length)
-        limitations.push(`Nenhum resultado em sources/websearch/${slugify(keyword)}.json. Rode WebSearch e grave o JSON antes de reexecutar.`);
+        limitations.push(`Nenhum resultado em sources/websearch/${slugify(keyword)}.yaml. Rode WebSearch e grave o YAML antes de reexecutar.`);
+    if (decision.provider === "websearch")
+        limitations.push(`WebSearch usado como bypass explícito: ${String(args.websearch_reason || "").trim()}`);
     if (decision.provider === "dataforseo" && keywordMetrics === null)
         limitations.push("Sem keyword-research recente para enriquecer keyword_metrics.");
     let report = {
         keyword,
         provider: decision.provider,
         provider_reason: decision.reason,
+        data_provenance: {
+            serp_extract: serpSourceFile ? { path: path.relative(p, serpSourceFile), provider: decision.provider } : null,
+            provider_bypass: decision.bypass || null,
+        },
         market_context: {
             market: args.market || settings.market,
             country: args.country || settings.country,
@@ -1452,8 +1703,9 @@ async function commandSeoAnalysis(args) {
             projectDir: p,
             required,
             normalizePageType,
-            readJson,
+            readJson: readDataFile,
             writeJson,
+            writeYaml,
             writeText,
             fetchUrl,
             extractHtml,
@@ -1463,8 +1715,8 @@ async function commandSeoAnalysis(args) {
             stamp,
         });
     }
-    const out = path.join(p, "workbench", "seo-analysis", `${slugify(keyword)}.json`);
-    writeJson(out, report);
+    const out = path.join(p, "workbench", "seo-analysis", `${slugify(keyword)}.yaml`);
+    writeYaml(out, report);
     appendLog("seo-analysis", keyword, [path.relative(p, out), ...(report.technical_seo_reports || [])], `Análise SEO via ${decision.provider} (${topResults.length} resultados${args.player_score ? "; player score ativo" : ""}).`, "not-required");
     printJson(report);
 }
@@ -1777,135 +2029,834 @@ async function commandEeat(_args) {
 function yamlString(value) {
     return JSON.stringify(String(value ?? ""));
 }
-function buildContentOutline(topic, analysisData) {
-    const gap = analysisData?.gaps?.[0] || "subtópicos pouco cobertos pelo resultado atual";
-    const hypothesis = analysisData?.improvement_hypotheses?.[0] || "um ângulo mais claro e verificável para o leitor";
-    return [
-        { level: 1, title: topic, purpose: "Abrir com resposta direta alinhada à intenção de busca." },
-        { level: 2, title: "O que considerar primeiro", purpose: `Cobrir ${gap}.` },
-        { level: 2, title: "Como estruturar a decisão", purpose: `Transformar ${hypothesis} em critérios práticos.` },
-        { level: 2, title: "Cuidados editoriais", purpose: "Separar evidência, hipótese e recomendação sem slop de IA." },
-        { level: 2, title: "Próximo passo", purpose: "Fechar com uma ação concreta e verificável para o leitor." },
+function asStringList(value) {
+    if (!value)
+        return [];
+    if (Array.isArray(value))
+        return value.map((item) => typeof item === "string" ? item : JSON.stringify(item)).filter(Boolean);
+    return [String(value)];
+}
+function intentSummary(intent) {
+    if (!intent)
+        return "informational";
+    if (typeof intent === "string")
+        return intent;
+    if (typeof intent === "object") {
+        const data = intent;
+        return String(data.description || data.primary || "informational");
+    }
+    return String(intent);
+}
+function topResultDomains(analysisData) {
+    return Array.from(new Set((analysisData?.top_results || [])
+        .map((entry) => String(entry.domain || "").trim().toLowerCase())
+        .filter(Boolean))).sort();
+}
+function contentPublicCitations(analysisData) {
+    const citations = analysisData?.public_citations || analysisData?.canonical_sources || [];
+    if (!Array.isArray(citations))
+        return [];
+    return citations
+        .map((entry) => ({
+        title: String(entry.title || entry.label || "").trim(),
+        url: String(entry.url || "").trim(),
+    }))
+        .filter((entry) => entry.title && /^https?:\/\//i.test(entry.url));
+}
+function uniqueStrings(values) {
+    const seen = new Set();
+    const out = [];
+    for (const value of values) {
+        const clean = value.replace(/\s+/g, " ").trim();
+        const key = clean.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        if (!clean || seen.has(key))
+            continue;
+        seen.add(key);
+        out.push(clean);
+    }
+    return out;
+}
+function competitorHeadingThemes(competitorEvidence) {
+    const headings = (competitorEvidence?.competitors || [])
+        .flatMap((row) => Array.isArray(row.headings) ? row.headings : [])
+        .map((heading) => String(heading.text || "").toLowerCase());
+    const themes = [];
+    const checks = [
+        [/\bo que (e|é)|significa|conceito|defini/, "definição e contexto"],
+        [/tipo|fonte|canal|diferen/, "tipos, fontes e diferenças"],
+        [/por que|benef|vantagem|import/, "benefícios e critérios de investimento"],
+        [/estrat|planej|criar|gerar|aument/, "estratégia e plano de execução"],
+        [/seo|on-page|off-page|tecnico|técnico|palavra-chave/, "SEO, conteúdo e otimização"],
+        [/monitor|metric|medir|resultado|ajuste/, "mensuração e melhoria contínua"],
+        [/erro|risco|cuidado|problema/, "erros, riscos e limites"],
     ];
+    for (const [pattern, label] of checks) {
+        if (headings.some((heading) => pattern.test(heading)))
+            themes.push(label);
+    }
+    return uniqueStrings(themes).slice(0, 6);
 }
-function renderContentDraft(report) {
-    const topic = String(report.topic || "Conteudo");
-    const keyword = String(report.keyword || topic);
-    const slug = String(report.topic_slug || slugify(topic));
-    const intent = String(report.brief?.intent || "mixed");
-    const mustInclude = Array.isArray(report.brief?.must_include) ? report.brief.must_include : [];
-    const outline = Array.isArray(report.brief?.outline) ? report.brief.outline : buildContentOutline(topic, null);
-    const sectionTitles = outline.filter((item) => Number(item.level) === 2).map((item) => String(item.title));
-    const voiceStatus = String(report.voice_context?.status || "missing");
-    const firstInclude = String(mustInclude[0] || "uma resposta direta");
-    const secondInclude = String(mustInclude[1] || "critérios práticos");
-    const [first, second, third, fourth] = [...sectionTitles, "O que considerar primeiro", "Como estruturar a decisão", "Cuidados editoriais", "Próximo passo"];
-    return `---\ntitle: ${yamlString(topic)}\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\ncluster: ""\nurl: "/${slug}/"\nprimary_keyword: ${yamlString(keyword)}\nbrief_status: approved\nvoice_status: ${yamlString(voiceStatus)}\nsources: []\n---\n\n# ${topic}\n\nQuem pesquisa por ${keyword} precisa de uma resposta clara antes de entrar em detalhes. Como a intenção principal é ${intent}, o primeiro bloco deve entregar ${firstInclude} e depois aprofundar conceitos, critérios e próximos passos.\n\n## ${first}\n\nComece delimitando o problema que o leitor quer resolver. Separe o que já está sustentado por evidência do que ainda depende de validação, sem transformar hipótese em promessa.\n\n## ${second}\n\nUse ${secondInclude} para ajudar o leitor a comparar caminhos possíveis. Quando houver exemplos, eles devem ser verificáveis e relevantes para o contexto brasileiro.\n\n## ${third}\n\nO texto deve evitar excesso de listas, ritmo artificial de parágrafos muito curtos e frases promocionais sem prova. Links e citações entram apenas quando ajudam a sustentar uma afirmação específica.\n\n## ${fourth}\n\nDefina a ação mais útil para o leitor depois da explicação principal. Se houver uma recomendação, deixe claro quais evidências sustentam essa orientação e quais pontos ainda precisam ser confirmados.\n`;
+function roundUpToFifty(value) {
+    return Math.ceil(value / 50) * 50;
 }
-async function commandContentSeo(args) {
-    const topic = required(args, "topic");
-    const p = ensureProject();
-    const topicSlug = slugify(topic);
-    const keyword = args.keyword || topic;
-    const keywordSlug = slugify(keyword);
-    const briefApproval = String(args.brief_approval || "auto").trim().toLowerCase();
-    if (!["auto", "manual", "handoff"].includes(briefApproval))
-        throw new CliError("Unsupported --brief-approval. Use auto, manual, or handoff.");
-    const analysisFile = path.join(p, "workbench", "seo-analysis", `${keywordSlug}.json`);
-    if (!fs.existsSync(analysisFile) && !args.skip_data)
-        throw new CliError(`Missing seo-analysis for this topic. Complete the seo-analysis workflow for "${keyword}" first. Only rerun content-seo with --skip-data --skip-data-confirmed --skip-data-reason "motivo claro" if the user explicitly approved bypassing SERP analysis.`);
+function buildDimensionedContentOutline(topic, analysisData, targetWords) {
+    const gaps = asStringList(analysisData?.gaps);
+    const hypotheses = asStringList(analysisData?.improvement_hypotheses);
+    const themes = asStringList(analysisData?.competitor_heading_themes);
+    const minH2Sections = Math.max(4, Math.ceil(targetWords / 500));
+    const iterations = [];
+    const h2s = [];
+    const addH2 = (title, purpose, source = "editorial") => {
+        if (h2s.some((item) => item.title.toLowerCase() === title.toLowerCase()))
+            return;
+        h2s.push({ level: 2, title, purpose, source });
+    };
+    addH2("O que é e por que importa", "Responder à intenção principal com definição direta, contexto de uso e relevância prática.");
+    addH2("Como funciona na prática", "Explicar os componentes do tema sem assumir conhecimento prévio.");
+    if (themes.length)
+        addH2("Padrões que a busca espera encontrar", `Cobrir os temas recorrentes da SERP sem reproduzir headings concorrentes: ${themes.join(", ")}.`, "serp-patterns");
+    if (gaps[0])
+        addH2("Lacunas que este conteúdo precisa cobrir", `Transformar a lacuna identificada em orientação pública: ${gaps[0]}.`, "seo-analysis-gap");
+    if (hypotheses[0])
+        addH2("Diferencial editorial recomendado", `Aplicar a hipótese editorial com cuidado e sem tratá-la como fato comprovado: ${hypotheses[0]}.`, "seo-analysis-hypothesis");
+    const fallbackSections = [
+        ["Quando faz sentido priorizar", "Ajudar o leitor a decidir se o tema é prioridade no cenário atual."],
+        ["Diagnóstico antes da execução", "Mostrar quais sinais devem ser avaliados antes de criar ou alterar páginas."],
+        ["Planejamento da estratégia", "Organizar objetivo, público, intenção de busca e responsabilidades."],
+        ["Conteúdo e intenção de busca", "Explicar como alinhar pauta, profundidade e utilidade ao que o leitor procura."],
+        ["Otimização de páginas existentes", "Orientar melhorias em páginas que já existem antes de criar novos ativos."],
+        ["SEO técnico e experiência", "Conectar estrutura, rastreabilidade, velocidade e UX ao resultado orgânico."],
+        ["Autoridade, distribuição e confiança", "Tratar sinais externos e prova com linguagem proporcional à evidência disponível."],
+        ["Como medir evolução", "Definir indicadores, leitura de tendência e limites de atribuição."],
+        ["Erros comuns", "Prevenir promessas sem prova, atalhos frágeis e interpretações superficiais."],
+        ["Plano de ação", "Fechar com próximos passos concretos e proporcionais à evidência disponível."],
+        ["Checklist de revisão", "Dar ao leitor uma forma simples de conferir se a execução está completa."],
+        ["Perguntas frequentes", "Responder dúvidas recorrentes sem criar uma lista artificial de termos."],
+    ];
+    iterations.push({ iteration: 1, action: "seed-outline", h2_sections: h2s.length });
+    let fallbackIndex = 0;
+    while (h2s.length < minH2Sections && fallbackIndex < fallbackSections.length) {
+        const [title, purpose] = fallbackSections[fallbackIndex++];
+        addH2(title, purpose);
+    }
+    while (h2s.length < minH2Sections) {
+        addH2(`Seção complementar ${h2s.length + 1}`, "Expandir o tema apenas com orientação útil, verificável e alinhada à intenção de busca.");
+    }
+    const h2Budget = roundUpToFifty(Math.max(350, Math.ceil(targetWords / h2s.length)));
+    const outline = [
+        { level: 1, title: topic, purpose: "Responder à intenção principal com linguagem pública.", word_budget: 0, source: "topic" },
+        ...h2s.map((item) => ({ ...item, word_budget: h2Budget })),
+    ];
+    const plannedWords = h2Budget * h2s.length;
+    const capacity = {
+        target_words: targetWords,
+        min_h2_sections: minH2Sections,
+        planned_h2_sections: h2s.length,
+        planned_words: plannedWords,
+        can_support_target: h2s.length >= minH2Sections && plannedWords >= targetWords,
+        iterations: [
+            ...iterations,
+            { iteration: 2, action: "expanded-outline", h2_sections: h2s.length, section_word_budget: h2Budget, planned_words: plannedWords },
+        ],
+    };
+    return { outline, capacity };
+}
+function shortExcerpt(line) {
+    return line.replace(/\s+/g, " ").trim().slice(0, 180);
+}
+function firstMarkdownTitle(body, fallback) {
+    const match = body.match(/^#\s+(.+)$/m);
+    return match ? match[1].trim() : fallback;
+}
+function wikiExcerpts(body, max = 3) {
+    return body
+        .split(/\r?\n/)
+        .map((line) => line.replace(/^[-*]\s+/, "").trim())
+        .filter((line) => line && !line.startsWith("#") && !line.startsWith("|") && line.length > 20)
+        .slice(0, max)
+        .map(shortExcerpt);
+}
+function headingSectionItems(body, heading, max = 5) {
+    const lines = body.split(/\r?\n/);
+    const start = lines.findIndex((line) => heading.test(line.trim()));
+    if (start === -1)
+        return [];
+    const out = [];
+    for (const line of lines.slice(start + 1)) {
+        if (/^##\s+/.test(line))
+            break;
+        const clean = line.replace(/^[-*]\s+/, "").trim();
+        if (clean && !clean.startsWith("|") && clean.length > 2)
+            out.push(shortExcerpt(clean));
+        if (out.length >= max)
+            break;
+    }
+    return out;
+}
+function readWikiEvidencePage(projectDir, rel) {
+    const file = path.join(projectDir, "wiki", rel);
+    if (!fs.existsSync(file)) {
+        return {
+            path: `wiki/${rel}`,
+            title: path.basename(rel, ".md"),
+            status: "missing",
+            approved_by: null,
+            approved_at: null,
+            content_hash_sha256: null,
+            excerpts_used: [],
+            strategic: STRATEGIC_PAGES.has(rel),
+        };
+    }
+    const text = fs.readFileSync(file, "utf8");
+    const [fm, body] = parseFrontmatter(text);
+    return {
+        path: `wiki/${rel}`,
+        title: cleanFrontmatterValue(fm.title) || firstMarkdownTitle(body, path.basename(rel, ".md")),
+        status: cleanFrontmatterValue(fm.status) || "unknown",
+        approved_by: cleanFrontmatterValue(fm.approved_by),
+        approved_at: cleanFrontmatterValue(fm.approved_at),
+        content_hash_sha256: sha256Text(text),
+        excerpts_used: wikiExcerpts(body),
+        strategic: STRATEGIC_PAGES.has(rel),
+    };
+}
+function buildContentContextEvidence(projectDir, topicSlug) {
+    const pageRels = ["index.md", "eeat.md", "tecnologia/index.md", "tom-de-voz/index.md", "conteudos/index.md"];
+    const wikiPages = pageRels.map((rel) => readWikiEvidencePage(projectDir, rel));
+    const voicePage = wikiPages.find((page) => page.path === "wiki/tom-de-voz/index.md") || readWikiEvidencePage(projectDir, "tom-de-voz/index.md");
+    const voiceFile = path.join(projectDir, "wiki", "tom-de-voz", "index.md");
+    let voiceBody = "";
+    if (fs.existsSync(voiceFile))
+        voiceBody = parseFrontmatter(fs.readFileSync(voiceFile, "utf8"))[1];
+    const limitations = wikiPages
+        .filter((page) => page.strategic && page.status !== "approved")
+        .map((page) => `Página estratégica ${page.path} está ${page.status}; orientação usada como limitação visível, não como contexto aprovado.`);
+    return {
+        generated_at: nowIso(),
+        topic_slug: topicSlug,
+        method: "read approved/draft Wiki pages, hash content, extract short orientation excerpts",
+        wiki_pages_read: wikiPages,
+        voice_evidence: {
+            path: voicePage.path,
+            title: voicePage.title,
+            status: voicePage.status,
+            approved_by: voicePage.approved_by,
+            approved_at: voicePage.approved_at,
+            content_hash_sha256: voicePage.content_hash_sha256,
+            patterns: headingSectionItems(voiceBody, /^##\s+(Princípios|Padrões)/i),
+            avoid: headingSectionItems(voiceBody, /^##\s+Evitar/i),
+            reference_phrases: headingSectionItems(voiceBody, /^##\s+(Frases de referência|Exemplos aprovados)/i),
+        },
+        limitations,
+    };
+}
+function summarizeContextEvidence(evidence, projectDir, evidencePath) {
+    return {
+        path: path.relative(projectDir, evidencePath),
+        wiki_pages_read: (evidence.wiki_pages_read || []).map((page) => ({
+            path: page.path,
+            title: page.title,
+            status: page.status,
+            approved_by: page.approved_by,
+            approved_at: page.approved_at,
+            content_hash_sha256: page.content_hash_sha256,
+            excerpts_used: (page.excerpts_used || []).slice(0, 2),
+        })),
+        voice_evidence: evidence.voice_evidence,
+        limitations: evidence.limitations || [],
+    };
+}
+function competitorWordCountFromData(entry, competitor) {
+    const candidates = [
+        entry.word_count,
+        entry.page?.word_count,
+        entry.extracted?.word_count,
+        competitor?.word_count,
+        competitor?.page?.word_count,
+        competitor?.extracted?.word_count,
+    ];
+    for (const candidate of candidates) {
+        const value = Number(candidate);
+        if (Number.isFinite(value) && value > 0)
+            return Math.trunc(value);
+    }
+    return null;
+}
+function loadJsonishArg(value) {
+    if (!value || value === true)
+        return {};
+    const raw = String(value);
+    const candidate = path.isAbsolute(raw) ? raw : path.resolve(ROOT, raw);
+    if (fs.existsSync(candidate))
+        return readDataFile(candidate);
+    return JSON.parse(raw);
+}
+async function loadCompetitorPage(entry, args) {
+    const fixtures = loadJsonishArg(args.competitor_fixtures || args.page_fixtures);
+    const fixture = fixtures[entry.url] || fixtures[String(entry.url || "").replace(/\/+$/, "")];
+    if (fixture) {
+        const file = path.isAbsolute(String(fixture)) ? String(fixture) : path.resolve(ROOT, String(fixture));
+        return { status: null, html: fs.readFileSync(file, "utf8"), finalUrl: entry.url, source: "fixture" };
+    }
+    const fetched = await fetchUrl(entry.url);
+    return { status: fetched.status, html: fetched.html, finalUrl: fetched.finalUrl || entry.url, source: "fetched-page" };
+}
+function top3ByPosition(analysisData) {
+    return [...(Array.isArray(analysisData?.top_results) ? analysisData.top_results : [])]
+        .filter((entry) => entry.url)
+        .sort((a, b) => Number(a.position || 999) - Number(b.position || 999))
+        .slice(0, 3);
+}
+async function buildCompetitorEvidence(analysisData, args) {
+    const bypassConfirmed = boolArg(args.top3_bypass_confirmed, false);
+    const bypassReason = String(args.top3_bypass_reason || "").trim();
+    const top3 = top3ByPosition(analysisData);
+    if (top3.length < 3 && !(bypassConfirmed && bypassReason))
+        throw new CliError("Top 3 competitor evidence requires 3 organic results. Rerun SERP extraction or use --top3-bypass-confirmed --top3-bypass-reason after explicit user approval.");
+    const competitors = Array.isArray(analysisData?.competitors) ? analysisData.competitors : [];
+    const rows = [];
+    const failures = [];
+    for (const entry of top3) {
+        const existing = competitors.find((item) => item?.serp?.url === entry.url);
+        let page = existing?.page || {};
+        let httpStatus = existing?.http_status ?? null;
+        let source = "seo-analysis";
+        try {
+            if (bypassConfirmed && bypassReason && (!page?.word_count || !Array.isArray(page?.headings) || !page.headings.length)) {
+                rows.push({ position: entry.position, url: entry.url, domain: entry.domain || safeHost(entry.url), title: entry.title || "", fetch_status: "bypassed", error: "top3 evidence bypassed by user approval" });
+                continue;
+            }
+            if (!page?.word_count || !Array.isArray(page?.headings) || !page.headings.length) {
+                const loaded = await loadCompetitorPage(entry, args);
+                httpStatus = loaded.status;
+                source = loaded.source;
+                page = extractHtml(loaded.html, loaded.finalUrl);
+            }
+            const wordCount = competitorWordCountFromData(entry, { page });
+            const headings = (page.headings || []).filter((h) => ["h1", "h2", "h3"].includes(String(h.level)));
+            const h1 = headings.find((h) => h.level === "h1")?.text || "";
+            if (!wordCount || !headings.length || !h1)
+                throw new Error("missing heading tags or word_count");
+            rows.push({
+                position: Number(entry.position || rows.length + 1),
+                url: entry.url,
+                domain: entry.domain || safeHost(entry.url),
+                title: page.title || entry.title || "",
+                meta_description: page.meta_description || "",
+                http_status: httpStatus,
+                fetch_status: "ok",
+                source,
+                h1,
+                headings,
+                h2_count: page.h2_count || headings.filter((h) => h.level === "h2").length,
+                word_count: wordCount,
+                sub_agent_review: {
+                    agent_id: `top3-competitor-${Number(entry.position || rows.length + 1)}`,
+                    status: "complete",
+                    summary: `Concorrente analisado com ${wordCount} palavras visíveis, H1 "${h1}" e ${page.h2_count || 0} seções H2.`,
+                    evidence_refs: ["title", "meta_description", "h1", "headings", "word_count"],
+                },
+            });
+        }
+        catch (error) {
+            const message = `${entry.domain || entry.url}: ${String(error.message || error)}`;
+            failures.push(message);
+            rows.push({ position: entry.position, url: entry.url, domain: entry.domain || safeHost(entry.url), title: entry.title || "", fetch_status: "failed", error: message });
+        }
+    }
+    if (failures.length && !(bypassConfirmed && bypassReason))
+        throw new CliError(`Top 3 competitor evidence failed: ${failures.join("; ")}. Use --top3-bypass-confirmed --top3-bypass-reason only after explicit user approval.`);
+    return {
+        generated_at: nowIso(),
+        method: "top-3 independent competitor extraction with sub-agent-style reviews; deterministic fetch/extract supplies title, meta, headings, and word count",
+        required: true,
+        bypass: bypassConfirmed ? { confirmed: true, reason: bypassReason, consequence: "Briefing is not fully backed by Top 3 competitor word-count/heading evidence." } : null,
+        competitors: rows,
+        failures,
+        valid: rows.filter((row) => row.fetch_status === "ok" && Number(row.word_count) > 0),
+    };
+}
+function buildSkyscraperWordCount(competitorEvidence, args) {
+    const rows = (competitorEvidence.competitors || []).map((row) => ({
+        url: row.url || "",
+        domain: row.domain || safeHost(row.url || ""),
+        title: row.title || "",
+        position: row.position,
+        status: row.fetch_status === "ok" && Number(row.word_count) > 0 ? "ok" : "failed",
+        source: row.source || "competitor-evidence",
+        http_status: row.http_status ?? null,
+        word_count: row.word_count ?? null,
+        error: row.error || null,
+    }));
+    const valid = rows.filter((row) => row.status === "ok" && Number(row.word_count) > 0);
+    if (!valid.length && !(boolArg(args.top3_bypass_confirmed, false) && args.top3_bypass_reason))
+        throw new CliError("Cannot calculate target_words: no valid Top 3 competitor word counts.");
+    const maxWords = valid.length ? Math.max(...valid.map((row) => Number(row.word_count))) : 0;
+    const rawTarget = maxWords ? Math.max(Math.ceil(maxWords * 1.2), 2000) : 2000;
+    return {
+        method: {
+            formula: "max(ceil(max_competitor_words * 1.2), 2000), rounded up to 100-word block",
+            word_counter: WORD_COUNT_METHOD,
+        },
+        floor_words: 2000,
+        multiplier: 1.2,
+        competitors: rows,
+        valid_competitors: valid,
+        max_competitor_words: maxWords || null,
+        target_words: roundUpToHundred(rawTarget),
+        limitations: valid.length ? rows.filter((row) => row.status !== "ok").map((row) => `${row.domain || row.url || "competidor"}: ${row.error}`) : ["Bypass explícito: nenhum concorrente válido com contagem de palavras; meta definida pelo piso de 2.000 palavras."],
+    };
+}
+async function buildContentResearchPacket(topic, keyword, topicSlug, keywordSlug, projectDir, args, competitorEvidence) {
+    const analysisFile = seoAnalysisFile(projectDir, keywordSlug);
+    if (!analysisFile && !args.skip_data)
+        throw new CliError(`Missing seo-analysis for this topic. Run seo-analysis for "${keyword}" or rerun with --skip-data --skip-data-confirmed --skip-data-reason "motivo claro" after the user explicitly approves the bypass.`);
     if (args.skip_data && !args.skip_data_reason)
         throw new CliError('--skip-data requires --skip-data-reason "motivo claro".');
     if (args.skip_data && !args.skip_data_confirmed)
         throw new CliError("--skip-data requires --skip-data-confirmed after explicit user approval to bypass SEO analysis.");
-    const analysisData = fs.existsSync(analysisFile) ? readJson(analysisFile) : null;
-    const mustNotMention = Array.from(new Set((analysisData?.top_results || []).map((entry) => String(entry.domain || "").trim().toLowerCase()).filter(Boolean))).sort();
-    const provenance = analysisData ? { path: path.relative(p, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason, generated_at: analysisData.generated_at } : { path: null, provider: null, provider_reason: `skip-data: ${args.skip_data_reason}` };
-    const voicePath = path.join(p, "wiki", "tom-de-voz", "index.md");
-    const [voiceFm] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
-    const voiceContext = {
-        path: fs.existsSync(voicePath) ? path.relative(p, voicePath) : null,
-        status: cleanFrontmatterValue(voiceFm.status) || "missing",
-        title: cleanFrontmatterValue(voiceFm.title) || "Tom de voz",
-    };
-    const report = {
+    const analysisData = analysisFile ? readDataFile(analysisFile) : null;
+    if (analysisData && analysisData.provider !== "dataforseo" && !(boolArg(args.provider_bypass_confirmed, false) && args.provider_bypass_reason))
+        throw new CliError("content-seo requires DataForSEO-backed seo-analysis. Use --provider-bypass-confirmed --provider-bypass-reason after explicit user approval to use secondary provider data.");
+    const domains = topResultDomains(analysisData);
+    const skyscraperWordCount = buildSkyscraperWordCount(competitorEvidence, args);
+    const evidenceSources = analysisData && analysisFile ? [path.relative(projectDir, analysisFile)] : [];
+    const processBypasses = [
+        args.skip_data ? { step: "seo-analysis", confirmed: true, reason: args.skip_data_reason, consequence: "Conteúdo não é SERP-backed para a dimensão pulada." } : null,
+        analysisData?.provider !== "dataforseo" && args.provider_bypass_confirmed ? { step: "dataforseo-serp-extract", confirmed: true, reason: args.provider_bypass_reason, consequence: "Briefing usa provedor secundário e não é DataForSEO-backed." } : null,
+        competitorEvidence?.bypass ? { step: "top-3-competitor-evidence", ...competitorEvidence.bypass } : null,
+    ].filter(Boolean);
+    const limitations = [
+        ...asStringList(analysisData?.limitations),
+        ...(skyscraperWordCount.limitations || []),
+        ...(analysisData?.keyword_metrics ? [] : ["Métricas de volume, dificuldade, tráfego, CTR e backlinks permanecem ausentes quando o provider não retorna esses dados."]),
+    ];
+    const headingThemes = competitorHeadingThemes(competitorEvidence);
+    return {
         topic,
         topic_slug: topicSlug,
         keyword,
         keyword_slug: keywordSlug,
         generated_at: nowIso(),
-        data_provenance: { seo_analysis: provenance },
-        process_bypass: args.skip_data
-            ? { step: "seo-analysis", confirmed: true, reason: args.skip_data_reason, consequence: "Briefing is not backed by SERP or competitor analysis." }
-            : null,
-        brief: {
-            intent: analysisData?.intent || "to-be-validated",
-            reader_need: "Responder com profundidade, sem cair em padrões genéricos de IA.",
-            must_include: ["definição direta no início", "critérios práticos de decisão", "exemplos brasileiros verificáveis", "próximos passos para o leitor"],
-            must_avoid: ["título em padrão americano", "URL ou slug interno em prosa", "voz de Wiki em texto público", "anchor text genérico tipo clique aqui", "menção em prosa a domínio que aparece no top_results da análise SEO", "referência a fonte externa fora de backlink Markdown", "sequência longa de parágrafos de uma linha", "metáforas traduzidas literalmente do inglês", "adjetivos vazios como robusto, completo, líder"],
-            outline: buildContentOutline(topic, analysisData),
+        data_provenance: {
+            seo_analysis: analysisData && analysisFile
+                ? { path: path.relative(projectDir, analysisFile), provider: analysisData.provider, provider_reason: analysisData.provider_reason, generated_at: analysisData.generated_at }
+                : { path: null, provider: null, provider_reason: `skip-data: ${args.skip_data_reason}` },
         },
-        voice_check: { audience: "leitor de blog público que entende SEO", tense_perspective: "terceira pessoa, voz informativa", link_test: "remover qualquer link e a frase deve continuar coerente" },
-        voice_context: voiceContext,
-        must_not_mention_in_prose: mustNotMention,
-        approval: {
-            mode: briefApproval,
-            status: briefApproval === "auto" ? "approved" : "pending",
-            approved_by: briefApproval === "auto" ? "agent:auto" : null,
-            decided_at: briefApproval === "auto" ? nowIso() : null,
-            notes: briefApproval === "auto" ? "Auto-approved by --brief-approval auto." : null,
+        process_bypass: processBypasses.length ? processBypasses : null,
+        evidence_used: evidenceSources,
+        evidence_sources: evidenceSources,
+        public_citations: contentPublicCitations(analysisData),
+        serp_competitor_domains: domains,
+        forbidden_prose_terms: domains,
+        synthesis: {
+            intent: intentSummary(analysisData?.intent),
+            reader_need: "Entender o tema e tomar uma decisão prática sem depender de promessa, jargão ou prova inventada.",
+            gaps: asStringList(analysisData?.gaps),
         },
-        draft_status: briefApproval === "auto" ? "approved-for-writing" : "briefing",
+        hypotheses: asStringList(analysisData?.improvement_hypotheses),
+        competitor_heading_themes: headingThemes,
+        skyscraper: {
+            word_count: skyscraperWordCount,
+        },
+        limitations,
+        incomplete: Boolean(analysisData?.incomplete),
     };
-    const briefPath = path.join(p, "workbench", "content", `${topicSlug}.brief.json`);
-    writeJson(briefPath, report);
-    appendOperationalLog("content-briefing", topic, [path.relative(p, briefPath)], report.approval.status, `Briefing criado em modo ${briefApproval}.`);
-    if (briefApproval === "manual") {
-        printJson({
-            ...report,
-            next_action: {
-                type: "browser-handoff",
-                handoff: "approve-briefing",
-                project_root: p,
-                brief: briefPath,
-                user_instruction: "Revise e aprove o briefing na página local aberta pelo agente.",
-            },
-        });
-        return;
+}
+function contentVoiceContext(projectDir) {
+    const voicePath = path.join(projectDir, "wiki", "tom-de-voz", "index.md");
+    const [voiceFm] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
+    return {
+        path: fs.existsSync(voicePath) ? path.relative(projectDir, voicePath) : null,
+        status: cleanFrontmatterValue(voiceFm.status) || "missing",
+        title: cleanFrontmatterValue(voiceFm.title) || "Tom de voz",
+    };
+}
+function buildContentBrief(research, projectDir, approvalMode, contextEvidence) {
+    const voiceContext = contentVoiceContext(projectDir);
+    const targetWords = Number(research.skyscraper?.word_count?.target_words || 2000);
+    const bypasses = Array.isArray(research.process_bypass) ? research.process_bypass : research.process_bypass ? [research.process_bypass] : [];
+    const outlinePlan = buildDimensionedContentOutline(research.topic, {
+        gaps: research.synthesis.gaps,
+        improvement_hypotheses: research.hypotheses,
+        competitor_heading_themes: research.competitor_heading_themes,
+    }, targetWords);
+    return {
+        topic: research.topic,
+        topic_slug: research.topic_slug,
+        keyword: research.keyword,
+        keyword_slug: research.keyword_slug,
+        language: "pt-BR",
+        market: "Brasil",
+        generated_at: nowIso(),
+        data_provenance: research.data_provenance,
+        process_bypass: research.process_bypass,
+        competitor_evidence: research.data_provenance?.competitor_evidence || null,
+        context_evidence: contextEvidence,
+        evidence_sources: research.evidence_sources,
+        public_citations: research.public_citations,
+        serp_competitor_domains: research.serp_competitor_domains,
+        forbidden_prose_terms: research.forbidden_prose_terms,
+        skyscraper: research.skyscraper,
+        source_policy: {
+            evidence_sources: "local snapshots and reports only; never link these paths in public prose",
+            public_citations: "canonical public URLs only",
+            serp_competitor_domains: "SERP competitors inform gaps and must not appear in public prose",
+        },
+        voice_context: voiceContext,
+        approval: {
+            phase: "briefing",
+            mode: approvalMode,
+            status: "pending",
+            approved_by: null,
+            decided_at: null,
+            visible_missing_analysis: bypasses.map((item) => item.consequence).filter(Boolean),
+            notes: null,
+        },
+        brief: {
+            public_content_type: "article",
+            intent: research.synthesis.intent,
+            reader_need: research.synthesis.reader_need,
+            promise: `Explicar ${research.topic} com foco em aplicação prática para SEO, sem linguagem interna de processo.`,
+            target_words: targetWords,
+            must_include: ["resposta direta no início", "orientação prática", "limites de evidência", "próximo passo útil para o leitor"],
+            must_avoid: ["linguagem de Wiki, workbench, briefing, log ou agente", "promessa de ranking sem evidência", "links para arquivos locais", "menção a concorrentes da SERP em prosa", "anchors genéricos"],
+            source_requirements: ["usar URLs públicas canônicas no corpo quando houver citação externa", "manter snapshots e reports apenas em metadados"],
+            outline: outlinePlan.outline,
+            outline_capacity: outlinePlan.capacity,
+        },
+        draft_status: "briefing",
+    };
+}
+function renderContentBriefMarkdown(brief) {
+    const b = brief.brief || {};
+    const outline = Array.isArray(b.outline) ? b.outline : [];
+    const capacity = b.outline_capacity || {};
+    const limitations = [
+        ...asStringList(brief.context_evidence?.limitations),
+        ...asStringList(brief.skyscraper?.word_count?.limitations),
+        ...asStringList(brief.approval?.visible_missing_analysis),
+    ];
+    const evidence = asStringList(brief.evidence_sources);
+    const forbidden = asStringList(brief.forbidden_prose_terms);
+    const line = (value) => String(value || "não informado");
+    return `# Briefing: ${line(brief.topic)}
+
+Este é o artefato principal para revisão humana. O YAML continua sendo o contrato estruturado, mas a aprovação editorial deve considerar este Markdown e, preferencialmente, acontecer pelo Web Companion no navegador.
+
+## Resumo
+
+- Keyword principal: ${line(brief.keyword)}
+- Mercado e idioma: ${line(brief.market)} · ${line(brief.language)}
+- Intenção de busca: ${line(b.intent)}
+- Necessidade do leitor: ${line(b.reader_need)}
+- Promessa editorial: ${line(b.promise)}
+- Meta de palavras: ${line(b.target_words)}
+
+## Capacidade do outline
+
+- H2 mínimos para a meta: ${line(capacity.min_h2_sections)}
+- H2 planejados: ${line(capacity.planned_h2_sections)}
+- Palavras planejadas: ${line(capacity.planned_words)}
+- Suporta a meta: ${capacity.can_support_target ? "sim" : "não"}
+
+## Evidências e limites
+
+- Análise SEO: ${line(brief.data_provenance?.seo_analysis?.path)}
+- Evidência Top 3: ${line(brief.competitor_evidence?.path)}
+- Contexto de Wiki: ${line(brief.context_evidence?.path)}
+- Tom de voz: ${line(brief.context_evidence?.voice_evidence?.path || brief.voice_context?.path)} (${line(brief.context_evidence?.voice_evidence?.status || brief.voice_context?.status)})
+${evidence.length ? evidence.map((item) => `- Fonte de evidência: ${item}`).join("\n") : "- Fonte de evidência: não informada"}
+${limitations.length ? limitations.map((item) => `- Limitação: ${item}`).join("\n") : "- Limitação: nenhuma limitação adicional registrada"}
+
+## Outline publicável
+
+${outline.map((item) => {
+        const level = Number(item.level) || 2;
+        const prefix = level === 1 ? "#" : "##";
+        const budget = Number(item.word_budget || 0) > 0 ? ` · orçamento aproximado: ${item.word_budget} palavras` : "";
+        return `${prefix} ${line(item.title)}${budget}\n\n${line(item.purpose)}`;
+    }).join("\n\n")}
+
+## Diretrizes de escrita
+
+${asStringList(b.must_include).map((item) => `- Incluir: ${item}`).join("\n") || "- Incluir: resposta direta e orientação prática"}
+${asStringList(b.must_avoid).map((item) => `- Evitar: ${item}`).join("\n") || "- Evitar: linguagem interna e promessa sem evidência"}
+${forbidden.length ? forbidden.map((item) => `- Não mencionar em prosa pública: ${item}`).join("\n") : "- Não mencionar em prosa pública: nenhum termo adicional registrado"}
+
+## Próximo passo recomendado
+
+Revise este briefing pelo Web Companion no navegador para aprovar, pedir reescrita ou rejeitar. A aprovação gera o rascunho em artifacts, mas não publica o conteúdo na Wiki.
+`;
+}
+function resolveContentPaths(projectDir, args) {
+    const topic = required(args, "topic");
+    const keyword = args.keyword || topic;
+    const topicSlug = slugify(topic);
+    const keywordSlug = slugify(keyword);
+    const workDir = contentWorkbenchDir(projectDir, topicSlug);
+    const artifactDir = contentArtifactsDir(projectDir, topicSlug);
+    return {
+        topic,
+        topicSlug,
+        keyword,
+        keywordSlug,
+        workDir,
+        artifactDir,
+        researchPath: path.join(workDir, "research.yaml"),
+        competitorEvidencePath: path.join(workDir, "competitor-evidence.yaml"),
+        contextEvidencePath: path.join(workDir, "context-evidence.yaml"),
+        briefPath: path.join(workDir, "brief.yaml"),
+        briefMarkdownPath: path.join(workDir, "brief.md"),
+        draftPath: contentDraftFile(projectDir, topicSlug),
+        checkPath: contentCheckFile(projectDir, topicSlug),
+        wordCountPath: contentWordCountFile(projectDir, topicSlug),
+        reviewPath: contentReviewFile(projectDir, topicSlug),
+    };
+}
+function assertBriefReadyForWriting(brief, projectDir) {
+    if (brief.approval?.status !== "approved")
+        throw new CliError("Briefing is not approved. Stop at the approval gate before writing.");
+    if (!["approved-for-writing", "draft", "reviewed", "checks-failed"].includes(String(brief.draft_status || "")))
+        throw new CliError("Briefing is not approved for writing.");
+    if (!brief.brief?.public_content_type)
+        throw new CliError("Briefing is missing public content type.");
+    const seoPath = brief.data_provenance?.seo_analysis?.path;
+    if (!brief.process_bypass && (!seoPath || !fs.existsSync(path.join(projectDir, seoPath))))
+        throw new CliError("Briefing is missing valid seo-analysis provenance.");
+}
+function validateContextEvidenceForApproval(brief, projectDir, notes = "") {
+    const errors = [];
+    const competitorEvidencePath = brief.competitor_evidence?.path ? path.join(projectDir, String(brief.competitor_evidence.path)) : "";
+    if (!brief.competitor_evidence?.path || !fs.existsSync(competitorEvidencePath))
+        errors.push("missing-competitor-evidence-file");
+    const context = brief.context_evidence;
+    if (!context || typeof context !== "object")
+        errors.push("missing-context-evidence");
+    const contextPath = context?.path ? path.join(projectDir, String(context.path)) : "";
+    if (!context?.path || !fs.existsSync(contextPath))
+        errors.push("missing-context-evidence-file");
+    const wikiPages = Array.isArray(context?.wiki_pages_read) ? context.wiki_pages_read : [];
+    if (!wikiPages.length)
+        errors.push("missing-wiki-pages-read");
+    for (const page of wikiPages) {
+        if (!page?.path || !page?.status || !("content_hash_sha256" in page))
+            errors.push(`invalid-wiki-evidence:${page?.path || "unknown"}`);
+        if (page?.status !== "missing" && !page?.content_hash_sha256)
+            errors.push(`missing-wiki-hash:${page?.path || "unknown"}`);
     }
-    let approvedReport = report;
-    if (briefApproval === "handoff") {
-        const handoff = (0, node_child_process_1.spawnSync)(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "approve-briefing", "--project-root", p, "--brief", briefPath], {
-            cwd: ROOT,
-            encoding: "utf8",
-            env: process.env,
-        });
-        if (handoff.stderr)
-            process.stderr.write(handoff.stderr);
-        if (handoff.status !== 0)
-            throw new CliError(`Briefing approval handoff failed: ${handoff.stderr || handoff.stdout || "unknown error"}`);
-        let handoffResult = {};
-        try {
-            handoffResult = JSON.parse(handoff.stdout || "{}");
-        }
-        catch {
-            throw new CliError("Briefing approval handoff returned invalid JSON.");
-        }
-        if (!handoffResult.ok || handoffResult.status !== "approved") {
-            printJson({ ...readJson(briefPath), handoff: handoffResult });
+    const voice = context?.voice_evidence;
+    if (!voice || typeof voice !== "object" || !voice.path || !voice.status || !("content_hash_sha256" in voice))
+        errors.push("missing-voice-evidence");
+    if (voice?.status !== "missing" && !voice?.content_hash_sha256)
+        errors.push("missing-voice-hash");
+    if (voice?.status !== "approved" && !/\b(voz|voice|tom)\b/i.test(notes))
+        errors.push("voice-context-not-acknowledged");
+    if (brief.brief?.outline_capacity?.can_support_target !== true)
+        errors.push("outline-cannot-support-target");
+    if (errors.length)
+        throw new CliError(`Briefing approval blocked: ${Array.from(new Set(errors)).join(", ")}`);
+}
+function contentTargetWords(brief) {
+    const value = Number(brief.skyscraper?.word_count?.target_words || brief.brief?.target_words || 2000);
+    return Number.isFinite(value) && value > 0 ? Math.trunc(value) : 2000;
+}
+function renderContentDraft(brief) {
+    const topic = String(brief.topic || "Conteúdo");
+    const keyword = String(brief.keyword || topic);
+    const slug = String(brief.topic_slug || slugify(topic));
+    const targetWords = contentTargetWords(brief);
+    const fallbackOutline = buildDimensionedContentOutline(topic, null, targetWords).outline;
+    const outline = Array.isArray(brief.brief?.outline) && brief.brief.outline.length ? brief.brief.outline : fallbackOutline;
+    const sectionItems = outline.filter((item) => Number(item.level) === 2);
+    const voiceStatus = String(brief.voice_context?.status || "missing");
+    const evidenceSources = asStringList(brief.evidence_sources);
+    const citations = Array.isArray(brief.public_citations) ? brief.public_citations : [];
+    const contextEvidencePath = String(brief.context_evidence?.path || `workbench/content/${slug}/context-evidence.yaml`);
+    const citationLine = citations.length
+        ? `\n\nUma referência pública útil para aprofundar o tema é [${String(citations[0].title)}](${String(citations[0].url)}).`
+        : "";
+    const sections = sectionItems.map((item) => `## ${String(item.title || "Seção")}\n\n${String(item.purpose || "Desenvolver esta seção com orientação pública, evidência proporcional e próximos passos claros.")}`).join("\n\n");
+    return `---\ntitle: ${yamlString(topic)}\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\npublic_content: true\ncontent_type: article\nurl: "/${slug}/"\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nbrief_status: approved\nvoice_status: ${yamlString(voiceStatus)}\ntarget_words: ${targetWords}\nsource_policy: cited-public-claims\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\napproval_status: pending\napproved_by: null\napproved_at: null\n---\n\n# ${topic}\n\n${topic} é uma busca que precisa entregar uma resposta clara, útil e proporcional ao que já pode ser comprovado. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar como aplicar a ideia e deixar explícitos os limites da orientação.${citationLine}\n\n${sections}\n`;
+}
+function markdownH2Count(text) {
+    const [, body] = parseFrontmatter(text);
+    return (body.match(/^##\s+\S/gm) || []).length;
+}
+function runContentPublicationCheck(brief, draftPath, checkPath, wordCountPath, reviewPath) {
+    if (!fs.existsSync(draftPath))
+        throw new CliError(`Draft not found: ${draftPath}`);
+    const text = fs.readFileSync(draftPath, "utf8");
+    const issues = validatePublicContentDraft(text, brief);
+    const targetWords = contentTargetWords(brief);
+    const counted = countVisibleMarkdownWords(text);
+    const actualWords = Number(counted.words);
+    const gapWords = Math.max(0, targetWords - actualWords);
+    const minH2Sections = Math.ceil(targetWords / 500);
+    const actualH2Sections = markdownH2Count(text);
+    const route = gapWords === 0 ? "pass" : actualH2Sections < minH2Sections ? "return_to_briefing" : "return_to_writer";
+    const wordCount = {
+        ok: gapWords === 0,
+        checked_at: nowIso(),
+        draft: draftPath,
+        target_words: targetWords,
+        actual_words: actualWords,
+        gap_words: gapWords,
+        min_h2_sections: minH2Sections,
+        actual_h2_sections: actualH2Sections,
+        route,
+        rationale: gapWords === 0
+            ? "Conteúdo atingiu a meta determinística de palavras."
+            : route === "return_to_briefing"
+                ? "Conteúdo está curto e o outline tem poucas seções H2 para a meta; volte ao briefing."
+                : "Conteúdo está curto, mas o outline comporta expansão; volte ao redator.",
+        method: counted.method,
+    };
+    if (!wordCount.ok)
+        issues.push(`word-count below target: ${actualWords}/${targetWords}`);
+    const result = { ok: issues.length === 0 && wordCount.ok, checked_at: nowIso(), draft: draftPath, issues: Array.from(new Set(issues)), word_count_path: wordCountPath, review_path: reviewPath };
+    const review = {
+        ok: result.ok,
+        reviewed_at: result.checked_at,
+        draft: draftPath,
+        route,
+        findings: result.issues,
+        recommendation: result.ok ? "ready_for_final_approval" : route,
+    };
+    writeYaml(wordCountPath, wordCount);
+    writeYaml(reviewPath, review);
+    writeYaml(checkPath, result);
+    return result;
+}
+function writeApprovedContentDraft(brief, projectDir, paths, briefPath, actor, trigger) {
+    assertBriefReadyForWriting(brief, projectDir);
+    const draft = renderContentDraft(brief);
+    writeText(paths.draftPath, draft);
+    brief.draft_status = "draft";
+    brief.draft_path = path.relative(projectDir, paths.draftPath);
+    brief.updated_at = nowIso();
+    writeContentBrief(briefPath, brief);
+    appendOperationalLog("content-draft", paths.topic, [path.relative(projectDir, paths.draftPath), path.relative(projectDir, briefPath)], "draft", `Rascunho público de SEO escrito em artifacts por ${trigger}; ainda não publicado na Wiki.`, actor ? `Actor: ${actor}` : undefined);
+    return { draft_path: paths.draftPath, brief_path: briefPath, draft_status: brief.draft_status };
+}
+async function commandContentSeo(args) {
+    const p = ensureProject();
+    const phase = String(args.phase || "brief").trim().toLowerCase();
+    if (!["brief", "approve", "write", "review", "check", "promote"].includes(phase))
+        throw new CliError("Unsupported --phase. Use brief, approve, write, review, check, or promote.");
+    const paths = resolveContentPaths(p, args);
+    if (phase === "brief") {
+        const approvalMode = String(args.brief_approval || "manual").trim().toLowerCase();
+        if (!["manual", "handoff"].includes(approvalMode))
+            throw new CliError("Unsupported --brief-approval. Auto approval was removed; use manual or handoff.");
+        const analysisPath = seoAnalysisFile(p, paths.keywordSlug);
+        if (!analysisPath && !args.skip_data)
+            throw new CliError(`Missing seo-analysis for this topic. Run seo-analysis for "${paths.keyword}" or rerun with --skip-data --skip-data-confirmed --skip-data-reason "motivo claro" after the user explicitly approves the bypass.`);
+        if (args.skip_data && !args.skip_data_reason)
+            throw new CliError('--skip-data requires --skip-data-reason "motivo claro".');
+        if (args.skip_data && !args.skip_data_confirmed)
+            throw new CliError("--skip-data requires --skip-data-confirmed after explicit user approval to bypass SEO analysis.");
+        const analysisData = analysisPath ? readDataFile(analysisPath) : null;
+        const competitorEvidence = await buildCompetitorEvidence(analysisData, args);
+        const research = await buildContentResearchPacket(paths.topic, paths.keyword, paths.topicSlug, paths.keywordSlug, p, args, competitorEvidence);
+        research.data_provenance.competitor_evidence = { path: path.relative(p, paths.competitorEvidencePath), required: true };
+        research.evidence_sources = Array.from(new Set([...(research.evidence_sources || []), path.relative(p, paths.competitorEvidencePath)]));
+        research.evidence_used = research.evidence_sources;
+        const contextEvidence = buildContentContextEvidence(p, paths.topicSlug);
+        const brief = buildContentBrief(research, p, approvalMode, summarizeContextEvidence(contextEvidence, p, paths.contextEvidencePath));
+        writeYaml(paths.researchPath, research);
+        writeYaml(paths.competitorEvidencePath, competitorEvidence);
+        writeYaml(paths.contextEvidencePath, contextEvidence);
+        writeYaml(paths.briefPath, brief);
+        writeText(paths.briefMarkdownPath, renderContentBriefMarkdown(brief));
+        appendOperationalLog("content-briefing", paths.topic, [path.relative(p, paths.researchPath), path.relative(p, paths.competitorEvidencePath), path.relative(p, paths.contextEvidencePath), path.relative(p, paths.briefPath), path.relative(p, paths.briefMarkdownPath)], "pending", "Briefing criado com evidência de Top 3, Wiki/tom de voz, Markdown de revisão e aguardando aprovação humana.");
+        if (approvalMode === "handoff") {
+            const handoff = (0, node_child_process_1.spawnSync)(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "approve-briefing", "--project-root", p, "--brief", paths.briefPath], {
+                cwd: ROOT,
+                encoding: "utf8",
+                env: process.env,
+            });
+            if (handoff.stderr)
+                process.stderr.write(handoff.stderr);
+            if (handoff.status !== 0)
+                throw new CliError(`Briefing approval handoff failed: ${handoff.stderr || handoff.stdout || "unknown error"}`);
+            printJson({ ok: true, phase, status: "approval_recorded", brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, draft_path: fs.existsSync(paths.draftPath) ? paths.draftPath : null, brief: readYaml(paths.briefPath) });
             return;
         }
-        approvedReport = readJson(briefPath);
-    }
-    if (approvedReport.approval?.status !== "approved") {
-        printJson(approvedReport);
+        printJson({ ok: true, phase, status: "approval_required", approval_options: ["chat", "companion"], web_companion: { available: true, recommended: true, type: "approve-briefing" }, research_path: paths.researchPath, competitor_evidence_path: paths.competitorEvidencePath, context_evidence_path: paths.contextEvidencePath, brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, competitor_evidence: brief.competitor_evidence, context_evidence: brief.context_evidence, brief });
         return;
     }
-    approvedReport.draft_status = "draft";
-    writeJson(briefPath, approvedReport);
-    writeText(path.join(p, "wiki", "conteudos", `${topicSlug}.md`), renderContentDraft(approvedReport));
-    appendOperationalLog("content-draft", topic, [`conteudos/${topicSlug}`], "draft", "Conteúdo escrito a partir de briefing aprovado e tom de voz registrado.");
-    printJson(approvedReport);
+    const briefPath = contentBriefFile(p, paths.topicSlug) || paths.briefPath;
+    if (!fs.existsSync(briefPath))
+        throw new CliError(`Briefing not found: ${briefPath}`);
+    const brief = readContentBrief(briefPath);
+    if (phase === "approve") {
+        const decision = String(args.decision || "approved").trim().toLowerCase();
+        if (!["approved", "needs-rewrite", "rejected"].includes(decision))
+            throw new CliError("--decision must be approved, needs-rewrite, or rejected.");
+        const approvedBy = String(args.approved_by || args.by || "").trim();
+        if (!approvedBy)
+            throw new CliError("--approved-by is required to approve or reject a briefing.");
+        const notes = String(args.approval_notes || args.notes || "").trim();
+        if (decision === "approved")
+            validateContextEvidenceForApproval(brief, p, notes);
+        brief.approval = {
+            phase: "briefing",
+            mode: brief.approval?.mode || "chat",
+            status: decision,
+            approved_by: decision === "approved" ? approvedBy : null,
+            decided_at: nowIso(),
+            notes: notes || null,
+            visible_missing_analysis: brief.approval?.visible_missing_analysis || [],
+        };
+        if (decision !== "approved") {
+            brief.draft_status = decision;
+            writeContentBrief(briefPath, brief);
+            appendOperationalLog("content-briefing-approval", paths.topic, [path.relative(p, briefPath)], decision, `Briefing marcado como ${decision} por ${approvedBy}.`, notes || undefined);
+            printJson({ ok: true, phase, status: decision, brief_path: briefPath, draft_path: null });
+            return;
+        }
+        brief.draft_status = "approved-for-writing";
+        const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, approvedBy, "briefing approval");
+        appendOperationalLog("content-briefing-approval", paths.topic, [path.relative(p, briefPath), path.relative(p, paths.draftPath)], "approved", `Briefing aprovado por ${approvedBy}; draft gerado automaticamente em artifacts.`, notes || undefined);
+        printJson({ ok: true, phase, status: "draft_created", decision, brief_path: briefPath, draft_path: draftResult.draft_path, context_evidence: brief.context_evidence });
+        return;
+    }
+    if (phase === "write") {
+        assertBriefReadyForWriting(brief, p);
+        validateContextEvidenceForApproval(brief, p, String(brief.approval?.notes || ""));
+        const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, String(brief.approval?.approved_by || "agent"), "write phase");
+        printJson({ ok: true, phase, draft_path: draftResult.draft_path, brief_path: briefPath });
+        return;
+    }
+    if (phase === "review" || phase === "check") {
+        const result = runContentPublicationCheck(brief, paths.draftPath, paths.checkPath, paths.wordCountPath, paths.reviewPath);
+        brief.draft_status = result.ok && phase === "review" ? "reviewed" : result.ok ? "checked" : "checks-failed";
+        writeContentBrief(briefPath, brief);
+        appendOperationalLog("content-check", paths.topic, [path.relative(p, paths.draftPath), path.relative(p, paths.checkPath), path.relative(p, paths.wordCountPath), path.relative(p, paths.reviewPath)], result.ok ? "passed" : "failed", `${result.issues.length} bloqueios encontrados.`);
+        printJson({ ...result, phase });
+        if (!result.ok)
+            throw new CliError("Content publication checks failed.");
+        return;
+    }
+    const approvedBy = args.approved_by ? String(args.approved_by).trim() : "";
+    if (!approvedBy)
+        throw new CliError("--approved-by is required for final approval before promotion.");
+    if (!fs.existsSync(paths.checkPath))
+        throw new CliError("Publication checks must pass before promotion.");
+    const check = readYaml(paths.checkPath);
+    if (!check.ok)
+        throw new CliError("Last publication checks did not pass.");
+    if (fs.existsSync(paths.wordCountPath) && !readYaml(paths.wordCountPath).ok)
+        throw new CliError("Word-count gate did not pass.");
+    const target = path.join(p, "wiki", "conteudos", `${paths.topicSlug}.md`);
+    writeText(target, fs.readFileSync(paths.draftPath, "utf8"));
+    setFrontmatterValue(target, { status: "published", approval_status: "published", approved_by: yamlString(approvedBy), approved_at: yamlString(nowIso()) });
+    brief.draft_status = "published";
+    brief.publication = { status: "published", path: path.relative(p, target), approved_by: approvedBy, approved_at: nowIso() };
+    writeContentBrief(briefPath, brief);
+    appendOperationalLog("content-promote", paths.topic, [path.relative(p, target), path.relative(p, briefPath), path.relative(p, paths.checkPath)], "published", `Conteúdo público publicado por ${approvedBy}.`);
+    printJson({ ok: true, phase, promoted_path: target, approved_by: approvedBy });
 }
 async function commandTechnicalSeo(args) {
     let html;
@@ -1931,11 +2882,11 @@ async function commandTechnicalSeo(args) {
     const result = auditTechnicalSeo(extracted, { pageType, source, status, headers });
     const p = ensureProject();
     const basename = `${stamp()}-${pageType}`;
-    const outJson = path.join(p, "workbench", "technical-seo", `${basename}.json`);
+    const outYaml = path.join(p, "workbench", "technical-seo", `${basename}.yaml`);
     const outMd = path.join(p, "workbench", "technical-seo", `${basename}.md`);
-    writeJson(outJson, result);
+    writeYaml(outYaml, result);
     writeText(outMd, renderTechnicalMarkdown(result));
-    appendLog("technical-seo", pageType, [path.relative(p, outJson), path.relative(p, outMd)], "Auditoria técnica determinística executada.", "not-required");
+    appendLog("technical-seo", pageType, [path.relative(p, outYaml), path.relative(p, outMd)], "Auditoria técnica determinística executada.", "not-required");
     printJson(result);
 }
 async function commandNextWebsiteCreator(args) {

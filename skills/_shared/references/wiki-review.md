@@ -56,7 +56,7 @@ Se o reviewer retornar `proposed-changes`, a skill chamadora:
 1. NÃO persiste as mudanças em silêncio.
 2. Pergunta ao usuário qual mecanismo de revisão usar:
    - in-chat: resumo em prosa + bloco de diff por arquivo;
-   - browser handoff: a skill chamadora executa o companion local e abre uma página com editor por arquivo (textarea pré-carregado com o v2 do reviewer, frontmatter editável), tabs de diff (vs v1, vs proposta), tabs de notas do reviewer (seções removidas, alegações suavizadas, AI-tells), botões de restaurar v1 / restaurar proposta. O usuário não aprova ou rejeita: ele submete o conteúdo final por arquivo. O ato de submeter é a aprovação.
+   - browser handoff: peça permissão para abrir uma janela local no navegador e, com aceite, a skill chamadora executa o companion local. A página contém editor por arquivo (textarea pré-carregado com o v2 do reviewer, frontmatter editável), tabs de diff (vs v1, vs proposta), tabs de notas do reviewer (seções removidas, alegações suavizadas, AI-tells), botões de restaurar v1 / restaurar proposta. O usuário não aprova ou rejeita: ele submete o conteúdo final por arquivo. O ato de submeter é a aprovação. Não mostre comandos `node scripts/companion.mjs ...` como UX principal.
    Sugestão padrão: in-chat para ≤ 2 arquivos; handoff acima disso. A escolha é sempre confirmada com o usuário.
 
    Formato do `proposal.json` consumido pelo handoff:

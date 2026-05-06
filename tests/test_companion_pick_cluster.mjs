@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import YAML from "yaml";
 
 const tmp = mkdtempSync(join(tmpdir(), "seo-brain-uc3-"));
 process.env.HOME = tmp;
@@ -169,7 +170,7 @@ const supportingInput = (proposal, decisions) =>
   const wiki = readFileSync(result.wiki, "utf8");
   assert.ok(wiki.includes("Cluster: SEO Agêntico — guia 2026"));
   assert.ok(wiki.includes("rota institucional"));
-  const report = JSON.parse(readFileSync(result.report, "utf8"));
+  const report = YAML.parse(readFileSync(result.report, "utf8"));
   assert.deepEqual(report.pillar.user_overrides, {
     display_title: "SEO Agêntico — guia 2026",
     judgment: "rota institucional",

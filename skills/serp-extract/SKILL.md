@@ -27,9 +27,10 @@ Writes only:
 ## Required Behavior
 
 - Store raw provider response.
+- Store normalized runtime data as YAML; raw provider responses stay `.raw.json`.
 - Default to `standard` mode (`task_post` + `task_get`), unless the user asks for `live`, `async`, or `offline`.
 - Default location and language come from `.seo-brain/project.json` / `wiki/index.md`; do not silently use an English/global SERP for a project whose country/language is Brazil/pt-BR.
-- Normalize organic results and SERP features into stable JSON.
+- Normalize organic results and SERP features into stable YAML.
 - Record timestamp, provider, location, language, and device.
 - Deduplicate URLs.
 - Do not infer rankings from stale or missing data.

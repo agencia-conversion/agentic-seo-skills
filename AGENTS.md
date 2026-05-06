@@ -66,7 +66,11 @@ Every SEO Brain project should use Obsidian-compatible Markdown and separate sou
 - Strategic pages require explicit human approval.
 - Operational and observational pages may be updated by agents when checks pass.
 - Important events must be appended to `wiki/log/index.md`. Each entry must declare a `type` of `strategic-approval` or `operational-decision` so events can be filtered by audience.
-- The wiki never holds drafts or hypotheses. Pages either reflect approved/measured state or do not exist yet. Hypothetical or unverified work lives only under `project/workbench/` until promoted by explicit human approval (for strategic pages) or by passing automated checks (for operational pages).
+- The wiki never holds drafts or hypotheses. Pages either reflect approved/measured state or do not exist yet.
+- `project/workbench/` is only for construction: research, briefing, auxiliary analysis, and intermediate context.
+- Complete deliverables, including v0 artifacts, live in `project/artifacts/`; content drafts live in `project/artifacts/contents/<slug>/`.
+- Public content also lives in `project/wiki/conteudos/` only after final approval and `status: published`.
+- Hypothetical or unverified strategic work stays outside the Wiki until explicit human approval; operational pages may be promoted only after automated checks pass.
 
 Required strategic approval pages:
 
@@ -80,6 +84,7 @@ Required strategic approval pages:
 For previews, approvals, sensitive input, and option selection, prefer a local browser handoff over terminal interaction.
 
 - Implementation lives in `scripts/companion.mjs` and templates under `templates/companion/`.
+- Do not show users raw `node scripts/companion.mjs ...` commands as the primary handoff UX. Ask whether you may open a local browser window for the approval, preview, or sensitive input flow, then run the companion yourself when the user agrees.
 - Each handoff binds to `127.0.0.1` on an ephemeral port, requires a one-time token, validates `Origin`/`Host`, and shuts down on submit, cancel, or TTL expiry.
 - Sensitive values (credentials, API keys) are never echoed to agent stdout, never logged in full, and never written to the repo root `.env`. They are stored via Claude Code `userConfig` when running as a plugin, or in `project/.env.local` when running standalone.
 - Handoff state lives outside `project/` (in `.companion/handoffs/`, gitignored) so skill `Writes only` contracts remain intact.

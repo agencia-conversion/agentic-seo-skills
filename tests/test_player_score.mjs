@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
+import YAML from "yaml";
 
 const root = resolve(import.meta.dirname, "..");
 const bin = resolve(root, "bin", "seo-brain");
@@ -24,7 +25,7 @@ const fixtures = JSON.stringify({
 });
 
 function writeSerp(results) {
-  writeFileSync(resolve(sourceDir, "seo-player-score.json"), JSON.stringify({ keyword, results }, null, 2), "utf8");
+  writeFileSync(resolve(sourceDir, "seo-player-score.yaml"), YAML.stringify({ keyword, results }, { lineWidth: 0 }), "utf8");
 }
 
 function run(targetUrl) {
@@ -36,6 +37,9 @@ function run(targetUrl) {
       keyword,
       "--provider",
       "websearch",
+      "--websearch-confirmed",
+      "--websearch-reason",
+      "teste player score com fixtures",
       "--player-score",
       "--target-url",
       targetUrl,
@@ -60,6 +64,9 @@ function runDomain(targetDomain) {
       keyword,
       "--provider",
       "websearch",
+      "--websearch-confirmed",
+      "--websearch-reason",
+      "teste player score com fixtures",
       "--player-score",
       "--target-domain",
       targetDomain,

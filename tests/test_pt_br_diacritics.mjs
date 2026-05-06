@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import YAML from "yaml";
 
 const root = resolve(import.meta.dirname, "..");
 const bin = resolve(root, "bin", "seo-brain");
@@ -47,22 +48,23 @@ function jsonHumanStrings(value, out = []) {
 
 try {
   run("project-init", "Projeto de acentuação", "--language", "pt-BR");
-  run("seo-analysis", "--keyword", "seo agêntico", "--provider", "websearch");
+  run("seo-analysis", "--keyword", "seo agêntico", "--provider", "websearch", "--websearch-confirmed", "--websearch-reason", "teste de acentuação sem DataForSEO");
   run("topic-cluster", "--seed", "seo agêntico");
-  run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico");
+  run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico", "--provider-bypass-confirmed", "--provider-bypass-reason", "teste de acentuação sem DataForSEO", "--top3-bypass-confirmed", "--top3-bypass-reason", "teste de acentuação sem Top 3");
+  run("content-seo", "--phase", "approve", "--topic", "O que é SEO agêntico", "--approved-by", "Teste", "--approval-notes", "Tom de voz em draft reconhecido.");
   run("technical-seo", "--html-file", join(root, "tests", "fixtures", "technical-seo-valid.html"), "--page-type", "blog-post");
   run("next-website-creator");
 
-  const markdown = [...walk(join(project, "wiki")), ...walk(join(project, "workbench"))]
+  const markdown = [...walk(join(project, "wiki")), ...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]
     .filter((file) => file.endsWith(".md"))
     .map((file) => markdownProse(readFileSync(file, "utf8")))
     .join("\n");
-  const jsonOutput = walk(join(project, "workbench"))
-    .filter((file) => file.endsWith(".json"))
-    .flatMap((file) => jsonHumanStrings(JSON.parse(readFileSync(file, "utf8"))))
+  const structuredOutput = [...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]
+    .filter((file) => file.endsWith(".json") || file.endsWith(".yaml"))
+    .flatMap((file) => jsonHumanStrings(file.endsWith(".yaml") ? YAML.parse(readFileSync(file, "utf8")) : JSON.parse(readFileSync(file, "utf8"))))
     .join("\n");
   const webText = walk(join(project, "web")).filter((file) => file.endsWith(".tsx")).map((file) => readFileSync(file, "utf8")).join("\n");
-  const humanText = `${markdown}\n${jsonOutput}\n${webText}`;
+  const humanText = `${markdown}\n${structuredOutput}\n${webText}`;
 
   for (const term of ["aprovacao", "pagina", "conteudo", "analise", "evidencia", "nao", "ate", "tecnico"]) {
     assert.doesNotMatch(humanText, new RegExp(`\\b${term}\\b`, "i"), `unaccented pt-BR term leaked: ${term}`);

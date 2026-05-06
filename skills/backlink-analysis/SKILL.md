@@ -35,11 +35,7 @@ Writes only:
 bin/seo-brain backlink-analysis --target <domain-or-url> --mode standard --limit 10
 ```
 
-- If credentials are missing, invoke setup before retrying:
-
-```bash
-bin/seo-brain data-setup --handoff
-```
+- If credentials are missing, ask whether you may open a local browser window for secure setup, then invoke setup before retrying. Do not present raw companion commands as the primary UX.
 
 - For competitors, use one comma-separated argument:
 

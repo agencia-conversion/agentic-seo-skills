@@ -32,6 +32,10 @@ Writes only:
 - `project/workbench/topic-cluster/<seed-slug>.json`
 - `project/wiki/conteudos/topic-clusters.md` (auto-generated, projection of all cluster JSONs)
 
+## Hard Precondition
+
+Production-grade clusters use DataForSEO suggestions and SERP batch evidence. If credentials are missing, or `--hypothesis-only` is explicit, emit a cluster with `status: hypothesis` and null metrics rather than fabricating data.
+
 ## Required Behavior
 
 - Default path runs DataForSEO `keyword_suggestions` for the seed and a SERP batch (`serp/google/organic`) for pillar + selected supports. The SERP listing alone is enough; do not fetch article HTML.

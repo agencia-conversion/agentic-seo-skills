@@ -22,6 +22,6 @@ bin/seo-brain backlink-analysis --target <domain> --competitors "competitor-a.co
 
 DataForSEO Backlinks API v3 is live-only for this flow. SEO Brain accepts `standard` as the default UX, executes `/live` endpoints, records `requested_mode`, and rejects `async`.
 
-If credentials are missing, run `bin/seo-brain data-setup --handoff` and retry the backlink command after the user submits the local web form.
+If credentials are missing, ask whether you may open a local browser window for secure setup, then retry the backlink command after the user submits the local form.
 
 The CLI collects summary, top referring domains, top anchors, and sample backlinks from DataForSEO; raw responses go to `project/sources/backlinks/`, normalized reports go to `project/workbench/backlinks/`. Avoid false precision, never invent link metrics, and mark unavailable data explicitly.
