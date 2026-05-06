@@ -28,6 +28,20 @@ function run(...args) {
   }
 }
 
+function dataforseoBypassArgs(reason) {
+  return [
+    "--dataforseo-bypass-confirmed",
+    "--dataforseo-bypass-reason",
+    reason,
+    "--dataforseo-bypass-approved-by",
+    "Smoke Test",
+    "--dataforseo-bypass-confirmation-text",
+    "Confirmo seguir sem DataForSEO neste smoke test.",
+    "--dataforseo-bypass-confirmed-at",
+    "2026-05-06T00:00:00+00:00",
+  ];
+}
+
 function main() {
   run("project-init", "Smoke test");
   const lint = run("wiki-lint");
@@ -53,7 +67,7 @@ function main() {
     serp_features: [],
   }, { lineWidth: 0 }));
   run("seo-analysis", "--keyword", "seo agêntico");
-  run("topic-cluster", "--seed", "seo agêntico", "--hypothesis-only");
+  run("topic-cluster", "--seed", "seo agêntico", "--hypothesis-only", ...dataforseoBypassArgs("smoke test hypothesis-only sem DataForSEO"));
   const eeatInit = spawnSync("node", [path.join(ROOT, "scripts", "eeat.mjs"), "init", "--mode", "wiki", "--slug", "smoke"], {
     cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR },
   });

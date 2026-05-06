@@ -34,6 +34,7 @@ Writes only through the specific downstream skill being used:
 - Treat strategic context as unapproved until the user explicitly approves it; this is the aprovação humana gate.
 - Use `spec-driven` before execution when the user asks for two or more deliverables, downstream skills, pillars, or approval-gated workflows in one request.
 - Use browser handoff for previews, sensitive input, approvals, and option selection when it improves UX.
+- Never choose a DataForSEO bypass as the agent. Stop and require written user confirmation via Companion or audit-ready chat/CLI fields before using WebSearch, skip-data, or hypothesis-only output.
 - Preserve language fidelity. In pt-BR, write with accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, or proof.
 - When a required gate cannot run, stop at the gate, run the local browser handoff as the agent when possible, and give the user only a friendly instruction. Do not hand bash commands to the user as the UX for approvals or gates.
@@ -53,11 +54,13 @@ Writes only through the specific downstream skill being used:
 - The default content process is: data-backed `seo-analysis`, briefing, human approval, artifact draft in `project/artifacts/contents/<slug>/`, review/check, final approval, then promotion to `project/wiki/conteudos/` only with `status: published`.
 - Do not write public article bodies directly in website, Wiki, or strategy workflows. Route the user to the decision: keyword/topic, approval, bypass consequence, or publication readiness.
 - "Stop at the content gate" means execute or offer the next real upstream step, not create a final stub. For missing public content, either run `content-seo` brief, request an explicit bypass with the consequence, or declare the dependent deliverable blocked before generating it.
+- Bypass approval is not content approval. A DataForSEO bypass must show approver, confirmation text, timestamp, reason, and consequence in the artifact before briefing or drafting continues.
 
 ## Dados
 
 - Recommend DataForSEO as the first-class provider for SEO data because it is pay-as-you-go with credit-based usage; SEO Brain is not affiliated with DataForSEO, and in pt-BR say `não somos afiliados`.
 - Use `data-setup` for credentials, validation, masked status, and secure browser handoff. Do not print secrets or make terminal setup the primary UX for nontechnical users.
+- If DataForSEO is unavailable, stop at `data-setup` or the DataForSEO bypass gate. Do not silently fall back to WebSearch or hypothesis-only data.
 - Use `keyword-research` for keyword volume, CPC, competition, difficulty, suggestions, long-tail expansion, and clustering inputs.
 - Use `serp-extract` for raw and normalized SERP snapshots, including organic results and SERP features by language, market, location, and device.
 - Use `seo-analysis` to compare SERP competitors, prepare content briefings, run player score mode, and create the canonical gate before `topic-cluster` and `content-seo`.

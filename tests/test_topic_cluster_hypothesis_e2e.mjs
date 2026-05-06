@@ -16,14 +16,33 @@ function run(...args) {
   try { return JSON.parse(result.stdout); } catch { return { stdout: result.stdout }; }
 }
 
+function bypassArgs() {
+  return [
+    "--dataforseo-bypass-confirmed",
+    "--dataforseo-bypass-reason",
+    "teste hypothesis-only sem DataForSEO",
+    "--dataforseo-bypass-approved-by",
+    "Diego Ivo",
+    "--dataforseo-bypass-confirmation-text",
+    "Confirmo seguir sem DataForSEO para este cluster hypothesis-only.",
+    "--dataforseo-bypass-confirmed-at",
+    "2026-05-06T00:00:00+00:00",
+  ];
+}
+
 try {
   run("project-init", "Topic cluster e2e");
-  const cluster = run("topic-cluster", "--seed", "agentic seo", "--hypothesis-only");
+  const blocked = spawnSync(BIN, ["topic-cluster", "--seed", "agentic seo", "--hypothesis-only"], { cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR } });
+  assert.notEqual(blocked.status, 0);
+  assert.match(blocked.stderr, /requires written approval/);
+  const cluster = run("topic-cluster", "--seed", "agentic seo", "--hypothesis-only", ...bypassArgs());
 
   // JSON schema assertions
   assert.equal(cluster.seed, "agentic seo");
   assert.equal(cluster.status, "hypothesis");
   assert.equal(cluster.data_provenance.hypothesis_only, true);
+  assert.equal(cluster.data_provenance.provider_bypass.approved_by, "Diego Ivo");
+  assert.match(cluster.data_provenance.provider_bypass.confirmation_text, /DataForSEO/);
   assert.equal(cluster.data_provenance.suggestions, null);
   assert.equal(cluster.data_provenance.serp, null);
   assert.equal(cluster.pillar.role, "pillar");
@@ -50,6 +69,7 @@ try {
 
   // Log entry written
   const log = readFileSync(path.join(PROJECT_DIR, "wiki", "log", "index.md"), "utf8");
+  assert.match(log, /dataforseo-bypass \| agentic seo/);
   assert.match(log, /topic-cluster \| agentic seo/);
   assert.match(log, /Cluster hypothesis/);
 

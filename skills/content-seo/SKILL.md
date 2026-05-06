@@ -25,7 +25,7 @@ Follow phases exactly:
 4. `review`/`check`: verify public-content identity, source policy, links, claims, pt-BR quality, and deterministic word-count target.
 5. `promote`: after checks and final approval, copy content to `project/wiki/conteudos/<slug>.md` with `status: published`.
 
-No autoapproval. If DataForSEO SERP data or Top 3 evidence is missing, stop unless the current user explicitly approved the named bypass and the artifact records the consequence.
+No autoapproval. If DataForSEO SERP data or Top 3 evidence is missing, stop unless the current user explicitly approved the named bypass and the artifact records the consequence. A DataForSEO bypass requires written confirmation with approver, confirmation text, timestamp, reason, and consequence; bypass approval is not content approval.
 
 Briefing must show evidence that the agent consumed Wiki context and `wiki/tom-de-voz/index.md`: path, status, hash, short excerpts, and limitations. Approval is blocked without `context_evidence`, `voice_evidence`, and an outline capacity check that supports the deterministic word target.
 

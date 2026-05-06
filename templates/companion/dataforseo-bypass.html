@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SEO Brain · Aprovar bypass do DataForSEO</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; background: #f7f5f0; color: #1d1b16; }
+    main { max-width: 760px; margin: 0 auto; padding: 40px 22px 56px; }
+    h1 { margin: 0 0 12px; font-size: 30px; line-height: 1.1; letter-spacing: 0; }
+    p { line-height: 1.55; }
+    .panel { border: 1px solid #d8d1c4; border-radius: 8px; background: #fffdf8; padding: 20px; margin: 20px 0; }
+    dl { display: grid; grid-template-columns: 150px 1fr; gap: 12px 18px; margin: 0; }
+    dt { font-weight: 700; color: #5a5041; }
+    dd { margin: 0; }
+    label { display: block; font-weight: 700; margin: 18px 0 7px; }
+    input, textarea { box-sizing: border-box; width: 100%; border: 1px solid #bdb4a4; border-radius: 6px; background: white; color: inherit; padding: 11px 12px; font: inherit; }
+    textarea { min-height: 120px; resize: vertical; }
+    .hint { color: #655d51; font-size: 14px; margin-top: 6px; }
+    .actions { display: flex; gap: 12px; margin-top: 22px; }
+    button { border: 1px solid #1d1b16; border-radius: 6px; padding: 10px 14px; font: inherit; font-weight: 700; cursor: pointer; }
+    button.primary { background: #1d1b16; color: white; }
+    button.secondary { background: transparent; color: #1d1b16; }
+    .error { display: none; margin-top: 16px; color: #8a1f11; font-weight: 700; }
+    .done { display: none; margin-top: 16px; color: #245c2a; font-weight: 700; }
+    code { background: #eee8dc; border-radius: 4px; padding: 1px 4px; }
+  </style>
+</head>
+<body>
+  <!--CONTEXT-->
+  <main>
+    <h1>Aprovar bypass do DataForSEO</h1>
+    <p>Este gate existe porque análises e conteúdo de SEO precisam deixar claro quando não estão apoiados por DataForSEO.</p>
+
+    <section class="panel">
+      <dl>
+        <dt>Workflow</dt><dd id="workflow"></dd>
+        <dt>Etapa</dt><dd id="step"></dd>
+        <dt>Item</dt><dd id="subject"></dd>
+        <dt>Provider usado</dt><dd id="provider"></dd>
+        <dt>Consequência</dt><dd id="consequence"></dd>
+        <dt>Alternativa</dt><dd id="alternative"></dd>
+      </dl>
+    </section>
+
+    <form id="form">
+      <label for="approver">Seu nome</label>
+      <input id="approver" name="approver" autocomplete="name" required>
+
+      <label for="reason">Motivo do bypass</label>
+      <input id="reason" name="reason" required>
+
+      <label for="confirmation">Confirmação escrita</label>
+      <textarea id="confirmation" name="confirmation_text" required></textarea>
+      <div class="hint">Escreva uma frase que mencione DataForSEO e confirme que você quer seguir sem ele, por exemplo: <code>Confirmo seguir sem DataForSEO neste briefing.</code></div>
+
+      <div class="actions">
+        <button class="primary" type="submit">Aprovar bypass</button>
+        <button class="secondary" type="button" id="cancel">Cancelar</button>
+      </div>
+      <div class="error" id="error"></div>
+      <div class="done" id="done">Bypass aprovado. Esta janela pode ser fechada.</div>
+    </form>
+  </main>
+  <script>
+    const ctx = window.__CONTEXT__;
+    const text = (id, value) => { document.getElementById(id).textContent = value || "não informado"; };
+    text("workflow", ctx.workflow);
+    text("step", ctx.step);
+    text("subject", ctx.subject);
+    text("provider", ctx.provider_used);
+    text("consequence", ctx.consequence);
+    text("alternative", ctx.recommended_alternative);
+    if (ctx.identity && ctx.identity.name) document.getElementById("approver").value = ctx.identity.name;
+    document.getElementById("reason").value = ctx.reason || "";
+
+    document.getElementById("form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      document.getElementById("error").style.display = "none";
+      const payload = Object.fromEntries(new FormData(event.currentTarget).entries());
+      const res = await fetch(location.pathname + "/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        document.getElementById("error").textContent = data.reason || "Não foi possível aprovar.";
+        document.getElementById("error").style.display = "block";
+        return;
+      }
+      document.getElementById("done").style.display = "block";
+    });
+
+    document.getElementById("cancel").addEventListener("click", async () => {
+      await fetch(location.pathname + "/cancel", { method: "POST" });
+      window.close();
+    });
+  </script>
+</body>
+</html>

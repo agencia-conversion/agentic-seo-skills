@@ -26,6 +26,20 @@ function runNoCreds(args) {
   });
 }
 
+function dataforseoBypassArgs(reason = "teste explícito sem DataForSEO") {
+  return [
+    "--dataforseo-bypass-confirmed",
+    "--dataforseo-bypass-reason",
+    reason,
+    "--dataforseo-bypass-approved-by",
+    "Diego Ivo",
+    "--dataforseo-bypass-confirmation-text",
+    "Confirmo seguir sem DataForSEO neste teste.",
+    "--dataforseo-bypass-confirmed-at",
+    "2026-05-06T00:00:00+00:00",
+  ];
+}
+
 function competitorPage(title, h1, words) {
   const sentence = "Conteúdo público com análise, página, evidência e orientação técnica para o leitor brasileiro. ";
   return `<!doctype html><html lang="pt-BR"><head><title>${title}</title><meta name="description" content="Descrição pública para teste de concorrente SEO."><link rel="canonical" href="https://example.com/${title}"></head><body><main><h1>${h1}</h1><h2>Primeira seção</h2><p>${sentence.repeat(Math.ceil(words / 12))}</p><h2>Segunda seção</h2><p>${sentence.repeat(20)}</p></main></body></html>`;
@@ -48,7 +62,10 @@ run(["project-init", "Process Test"]);
   const blocked = runNoCreds(["seo-analysis", "--keyword", "websearch sem confirmação", "--provider", "websearch"]);
   assert.notEqual(blocked.status, 0);
   assert.match(blocked.stderr, /WebSearch is secondary/);
-  const allowed = runNoCreds(["seo-analysis", "--keyword", "websearch confirmado", "--provider", "websearch", "--websearch-confirmed", "--websearch-reason", "teste explícito"]);
+  const missingWrittenApproval = runNoCreds(["seo-analysis", "--keyword", "websearch confirmado", "--provider", "websearch", "--websearch-confirmed", "--websearch-reason", "teste explícito"]);
+  assert.notEqual(missingWrittenApproval.status, 0);
+  assert.match(missingWrittenApproval.stderr, /requires written approval/);
+  const allowed = runNoCreds(["seo-analysis", "--keyword", "websearch confirmado", "--provider", "websearch", "--websearch-confirmed", "--websearch-reason", "teste explícito", ...dataforseoBypassArgs("teste explícito")]);
   assert.equal(allowed.status, 0, allowed.stderr);
   assert.equal(JSON.parse(allowed.stdout).provider, "websearch");
 }
@@ -60,12 +77,14 @@ run(["project-init", "Process Test"]);
 }
 
 {
-  const res = run(["content-seo", "--topic", "SEO sem SERP", "--skip-data", "--skip-data-confirmed", "--skip-data-reason", "usuário pediu sem SERP", "--top3-bypass-confirmed", "--top3-bypass-reason", "usuário aprovou briefing sem Top 3"]);
+  const res = run(["content-seo", "--topic", "SEO sem SERP", "--skip-data", "--skip-data-confirmed", "--skip-data-reason", "usuário pediu sem SERP", ...dataforseoBypassArgs("usuário pediu sem SERP"), "--top3-bypass-confirmed", "--top3-bypass-reason", "usuário aprovou briefing sem Top 3"]);
   assert.equal(res.status, 0, res.stderr);
   const json = JSON.parse(res.stdout);
   assert.equal(json.status, "approval_required");
   assert.equal(json.brief.approval.status, "pending");
   assert.equal(json.brief.draft_status, "briefing");
+  assert.equal(json.brief.process_bypass[0].approved_by, "Diego Ivo");
+  assert.match(json.brief.process_bypass[0].confirmation_text, /DataForSEO/);
   assert.equal("next_handoff_command" in json, false);
   const workDir = join(projectDir, "workbench", "content", "seo-sem-serp");
   const artifactDir = join(projectDir, "artifacts", "contents", "seo-sem-serp");
@@ -253,7 +272,19 @@ run(["project-init", "Process Test"]);
   }, { lineWidth: 0 }));
   const blocked = run(["content-seo", "--topic", "Conteúdo WebSearch", "--keyword", "conteúdo websearch"]);
   assert.notEqual(blocked.status, 0);
-  assert.match(blocked.stderr, /requires DataForSEO-backed/);
+  assert.match(blocked.stderr, /requires written approval/);
+  const missingWrittenApproval = run(["content-seo", "--topic", "Conteúdo WebSearch", "--keyword", "conteúdo websearch", "--provider-bypass-confirmed", "--provider-bypass-reason", "usuário aceitou WebSearch"]);
+  assert.notEqual(missingWrittenApproval.status, 0);
+  assert.match(missingWrittenApproval.stderr, /requires written approval/);
+  const allowed = run(["content-seo", "--topic", "Conteúdo WebSearch", "--keyword", "conteúdo websearch", "--provider-bypass-confirmed", "--provider-bypass-reason", "usuário aceitou WebSearch", ...dataforseoBypassArgs("usuário aceitou WebSearch")]);
+  assert.equal(allowed.status, 0, allowed.stderr);
+  const brief = YAML.parse(readFileSync(join(projectDir, "workbench", "content", "conteudo-websearch", "brief.yaml"), "utf8"));
+  assert.equal(brief.process_bypass[0].approved_by, "Diego Ivo");
+  assert.equal(brief.process_bypass[0].reason, "usuário aceitou WebSearch");
+  assert.match(brief.process_bypass[0].consequence, /not DataForSEO-backed/);
+  assert.match(brief.process_bypass[0].confirmation_text, /sem DataForSEO/);
+  const log = readFileSync(join(projectDir, "wiki", "log", "index.md"), "utf8");
+  assert.match(log, /dataforseo-bypass \| Conteúdo WebSearch/);
 }
 
 rmSync(tmp, { recursive: true, force: true });

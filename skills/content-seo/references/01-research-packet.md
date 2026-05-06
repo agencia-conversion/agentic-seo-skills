@@ -5,7 +5,7 @@ The research packet converts SEO analysis into writing inputs without becoming p
 ## Required fields
 
 - `data_provenance.seo_analysis`: local report path, provider, generated date.
-- `process_bypass`: null or explicit step, reason, consequence, and confirmation.
+- `process_bypass`: null or explicit step, reason, consequence, approver, confirmation text, timestamp, and confirmation.
 - `evidence_sources`: local paths only.
 - `competitor-evidence.yaml`: Top 3 heading/meta/word-count evidence.
 - `public_citations`: canonical public URLs only.
