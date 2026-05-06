@@ -27,6 +27,7 @@ project/*
 .companion/
 
 # Autoresearch experiment artifacts.
+.context/skill-evals/
 runs/
 experiments/
 artifacts/

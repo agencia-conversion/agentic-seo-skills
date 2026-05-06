@@ -1,5 +1,11 @@
 @AGENTS.md
 
+## Refactor Continuity
+
+The v1 rewrite is checkpointed in `docs/refactor-status.md`. Read that file before continuing any refactor work.
+
+`_legacy/` is a versioned quarantine snapshot of the pre-rewrite implementation. Do not read it as ordinary context, and do not execute anything from it. Only sub-agents assigned a specific refactor, parity, or review task may consult `_legacy/`, following `_legacy/CONSULT-RULES.md`.
+
 ## Size & Language Budgets
 
 Use size as an editorial principle, not as a contract that forces under-explained skills. Keep artifacts focused, but let user-facing skills carry enough context to guide agents without excessive reference chasing.
@@ -21,7 +27,7 @@ Skill bodies should still use progressive discovery. The point of the 250-line t
 
 ### Known debt
 
-- `src/seo-brain.ts` (~1500 lines) violates the 500-line max. Tracked for split-by-subcommand refactor.
+- `src/seo-brain.ts` has been removed from canonical source during Phase 0. Phase 5 restores it as a slim dispatcher and splits behavior into `src/commands/`.
 
 ## Claude Code Plugin Loading
 
@@ -63,7 +69,7 @@ After loading, invoke plugin skills with the namespace:
 /seo-brain:autoresearch
 ```
 
-`/seo-brain:autoresearch` runs a Karpathy-style autonomous research loop on any artifact. Engine: `node scripts/autoresearch.mjs <subcommand>`. Doctrine: `program.md`. Schemas: `skills/_shared/references/autoresearch-protocol.md`.
+`/seo-brain:autoresearch` runs a Karpathy-style autonomous research loop on any artifact. Engine: `node scripts/autoresearch.mjs <subcommand>`. Doctrine: `program.md`. The v0 protocol schema is quarantined under `_legacy/` until the v1 meta-skills replace it.
 
 The optional Claude Code statusline is not shipped through plugin settings because plugin default settings do not own the main `statusLine`. Install it explicitly:
 

@@ -22,7 +22,10 @@ This repository root is the plugin root.
 - Claude Code manifest: `.claude-plugin/plugin.json`
 - Codex manifest: `.codex-plugin/plugin.json`
 - Skills: `skills/<skill-name>/SKILL.md`
-- Shared skill references: `skills/_shared/references/`
+- Legacy quarantine during the v1 rewrite: `_legacy/`
+- Refactor continuity: `docs/refactor-status.md`
+- Shared skill references: removed from canonical v1 skills; old references live only in `_legacy/`
+- Tools: `tools/` for deterministic provider CLIs after Phase 2
 - Templates: `templates/`
 - Utility scripts: `scripts/`
 - Runtime project: `project/` and ignored by git except `project/.gitkeep`
@@ -94,9 +97,14 @@ For previews, approvals, sensitive input, and option selection, prefer a local b
 
 Use these rules when changing manifests, skills, shared references, templates, scripts, or agent instructions.
 
-- Keep agent files short; put durable workflow detail in `skills/<skill>/SKILL.md`, `skills/_shared/references/`, scripts, fixtures, or templates.
+- Before continuing the v1 refactor, read `docs/refactor-status.md` and resume from the latest checkpoint.
+- `_legacy/` is a versioned quarantine snapshot. Main agents must not read it as ordinary context. Only sub-agents assigned a specific refactor, parity, or review task may consult it, following `_legacy/CONSULT-RULES.md`.
+- Do not execute binaries, scripts, tests, or generated artifacts from `_legacy/`.
+- Canonical v1 skills should be self-sufficient narrative `SKILL.md` files. Do not reintroduce required cross-skill reads through `skills/_shared/`.
+- Deterministic provider and audit behavior belongs in `tools/`, `scripts/`, or `src/commands/`, not hidden inside natural-language skill contracts.
+- Keep agent files short; put durable workflow detail in `skills/<skill>/SKILL.md`, local skill references, scripts, fixtures, or templates.
 - Treat every skill change as a verifiable workflow change. Before implementation is complete, define the skill contract, inputs, outputs, fixture strategy, and pass/fail criteria.
-- Prefer Autoresearch-style loops: one skill or subsystem per run, baseline first, fixed fixtures or budget, explicit metric or rubric, and a keep/reject decision. For deeper context, see `karpathy/autoresearch`. The runtime engine is `scripts/autoresearch.mjs` (skill: `/seo-brain:autoresearch`, doctrine: `program.md`, schemas: `skills/_shared/references/autoresearch-protocol.md`). Use `bin/seo-brain audit-skills` for one-shot quality scoring of all skills.
+- Prefer Autoresearch-style loops: one skill or subsystem per run, baseline first, fixed fixtures or budget, explicit metric or rubric, and a keep/reject decision. For deeper context, see `karpathy/autoresearch`. The runtime engine is `scripts/autoresearch.mjs`; doctrine lives in `program.md`. The v0 protocol schema is quarantined in `_legacy/skills/_shared/references/autoresearch-protocol.md` until the v1 meta-skills replace it. Use `bin/seo-brain audit-skills` for one-shot quality scoring of all skills after the command dispatcher is restored.
 - Validate meaningful skill changes with sub-agents that run or simulate the target skill against fixtures. Use one executor-style sub-agent and, for nontrivial changes, one reviewer-style sub-agent focused on contract drift, hallucination risk, source separation, and approval gates.
 - Sub-agent output is evidence, not approval. The main agent remains responsible for integration, and humans still approve strategic context.
 - Keep eval artifacts reviewable. Save development run notes in `.context/skill-evals/`; commit only reusable fixtures, scripts, templates, and concise docs.
@@ -125,4 +133,4 @@ Skill bodies should still use progressive discovery. The point of the 250-line t
 
 ### Known debt
 
-- `src/seo-brain.ts` (~1500 lines) violates the 500-line max. Tracked for split-by-subcommand refactor.
+- `src/seo-brain.ts` has been removed from canonical source during Phase 0. Phase 5 restores it as a slim dispatcher and splits behavior into `src/commands/`.
