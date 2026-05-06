@@ -1,11 +1,11 @@
 ---
 name: content-seo
-description: Create SEO content workflows from data-backed analysis to briefing, draft, and Brazilian Portuguese anti-slop review. Requires an seo-analysis report as precondition.
+description: Create, brief, rewrite, review, or optimize public SEO content such as articles, blog posts, landing-page copy, editorial pages, and content intended to rank in organic search. Requires an seo-analysis report as precondition.
 ---
 
 # Content SEO
 
-Use this skill when the user asks to create a briefing, outline, article, landing page copy, or content improvement plan.
+Use this skill when the user asks to create a briefing, outline, article, post, blogpost, landing page copy, editorial page, or content improvement plan.
 
 Read first when needed:
 
@@ -28,6 +28,9 @@ Writes only:
 - `project/workbench/content/<topic-slug>.brief.json`
 - `project/artifacts/`
 
+## Public Content Gate
+Any public article, post, blogpost, editorial page, or ranking-oriented content must enter through this skill. Do not write public article bodies directly in another workflow. If another skill needs that content, it consumes the approved draft or stops at this gate.
+
 ## Hard Precondition
 
 `workbench/seo-analysis/<keyword-slug>.json` must exist before a brief or draft is generated. If absent, refuse and tell the user the exact `seo-analysis` command to run. The only legal bypass is `--skip-data --skip-data-confirmed --skip-data-reason "<motivo>"`, and it is legal only when the current user explicitly approved skipping SEO analysis.
@@ -40,7 +43,7 @@ Every run follows this order:
 
 1. Analysis: locate or require `seo-analysis` for the keyword.
 2. Briefing: create `project/workbench/content/<topic-slug>.brief.json` from the analysis, including the outline the writer must follow.
-3. Approval: ask whether the user wants auto-approval for this run or manual approval. Use `--brief-approval auto` only when the user explicitly accepts auto-approval; otherwise use `handoff` or `manual`.
+3. Approval: use `--brief-approval auto` only when the user explicitly accepts auto-approval; otherwise use `handoff` or `manual`.
 4. Writing: write `project/wiki/conteudos/<topic-slug>.md` only after the brief has `approval.status = approved`.
 
 Process integrity: follow the full flow by default. A narrow request like "create content" does not waive analysis, approval, outline, tone, publication checks, or source separation. Existing drafts/briefs are not proof that gates ran; check provenance. Skip a step only when the current user explicitly requests that specific bypass, name the skipped step and consequence before approval, record it in `process_bypass`, and never present skipped SERP/competitor analysis as SEO-backed.

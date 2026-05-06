@@ -32,7 +32,21 @@ run(["project-init", "Process Test"]);
   assert.equal(json.process_bypass.step, "seo-analysis");
   assert.equal(json.process_bypass.confirmed, true);
   assert.equal(json.draft_status, "briefing");
-  assert.ok(json.next_handoff_command.includes("--project-root"));
+  assert.equal(json.next_handoff_command, undefined);
+  assert.deepEqual(
+    {
+      type: json.next_action.type,
+      handoff: json.next_action.handoff,
+      user_instruction: json.next_action.user_instruction,
+    },
+    {
+      type: "browser-handoff",
+      handoff: "approve-briefing",
+      user_instruction: "Revise e aprove o briefing na página local aberta pelo agente.",
+    },
+  );
+  assert.equal(json.next_action.project_root, projectDir);
+  assert.ok(json.next_action.brief.endsWith("seo-sem-serp.brief.json"));
 }
 
 rmSync(tmp, { recursive: true, force: true }); console.log("content seo process ok");

@@ -39,6 +39,8 @@ Do not skip analysis, approval, review, lint, source separation, or other gates 
 
 Approval requests must show missing analysis, missing sources, and skipped checks before the user decides. Approval of an artifact is not approval of an undisclosed bypass.
 
+When a gate needs human input, the agent executes the local browser handoff whenever possible and tells the user what to review in the opened page. Do not expose bash commands as the primary UX for approvals, previews, sensitive input, or option selection. A local handoff URL may be shown only as a fallback if the browser does not open automatically.
+
 ## Language fidelity
 
 SEO Brain is English-first and supports Brazilian Portuguese as an official second language. Generated natural-language output should work in any requested language. Preserve spelling, accents, and diacritics in human-facing prose, headings, Markdown, logs, prompts, reports, and review notes.
@@ -53,4 +55,4 @@ Use DataForSEO when configured and appropriate. If unavailable, use the document
 
 ## User experience
 
-Prefer local browser handoff over terminal interaction for previews, approvals, sensitive input, and option selection. Sensitive values are never echoed to stdout, logged in full, or written to the repository root `.env`.
+Prefer local browser handoff over terminal interaction for previews, approvals, sensitive input, and option selection. The agent runs the handoff; the user interacts with the local page. Sensitive values are never echoed to stdout, logged in full, or written to the repository root `.env`.
