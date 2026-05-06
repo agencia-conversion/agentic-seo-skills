@@ -78,6 +78,8 @@ If DataForSEO is unavailable, use the documented websearch fallback only after e
 
 Prefer `next-website-creator` for project websites: Next.js with SSG by default, Vercel-first deployment, static page types, metadata, sitemap, robots, canonical rules, and schema foundation.
 
+Website generation is not finished by printing commands for the user. The agent should install dependencies when needed, run the build from `project/web/`, and start or attempt a local preview before reporting done. If a static export is requested, the output directory must be verified.
+
 Avoid CMS complexity for sites up to 100 total pages, including blog posts, when structured files are enough. Recommend a CMS through `payload-cms` for sites above 500 pages, large editorial teams, frequent nontechnical publishing, or complex content models.
 
 ## User experience
