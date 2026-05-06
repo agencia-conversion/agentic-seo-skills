@@ -50,6 +50,12 @@
   .alert-box, .ok-box { padding: 10px 12px; border-radius: 8px; font-size: 13px; }
   .alert-box { background: rgba(255,59,48,0.10); color: var(--danger); }
   .ok-box { background: rgba(47,158,68,0.12); color: var(--ok); }
+  .markdown-preview { font-size: 14px; }
+  .markdown-preview h1 { margin: 12px 0 8px; font-size: 22px; }
+  .markdown-preview h2 { margin: 18px 0 8px; font-size: 16px; text-transform: none; letter-spacing: 0; color: var(--text); }
+  .markdown-preview p { margin: 8px 0; }
+  .markdown-preview ul { margin: 8px 0 14px; padding-left: 20px; }
+  .markdown-preview li { margin: 4px 0; }
   .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 18px; }
 </style>
 </head>
@@ -60,6 +66,11 @@
     <span id="approver-display"></span>
   </div>
   <h1>Briefing <code id="brief-name">brief</code></h1>
+
+  <div class="panel" style="margin-top: 18px;">
+    <h2>Briefing para revisão</h2>
+    <div id="brief-markdown" class="markdown-preview"></div>
+  </div>
 
   <div class="grid">
     <div class="panel">
@@ -88,12 +99,18 @@
     <div id="bypass"></div>
   </div>
 
+  <div class="panel" style="margin: 0 0 18px;">
+    <h2>Evidência de Wiki consumida</h2>
+    <div id="context-evidence"></div>
+  </div>
+
   <form class="bottom" id="form" autocomplete="off">
     <div>
       <h2>Decisão</h2>
       <div class="decision-options" style="margin-top:8px;">
-        <label><input type="radio" name="decision" value="approved" required /><span><strong>Aprovar briefing</strong><small>libera a escrita do conteúdo</small></span></label>
+        <label><input type="radio" name="decision" value="approved" required /><span><strong>Aprovar briefing</strong><small>gera automaticamente o draft em artifacts</small></span></label>
         <label><input type="radio" name="decision" value="needs-rewrite" /><span><strong>Pedir reescrita</strong><small>mantém o conteúdo bloqueado</small></span></label>
+        <label><input type="radio" name="decision" value="rejected" /><span><strong>Rejeitar</strong><small>encerra este briefing sem draft</small></span></label>
       </div>
     </div>
     <div>
@@ -124,8 +141,30 @@
   const row = (k, v, cls) => `<div class="row"><span>${escape(k)}</span><span class="${cls || ""}">${escape(v || "—")}</span></div>`;
   const list = (items) => `<ul class="list">${(items || []).map((i) => `<li>${escape(i)}</li>`).join("")}</ul>`;
   const outline = (items) => `<ul class="list">${(items || []).map((i) => `<li><strong>H${escape(i.level)}</strong> ${escape(i.title)}<br><span>${escape(i.purpose)}</span></li>`).join("")}</ul>`;
+  const markdownToHtml = (md) => {
+    const lines = String(md || "").split(/\r?\n/);
+    const html = [];
+    let inList = false;
+    const closeList = () => { if (inList) { html.push("</ul>"); inList = false; } };
+    for (const line of lines) {
+      if (/^#\s+/.test(line)) { closeList(); html.push(`<h1>${escape(line.replace(/^#\s+/, ""))}</h1>`); continue; }
+      if (/^##\s+/.test(line)) { closeList(); html.push(`<h2>${escape(line.replace(/^##\s+/, ""))}</h2>`); continue; }
+      if (/^-\s+/.test(line)) {
+        if (!inList) { html.push("<ul>"); inList = true; }
+        html.push(`<li>${escape(line.replace(/^-\s+/, ""))}</li>`);
+        continue;
+      }
+      closeList();
+      if (line.trim()) html.push(`<p>${escape(line)}</p>`);
+    }
+    closeList();
+    return html.join("");
+  };
 
   document.getElementById("brief-name").textContent = ctx.briefRel || "(brief)";
+  document.getElementById("brief-markdown").innerHTML = ctx.briefMarkdown
+    ? markdownToHtml(ctx.briefMarkdown)
+    : "<p>Briefing Markdown não encontrado. Use os painéis estruturados abaixo.</p>";
   if (ctx.identity?.name) {
     document.getElementById("approver").value = ctx.identity.name;
     document.getElementById("approver-display").textContent = "aprovando como " + ctx.identity.name;
@@ -143,24 +182,27 @@
     document.getElementById("bypass-panel").style.display = "";
     document.getElementById("bypass").innerHTML = [
       row("step", brief.process_bypass.step, "badge warn"),
-      row("confirmed", brief.process_bypass.confirmed ? "sim" : "nao"),
+      row("confirmed", brief.process_bypass.confirmed ? "sim" : "não"),
       row("reason", brief.process_bypass.reason),
       row("consequence", brief.process_bypass.consequence),
     ].join("");
   }
 
-  const voice = brief.voice_context || {};
+  const contextEvidence = brief.context_evidence || {};
+  const voice = contextEvidence.voice_evidence || brief.voice_context || {};
   const voiceClass = voice.status === "approved" ? "badge" : "badge warn";
   document.getElementById("voice").innerHTML = [
     row("path", voice.path),
     row("status", voice.status, voiceClass),
     row("title", voice.title),
+    row("hash", voice.content_hash_sha256),
   ].join("");
 
   const b = brief.brief || {};
   document.getElementById("brief").innerHTML = [
     row("intent", b.intent),
     row("reader need", b.reader_need),
+    row("meta de palavras", b.target_words),
     "<h2>Incluir</h2>",
     list(b.must_include),
     "<h2>Outline</h2>",
@@ -171,11 +213,21 @@
 
   document.getElementById("direction").innerHTML = [
     row("draft status", brief.draft_status),
-    row("approval", brief.approval?.status),
+    row("aprovação", brief.approval?.status),
+    row("meta Skyscraper", brief.skyscraper?.word_count?.target_words),
     row("audience", brief.voice_check?.audience),
     row("link test", brief.voice_check?.link_test),
     "<h2>Não mencionar em prosa</h2>",
     list(brief.must_not_mention_in_prose),
+  ].join("");
+
+  const wikiPages = contextEvidence.wiki_pages_read || [];
+  document.getElementById("context-evidence").innerHTML = [
+    row("arquivo", contextEvidence.path),
+    "<h2>Páginas lidas</h2>",
+    `<ul class="list">${wikiPages.map((page) => `<li><strong>${escape(page.path)}</strong> · ${escape(page.status)}<br><span>${escape(page.title)} · hash ${escape(page.content_hash_sha256 || "ausente")}</span></li>`).join("")}</ul>`,
+    "<h2>Limitações</h2>",
+    list(contextEvidence.limitations),
   ].join("");
 
   const form = document.getElementById("form");

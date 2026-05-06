@@ -212,12 +212,17 @@ async function buildPlayerScoreReport(args, base, deps) {
         }
         const audit = deps.auditTechnicalSeo(player.page, { pageType, source: loaded.source, status: loaded.status, headers: loaded.headers });
         const baseName = `${runStamp}-${deps.slugify(keyword)}-player-${i + 1}-${deps.slugify(player.host || "url")}`;
-        const jsonPath = path.join(deps.projectDir, "workbench", "technical-seo", `${baseName}.json`);
+        let reportPath = path.join(deps.projectDir, "workbench", "technical-seo", `${baseName}.yaml`);
         const mdPath = path.join(deps.projectDir, "workbench", "technical-seo", `${baseName}.md`);
-        deps.writeJson(jsonPath, audit);
+        if (deps.writeYaml)
+            deps.writeYaml(reportPath, audit);
+        else {
+            reportPath = reportPath.replace(/\.yaml$/, ".json");
+            deps.writeJson(reportPath, audit);
+        }
         deps.writeText(mdPath, deps.renderTechnicalMarkdown(audit));
-        player.technical_seo = { score: audit.score, grade: audit.grade, ok: audit.ok, findings: audit.findings, report_path: path.relative(deps.projectDir, jsonPath), markdown_path: path.relative(deps.projectDir, mdPath) };
-        technicalFiles.push(path.relative(deps.projectDir, jsonPath), path.relative(deps.projectDir, mdPath));
+        player.technical_seo = { score: audit.score, grade: audit.grade, ok: audit.ok, findings: audit.findings, report_path: path.relative(deps.projectDir, reportPath), markdown_path: path.relative(deps.projectDir, mdPath) };
+        technicalFiles.push(path.relative(deps.projectDir, reportPath), path.relative(deps.projectDir, mdPath));
     }
     const serpTerms = extractSerpTerms(base.top_results, players);
     for (const player of players) {

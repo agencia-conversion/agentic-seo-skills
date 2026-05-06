@@ -30,7 +30,7 @@ Writes only:
 - Record request parameters and provider.
 - Never fabricate volume, CPC, difficulty, or trend data.
 - Handle partial provider responses clearly.
-- Produce normalized JSON plus a readable summary.
+- Produce normalized YAML plus a readable summary; raw provider payloads may stay `.raw.json`.
 
 ## Done Criteria
 

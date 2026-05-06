@@ -1,5 +1,6 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
+import YAML from "yaml";
 import { runHandoff } from "../companion-server.mjs";
 import { newHandoffId, readIdentity, writeIdentity } from "../companion-state.mjs";
 import { appendLogEntry } from "../wiki-page.mjs";
@@ -40,7 +41,7 @@ export function buildClusterMarkdown(proposal, kept) {
     "approved_by: null",
     "approved_at: null",
     "sources:",
-    `  - workbench/topic-cluster/${proposal.seed}.json`,
+    `  - workbench/topic-cluster/${proposal.seed}.yaml`,
     "judgment_level: editorial",
     "---",
     "",
@@ -122,7 +123,7 @@ export async function handleSubmit(body, ctx) {
     ctx.projectRoot,
     "workbench",
     "topic-cluster",
-    `${ctx.proposal.seed}.json`,
+    `${ctx.proposal.seed}.yaml`,
   );
   mkdirSync(dirname(reportPath), { recursive: true });
   const report = {
@@ -137,7 +138,7 @@ export async function handleSubmit(body, ctx) {
     dropped,
     notes: notes?.trim() || null,
   };
-  writeFileSync(reportPath, JSON.stringify(report, null, 2) + "\n");
+  writeFileSync(reportPath, YAML.stringify(report, { lineWidth: 0 }));
 
   let wikiPath = null;
   if (writeWiki) {
