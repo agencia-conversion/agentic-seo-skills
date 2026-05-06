@@ -28,10 +28,10 @@ Important events are appended to `wiki/log/index.md` with a type of `strategic-a
 
 1. `project-init`: create the project folder and initial Wiki.
 2. Strategic approval: approve the required strategic pages.
-3. `data-setup`: confirm DataForSEO or fallback provider status.
+3. `data-setup`: confirm DataForSEO status; if unavailable, stop at setup or the written bypass gate.
 4. `seo-analysis`: produce a data-backed report for any topic that will receive content.
-5. `topic-cluster`: use the SEO analysis report unless the user explicitly chooses hypothesis-only work.
-6. `content-seo`: use the SEO analysis report unless the user explicitly requests and records a data bypass.
+5. `topic-cluster`: use DataForSEO keyword and SERP evidence unless the user explicitly confirms a DataForSEO bypass for hypothesis-only work.
+6. `content-seo`: use a DataForSEO-backed SEO analysis report unless the user explicitly requests and records a DataForSEO bypass.
 
 ## Workflow routing
 
@@ -72,7 +72,7 @@ For pt-BR, avoid American title case, literal translations of English metaphors,
 
 Use DataForSEO when configured and appropriate. SEO Brain recommends it because the pricing model is pay-as-you-go with credit-based usage, and the public pricing page lists a minimum payment of USD 50. SEO Brain is not affiliated with DataForSEO; in Portuguese user-facing prose, state `não somos afiliados` when disclosure is relevant.
 
-If DataForSEO is unavailable, use the documented websearch fallback only after explicit bypass and mark provider limitations in the artifact. Reports must make data provenance auditable and must never invent volume, difficulty, CPC, backlinks, clients, awards, credentials, or proof.
+If DataForSEO is unavailable, stop at `data-setup` or the DataForSEO bypass gate. Use WebSearch or hypothesis-only output only after written confirmation that mentions DataForSEO, names the skipped step, and records consequence, approver, confirmation text, and timestamp. Bypass approval is not content approval. Reports must make data provenance auditable and must never invent volume, difficulty, CPC, backlinks, clients, awards, credentials, or proof.
 
 ## Technology default
 

@@ -1,6 +1,6 @@
 ---
 name: topic-cluster
-description: Build SEO topic clusters with entity, primary keyword + volume, secondary keywords with volume, funnel stage, and SERP-derived intent. Default path uses DataForSEO keyword suggestions and SERP batches; --hypothesis-only emits a curatable skeleton without provider calls.
+description: Build SEO topic clusters with entity, primary keyword + volume, secondary keywords with volume, funnel stage, and SERP-derived intent. Default path uses DataForSEO keyword suggestions and SERP batches; --hypothesis-only is a written DataForSEO bypass that emits a curatable skeleton without provider calls.
 ---
 
 # Topic Cluster
@@ -21,7 +21,7 @@ Inputs:
 - `--max-supports N` (default 7) — number of supporting pages drawn from the suggestions pool.
 - `--language pt-BR`, `--location Brazil`, `--device desktop`, `--depth 10` — DataForSEO query parameters.
 - `--mode live|standard|async|offline` — DataForSEO call mode.
-- `--hypothesis-only` — skip provider calls; emit a curatable skeleton with null volumes/intent.
+- `--hypothesis-only` — skip provider calls only after written DataForSEO bypass approval; emit a curatable skeleton with null volumes/intent.
 - `--render-only` — re-render `wiki/conteudos/topic-clusters.md` from the existing JSONs without re-fetching data.
 
 Writes only:
@@ -34,7 +34,7 @@ Writes only:
 
 ## Hard Precondition
 
-Production-grade clusters use DataForSEO suggestions and SERP batch evidence. If credentials are missing, or `--hypothesis-only` is explicit, emit a cluster with `status: hypothesis` and null metrics rather than fabricating data.
+Production-grade clusters use DataForSEO suggestions and SERP batch evidence. If credentials are missing, or `--hypothesis-only` is explicit, stop for DataForSEO setup or written bypass approval before emitting a hypothesis cluster with null metrics. Bypass approval is not content approval.
 
 ## Required Behavior
 
@@ -44,7 +44,7 @@ Production-grade clusters use DataForSEO suggestions and SERP batch evidence. If
 - `serp_intent` is classified by the agent reading `serp_evidence` (organic top 5 + serp_features). The CLI never auto-classifies based on title heuristics.
 - Re-runs preserve curation: title, entity, keywords_secondary, funnel_stage, serp_intent, judgment merge from the existing JSON by page slug. Pages no longer in the fresh top-N are kept as carry-over so agent-added supports survive.
 - The Wiki page is regenerated as a projection of every JSON in `workbench/topic-cluster/`. Edit the JSONs, not the Wiki.
-- `--hypothesis-only` emits an empty support list, null volumes, and null `serp_intent`; status is `hypothesis`. Use it when DataForSEO is not configured or for early ideation.
+- `--hypothesis-only` emits an empty support list, null volumes, and null `serp_intent`; status is `hypothesis`. Use it only after the current user confirms the DataForSEO bypass in writing.
 
 ## Done Criteria
 

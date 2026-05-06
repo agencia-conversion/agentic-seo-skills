@@ -294,6 +294,14 @@ function appendOperationalLog(eventType, title, files, decision, summary, notes)
         lines.push(`- Notes: ${notes}`);
     fs.appendFileSync(wikiLog, lines.join("\n") + "\n", "utf8");
 }
+function appendDataforseoBypassLog(title, approvals, files) {
+    const list = Array.isArray(approvals) ? approvals : approvals ? [approvals] : [];
+    for (const approval of list) {
+        if (approval?.required_provider !== "dataforseo" || approval.approval_mode === "companion")
+            continue;
+        appendOperationalLog("dataforseo-bypass", title, files, "approved", `${approval.workflow} sem DataForSEO em ${approval.step}: ${approval.consequence}`, `Aprovado por ${approval.approved_by}; motivo: ${approval.reason}; confirmado em ${approval.confirmed_at}.`);
+    }
+}
 function parseFrontmatter(text) {
     if (!text.startsWith("---\n"))
         return [{}, text];
@@ -411,6 +419,108 @@ function seoProviderDefaultStatus() {
         return { provider: "dataforseo", reason: "DataForSEO credentials present in environment." };
     return { provider: "dataforseo", reason: "DataForSEO credentials absent; setup required before SERP-backed SEO analysis.", setup_required: true };
 }
+function nonemptyString(...values) {
+    for (const value of values) {
+        if (value === undefined || value === null || value === true || value === false)
+            continue;
+        const text = String(value).trim();
+        if (text)
+            return text;
+    }
+    return "";
+}
+function confirmationMentionsDataforseo(text) {
+    return /\bdata\s*for\s*seo\b|\bdataforseo\b/i.test(text);
+}
+function confirmationAcknowledgesBypass(text) {
+    const normalized = text.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return /\b(sem|without|bypass|dispens|dispenso|pular|skip|ignorar|secondary|secundario)\b/.test(normalized)
+        || /\b(nao usar|not use|no dataforseo|not dataforseo)\b/.test(normalized);
+}
+function dataforseoBypassError(context) {
+    const subject = context.subject ? ` for "${context.subject}"` : "";
+    return new CliError(`${context.workflow}${subject} requires written approval to bypass DataForSEO at ${context.step}. ` +
+        `Consequence: ${context.consequence} ` +
+        `Use the DataForSEO bypass Companion handoff, or pass --dataforseo-bypass-confirmed ` +
+        `--dataforseo-bypass-reason "motivo claro" --dataforseo-bypass-approved-by "Nome" ` +
+        `--dataforseo-bypass-confirmation-text "Confirmo seguir sem DataForSEO..." ` +
+        `--dataforseo-bypass-confirmed-at "${nowIso()}".`);
+}
+function normalizeDataforseoBypassApproval(args, context, mode) {
+    const confirmed = boolArg(args.dataforseo_bypass_confirmed ?? context.confirmed, false);
+    const reason = nonemptyString(args.dataforseo_bypass_reason, context.reason);
+    const approvedBy = nonemptyString(args.dataforseo_bypass_approved_by);
+    const confirmationText = nonemptyString(args.dataforseo_bypass_confirmation_text);
+    const confirmedAt = nonemptyString(args.dataforseo_bypass_confirmed_at);
+    if (!confirmed || !reason || !approvedBy || !confirmationText || !confirmedAt)
+        throw dataforseoBypassError(context);
+    if (!confirmationMentionsDataforseo(confirmationText) || !confirmationAcknowledgesBypass(confirmationText)) {
+        throw new CliError("DataForSEO bypass confirmation must mention DataForSEO and explicitly acknowledge using a bypass or proceeding without it.");
+    }
+    if (Number.isNaN(Date.parse(confirmedAt)))
+        throw new CliError("--dataforseo-bypass-confirmed-at must be an ISO-like timestamp.");
+    return {
+        step: context.step,
+        workflow: context.workflow,
+        subject: context.subject || null,
+        confirmed: true,
+        reason,
+        consequence: context.consequence,
+        approved_by: approvedBy,
+        confirmation_text: confirmationText,
+        confirmed_at: confirmedAt,
+        approval_mode: mode,
+        required_provider: "dataforseo",
+        provider_used: context.provider_used || "secondary-or-none",
+    };
+}
+function runDataforseoBypassHandoff(context) {
+    const args = [
+        path.join(ROOT, "scripts", "companion.mjs"),
+        "dataforseo-bypass",
+        "--project-root",
+        PROJECT_DIR,
+        "--workflow",
+        context.workflow,
+        "--step",
+        context.step,
+        "--consequence",
+        context.consequence,
+    ];
+    if (context.subject)
+        args.push("--subject", context.subject);
+    if (context.reason)
+        args.push("--reason", context.reason);
+    if (context.provider_used)
+        args.push("--provider-used", context.provider_used);
+    const handoff = (0, node_child_process_1.spawnSync)(process.execPath, args, {
+        cwd: ROOT,
+        encoding: "utf8",
+        env: process.env,
+    });
+    if (handoff.stderr)
+        process.stderr.write(handoff.stderr);
+    if (handoff.status !== 0)
+        throw new CliError(`DataForSEO bypass handoff failed: ${handoff.stderr || handoff.stdout || "unknown error"}`);
+    const result = JSON.parse(handoff.stdout || "{}");
+    if (!result.ok)
+        throw new CliError(`DataForSEO bypass handoff failed: ${result.reason || "unknown error"}`);
+    return result.approval || result;
+}
+function requireDataforseoBypassApproval(args, context) {
+    if (boolArg(args.dataforseo_bypass_handoff, false)) {
+        const approval = runDataforseoBypassHandoff(context);
+        args.dataforseo_bypass_handoff = false;
+        args.dataforseo_bypass_confirmed = true;
+        args.dataforseo_bypass_reason = approval.reason;
+        args.dataforseo_bypass_approved_by = approval.approved_by;
+        args.dataforseo_bypass_confirmation_text = approval.confirmation_text;
+        args.dataforseo_bypass_confirmed_at = approval.confirmed_at;
+        args.dataforseo_bypass_approval_mode = "companion";
+        return normalizeDataforseoBypassApproval(args, context, "companion");
+    }
+    return normalizeDataforseoBypassApproval(args, context, nonemptyString(args.dataforseo_bypass_approval_mode) || "chat-or-cli");
+}
 function resolveSeoProvider(args = {}) {
     const prefer = args.provider || "auto";
     const choice = (prefer || "auto").trim().toLowerCase();
@@ -418,7 +528,16 @@ function resolveSeoProvider(args = {}) {
     if (choice === "websearch") {
         if (!args.websearch_confirmed || !args.websearch_reason)
             throw new CliError('WebSearch is secondary for ranking research. Use --provider websearch --websearch-confirmed --websearch-reason "motivo claro" only after explicitly accepting this bypass.');
-        return { provider: "websearch", reason: `Explicit WebSearch bypass: ${String(args.websearch_reason).trim()}`, bypass: { step: "serp-extract-dataforseo", reason: String(args.websearch_reason).trim(), consequence: "SERP/ranking data is WebSearch-derived and not DataForSEO-backed." } };
+        const bypass = requireDataforseoBypassApproval(args, {
+            workflow: "seo-analysis",
+            step: "serp-extract-dataforseo",
+            subject: args.keyword ? String(args.keyword) : undefined,
+            reason: String(args.websearch_reason).trim(),
+            consequence: "SERP/ranking data is WebSearch-derived and not DataForSEO-backed.",
+            provider_used: "websearch",
+            confirmed: args.websearch_confirmed,
+        });
+        return { provider: "websearch", reason: `Explicit WebSearch bypass: ${bypass.reason}`, bypass };
     }
     if (choice === "dataforseo") {
         if (!hasCreds)
@@ -1428,6 +1547,7 @@ async function commandDataSetup(args) {
         dataforseo_configured: credentialStatus.dataforseo_configured,
         home_credentials_present: credentialStatus.home_credentials_present,
         websearch_available: true,
+        websearch_requires_dataforseo_bypass: true,
         provider_default: decision.provider,
         provider_default_reason: decision.reason,
         modes: {
@@ -1717,6 +1837,7 @@ async function commandSeoAnalysis(args) {
     }
     const out = path.join(p, "workbench", "seo-analysis", `${slugify(keyword)}.yaml`);
     writeYaml(out, report);
+    appendDataforseoBypassLog(keyword, decision.bypass, [path.relative(p, out)]);
     appendLog("seo-analysis", keyword, [path.relative(p, out), ...(report.technical_seo_reports || [])], `Análise SEO via ${decision.provider} (${topResults.length} resultados${args.player_score ? "; player score ativo" : ""}).`, "not-required");
     printJson(report);
 }
@@ -1818,6 +1939,18 @@ async function commandTopicCluster(args) {
     const settings = projectSettings(p);
     const requestedHypothesisOnly = Boolean(args.hypothesis_only);
     const credsMissing = !dataforseoCredentialsPresent();
+    let dataforseoBypass = null;
+    if (requestedHypothesisOnly || credsMissing) {
+        dataforseoBypass = requireDataforseoBypassApproval(args, {
+            workflow: "topic-cluster",
+            step: "dataforseo-keyword-and-serp-evidence",
+            subject: seed,
+            reason: args.dataforseo_bypass_reason,
+            consequence: "Cluster will be hypothesis-only with null keyword volumes and no DataForSEO SERP intent evidence.",
+            provider_used: "hypothesis-only",
+            confirmed: args.dataforseo_bypass_confirmed,
+        });
+    }
     const hypothesisOnly = requestedHypothesisOnly || credsMissing;
     const maxSupports = Math.max(1, Math.min(20, Number(args.max_supports || 7)));
     const language = args.language || settings.language || "pt-BR";
@@ -1898,6 +2031,7 @@ async function commandTopicCluster(args) {
             serp: serpByKeyword.size ? { provider: serpProvider, keyword_count: serpByKeyword.size } : null,
             hypothesis_only: hypothesisOnly || null,
             hypothesis_reason: hypothesisOnly ? (requestedHypothesisOnly ? "requested" : "dataforseo-credentials-missing") : null,
+            provider_bypass: dataforseoBypass,
         },
         pillar: mergedPillar,
         supporting_pages: mergedSupports,
@@ -1908,6 +2042,7 @@ async function commandTopicCluster(args) {
     };
     writeJson(clusterFile, cluster);
     renderTopicClustersWiki(p);
+    appendDataforseoBypassLog(seed, dataforseoBypass, [path.relative(p, clusterFile), "conteudos/topic-clusters"]);
     appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}).`, "pending");
     printJson(cluster);
 }
@@ -2416,14 +2551,34 @@ async function buildContentResearchPacket(topic, keyword, topicSlug, keywordSlug
     if (args.skip_data && !args.skip_data_confirmed)
         throw new CliError("--skip-data requires --skip-data-confirmed after explicit user approval to bypass SEO analysis.");
     const analysisData = analysisFile ? readDataFile(analysisFile) : null;
-    if (analysisData && analysisData.provider !== "dataforseo" && !(boolArg(args.provider_bypass_confirmed, false) && args.provider_bypass_reason))
-        throw new CliError("content-seo requires DataForSEO-backed seo-analysis. Use --provider-bypass-confirmed --provider-bypass-reason after explicit user approval to use secondary provider data.");
+    const skipDataBypass = args.skip_data
+        ? requireDataforseoBypassApproval(args, {
+            workflow: "content-seo",
+            step: "seo-analysis-dataforseo",
+            subject: topic,
+            reason: args.skip_data_reason,
+            consequence: "Briefing and draft will not be SERP-backed or DataForSEO-backed for the skipped SEO analysis dimension.",
+            provider_used: "none",
+            confirmed: args.skip_data_confirmed,
+        })
+        : null;
+    const providerBypass = analysisData && analysisData.provider !== "dataforseo"
+        ? requireDataforseoBypassApproval(args, {
+            workflow: "content-seo",
+            step: "dataforseo-serp-extract",
+            subject: keyword,
+            reason: args.provider_bypass_reason,
+            consequence: "Briefing uses secondary-provider SERP evidence and is not DataForSEO-backed.",
+            provider_used: String(analysisData.provider || "secondary"),
+            confirmed: args.provider_bypass_confirmed,
+        })
+        : null;
     const domains = topResultDomains(analysisData);
     const skyscraperWordCount = buildSkyscraperWordCount(competitorEvidence, args);
     const evidenceSources = analysisData && analysisFile ? [path.relative(projectDir, analysisFile)] : [];
     const processBypasses = [
-        args.skip_data ? { step: "seo-analysis", confirmed: true, reason: args.skip_data_reason, consequence: "Conteúdo não é SERP-backed para a dimensão pulada." } : null,
-        analysisData?.provider !== "dataforseo" && args.provider_bypass_confirmed ? { step: "dataforseo-serp-extract", confirmed: true, reason: args.provider_bypass_reason, consequence: "Briefing usa provedor secundário e não é DataForSEO-backed." } : null,
+        skipDataBypass,
+        providerBypass,
         competitorEvidence?.bypass ? { step: "top-3-competitor-evidence", ...competitorEvidence.bypass } : null,
     ].filter(Boolean);
     const limitations = [
@@ -2757,6 +2912,28 @@ async function commandContentSeo(args) {
         if (args.skip_data && !args.skip_data_confirmed)
             throw new CliError("--skip-data requires --skip-data-confirmed after explicit user approval to bypass SEO analysis.");
         const analysisData = analysisPath ? readDataFile(analysisPath) : null;
+        if (args.skip_data) {
+            requireDataforseoBypassApproval(args, {
+                workflow: "content-seo",
+                step: "seo-analysis-dataforseo",
+                subject: paths.topic,
+                reason: args.skip_data_reason,
+                consequence: "Briefing and draft will not be SERP-backed or DataForSEO-backed for the skipped SEO analysis dimension.",
+                provider_used: "none",
+                confirmed: args.skip_data_confirmed,
+            });
+        }
+        if (analysisData && analysisData.provider !== "dataforseo") {
+            requireDataforseoBypassApproval(args, {
+                workflow: "content-seo",
+                step: "dataforseo-serp-extract",
+                subject: paths.keyword,
+                reason: args.provider_bypass_reason,
+                consequence: "Briefing uses secondary-provider SERP evidence and is not DataForSEO-backed.",
+                provider_used: String(analysisData.provider || "secondary"),
+                confirmed: args.provider_bypass_confirmed,
+            });
+        }
         const competitorEvidence = await buildCompetitorEvidence(analysisData, args);
         const research = await buildContentResearchPacket(paths.topic, paths.keyword, paths.topicSlug, paths.keywordSlug, p, args, competitorEvidence);
         research.data_provenance.competitor_evidence = { path: path.relative(p, paths.competitorEvidencePath), required: true };
@@ -2769,6 +2946,7 @@ async function commandContentSeo(args) {
         writeYaml(paths.contextEvidencePath, contextEvidence);
         writeYaml(paths.briefPath, brief);
         writeText(paths.briefMarkdownPath, renderContentBriefMarkdown(brief));
+        appendDataforseoBypassLog(paths.topic, research.process_bypass, [path.relative(p, paths.researchPath), path.relative(p, paths.briefPath)]);
         appendOperationalLog("content-briefing", paths.topic, [path.relative(p, paths.researchPath), path.relative(p, paths.competitorEvidencePath), path.relative(p, paths.contextEvidencePath), path.relative(p, paths.briefPath), path.relative(p, paths.briefMarkdownPath)], "pending", "Briefing criado com evidência de Top 3, Wiki/tom de voz, Markdown de revisão e aguardando aprovação humana.");
         if (approvalMode === "handoff") {
             const handoff = (0, node_child_process_1.spawnSync)(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "approve-briefing", "--project-root", p, "--brief", paths.briefPath], {

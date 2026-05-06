@@ -102,10 +102,10 @@ The default sequence for a new SEO Brain project:
 
 1. `project-init`: create the project folder and initial Wiki.
 2. Strategic approval: humans approve `wiki/index.md`, `wiki/eeat.md`, `wiki/tecnologia/index.md`, `wiki/tom-de-voz/index.md`.
-3. `data-setup`: confirm provider status. DataForSEO is the default when configured; otherwise the system uses websearch.
+3. `data-setup`: confirm provider status. DataForSEO is the default when configured; otherwise the system stops at the provider gate.
 4. `seo-analysis`: produce `workbench/seo-analysis/<keyword-slug>.yaml` for any topic that will receive content. This is the canonical gate for steps 5 and 6.
-5. `topic-cluster`: requires the seo-analysis report unless `--hypothesis-only` is passed.
-6. `content-seo`: requires the seo-analysis report unless `--skip-data --skip-data-reason "<motivo>"` is passed.
+5. `topic-cluster`: production clusters use DataForSEO. `--hypothesis-only` is a DataForSEO bypass and requires written user confirmation.
+6. `content-seo`: requires a DataForSEO-backed seo-analysis report unless the user gives written confirmation for a named DataForSEO bypass.
 
 `keyword-research` and `serp-extract` remain available as standalone skills for raw data and to enrich `seo-analysis`. They are recommended steps inside the DataForSEO path, but they are not gates by themselves.
 
@@ -115,9 +115,11 @@ The default sequence for a new SEO Brain project:
 
 - `auto`: pick `dataforseo` when `DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD` are set; otherwise stop and offer `data-setup`.
 - `dataforseo`: force DataForSEO; fail clearly when credentials are absent.
-- `websearch`: secondary fallback only after explicit bypass. The agent must collect results and write them to `sources/websearch/<slug>.yaml` before running the CLI.
+- `websearch`: secondary fallback only after explicit written DataForSEO bypass approval. The agent must collect results and write them to `sources/websearch/<slug>.yaml` before running the CLI.
 
 Reports always carry `provider`, `provider_reason`, `keyword_metrics` (object or `null`), and `incomplete` so the consumer can audit what was used.
+
+Bypass approval is not content approval. The approval must name the skipped DataForSEO step, show the consequence, include approver, confirmation text, and timestamp, and be recorded in the artifact.
 
 ## Registro de Publicação
 

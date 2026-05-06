@@ -5,7 +5,7 @@ Content SEO creates public SEO content for publication. The body is written for 
 ## Inputs
 
 - `topic` and optional `keyword`.
-- Existing DataForSEO-backed `project/workbench/seo-analysis/<keyword-slug>.yaml`, unless the current user explicitly approves a named bypass.
+- Existing DataForSEO-backed `project/workbench/seo-analysis/<keyword-slug>.yaml`, unless the current user explicitly approves a named DataForSEO bypass in writing.
 - Optional `phase`: `brief`, `approve`, `write`, `review`, `check`, or `promote`.
 
 ## Writes by phase
@@ -21,6 +21,7 @@ Content SEO creates public SEO content for publication. The body is written for 
 - Do not write during `brief`.
 - Approval writes the artifact draft automatically but never publishes.
 - Do not write if briefing is pending, rejected, stale, missing provenance, or missing visible bypass.
+- Do not accept WebSearch, `--skip-data`, or non-DataForSEO analysis without approver, confirmation text, timestamp, reason, and consequence recorded in `process_bypass`.
 - Do not approve without visible Wiki and tom de voz evidence.
 - Do not brief without Top 3 competitor evidence: headings, meta/title, HTTP/fetch status, word count, and sub-agent review.
 - Do not approve when `brief.outline_capacity.can_support_target` is not `true`.

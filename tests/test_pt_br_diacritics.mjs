@@ -15,6 +15,20 @@ function run(...args) {
   execFileSync(bin, args, { cwd: root, encoding: "utf8", env });
 }
 
+function dataforseoBypassArgs(reason) {
+  return [
+    "--dataforseo-bypass-confirmed",
+    "--dataforseo-bypass-reason",
+    reason,
+    "--dataforseo-bypass-approved-by",
+    "Teste",
+    "--dataforseo-bypass-confirmation-text",
+    "Confirmo seguir sem DataForSEO neste teste de acentuação.",
+    "--dataforseo-bypass-confirmed-at",
+    "2026-05-06T00:00:00+00:00",
+  ];
+}
+
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
     const file = join(dir, name);
@@ -48,9 +62,9 @@ function jsonHumanStrings(value, out = []) {
 
 try {
   run("project-init", "Projeto de acentuação", "--language", "pt-BR");
-  run("seo-analysis", "--keyword", "seo agêntico", "--provider", "websearch", "--websearch-confirmed", "--websearch-reason", "teste de acentuação sem DataForSEO");
-  run("topic-cluster", "--seed", "seo agêntico");
-  run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico", "--provider-bypass-confirmed", "--provider-bypass-reason", "teste de acentuação sem DataForSEO", "--top3-bypass-confirmed", "--top3-bypass-reason", "teste de acentuação sem Top 3");
+  run("seo-analysis", "--keyword", "seo agêntico", "--provider", "websearch", "--websearch-confirmed", "--websearch-reason", "teste de acentuação sem DataForSEO", ...dataforseoBypassArgs("teste de acentuação sem DataForSEO"));
+  run("topic-cluster", "--seed", "seo agêntico", ...dataforseoBypassArgs("teste de acentuação sem DataForSEO"));
+  run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico", "--provider-bypass-confirmed", "--provider-bypass-reason", "teste de acentuação sem DataForSEO", ...dataforseoBypassArgs("teste de acentuação sem DataForSEO"), "--top3-bypass-confirmed", "--top3-bypass-reason", "teste de acentuação sem Top 3");
   run("content-seo", "--phase", "approve", "--topic", "O que é SEO agêntico", "--approved-by", "Teste", "--approval-notes", "Tom de voz em draft reconhecido.");
   run("technical-seo", "--html-file", join(root, "tests", "fixtures", "technical-seo-valid.html"), "--page-type", "blog-post");
   run("next-website-creator");

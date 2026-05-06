@@ -23,6 +23,17 @@ const fixtures = JSON.stringify({
   "https://target.example/wanted": "tests/fixtures/player-score-target.html",
   "https://weak.example/page": "tests/fixtures/player-score-weak.html",
 });
+const dataforseoBypassArgs = [
+  "--dataforseo-bypass-confirmed",
+  "--dataforseo-bypass-reason",
+  "teste player score com fixtures",
+  "--dataforseo-bypass-approved-by",
+  "Diego Ivo",
+  "--dataforseo-bypass-confirmation-text",
+  "Confirmo seguir sem DataForSEO neste teste de player score.",
+  "--dataforseo-bypass-confirmed-at",
+  "2026-05-06T00:00:00+00:00",
+];
 
 function writeSerp(results) {
   writeFileSync(resolve(sourceDir, "seo-player-score.yaml"), YAML.stringify({ keyword, results }, { lineWidth: 0 }), "utf8");
@@ -40,6 +51,7 @@ function run(targetUrl) {
       "--websearch-confirmed",
       "--websearch-reason",
       "teste player score com fixtures",
+      ...dataforseoBypassArgs,
       "--player-score",
       "--target-url",
       targetUrl,
@@ -67,6 +79,7 @@ function runDomain(targetDomain) {
       "--websearch-confirmed",
       "--websearch-reason",
       "teste player score com fixtures",
+      ...dataforseoBypassArgs,
       "--player-score",
       "--target-domain",
       targetDomain,
