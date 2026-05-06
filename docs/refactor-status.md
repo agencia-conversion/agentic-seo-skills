@@ -47,6 +47,7 @@ Canonical runtime support files remain in place:
 - D15: Phase 3 calibrated `seo-analysis` with no rubric changes. Threshold remains 90; the rubric is ready for Phase 4 waves.
 - D16: Phase 4 Wave A approved `keyword-research`, `serp-extract`, and `backlink-analysis` in one iteration each.
 - D17: Phase 4 Wave B approved `topic-cluster`, `content-seo`, and `eeat` in one iteration each.
+- D18: Phase 4 Wave C approved `technical-seo`, `internal-links`, `next-website-creator`, and `payload-cms` in one iteration each.
 
 ## Skills State
 
@@ -57,17 +58,17 @@ Canonical runtime support files remain in place:
 | content-seo | approved | `20260506-203844-refactor-seo-brain-skill-content` | 97 | 1 | Wave B passed. |
 | data-setup | fixture-ready | - | - | - | Keep; fixture created. |
 | eeat | approved | `20260506-203844-refactor-seo-brain-skill-eeat` | 97 | 1 | Wave B passed. |
-| internal-links | fixture-ready | - | - | - | Keep; fixture created. |
+| internal-links | approved | `20260506-204557-refactor-seo-brain-skill-interna` | 96 | 1 | Wave C passed. |
 | keyword-research | approved | `20260506-202827-refactor-seo-brain-skill-keyword` | 98 | 1 | Wave A passed. |
-| next-website-creator | fixture-ready | - | - | - | Keep; fixture created. |
-| payload-cms | fixture-ready | - | - | - | Keep as optional technology skill pending approval; fixture created. |
+| next-website-creator | approved | `20260506-204557-refactor-seo-brain-skill-next-we` | 95 | 1 | Wave C passed. |
+| payload-cms | approved | `20260506-205207-refactor-seo-brain-skill-payload` | 99 | 1 | Wave C passed. |
 | project-init | fixture-ready | - | - | - | Keep; fixture created. |
 | seo-analysis | approved | `20260506-200703-refactor-seo-brain-skill-seo-ana` | 94 | 1 | Phase 3 calibration target passed; no rubric changes. |
 | seo-brain | fixture-ready | - | - | - | Router skill; fixture created. |
 | serp-extract | approved | `20260506-202827-refactor-seo-brain-skill-serp-ex` | 94 | 1 | Wave A passed; minor output path/status precision notes. |
 | spec-driven | fixture-ready | - | - | - | Keep for compound requests; fixture created. |
 | start | fixture-ready | - | - | - | Retire or alias pending approval; fixture created. |
-| technical-seo | fixture-ready | - | - | - | Keep; fixture created. |
+| technical-seo | approved | `20260506-204557-refactor-seo-brain-skill-technic` | 95 | 1 | Wave C passed. |
 | topic-cluster | approved | `20260506-203844-refactor-seo-brain-skill-topic-c` | 95 | 1 | Wave B passed. |
 | wiki-maintainer | fixture-ready | - | - | - | Keep; fixture created. |
 | seo-skills-creator | approved | `20260506-192337-refactor-seo-brain-skill-seo-ski` | 96.5 | 1 | Bootstrap approval by main agent; finalized. |
@@ -136,8 +137,8 @@ Canonical runtime support files remain in place:
 - Tool attribution: `tools/ATTRIBUTIONS.md`
 - DataForSEO tool test: `tests/tools/test_dataforseo_cli.mjs`
 - Pre-rewrite tag: `v0-pre-rewrite`
-- Latest autoresearch run: `.context/skill-evals/eeat/20260506-203844-refactor-seo-brain-skill-eeat`
-- Latest sub-agent report: Phase 4 Wave B approvers scored `topic-cluster` 95, `content-seo` 97, and `eeat` 97.
+- Latest autoresearch run: `.context/skill-evals/payload-cms/20260506-205207-refactor-seo-brain-skill-payload`
+- Latest sub-agent report: Phase 4 Wave C approvers scored `technical-seo` 95, `internal-links` 96, `next-website-creator` 95, and `payload-cms` 99.
 
 ## Checkpoint Log
 
@@ -201,6 +202,22 @@ Canonical runtime support files remain in place:
   - `topic-cluster`: 95
   - `content-seo`: 97
   - `eeat`: 97
+- Verification:
+  - `node --check scripts/skill-loop.mjs`
+  - `node --check tools/clis/dataforseo.js`
+  - `node tests/tools/test_dataforseo_cli.mjs`
+  - `node tests/test_skill_loop_gate.mjs`
+
+### Checkpoint 5c - 2026-05-06
+
+- Phase: 4 - Wave C technical/website skills.
+- Approved by: autonomous continuation request.
+- Summary: Rewrote `technical-seo`, `internal-links`, `next-website-creator`, and `payload-cms` as self-sufficient narrative skills. All completed developer -> executor -> approver loops in one iteration and passed threshold.
+- Scores:
+  - `technical-seo`: 95
+  - `internal-links`: 96
+  - `next-website-creator`: 95
+  - `payload-cms`: 99
 - Verification:
   - `node --check scripts/skill-loop.mjs`
   - `node --check tools/clis/dataforseo.js`
