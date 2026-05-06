@@ -157,20 +157,6 @@ judgment_level: strategic
 
 ## External Data
 
-The local `.env` currently contains credentials for several providers, including DataForSEO. The implementation must never print or commit secrets.
+Provider credentials must never be printed, logged in full, or committed. Public examples should use `.env.example` with placeholder values only.
 
-Observed env keys:
-
-- `ANTHROPIC_API_KEY`
-- `SERPER_API_KEY`
-- `FIRECRAWL_API_KEY`
-- `SCRAPINGBEE_API_KEY`
-- `OPENAI_API_KEY`
-- `SEMRUSH_API_KEY`
-- `RESEND_API_KEY`
-- `GEMINI_API_KEY`
-- `DATAFORSEO_LOGIN`
-- `DATAFORSEO_PASSWORD`
-- `E2B_API_KEY`
-
-There is a duplicate `SCRAPINGBEE_API_KEY` entry in the current `.env`; the implementation should normalize this when generating `.env.example`, but should not edit the real `.env` without confirmation.
+Required and optional providers should be documented by workflow. DataForSEO credentials are the only provider credentials required by the v0.1 SERP and keyword workflows.

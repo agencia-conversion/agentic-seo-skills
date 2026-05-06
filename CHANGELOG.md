@@ -2,6 +2,8 @@
 
 ## 0.1.0 - 2026-05-04
 
+- Documented Claude Code marketplace installation as the official distribution path.
+- Added `/seo-brain:start` as the simple first-run entry point.
 - Added Claude Code plugin manifest and Codex compatibility manifest.
 - Added cross-agent `AGENTS.md` and Claude-specific notes.
 - Added 14 SEO Brain skills with progressive-discovery contracts.

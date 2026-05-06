@@ -83,6 +83,6 @@ After changing skills or agents during an interactive session, run:
 For a persistent local install, add this repository as a local marketplace and install the plugin:
 
 ```text
-/plugin marketplace add /Users/diego/Codex/seo-brain-codex
+/plugin marketplace add /path/to/seo-brain
 /plugin install seo-brain@seo-brain-marketplace
 ```
