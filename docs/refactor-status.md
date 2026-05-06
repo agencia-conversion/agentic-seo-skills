@@ -13,7 +13,7 @@ Read this section first if you are a new session.
 
 ## Current Phase
 
-Phase 2 - Meta-skills and initial tools checkpoint ready.
+Phase 3 - First skill calibration checkpoint ready.
 
 Canonical rewrite targets have been cleared after the legacy snapshot:
 
@@ -44,6 +44,7 @@ Canonical runtime support files remain in place:
 - D12: `seo-skills-creator` bootstrap was approved by the main agent at score 96.5 and finalized through `scripts/skill-loop.mjs`.
 - D13: `seo-tools-creator` was approved at score 94 after fixture output, reviewer validation, and DataForSEO tool tests.
 - D14: `scripts/skill-loop.mjs finalize` now requires threshold success by default; below-threshold finalization requires explicit max-iteration escalation.
+- D15: Phase 3 calibrated `seo-analysis` with no rubric changes. Threshold remains 90; the rubric is ready for Phase 4 waves.
 
 ## Skills State
 
@@ -59,7 +60,7 @@ Canonical runtime support files remain in place:
 | next-website-creator | fixture-ready | - | - | - | Keep; fixture created. |
 | payload-cms | fixture-ready | - | - | - | Keep as optional technology skill pending approval; fixture created. |
 | project-init | fixture-ready | - | - | - | Keep; fixture created. |
-| seo-analysis | fixture-ready | - | - | - | Phase 3 calibration target; fixture created. |
+| seo-analysis | approved | `20260506-200703-refactor-seo-brain-skill-seo-ana` | 94 | 1 | Phase 3 calibration target passed; no rubric changes. |
 | seo-brain | fixture-ready | - | - | - | Router skill; fixture created. |
 | serp-extract | fixture-ready | - | - | - | Keep as data-capture skill pending approval; fixture created. |
 | spec-driven | fixture-ready | - | - | - | Keep for compound requests; fixture created. |
@@ -109,8 +110,8 @@ Canonical runtime support files remain in place:
 
 - Phase 0: complete on 2026-05-06.
 - Phase 1: complete on 2026-05-06.
-- Phase 2: ready for checkpoint approval on 2026-05-06.
-- Phase 3: pending.
+- Phase 2: complete on 2026-05-06.
+- Phase 3: ready for checkpoint approval on 2026-05-06.
 - Phase 4: pending.
 - Phase 5: pending.
 - Phase 6: pending.
@@ -133,8 +134,8 @@ Canonical runtime support files remain in place:
 - Tool attribution: `tools/ATTRIBUTIONS.md`
 - DataForSEO tool test: `tests/tools/test_dataforseo_cli.mjs`
 - Pre-rewrite tag: `v0-pre-rewrite`
-- Latest autoresearch run: `.context/skill-evals/seo-tools-creator/20260506-192743-refactor-seo-brain-skill-seo-too`
-- Latest sub-agent report: Phase 2 reviewer found one major finalize-gate issue; fixed in `scripts/skill-loop.mjs` and covered by `tests/test_skill_loop_gate.mjs`.
+- Latest autoresearch run: `.context/skill-evals/seo-analysis/20260506-200703-refactor-seo-brain-skill-seo-ana`
+- Latest sub-agent report: Phase 3 approver scored `seo-analysis` 94/100, decision `keep`; minor executor-output notes only.
 
 ## Checkpoint Log
 
@@ -153,8 +154,21 @@ Canonical runtime support files remain in place:
 ### Checkpoint 3 - 2026-05-06
 
 - Phase: 2 - Meta-skills and initial tools.
-- Approved by: pending human approval.
+- Approved by: human continuation request.
 - Summary: Added `seo-skills-creator`, `seo-tools-creator`, `scripts/skill-loop.mjs`, DataForSEO tool fork, tool registry, attribution notices, and focused tests. Fixed reviewer-identified finalize gate in the skill loop.
+- Verification:
+  - `node --check scripts/skill-loop.mjs`
+  - `node --check tools/clis/dataforseo.js`
+  - `node tests/tools/test_dataforseo_cli.mjs`
+  - `node tests/test_skill_loop_gate.mjs`
+
+### Checkpoint 4 - 2026-05-06
+
+- Phase: 3 - First skill calibration.
+- Approved by: pending human approval.
+- Summary: Rewrote `skills/seo-analysis/SKILL.md` as a self-sufficient narrative skill. Developer, executor, and approver roles completed one loop. Approver score was 94/100 with `keep`; autoresearch weighted aggregate was 96.3 and stopped by threshold.
+- Run: `.context/skill-evals/seo-analysis/20260506-200703-refactor-seo-brain-skill-seo-ana`
+- Rubric decision: no changes; proceed to Phase 4 waves with threshold 90.
 - Verification:
   - `node --check scripts/skill-loop.mjs`
   - `node --check tools/clis/dataforseo.js`
