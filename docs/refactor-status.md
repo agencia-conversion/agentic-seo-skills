@@ -13,7 +13,7 @@ Read this section first if you are a new session.
 
 ## Current Phase
 
-Phase 0 - Preparation checkpoint ready.
+Phase 1 - Diagnosis and architecture checkpoint ready.
 
 Canonical rewrite targets have been cleared after the legacy snapshot:
 
@@ -38,65 +38,74 @@ Canonical runtime support files remain in place:
 - D6: Skill development uses a developer -> executor -> approver loop with threshold >= 90 and max 5 iterations.
 - D7: This file is the living continuation document for cross-session work.
 - D8: Phase 0 snapshot was created before removing canonical rewrite targets.
+- D9: Phase 1 keeps `payload-cms` and `serp-extract` as standalone v1 skills for now, but flags both for approval.
+- D10: Phase 1 recommends retiring `start` or making it a thin alias to `seo-brain`.
+- D11: Phase 2 hard-forks DataForSEO first from `coreyhaines31/marketingskills` commit `906c2fb28e471c5b1d149d4159ec5ddb40b7c364`; GSC, Ahrefs, Semrush, Similarweb, Keywords Everywhere, and AIROPS remain candidates.
 
 ## Skills State
 
 | skill | status | run-id | last-score | iterations | notes |
 |---|---|---:|---:|---:|---|
-| autoresearch | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| backlink-analysis | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| content-seo | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| data-setup | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| eeat | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| internal-links | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| keyword-research | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| next-website-creator | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| payload-cms | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| project-init | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| seo-analysis | legacy-snapshotted | - | - | - | First calibration target in Phase 3. |
-| seo-brain | legacy-snapshotted | - | - | - | Router skill to be rewritten. |
-| serp-extract | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| spec-driven | legacy-snapshotted | - | - | - | Evaluate whether to keep in Phase 1. |
-| start | legacy-snapshotted | - | - | - | Evaluate merge with `seo-brain` in Phase 1. |
-| technical-seo | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| topic-cluster | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| wiki-maintainer | legacy-snapshotted | - | - | - | Awaiting Phase 1 mapping. |
-| seo-skills-creator | planned | - | - | - | New meta-skill in Phase 2. |
-| seo-tools-creator | planned | - | - | - | New meta-skill in Phase 2. |
+| autoresearch | fixture-ready | - | - | - | Keep; fixture created. |
+| backlink-analysis | fixture-ready | - | - | - | Keep; fixture created. |
+| content-seo | fixture-ready | - | - | - | Keep with internal phases; fixture created. |
+| data-setup | fixture-ready | - | - | - | Keep; fixture created. |
+| eeat | fixture-ready | - | - | - | Keep; fixture created. |
+| internal-links | fixture-ready | - | - | - | Keep; fixture created. |
+| keyword-research | fixture-ready | - | - | - | Keep; fixture created. |
+| next-website-creator | fixture-ready | - | - | - | Keep; fixture created. |
+| payload-cms | fixture-ready | - | - | - | Keep as optional technology skill pending approval; fixture created. |
+| project-init | fixture-ready | - | - | - | Keep; fixture created. |
+| seo-analysis | fixture-ready | - | - | - | Phase 3 calibration target; fixture created. |
+| seo-brain | fixture-ready | - | - | - | Router skill; fixture created. |
+| serp-extract | fixture-ready | - | - | - | Keep as data-capture skill pending approval; fixture created. |
+| spec-driven | fixture-ready | - | - | - | Keep for compound requests; fixture created. |
+| start | fixture-ready | - | - | - | Retire or alias pending approval; fixture created. |
+| technical-seo | fixture-ready | - | - | - | Keep; fixture created. |
+| topic-cluster | fixture-ready | - | - | - | Keep; fixture created. |
+| wiki-maintainer | fixture-ready | - | - | - | Keep; fixture created. |
+| seo-skills-creator | fixture-ready | - | - | - | Meta-skill fixture and rubric seed created. |
+| seo-tools-creator | fixture-ready | - | - | - | Meta-skill fixture created. |
 
 ## Tools State
 
 | tool | status | source-commit | upstream | notes |
 |---|---|---|---|---|
-| dataforseo.js | planned | pending | `coreyhaines31/marketingskills` | Minimum hard-fork target. |
-| tools registry | planned | pending | mixed | To be defined in Phase 1 and created in Phase 2. |
+| dataforseo.js | approved-candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Minimum hard-fork target for Phase 2 approval. |
+| google-search-console.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after DataForSEO. |
+| ahrefs.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after dependency audit. |
+| semrush.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after dependency audit. |
+| similarweb.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after dependency audit. |
+| keywords-everywhere.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after dependency audit. |
+| airops.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate only if useful for workflow automation. |
+| tools registry | planned | pending | mixed | To be created in Phase 2. |
 
 ## src/commands State
 
 | subcommand | status | parity-test | notes |
 |---|---|---|---|
-| project-init | planned | pending | Awaiting Phase 1 mapping. |
-| wiki-lint | planned | pending | Awaiting Phase 1 mapping. |
-| wiki-approve | planned | pending | Awaiting Phase 1 mapping. |
-| wiki-ingest | planned | pending | Awaiting Phase 1 mapping. |
-| data-setup | planned | pending | Awaiting Phase 1 mapping. |
-| serp-extract | planned | pending | Awaiting Phase 1 mapping. |
-| keyword-research | planned | pending | Awaiting Phase 1 mapping. |
-| kw-volume | planned | pending | Awaiting Phase 1 mapping. |
-| backlink-analysis | planned | pending | Awaiting Phase 1 mapping. |
-| seo-analysis | planned | pending | Awaiting Phase 1 mapping. |
-| topic-cluster | planned | pending | Awaiting Phase 1 mapping. |
-| eeat | planned | pending | Awaiting Phase 1 mapping. |
-| content-seo | planned | pending | Awaiting Phase 1 mapping. |
-| technical-seo | planned | pending | Awaiting Phase 1 mapping. |
-| next-website-creator | planned | pending | Awaiting Phase 1 mapping. |
-| payload-cms | planned | pending | Awaiting Phase 1 mapping. |
-| audit-skills | planned | pending | Awaiting Phase 1 mapping. |
+| project-init | mapped | pending | `src/commands/project-init.ts`. |
+| wiki-lint | mapped | pending | `src/commands/wiki-lint.ts`. |
+| wiki-approve | mapped | pending | `src/commands/wiki-approve.ts`. |
+| wiki-ingest | mapped | pending | `src/commands/wiki-ingest.ts`. |
+| data-setup | mapped | pending | `src/commands/data-setup.ts`. |
+| serp-extract | mapped | pending | `src/commands/serp-extract.ts`. |
+| keyword-research | mapped | pending | `src/commands/keyword-research.ts`. |
+| kw-volume | mapped | pending | Merge into keyword research as lean mode or wrapper. |
+| backlink-analysis | mapped | pending | `src/commands/backlink-analysis.ts`. |
+| seo-analysis | mapped | pending | `src/commands/seo-analysis.ts`. |
+| topic-cluster | mapped | pending | `src/commands/topic-cluster.ts`. |
+| eeat | mapped | pending | Compatibility stub or omit real command. |
+| content-seo | mapped | pending | `src/commands/content-seo.ts` plus helpers if needed. |
+| technical-seo | mapped | pending | `src/commands/technical-seo.ts`. |
+| next-website-creator | mapped | pending | `src/commands/next-website-creator.ts`. |
+| payload-cms | mapped | pending | `src/commands/payload-cms.ts`. |
+| audit-skills | mapped | pending | `src/commands/audit-skills.ts` or script-backed dev command. |
 
 ## Approval Gates
 
-- Phase 0: ready for checkpoint approval on 2026-05-06.
-- Phase 1: pending.
+- Phase 0: complete on 2026-05-06.
+- Phase 1: ready for checkpoint approval on 2026-05-06.
 - Phase 2: pending.
 - Phase 3: pending.
 - Phase 4: pending.
@@ -105,14 +114,17 @@ Canonical runtime support files remain in place:
 
 ## Open Questions
 
-- Phase 1 must decide whether `start` merges into `seo-brain`.
-- Phase 1 must decide whether `spec-driven` remains a standalone skill.
-- Phase 1 must approve the exact provider list to fork under `tools/`.
+- Approve retiring `start` or keeping it as a thin alias.
+- Approve keeping `payload-cms` as a standalone optional technology skill.
+- Approve keeping `serp-extract` as a standalone data-capture skill.
+- Approve the Phase 2 tool fork list: DataForSEO first, other providers as candidates only.
 
 ## Pointers
 
 - Legacy snapshot: `_legacy/`
 - Legacy consultation rules: `_legacy/CONSULT-RULES.md`
+- Refactor architecture: `docs/refactor-architecture.md`
+- Rubric seed: `skills/seo-skills-creator/references/approval-rubric.md`
 - Pre-rewrite tag: `v0-pre-rewrite`
 - Latest autoresearch run: none yet
 - Latest sub-agent report: none yet
@@ -122,5 +134,11 @@ Canonical runtime support files remain in place:
 ### Checkpoint 1 - 2026-05-06
 
 - Phase: 0 - Preparation.
-- Approved by: pending human approval.
+- Approved by: human continuation request.
 - Summary: Created a versioned legacy snapshot, removed canonical rewrite targets, added continuation and license scaffolds, and documented the legacy quarantine rules.
+
+### Checkpoint 2 - 2026-05-06
+
+- Phase: 1 - Diagnosis and architecture.
+- Approved by: pending human approval.
+- Summary: Created `docs/refactor-architecture.md`, mapped all 18 legacy skills plus 2 meta-skills, mapped 16 legacy commands into command modules, defined tool fork candidates, created 20 evaluator fixtures, and seeded the narrative skill approval rubric.
