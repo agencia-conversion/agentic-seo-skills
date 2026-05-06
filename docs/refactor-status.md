@@ -13,7 +13,7 @@ Read this section first if you are a new session.
 
 ## Current Phase
 
-Phase 3 - First skill calibration checkpoint ready.
+Phase 4 - Wave A checkpoint ready.
 
 Canonical rewrite targets have been cleared after the legacy snapshot:
 
@@ -45,24 +45,25 @@ Canonical runtime support files remain in place:
 - D13: `seo-tools-creator` was approved at score 94 after fixture output, reviewer validation, and DataForSEO tool tests.
 - D14: `scripts/skill-loop.mjs finalize` now requires threshold success by default; below-threshold finalization requires explicit max-iteration escalation.
 - D15: Phase 3 calibrated `seo-analysis` with no rubric changes. Threshold remains 90; the rubric is ready for Phase 4 waves.
+- D16: Phase 4 Wave A approved `keyword-research`, `serp-extract`, and `backlink-analysis` in one iteration each.
 
 ## Skills State
 
 | skill | status | run-id | last-score | iterations | notes |
 |---|---|---:|---:|---:|---|
 | autoresearch | fixture-ready | - | - | - | Keep; fixture created. |
-| backlink-analysis | fixture-ready | - | - | - | Keep; fixture created. |
+| backlink-analysis | approved | `20260506-202827-refactor-seo-brain-skill-backlin` | 98 | 1 | Wave A passed. |
 | content-seo | fixture-ready | - | - | - | Keep with internal phases; fixture created. |
 | data-setup | fixture-ready | - | - | - | Keep; fixture created. |
 | eeat | fixture-ready | - | - | - | Keep; fixture created. |
 | internal-links | fixture-ready | - | - | - | Keep; fixture created. |
-| keyword-research | fixture-ready | - | - | - | Keep; fixture created. |
+| keyword-research | approved | `20260506-202827-refactor-seo-brain-skill-keyword` | 98 | 1 | Wave A passed. |
 | next-website-creator | fixture-ready | - | - | - | Keep; fixture created. |
 | payload-cms | fixture-ready | - | - | - | Keep as optional technology skill pending approval; fixture created. |
 | project-init | fixture-ready | - | - | - | Keep; fixture created. |
 | seo-analysis | approved | `20260506-200703-refactor-seo-brain-skill-seo-ana` | 94 | 1 | Phase 3 calibration target passed; no rubric changes. |
 | seo-brain | fixture-ready | - | - | - | Router skill; fixture created. |
-| serp-extract | fixture-ready | - | - | - | Keep as data-capture skill pending approval; fixture created. |
+| serp-extract | approved | `20260506-202827-refactor-seo-brain-skill-serp-ex` | 94 | 1 | Wave A passed; minor output path/status precision notes. |
 | spec-driven | fixture-ready | - | - | - | Keep for compound requests; fixture created. |
 | start | fixture-ready | - | - | - | Retire or alias pending approval; fixture created. |
 | technical-seo | fixture-ready | - | - | - | Keep; fixture created. |
@@ -111,8 +112,8 @@ Canonical runtime support files remain in place:
 - Phase 0: complete on 2026-05-06.
 - Phase 1: complete on 2026-05-06.
 - Phase 2: complete on 2026-05-06.
-- Phase 3: ready for checkpoint approval on 2026-05-06.
-- Phase 4: pending.
+- Phase 3: complete on 2026-05-06.
+- Phase 4: in progress; Wave A ready for checkpoint approval on 2026-05-06.
 - Phase 5: pending.
 - Phase 6: pending.
 
@@ -134,8 +135,8 @@ Canonical runtime support files remain in place:
 - Tool attribution: `tools/ATTRIBUTIONS.md`
 - DataForSEO tool test: `tests/tools/test_dataforseo_cli.mjs`
 - Pre-rewrite tag: `v0-pre-rewrite`
-- Latest autoresearch run: `.context/skill-evals/seo-analysis/20260506-200703-refactor-seo-brain-skill-seo-ana`
-- Latest sub-agent report: Phase 3 approver scored `seo-analysis` 94/100, decision `keep`; minor executor-output notes only.
+- Latest autoresearch run: `.context/skill-evals/backlink-analysis/20260506-202827-refactor-seo-brain-skill-backlin`
+- Latest sub-agent report: Phase 4 Wave A approvers scored `keyword-research` 98, `serp-extract` 94, and `backlink-analysis` 98.
 
 ## Checkpoint Log
 
@@ -165,10 +166,25 @@ Canonical runtime support files remain in place:
 ### Checkpoint 4 - 2026-05-06
 
 - Phase: 3 - First skill calibration.
-- Approved by: pending human approval.
+- Approved by: human continuation request.
 - Summary: Rewrote `skills/seo-analysis/SKILL.md` as a self-sufficient narrative skill. Developer, executor, and approver roles completed one loop. Approver score was 94/100 with `keep`; autoresearch weighted aggregate was 96.3 and stopped by threshold.
 - Run: `.context/skill-evals/seo-analysis/20260506-200703-refactor-seo-brain-skill-seo-ana`
 - Rubric decision: no changes; proceed to Phase 4 waves with threshold 90.
+- Verification:
+  - `node --check scripts/skill-loop.mjs`
+  - `node --check tools/clis/dataforseo.js`
+  - `node tests/tools/test_dataforseo_cli.mjs`
+  - `node tests/test_skill_loop_gate.mjs`
+
+### Checkpoint 5a - 2026-05-06
+
+- Phase: 4 - Wave A data skills.
+- Approved by: pending human approval.
+- Summary: Rewrote `keyword-research`, `serp-extract`, and `backlink-analysis` as self-sufficient narrative skills. All three completed developer -> executor -> approver loops in one iteration and passed threshold.
+- Scores:
+  - `keyword-research`: 98
+  - `serp-extract`: 94
+  - `backlink-analysis`: 98
 - Verification:
   - `node --check scripts/skill-loop.mjs`
   - `node --check tools/clis/dataforseo.js`
