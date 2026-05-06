@@ -44,7 +44,7 @@ The default is to follow the full documented process. Do not skip analysis, appr
 - Existing drafts, previous briefings, homepage-only context, or agent confidence do not waive preconditions.
 - When a bypass is explicit, record it in the artifact and log before presenting the result. State clearly that the artifact is not data-backed for the skipped dimension.
 - Approval of an artifact is not approval of an undisclosed bypass. Approval requests must show missing analysis, missing sources, and skipped checks before the user decides.
-- If a required process cannot run, stop at the gate and provide the exact next command or approval handoff instead of silently substituting a weaker process.
+- If a required process cannot run, stop at the gate, run the local browser handoff as the agent when possible, and present only a friendly user instruction. Do not hand bash commands to the user as the UX for approvals or gates.
 
 ## Language Fidelity
 

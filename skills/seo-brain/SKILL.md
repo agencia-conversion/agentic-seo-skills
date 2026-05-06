@@ -36,7 +36,8 @@ Writes only through the specific downstream skill being used:
 - Use browser handoff for previews, sensitive input, approvals, and option selection when it improves UX.
 - Preserve language fidelity. In pt-BR, write with accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, or proof.
-- When a required gate cannot run, stop at the gate and give the exact next command or approval handoff.
+- When a request combines project sources/Wiki, public content, and a website, orchestrate in this order: sources and Wiki draft, strategic approval, `seo-analysis` for the target keyword, `content-seo`, then website generation that consumes the content artifact.
+- When a required gate cannot run, stop at the gate, run the local browser handoff as the agent when possible, and give the user only a friendly instruction. Do not hand bash commands to the user as the UX for approvals or gates.
 
 ## Done Criteria
 

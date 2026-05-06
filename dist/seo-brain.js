@@ -108,7 +108,7 @@ function resolveProjectDir() {
 }
 function ensureProject() {
     if (!fs.existsSync(PROJECT_DIR))
-        throw new CliError(`Project not found: ${PROJECT_DIR}. Run: bin/seo-brain project-init "Project name"`);
+        throw new CliError(`Project not found: ${PROJECT_DIR}. Initialize the SEO Brain project first.`);
     return PROJECT_DIR;
 }
 function mkdirp(p) {
@@ -1206,7 +1206,11 @@ async function commandDataSetup(args) {
         credentials_present: Boolean(login && password),
         checked_live: Boolean(args.check),
         setup_handoff_available: true,
-        setup_handoff_command: "bin/seo-brain data-setup --handoff",
+        setup_handoff_action: {
+            type: "browser-handoff",
+            handoff: "collect-env",
+            user_instruction: "Abra a configuração local de credenciais pelo agente e preencha os dados na página segura.",
+        },
     };
     if (args.check) {
         try {
@@ -1351,7 +1355,7 @@ async function commandBacklinkAnalysis(args) {
                     throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
             }
             if (!dataforseoCredentialsPresent())
-                throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+                throw new CliError("DataForSEO credentials missing. Use the local credential setup handoff before running live backlink analysis.");
         }
         const summary = await dataforseoRequest("POST", "/v3/backlinks/summary/live", summaryPayload, Boolean(args.sandbox));
         const referringDomains = await dataforseoRequest("POST", "/v3/backlinks/referring_domains/live", [{ ...detailPayload, order_by: ["backlinks,desc"] }], Boolean(args.sandbox));
@@ -1766,7 +1770,7 @@ function escapeCell(value) {
     return value.replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 async function commandEeat(_args) {
-    const message = "The eeat command is now driven by the /seo-brain:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. Run: node scripts/eeat.mjs init --mode wiki   (or --mode url --url https://...). See skills/eeat/SKILL.md for the contract.";
+    const message = "The eeat command is now driven by the /seo-brain:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. See skills/eeat/SKILL.md for the contract.";
     printJson({ ok: false, error: message });
     throw new CliError(message);
 }
@@ -1809,7 +1813,7 @@ async function commandContentSeo(args) {
         throw new CliError("Unsupported --brief-approval. Use auto, manual, or handoff.");
     const analysisFile = path.join(p, "workbench", "seo-analysis", `${keywordSlug}.json`);
     if (!fs.existsSync(analysisFile) && !args.skip_data)
-        throw new CliError(`Missing seo-analysis for this topic. Run: bin/seo-brain seo-analysis --keyword "${keyword}". Only rerun content-seo with --skip-data --skip-data-confirmed --skip-data-reason "motivo claro" if the user explicitly approved bypassing SERP analysis.`);
+        throw new CliError(`Missing seo-analysis for this topic. Complete the seo-analysis workflow for "${keyword}" first. Only rerun content-seo with --skip-data --skip-data-confirmed --skip-data-reason "motivo claro" if the user explicitly approved bypassing SERP analysis.`);
     if (args.skip_data && !args.skip_data_reason)
         throw new CliError('--skip-data requires --skip-data-reason "motivo claro".');
     if (args.skip_data && !args.skip_data_confirmed)
@@ -1859,7 +1863,13 @@ async function commandContentSeo(args) {
     if (briefApproval === "manual") {
         printJson({
             ...report,
-            next_handoff_command: `node scripts/companion.mjs approve-briefing --project-root "${p}" --brief "${briefPath}"`,
+            next_action: {
+                type: "browser-handoff",
+                handoff: "approve-briefing",
+                project_root: p,
+                brief: briefPath,
+                user_instruction: "Revise e aprove o briefing na página local aberta pelo agente.",
+            },
         });
         return;
     }
