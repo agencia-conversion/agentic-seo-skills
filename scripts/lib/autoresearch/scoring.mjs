@@ -2,6 +2,9 @@ export function aggregateScore(scoresByMetric, metricsConfig) {
   if (metricsConfig.aggregation !== "weighted_mean") {
     throw new Error(`unsupported aggregation: ${metricsConfig.aggregation}`);
   }
+  if (metricsConfig.scale && metricsConfig.scale !== "0_to_100") {
+    throw new Error(`unsupported score scale: ${metricsConfig.scale} (expected 0_to_100)`);
+  }
   let weighted = 0;
   let totalWeight = 0;
   for (const m of metricsConfig.metrics) {
@@ -9,8 +12,11 @@ export function aggregateScore(scoresByMetric, metricsConfig) {
       throw new Error(`missing score for metric: ${m.id}`);
     }
     const value = scoresByMetric[m.id];
-    if (typeof value !== "number" || value < 0 || value > 1) {
-      throw new Error(`score out of range for ${m.id}: ${value} (expected 0..1)`);
+    if (typeof value !== "number" || value < 0 || value > 100) {
+      throw new Error(`score out of range for ${m.id}: ${value} (expected 0..100)`);
+    }
+    if (m.scoring === "binary" && value !== 0 && value !== 100) {
+      throw new Error(`binary score out of range for ${m.id}: ${value} (expected 0 or 100)`);
     }
     weighted += value * m.weight;
     totalWeight += m.weight;
@@ -18,9 +24,7 @@ export function aggregateScore(scoresByMetric, metricsConfig) {
   if (totalWeight === 0) {
     throw new Error("total weight is zero");
   }
-  const normalized = weighted / totalWeight;
-  const scaleMultiplier = metricsConfig.scale === "0_to_10" ? 10 : 1;
-  return Math.round(normalized * scaleMultiplier * 100) / 100;
+  return Math.round((weighted / totalWeight) * 100) / 100;
 }
 
 export function decideStop({ state, history }) {

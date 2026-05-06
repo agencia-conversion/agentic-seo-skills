@@ -580,7 +580,7 @@ function headingHierarchyOk(headings) {
     return true;
 }
 function check(pass, id, name, severity, weight, evidence, repair) {
-    return { id, name, severity, weight, passed: pass, score_awarded: pass ? weight : 0, evidence, repair };
+    return { id, name, severity, weight, passed: pass, score: pass ? 100 : 0, points_awarded: pass ? weight : 0, evidence, repair };
 }
 function auditTechnicalSeo(extracted, options) {
     const checks = [];
@@ -634,7 +634,7 @@ function auditTechnicalSeo(extracted, options) {
         checks.push(check(containsAny(allText, ["contato", "email", "telefone", "endereco", "endereço", "linkedin"]), "about_contact_trust", "Contact/trust path is visible", "info", 3, { matched_text_scope: "title/meta/headings" }, "Add a clear contact or verification path."));
     }
     const totalWeight = checks.reduce((sum, item) => sum + item.weight, 0);
-    const awarded = checks.reduce((sum, item) => sum + item.score_awarded, 0);
+    const awarded = checks.reduce((sum, item) => sum + item.points_awarded, 0);
     const score = totalWeight ? Math.round((awarded / totalWeight) * 100) : 0;
     const findings = checks
         .filter((item) => !item.passed)

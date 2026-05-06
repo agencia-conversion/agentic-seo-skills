@@ -25,6 +25,10 @@ assert.equal(home.page_type, "home");
 assert.equal(home.ok, true);
 assert.ok(home.score >= 90);
 assert.equal(home.llm_improvement_context.page_type, "home");
+assert.ok(home.checks.every((check) => check.score === 0 || check.score === 100));
+const oldScoreField = ["score", "awarded"].join("_");
+assert.ok(home.checks.every((check) => !(oldScoreField in check)));
+assert.ok(home.checks.every((check) => typeof check.points_awarded === "number"));
 
 const invalid = runTechnical("tests/fixtures/technical-seo-invalid.html", "blog");
 assert.equal(invalid.page_type, "blog");
