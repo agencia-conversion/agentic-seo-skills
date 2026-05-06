@@ -13,7 +13,7 @@ Read this section first if you are a new session.
 
 ## Current Phase
 
-Phase 1 - Diagnosis and architecture checkpoint ready.
+Phase 2 - Meta-skills and initial tools checkpoint ready.
 
 Canonical rewrite targets have been cleared after the legacy snapshot:
 
@@ -41,6 +41,9 @@ Canonical runtime support files remain in place:
 - D9: Phase 1 keeps `payload-cms` and `serp-extract` as standalone v1 skills for now, but flags both for approval.
 - D10: Phase 1 recommends retiring `start` or making it a thin alias to `seo-brain`.
 - D11: Phase 2 hard-forks DataForSEO first from `coreyhaines31/marketingskills` commit `906c2fb28e471c5b1d149d4159ec5ddb40b7c364`; GSC, Ahrefs, Semrush, Similarweb, Keywords Everywhere, and AIROPS remain candidates.
+- D12: `seo-skills-creator` bootstrap was approved by the main agent at score 96.5 and finalized through `scripts/skill-loop.mjs`.
+- D13: `seo-tools-creator` was approved at score 94 after fixture output, reviewer validation, and DataForSEO tool tests.
+- D14: `scripts/skill-loop.mjs finalize` now requires threshold success by default; below-threshold finalization requires explicit max-iteration escalation.
 
 ## Skills State
 
@@ -64,14 +67,14 @@ Canonical runtime support files remain in place:
 | technical-seo | fixture-ready | - | - | - | Keep; fixture created. |
 | topic-cluster | fixture-ready | - | - | - | Keep; fixture created. |
 | wiki-maintainer | fixture-ready | - | - | - | Keep; fixture created. |
-| seo-skills-creator | fixture-ready | - | - | - | Meta-skill fixture and rubric seed created. |
-| seo-tools-creator | fixture-ready | - | - | - | Meta-skill fixture created. |
+| seo-skills-creator | approved | `20260506-192337-refactor-seo-brain-skill-seo-ski` | 96.5 | 1 | Bootstrap approval by main agent; finalized. |
+| seo-tools-creator | approved | `20260506-192743-refactor-seo-brain-skill-seo-too` | 94 | 1 | Fixture output, reviewer validation, and tool CLI test passed. |
 
 ## Tools State
 
 | tool | status | source-commit | upstream | notes |
 |---|---|---|---|---|
-| dataforseo.js | approved-candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Minimum hard-fork target for Phase 2 approval. |
+| dataforseo.js | forked | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Added `tools/clis/dataforseo.js`, docs, registry, attribution, and fixture test. |
 | google-search-console.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after DataForSEO. |
 | ahrefs.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after dependency audit. |
 | semrush.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after dependency audit. |
@@ -105,8 +108,8 @@ Canonical runtime support files remain in place:
 ## Approval Gates
 
 - Phase 0: complete on 2026-05-06.
-- Phase 1: ready for checkpoint approval on 2026-05-06.
-- Phase 2: pending.
+- Phase 1: complete on 2026-05-06.
+- Phase 2: ready for checkpoint approval on 2026-05-06.
 - Phase 3: pending.
 - Phase 4: pending.
 - Phase 5: pending.
@@ -125,9 +128,13 @@ Canonical runtime support files remain in place:
 - Legacy consultation rules: `_legacy/CONSULT-RULES.md`
 - Refactor architecture: `docs/refactor-architecture.md`
 - Rubric seed: `skills/seo-skills-creator/references/approval-rubric.md`
+- Skill loop script: `scripts/skill-loop.mjs`
+- Initial tools registry: `tools/REGISTRY.md`
+- Tool attribution: `tools/ATTRIBUTIONS.md`
+- DataForSEO tool test: `tests/tools/test_dataforseo_cli.mjs`
 - Pre-rewrite tag: `v0-pre-rewrite`
-- Latest autoresearch run: none yet
-- Latest sub-agent report: none yet
+- Latest autoresearch run: `.context/skill-evals/seo-tools-creator/20260506-192743-refactor-seo-brain-skill-seo-too`
+- Latest sub-agent report: Phase 2 reviewer found one major finalize-gate issue; fixed in `scripts/skill-loop.mjs` and covered by `tests/test_skill_loop_gate.mjs`.
 
 ## Checkpoint Log
 
@@ -140,5 +147,16 @@ Canonical runtime support files remain in place:
 ### Checkpoint 2 - 2026-05-06
 
 - Phase: 1 - Diagnosis and architecture.
-- Approved by: pending human approval.
+- Approved by: human continuation request.
 - Summary: Created `docs/refactor-architecture.md`, mapped all 18 legacy skills plus 2 meta-skills, mapped 16 legacy commands into command modules, defined tool fork candidates, created 20 evaluator fixtures, and seeded the narrative skill approval rubric.
+
+### Checkpoint 3 - 2026-05-06
+
+- Phase: 2 - Meta-skills and initial tools.
+- Approved by: pending human approval.
+- Summary: Added `seo-skills-creator`, `seo-tools-creator`, `scripts/skill-loop.mjs`, DataForSEO tool fork, tool registry, attribution notices, and focused tests. Fixed reviewer-identified finalize gate in the skill loop.
+- Verification:
+  - `node --check scripts/skill-loop.mjs`
+  - `node --check tools/clis/dataforseo.js`
+  - `node tests/tools/test_dataforseo_cli.mjs`
+  - `node tests/test_skill_loop_gate.mjs`
