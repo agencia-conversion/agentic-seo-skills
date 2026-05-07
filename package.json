@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node tests/test_dataforseo_modes.mjs && node tests/test_keyword_research_modes.mjs && node tests/test_serp_batch.mjs && node tests/test_topic_cluster.mjs && node tests/test_topic_cluster_hypothesis_e2e.mjs && node tests/test_cli_reject_project_flag.mjs && node tests/test_single_project_contract.mjs && node tests/test_project_context.mjs && node tests/test_technical_seo.mjs && node tests/test_player_score.mjs && node tests/test_content_seo_process.mjs && node tests/test_frontmatter.mjs && node tests/test_pt_br_diacritics.mjs && node tests/test_spec_driven_skill.mjs && node tests/test_seo_brain_skill.mjs && node tests/test_next_website_creator_skill.mjs && node tests/test_wiki_review_protocol.mjs && node tests/test_session_bootstrap.mjs && node tests/test_statusline.mjs && node tests/test_install_statusline.mjs && node tests/test_companion_collect_env.mjs && node tests/test_companion_dataforseo_bypass.mjs && node tests/test_companion_approve_page.mjs && node tests/test_companion_approve_briefing.mjs && node tests/test_companion_pick_cluster.mjs && node tests/test_eeat_scoring.mjs && node tests/test_eeat_consensus.mjs && node tests/test_eeat_engine.mjs && node tests/autoresearch_state.mjs && node tests/autoresearch_stop.mjs && node tests/autoresearch_journal.mjs && node tests/autoresearch_contract.mjs && node tests/autoresearch_e2e.mjs && node scripts/smoke_test.mjs",
+    "test": "npm run build && node tests/test_dataforseo_modes.mjs && node tests/test_keyword_research_modes.mjs && node tests/test_serp_batch.mjs && node tests/test_topic_cluster.mjs && node tests/test_topic_cluster_hypothesis_e2e.mjs && node tests/test_cli_reject_project_flag.mjs && node tests/test_single_project_contract.mjs && node tests/test_project_context.mjs && node tests/test_technical_seo.mjs && node tests/test_player_score.mjs && node tests/test_content_seo_process.mjs && node tests/test_frontmatter.mjs && node tests/test_pt_br_diacritics.mjs && node tests/test_spec_driven_skill.mjs && node tests/test_seo_brain_skill.mjs && node tests/test_next_website_creator_skill.mjs && node tests/test_wiki_review_protocol.mjs && node tests/test_wiki_overlay_doctrine.mjs && node tests/test_session_bootstrap.mjs && node tests/test_statusline.mjs && node tests/test_install_statusline.mjs && node tests/test_companion_collect_env.mjs && node tests/test_companion_dataforseo_bypass.mjs && node tests/test_companion_approve_page.mjs && node tests/test_companion_approve_briefing.mjs && node tests/test_companion_pick_cluster.mjs && node tests/test_eeat_scoring.mjs && node tests/test_eeat_consensus.mjs && node tests/test_eeat_engine.mjs && node tests/autoresearch_state.mjs && node tests/autoresearch_stop.mjs && node tests/autoresearch_journal.mjs && node tests/autoresearch_contract.mjs && node tests/autoresearch_e2e.mjs && node scripts/smoke_test.mjs",
     "validate:skills": "node scripts/validate_skills.mjs"
   },
   "devDependencies": {
@@ -16,6 +16,10 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "jsdom": "^26.0.0",
+    "playwright": "^1.49.0",
+    "turndown": "^7.2.0",
     "yaml": "^2.8.4"
   }
 }

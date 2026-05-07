@@ -2,7 +2,7 @@
 name: project-init
 description: When the user wants to create, initialize, or prepare one SEO Brain project with the standard local project structure, initial Wiki, project metadata, and draft strategic pages.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Project Init
@@ -19,7 +19,7 @@ Do not use this skill to approve strategy, run SEO analysis, create a content pl
 
 - Initialize the single project directory only: `project/`.
 - Do not write secrets, credentials, provider responses, raw client exports, or generated run data outside the project runtime structure.
-- Keep raw evidence in `project/sources/`, construction work in `project/workbench/`, complete deliverables in `project/artifacts/`, and approved or measured knowledge in `project/wiki/`.
+- Skill artifacts live one folder per dimension per slug, created on demand by their owning skill: `project/contents/<slug>/`, `project/keywords/<seed>/`, `project/audits/<slug>/`, `project/clusters/<seed>/`, `project/eeat/<slug>/`. Do not pre-scaffold these; they appear when the matching skill runs. Approved or measured knowledge lives in `project/wiki/`.
 - Strategic Wiki pages require explicit human approval. Initial strategic pages must be created with `status: draft`.
 - A draft made by an agent is not approved strategic context.
 - Never overwrite an approved strategic page. If an approved page already exists and the requested init would change it, stop and present the proposed change for human approval.
@@ -55,15 +55,11 @@ Look for `project/.seo-brain/project.json`, the required Wiki pages, and existin
 ### 2. Create The Standard Structure
 **Check:** Do all required runtime directories exist?
 
-Create these directories idempotently:
+Create these directories idempotently. Dimension folders (`project/contents/`, `project/keywords/`, `project/audits/`, `project/clusters/`, `project/eeat/`) are NOT created here — they appear when the corresponding skill writes its first artifact. Project init only owns the project root, the metadata folder, and the Wiki tree.
 
 ```text
 project/
 project/.seo-brain/
-project/sources/
-project/workbench/
-project/artifacts/
-project/artifacts/contents/
 project/wiki/
 project/wiki/fontes/
 project/wiki/log/
@@ -239,8 +235,8 @@ Output: "Guess the market is United States, mark the strategic overview approved
 
 Evaluate this skill with three fixtures:
 
-- Empty project: verify all required directories, metadata, draft strategic pages, evidence catalog, and operational log are created.
-- Partial project: verify missing files are added and existing draft content is preserved unless an additive setup field is safe.
+- Empty project: verify project root, metadata folder, wiki tree, draft strategic pages, evidence catalog, and operational log are created. Verify that no dimension folders (`project/contents/`, `project/audits/`, etc.) are pre-created.
+- Partial project: verify missing wiki files are added and existing draft content is preserved unless an additive setup field is safe.
 - Approved pages: verify approved strategic pages are not overwritten and the result is `approval_required` when changes are needed.
 
-Pass when the executor preserves the single `project/` root, writes correct metadata, keeps strategic pages as drafts, logs an operational decision, preserves pt-BR accents, and never overwrites approved pages. Fail when it requires `_shared/` or `_legacy/`, creates multiple projects, fabricates facts, strips accents, writes secrets, or treats agent drafts as approved strategy.
+Pass when the executor preserves the single `project/` root, writes correct metadata, keeps strategic pages as drafts, logs an operational decision, preserves pt-BR accents, never overwrites approved pages, and does not pre-scaffold dimension folders. Fail when it requires `_shared/` or `_legacy/`, creates multiple projects, fabricates facts, strips accents, writes secrets, or treats agent drafts as approved strategy.

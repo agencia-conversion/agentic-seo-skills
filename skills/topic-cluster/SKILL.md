@@ -2,7 +2,7 @@
 name: topic-cluster
 description: When the user wants an SEO topic cluster, topical authority map, pillar/support architecture, or content roadmap structure backed by keyword and SERP evidence. Also use when they ask to rerender or update an existing topic cluster while preserving human curation.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Topic Cluster
@@ -21,7 +21,7 @@ Do not use this skill to write the articles, approve strategic positioning, inve
 - A DataForSEO bypass requires explicit written confirmation from the current user. Record the confirmation text, approver, timestamp, reason, and consequence: `not data-backed by DataForSEO`.
 - `hypothesis-only` mode is allowed only after written bypass approval. It must emit `status: hypothesis`, use `null` for missing volumes and SERP intent, and clearly state that it is a curatable skeleton, not approved strategy.
 - Never fabricate keyword volume, SERP intent, rankings, backlinks, credentials, awards, clients, proof, or business impact. Unknown values stay `null` or `unknown`.
-- Separate evidence from strategic judgment. Raw provider evidence belongs under `project/sources/`; cluster drafts belong under `project/workbench/topic-cluster/`.
+- Separate evidence from strategic judgment. Raw provider evidence belongs under `project/clusters/<seed-slug>/sources/dataforseo/`; cluster drafts belong under `project/clusters/<seed-slug>/`.
 - The wiki page, when allowed, is only an auto-generated projection from cluster JSONs. Do not treat it as the source of truth, and do not put hypotheses or unapproved strategic conclusions in the wiki.
 - Preserve human curation on rerun. Keep curated titles, entities, secondary keywords, funnel stages, SERP intent, and judgment unless fresh evidence requires a change; show any changed curated field.
 - Human judgment owns strategic approval. An agent-created cluster is not approved strategic context until the user explicitly approves it.
@@ -53,7 +53,7 @@ If DataForSEO is unavailable, stop before producing a data-backed cluster. Ask f
 
 **Check:** Are raw findings stored or referenced separately from the cluster synthesis?
 
-**Strong:** "Store normalized keyword suggestions under `project/sources/keyword-research/`, SERP evidence under `project/sources/serp/`, and the working cluster under `project/workbench/topic-cluster/`."
+**Strong:** "Store normalized keyword suggestions under `project/clusters/<seed-slug>/sources/dataforseo/`, SERP evidence under `project/clusters/<seed-slug>/sources/dataforseo/`, and the working cluster under `project/clusters/<seed-slug>/`."
 
 **Weak:** "Put all keyword notes directly into a wiki page and edit the wiki as the working draft."
 
@@ -87,17 +87,17 @@ Do not auto-classify intent from keyword text alone. If SERP evidence is missing
 
 **Weak:** "Overwrite every page title and funnel stage because the fresh keyword pool sorted differently."
 
-When an existing `project/workbench/topic-cluster/<seed-slug>.json` exists, merge by page slug. Preserve curated fields for pillar and support pages: `title`, `entity`, `keywords_secondary`, `funnel_stage`, `serp_intent`, and `judgment`. Keep supports that are no longer in the fresh top-N as carry-over pages so human-added structure survives.
+When an existing `project/clusters/<seed-slug>/cluster.json` exists, merge by page slug. Preserve curated fields for pillar and support pages: `title`, `entity`, `keywords_secondary`, `funnel_stage`, `serp_intent`, and `judgment`. Keep supports that are no longer in the fresh top-N as carry-over pages so human-added structure survives.
 
 ### 7. Produce The Working Artifact And Optional Projection
 
 **Check:** Is the durable output in workbench, with wiki projection generated only when allowed?
 
-**Strong:** "Write `project/workbench/topic-cluster/seo-agentico.json`; if wiki projection is allowed, regenerate `project/wiki/conteudos/topic-clusters.md` from all workbench cluster JSONs and mark it generated."
+**Strong:** "Write `project/clusters/seo-agentico/cluster.json`; if wiki projection is allowed, regenerate `project/wiki/conteudos/topic-clusters.md` from all cluster JSONs and mark it generated."
 
 **Weak:** "Write a polished strategy directly to `project/wiki/conteudos/topic-clusters.md` and ask for approval afterward."
 
-The workbench JSON is the editable source of truth. A generated wiki projection may be created only when the project rules allow operational projections and it clearly reflects the JSONs. Strategic recommendations, hypotheses, or unapproved positioning remain in workbench or artifacts, not wiki pages.
+The cluster JSON is the editable source of truth. A generated wiki projection may be created only when the project rules allow operational projections and it clearly reflects the JSONs. Strategic recommendations, hypotheses, or unapproved positioning remain in `project/clusters/<seed-slug>/`, not wiki pages.
 
 ### 8. Report Completeness, Gaps, And Next Actions
 
@@ -111,15 +111,15 @@ End with a short status summary. Name blockers and limitations plainly. If a byp
 
 ## Output Format
 
-Write the main artifact to `project/workbench/topic-cluster/<seed-slug>.json` unless the user asks for an inline preview first. Use this structure:
+Write the main artifact to `project/clusters/<seed-slug>/cluster.json` unless the user asks for an inline preview first. Use this structure:
 
 Expected path conventions:
 
-- Keyword suggestions: `project/sources/keyword-research/<stamp>-<slug>.suggestions.raw.json` and `.normalized.json`.
-- SERP evidence: `project/sources/serp/<stamp>-cluster-<slug>.raw.json` and `.normalized.json`.
-- Working cluster: `project/workbench/topic-cluster/<seed-slug>.json`.
+- Keyword suggestions: `project/clusters/<seed-slug>/sources/dataforseo/<stamp>-<slug>.suggestions.raw.json` and `.normalized.json`.
+- SERP evidence: `project/clusters/<seed-slug>/sources/dataforseo/<stamp>-cluster-<slug>.raw.json` and `.normalized.json`.
+- Working cluster: `project/clusters/<seed-slug>/cluster.json`.
 - Optional generated projection: `project/wiki/conteudos/topic-clusters.md`, only when allowed.
-- Render-only requests regenerate the projection from existing workbench JSONs without refetching evidence.
+- Render-only requests regenerate the projection from existing cluster JSONs without refetching evidence.
 
 ```json
 {
@@ -207,7 +207,7 @@ Expected path conventions:
 
 If blocked by missing DataForSEO and no written bypass, return `status: blocked`, describe the gate, and do not emit a hypothesis cluster. If using `hypothesis-only` after approval, include a pillar skeleton, an empty support list unless the user supplied curated supports, `null` volumes, `null` SERP intent, and a limitation explaining the bypass.
 
-When a wiki projection is allowed, regenerate `project/wiki/conteudos/topic-clusters.md` from the workbench JSONs. The projection must include the columns `Papel`, `Entidade`, `KW principal`, `Volume`, `KW Secundárias`, `Funil`, and `Intenção de Busca`, and it must identify itself as generated from workbench data.
+When a wiki projection is allowed, regenerate `project/wiki/conteudos/topic-clusters.md` from the cluster JSONs. The projection must include the columns `Papel`, `Entidade`, `KW principal`, `Volume`, `KW Secundárias`, `Funil`, and `Intenção de Busca`, and it must identify itself as generated from cluster data.
 
 ## Examples
 
@@ -215,7 +215,7 @@ When a wiki projection is allowed, regenerate `project/wiki/conteudos/topic-clus
 
 Input: "Build a topic cluster for `seo agêntico` in Brazil, pt-BR."
 
-Output: "Use DataForSEO keyword suggestions and SERP batches, preserve accents in `seo agêntico`, write the working JSON to `project/workbench/topic-cluster/seo-agentico.json`, classify intent from organic top results and SERP features, and list evidence gaps separately from judgment."
+Output: "Use DataForSEO keyword suggestions and SERP batches, preserve accents in `seo agêntico`, write the working JSON to `project/clusters/seo-agentico/cluster.json`, classify intent from organic top results and SERP features, and list evidence gaps separately from judgment."
 
 ### Example: Rerun With Human Curation
 
@@ -227,7 +227,7 @@ Output: "Merge fresh keyword and SERP evidence by slug, keep the curated title a
 
 Input: "DataForSEO is unavailable. I approve a hypothesis-only cluster for planning, knowing it is not data-backed."
 
-Output: "Record the written bypass, set `status: hypothesis`, keep volumes and SERP intent as `null`, write only a curatable workbench skeleton, and state that the output is not approved strategic context."
+Output: "Record the written bypass, set `status: hypothesis`, keep volumes and SERP intent as `null`, write only a curatable cluster skeleton under `project/clusters/<seed-slug>/`, and state that the output is not approved strategic context."
 
 ### Example: Weak Execution
 

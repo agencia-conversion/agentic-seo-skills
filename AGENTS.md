@@ -82,6 +82,21 @@ Required strategic approval pages:
 - `wiki/tecnologia/index.md`
 - `wiki/tom-de-voz/index.md`
 
+### Project Subfolders
+
+All skill artifacts live under one folder per dimension per slug:
+
+| Dimension | Canonical root | Layout |
+|---|---|---|
+| Content | `project/contents/<slug>/` | `workbench/`, `sources/`, `draft.md`, `published.md`, `checks.yaml` |
+| Keywords | `project/keywords/<seed-slug>/` | `sources/`, `report.yaml` |
+| Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml`, optional `report.md` |
+| Topic cluster | `project/clusters/<seed-slug>/` | `sources/`, `cluster.json`, optional projection |
+| EEAT | `project/eeat/<entity-or-run-slug>/` | `sources/`, `report.md` |
+| Wiki | `project/wiki/...` | only approved strategic context: `index.md`, `eeat.md`, `tecnologia/`, `tom-de-voz/`, `log/index.md`, `conteudos/<slug>.md` when explicit user request |
+
+Skills do not require wiki pages to exist. When a relevant wiki page is approved (`status: approved` or `status: published`), the skill marks the artifact `<dimension>_backed: true` and uses the page as evidence. When the page is missing or `status: draft|proposed|hypothesis`, the skill marks `<dimension>_backed: false` and proceeds. Strategic writing to the wiki still requires explicit user request and approval.
+
 ## Browser Handoff
 
 For previews, approvals, sensitive input, and option selection, prefer a local browser handoff over terminal interaction.

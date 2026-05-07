@@ -2,7 +2,7 @@
 name: technical-seo
 description: When the user wants a deterministic technical SEO audit, page-template validation, JSON audit interpretation, or repair-priority report for a rendered page or site URL.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Technical SEO
@@ -22,7 +22,7 @@ Do not use this skill for keyword research, SERP competitor analysis, content dr
 - Preserve page types exactly after normalization: `home`, `ecommerce_product`, `service_product`, `blog`, and `about`. Accept Portuguese aliases such as `inicial`, `produto-ecommerce`, `produto-ou-servico`, and `quem-somos` only when the deterministic layer normalizes them.
 - Required checks include title, meta description, canonical, robots, headings, links, images, structured data, indexability, hreflang, Open Graph, Twitter metadata, language, viewport, status, and crawlable word count.
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, schema validation results, Core Web Vitals, HTTP status, rendering behavior, or proof.
-- Keep raw audit inputs and extracted evidence in `project/sources/`; write working reports under `project/workbench/technical-seo/`; write complete deliverables under `project/artifacts/` only when requested.
+- Keep raw audit inputs and extracted evidence in `project/audits/<slug>/sources/`; write reports under `project/audits/<slug>/` (`report.yaml`, optional `report.md`).
 - Keep sources separate from synthesis. Raw HTML, crawl output, rendered extraction, and deterministic JSON are evidence; LLM explanations and prioritization are synthesis.
 - Do not write drafts, hypotheses, failed checks, or unapproved strategic conclusions to `project/wiki/`.
 - Strategic wiki pages require explicit human approval. A technical audit can recommend a change, but it does not approve technology, voice, positioning, E-E-A-T, or homepage strategy.
@@ -88,7 +88,7 @@ Use only deterministic findings, visible evidence, and explicit project context.
 
 **Weak:** "The report blends extracted facts, guesses, and recommendations in one paragraph."
 
-Keep raw files and JSON under `project/sources/` or cite the existing audit input. Put working Markdown or YAML reports under `project/workbench/technical-seo/`. Add follow-up checks that rerun the same deterministic audit after repairs, then compare the new score and failed checks to the original.
+Keep raw files and JSON under `project/audits/<slug>/sources/` or cite the existing audit input. Put working Markdown or YAML reports under `project/audits/<slug>/`. Add follow-up checks that rerun the same deterministic audit after repairs, then compare the new score and failed checks to the original.
 
 ### 7. Stop At Gates And Limitations
 
@@ -102,7 +102,7 @@ If a required process cannot run, state the missing step and consequence. Do not
 
 ## Output Format
 
-For inline interpretation, return Markdown plus an unmodified JSON block. For saved work, write the report to `project/workbench/technical-seo/<target-slug>.yaml` unless the user asks for a different artifact path.
+For inline interpretation, return Markdown plus an unmodified JSON block. For saved work, write the report to `project/audits/<slug>/report.yaml` unless the user asks for a different artifact path.
 
 Use this structure:
 

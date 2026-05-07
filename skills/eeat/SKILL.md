@@ -2,7 +2,7 @@
 name: eeat
 description: When the user wants to audit, strengthen, or prepare evidence for Experience, Expertise, Authoritativeness, and Trust. Also use before updating strategic E-E-A-T context in `project/wiki/eeat.md`.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # E-E-A-T
@@ -20,8 +20,9 @@ Do not use this skill to approve strategic positioning, publish claims to the wi
 - Build an evidence inventory before synthesis. Every usable claim must point to a source, excerpt, or observed artifact.
 - Separate raw evidence, rater-style judgment, and human approval. Agent consensus is not approval.
 - Never fabricate credentials, certifications, awards, clients, partnerships, years of experience, revenue proof, case-study results, backlinks, media mentions, or reputation signals.
-- Claims with no source remain gaps. Unverified strategic claims stay in `project/workbench/` or the final artifact, never in `project/wiki/`.
+- Claims with no source remain gaps. Unverified strategic claims stay in `project/eeat/<slug>/`, never in `project/wiki/`.
 - Strategic `project/wiki/eeat.md` requires explicit human approval before it is created or updated.
+- Wiki overlay posture: when `project/wiki/eeat.md` is missing, set `eeat_backed: false` in the report and proceed without it; when the wiki page exists with `status: draft|proposed|hypothesis`, set `eeat_backed: false` and `wiki_state: present_unapproved`; when the wiki page exists with `status: approved`, set `eeat_backed: true` and use it as evidence. There is no wiki gate and no "wiki bypass" — the wiki is an overlay, not a precondition.
 - If the user approves a wiki update, write only sourced present-state findings and mark unresolved claims as gaps outside the wiki or in a clearly non-approved section only if the project convention allows it.
 - Treat reputation as externally evidenced. Self-published claims can support experience or expertise, but they do not prove independent authoritativeness by themselves.
 - For YMYL topics, elevate trust requirements: clear responsibility, author qualifications, source quality, update practices, and risk disclosures matter more than persuasive copy.
@@ -33,7 +34,7 @@ Do not use this skill to approve strategic positioning, publish claims to the wi
 
 **Check:** What entity, site, author, page, or wiki update is being evaluated, and is the topic YMYL?
 
-**Strong:** "Evaluate the consulting site's founder proof for `wiki/eeat.md`, with available sources under `project/sources/`; topic is marketing consulting, not medical or financial advice."
+**Strong:** "Evaluate the consulting site's founder proof for `wiki/eeat.md`, with available sources under `project/eeat/<slug>/sources/`; topic is marketing consulting, not medical or financial advice."
 
 **Weak:** "Improve credibility for the brand broadly and write a polished authority page."
 
@@ -101,20 +102,22 @@ Prioritize gaps that can mislead users or create quality risk:
 
 **Check:** Where should the result live, and what approval is required?
 
-**Strong:** "Write the E-E-A-T review to `project/workbench/eeat/<slug>.md`; request explicit human approval before updating `project/wiki/eeat.md`."
+**Strong:** "Write the E-E-A-T review to `project/eeat/<slug>/report.md`; request explicit human approval before updating `project/wiki/eeat.md`."
 
 **Weak:** "Write the improved E-E-A-T narrative directly into `project/wiki/eeat.md` because the review is confident."
 
-Use `project/workbench/eeat/` for audits, draft synthesis, and unverified strategic work. Use `project/artifacts/` for complete deliverables when the user asks for a shareable report. Use `project/wiki/eeat.md` only after explicit human approval, and only for sourced present-state strategic context.
+Use `project/eeat/<slug>/` for audits, draft synthesis, complete deliverables, and unverified strategic work. Use `project/wiki/eeat.md` only after explicit human approval, and only for sourced present-state strategic context.
 
 ## Output Format
 
-Write the review to `project/workbench/eeat/<entity-or-run-slug>.md` unless the user asks for an inline answer first. Use this structure:
+Write the review to `project/eeat/<slug>/report.md` unless the user asks for an inline answer first. Use this structure:
 
 ```yaml
 status: complete | incomplete | blocked | approval_required
 entity: ""
-target_artifact: project/workbench/eeat/<slug>.md
+target_artifact: project/eeat/<slug>/report.md
+eeat_backed: false
+wiki_state: missing | present_unapproved | approved
 wiki_update:
   requested: true | false
   approval_status: not_requested | approval_required | approved
