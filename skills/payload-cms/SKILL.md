@@ -2,7 +2,7 @@
 name: payload-cms
 description: When the user wants to decide whether to add Payload CMS to an SEO Brain site, or to configure Payload CMS after the fit decision is justified.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Payload CMS
@@ -24,7 +24,7 @@ Do not use this skill to approve strategy, publish content, create the content c
 - Validate environment variable names and presence only. Treat values as sensitive.
 - Required secret values must be collected through a sensitive-input handoff when available, plugin user configuration when running as a plugin, or `project/.env.local` when running standalone. Never write secrets to the repo root `.env`.
 - If proceeding with Payload, define SEO-ready collections before implementation: pages, posts, authors, media, redirects, and global SEO settings when they are actually needed.
-- Keep raw sources in `project/sources/`, workbench decisions in `project/workbench/`, final deliverables in `project/artifacts/`, and operational technology notes in `project/wiki/tecnologia/` only when checks pass.
+- Keep evidence and decisions inside the dimension folder for this run: `project/audits/payload-cms-<slug>/sources/`, `project/audits/payload-cms-<slug>/report.yaml`. Operational technology notes go to `project/wiki/tecnologia/` only when checks pass.
 - Strategic wiki pages require explicit human approval. CMS setup must not approve `wiki/index.md`, `wiki/eeat.md`, `wiki/tom-de-voz/index.md`, `wiki/tecnologia/index.md`, content drafts, or positioning claims by implication.
 - Public content may appear in `project/wiki/conteudos/` only after final approval and `status: published`.
 - Preserve the requested output language, including pt-BR accents in human-facing prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
@@ -106,7 +106,7 @@ When a decision is important, append a log entry with `type: operational-decisio
 
 ## Output Format
 
-Write an inline decision first unless the user specifically requested a file artifact. If writing an artifact, use `project/workbench/payload-cms/fit-decision.yaml` for the decision and only update `project/wiki/tecnologia/` after the implementation or documented technology decision is verified.
+Write an inline decision first unless the user specifically requested a file artifact. If writing an artifact, use `project/audits/payload-cms-<slug>/report.yaml` for the decision and only update `project/wiki/tecnologia/` after the implementation or documented technology decision is verified.
 
 ```yaml
 status: complete | conditional | blocked

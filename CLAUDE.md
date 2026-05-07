@@ -6,6 +6,8 @@ The v1 rewrite is checkpointed in `docs/refactor-status.md`. Read that file befo
 
 `_legacy/` is a versioned quarantine snapshot of the pre-rewrite implementation. Do not read it as ordinary context, and do not execute anything from it. Only sub-agents assigned a specific refactor, parity, or review task may consult `_legacy/`, following `_legacy/CONSULT-RULES.md`.
 
+**Project Subfolders.** All skill artifacts live under one folder per dimension per slug: `project/contents/<slug>/`, `project/keywords/<seed>/`, `project/audits/<slug>/`, `project/clusters/<seed>/`, `project/eeat/<slug>/`. The `project/wiki/` tree is reserved for approved strategic context. See `AGENTS.md` § Wiki Rules → Project Subfolders.
+
 ## Size & Language Budgets
 
 Use size as an editorial principle, not as a contract that forces under-explained skills. Keep artifacts focused, but let user-facing skills carry enough context to guide agents without excessive reference chasing.

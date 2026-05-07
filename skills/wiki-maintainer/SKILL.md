@@ -2,12 +2,12 @@
 name: wiki-maintainer
 description: When the user wants to ingest sources, update the SEO Brain LLM Wiki, catalog evidence, reconcile project knowledge, or lint wiki pages for provenance and approval safety.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Wiki Maintainer
 
-You are the steward of the SEO Brain LLM Wiki. Your goal is to keep `project/wiki/` useful, cited, Obsidian-compatible, and safe for user-directed writing while preserving raw evidence under `project/sources/`.
+You are the steward of the SEO Brain LLM Wiki. Your goal is to keep `project/wiki/` useful, cited, Obsidian-compatible, and safe for user-directed writing while preserving raw evidence inside the appropriate dimension folder (`project/<dimension>/<slug>/sources/`).
 
 ## When To Use
 
@@ -17,27 +17,27 @@ Do not use this skill to create strategic recommendations from scratch, run keyw
 
 ## Critical Points
 
-- Raw source files live in `project/sources/` and are immutable or append-only. Do not rewrite, clean up, summarize over, or delete existing raw sources.
-- Generated and curated knowledge lives in `project/wiki/`. Drafts, hypotheses, research notes, and unresolved synthesis normally belong in `project/workbench/` or `project/artifacts/`, but they may be written into the Wiki when the current user explicitly requests that destination and the status is clearly labeled.
+- Raw source files live inside their dimension folder (`project/contents/<slug>/sources/`, `project/keywords/<seed>/sources/`, `project/audits/<slug>/sources/`, `project/clusters/<seed>/sources/`, `project/eeat/<slug>/sources/`) and are immutable or append-only. Do not rewrite, clean up, summarize over, or delete existing raw sources.
+- Generated and curated knowledge lives in `project/wiki/`. Drafts, hypotheses, research notes, and unresolved synthesis normally belong inside the producing dimension folder (for example `project/contents/<slug>/workbench/` or `project/audits/<slug>/`), but they may be written into the Wiki when the current user explicitly requests that destination and the status is clearly labeled.
 - Keep sources separate from synthesis. A wiki claim must cite raw evidence, approved wiki context, or clearly mark a gap.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, quotes, proof, or approvals. Unknown facts stay unknown.
 - Strategic pages require explicit approval before they state strategy as accepted project context. They may still receive user-directed draft or proposed edits when the user asks for that exact write.
 - Human judgment owns strategic approval. An agent draft, prior artifact, user-directed note, or confident synthesis is not approved strategic context unless the user explicitly approves that status.
 - Preserve the requested output language. In pt-BR prose, keep accents and diacritics: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
-- Use Obsidian wikilinks only for real pages inside `project/wiki/`. Use normal Markdown links for files under `project/sources/` or external URLs.
+- Use Obsidian wikilinks only for real pages inside `project/wiki/`. Use normal Markdown links for files under `project/<dimension>/<slug>/sources/` or external URLs.
 - Append important events to `project/wiki/log/index.md` with `type: strategic-approval` or `type: operational-decision`.
 
 ## Write Boundaries
 
-Allowed writes for normal execution are `project/wiki/**` for curated pages, user-directed drafts, hypotheses, proposed strategic edits, indexes, source catalog entries, and logs; `project/sources/**` only when capturing a newly provided raw source exactly as received or adding append-only metadata beside it; and `project/workbench/wiki-maintainer/**` for reconciliation notes, lint reports, proposed strategic changes, contradiction notes, and approval packets.
+Allowed writes for normal execution are `project/wiki/**` for curated pages, user-directed drafts, hypotheses, proposed strategic edits, indexes, source catalog entries, and logs; `project/<dimension>/<slug>/sources/**` only when capturing a newly provided raw source exactly as received or adding append-only metadata beside it; and `project/audits/wiki-<run-slug>/**` for reconciliation notes, lint reports, proposed strategic changes, contradiction notes, and approval packets.
 
-Do not write strategic drafts, unverified claims, or review notes into `project/wiki/` unless the current user explicitly asks for that write or destination. When you do, label the status as `draft`, `proposed`, `hypothesis`, or `user-provided`, and include citations, gaps, or limitations. Do not modify `project/sources/**` files that already exist unless the operation is append-only and clearly preserves the original evidence.
+Do not write strategic drafts, unverified claims, or review notes into `project/wiki/` unless the current user explicitly asks for that write or destination. When you do, label the status as `draft`, `proposed`, `hypothesis`, or `user-provided`, and include citations, gaps, or limitations. Do not modify `project/<dimension>/<slug>/sources/**` files that already exist unless the operation is append-only and clearly preserves the original evidence.
 
 ## Strategic Boundaries
 
 Treat `project/wiki/index.md`, `project/wiki/eeat.md`, `project/wiki/tecnologia/index.md`, `project/wiki/tom-de-voz/index.md`, and any page that defines positioning, audience, value proposition, expertise, credibility, voice, technology choices, editorial doctrine, or business priorities as approval-gated for accepted strategy, not for user-directed draft writing.
 
-If a requested change would add or alter strategic context and explicit approval is missing, first check whether the user explicitly asked you to write the page anyway. If yes, write only within the requested scope, mark the change as draft/proposed/unapproved, and log it as an operational decision. If not, write a proposed change packet under `project/workbench/wiki-maintainer/`, ask for approval, and disclose what evidence is missing or contested. Approval of a draft is valid only when the user explicitly approves that specific strategic change with known gaps disclosed.
+If a requested change would add or alter strategic context and explicit approval is missing, first check whether the user explicitly asked you to write the page anyway. If yes, write only within the requested scope, mark the change as draft/proposed/unapproved, and log it as an operational decision. If not, write a proposed change packet under `project/audits/wiki-<run-slug>/`, ask for approval, and disclose what evidence is missing or contested. Approval of a draft is valid only when the user explicitly approves that specific strategic change with known gaps disclosed.
 
 Operational and observational pages may be updated without strategic approval when they are evidence-backed and pass checks. Examples include a source catalog entry, a broken-link lint report, a log entry for an operational decision, or an observational note that a source contains a claim not yet accepted by the project.
 
@@ -47,7 +47,7 @@ Operational and observational pages may be updated without strategic approval wh
 
 **Check:** Is the user asking for source ingestion, wiki maintenance, reconciliation, approval logging, or strategic promotion?
 
-**Strong:** "The user provided `project/sources/manual/founder-interview.md`; catalog it, extract evidence, note gaps, and avoid promoting unsupported E-E-A-T claims to `wiki/eeat.md` without approval."
+**Strong:** "The user provided `project/eeat/<slug>/sources/manual/founder-interview.md`; catalog it, extract evidence, note gaps, and avoid promoting unsupported E-E-A-T claims to `wiki/eeat.md` without approval."
 
 **Weak:** "The source says the founder is an expert, so update `wiki/eeat.md` to call them a recognized expert."
 
@@ -57,7 +57,7 @@ If the task is really keyword research, SERP analysis, content drafting, technic
 
 **Check:** Which raw sources, existing wiki pages, approvals, and logs are relevant?
 
-Read the specific source files or wiki pages required for the task. Do not treat `project/workbench/` drafts as approved wiki context unless a log entry or explicit user approval confirms promotion. Do not use `_legacy/` as project evidence.
+Read the specific source files or wiki pages required for the task. Do not treat dimension-folder drafts (`project/<dimension>/<slug>/workbench/...`) as approved wiki context unless a log entry or explicit user approval confirms promotion. Do not use `_legacy/` as project evidence.
 
 For each relevant source, capture path or URL, title or short label, observed date when available, author or origin when available, language, source type, key facts, and limitations. Paraphrase unless a short verbatim excerpt is necessary.
 
@@ -65,12 +65,13 @@ For each relevant source, capture path or URL, title or short label, observed da
 
 **Check:** Is the raw evidence already stored without alteration?
 
-If the source already exists in `project/sources/`, leave it untouched and cite it. If the user provides a new file, URL capture, or note that is not yet stored, save it under a clear append-only path such as:
+If the source already exists inside its dimension folder, leave it untouched and cite it. If the user provides a new file, URL capture, or note that is not yet stored, save it under a clear append-only path such as:
 
 ```text
-project/sources/manual/<slug>.md
-project/sources/serp/<keyword-slug>/<timestamp>.json
-project/sources/crawl/<site-slug>/<timestamp>.json
+project/eeat/<slug>/sources/manual/<file>.md
+project/audits/<slug>/sources/dataforseo/<run>.json
+project/audits/<slug>/sources/crawl/<timestamp>.json
+project/contents/<slug>/sources/extract/<rank>-<domain>.json
 ```
 
 When capturing a user-provided note, preserve spelling, accents, names, titles, claims, and excerpts. For pt-BR, do not convert `análise`, `conteúdo`, or `aprovação` to ASCII. Use ASCII only for slugs, file names, IDs, enum values, code identifiers, command names, or source text that was originally ASCII.
@@ -106,7 +107,7 @@ Allowed wiki content includes approved strategic facts and decisions, measured o
 
 Blocked from wiki unless explicitly requested and clearly labeled: unapproved positioning, voice, technology strategy, E-E-A-T claims, hypotheses about what the brand should say or do, content drafts, unpublished public content, unsupported claims of expertise or proof, and "agent believes" synthesis. Always blocked: presenting any of those as approved context without explicit approval.
 
-If a source contains a claim that cannot be promoted, record it as a gap or contradiction in `project/workbench/wiki-maintainer/` and, when useful, add a neutral catalog note such as "source claims public proof exists; no corroborating wiki evidence found." If the user asks you to write that claim into the Wiki, mark it as user-provided or unverified; do not turn it into accepted wiki language.
+If a source contains a claim that cannot be promoted, record it as a gap or contradiction in `project/audits/wiki-<run-slug>/` and, when useful, add a neutral catalog note such as "source claims public proof exists; no corroborating wiki evidence found." If the user asks you to write that claim into the Wiki, mark it as user-provided or unverified; do not turn it into accepted wiki language.
 
 ### 6. Write Citations And Links Correctly
 
@@ -134,7 +135,7 @@ Record a contradiction when two sources or pages disagree. Record a gap when a c
 
 Use concise notes with `claim`, `evidence_for`, `evidence_against`, `missing_evidence`, `affected_pages`, `recommended_next_step`, and `wiki_action`: `none`, `catalog_only`, `operational_update`, or `approval_required`.
 
-Keep unresolved contradiction and gap notes in `project/workbench/wiki-maintainer/` unless they are short operational notes appropriate for `wiki/fontes/index.md`.
+Keep unresolved contradiction and gap notes in `project/audits/wiki-<run-slug>/` unless they are short operational notes appropriate for `wiki/fontes/index.md`.
 
 ### 8. Append The Log
 
@@ -168,7 +169,7 @@ If a check fails, fix it or mark the task `blocked` with a clear reason.
 
 ## Output Format
 
-For normal execution, provide a concise completion note and write a machine-readable maintenance summary under `project/workbench/wiki-maintainer/<slug>.yaml` when the task involves reconciliation, blocking, or more than one changed file.
+For normal execution, provide a concise completion note and write a machine-readable maintenance summary under `project/audits/wiki-<run-slug>/report.yaml` when the task involves reconciliation, blocking, or more than one changed file.
 
 ```yaml
 status: complete | blocked | approval_required
@@ -176,7 +177,7 @@ request_type: source_ingestion | wiki_update | reconciliation | lint | approval_
 changed_files:
   wiki: []
   sources: []
-  workbench: []
+  audits_wiki: []
 source_catalog:
   updated: true
   entries: []
@@ -206,7 +207,7 @@ If the task is blocked by missing strategic approval and there is no explicit us
 
 ### Example: Source Ingestion With E-E-A-T Gap
 
-Input: "Ingest `project/sources/manual/founder-interview.md`. It says Diego should be positioned as a recognized SEO Brain expert, but `wiki/eeat.md` has no public proof for awards or clients."
+Input: "Ingest `project/eeat/<slug>/sources/manual/founder-interview.md`. It says Diego should be positioned as a recognized SEO Brain expert, but `wiki/eeat.md` has no public proof for awards or clients."
 
 Output: "Leave the raw source unchanged, add it to `wiki/fontes/index.md`, create a workbench gap note for the unsupported awards or clients proof, do not add the expert positioning to `wiki/eeat.md` without explicit approval, and append a `type: operational-decision` log entry."
 

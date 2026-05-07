@@ -2,7 +2,7 @@
 name: next-website-creator
 description: When the user wants to create, scaffold, or validate a Next.js static website for an SEO Brain project with SEO-ready pages and local preview.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Next Website Creator
@@ -18,10 +18,10 @@ Do not use this skill to create SEO strategy, approve brand positioning, draft f
 ## Critical Points
 
 - Prefer Next.js static generation or static export for the public site. Server features are allowed only when the user explicitly needs runtime behavior and the build plan explains the tradeoff.
-- Write only website implementation files under `project/web/` and construction notes under `project/workbench/`. Final deliverable records may live under `project/artifacts/` only when the workflow explicitly produces a complete deliverable.
-- Keep raw evidence in `project/sources/`, working analysis in `project/workbench/`, final deliverables in `project/artifacts/`, and approved operational or strategic knowledge in `project/wiki/`.
+- Write only website implementation files under `project/web/` and run-specific construction notes under `project/audits/web-<run-slug>/`.
+- Use the dimension-folder layout for evidence and synthesis: `project/contents/<slug>/`, `project/audits/<slug>/`, `project/eeat/<slug>/`, `project/keywords/<seed>/`. Approved operational or strategic knowledge lives in `project/wiki/`.
 - Use approved wiki pages as context. Strategic wiki pages, including project identity, E-E-A-T, technology, and tone of voice, require explicit human approval before they can drive public claims or voice.
-- Public articles and blog posts must come from approved `content-seo` output, usually under `project/artifacts/contents/<slug>/`. If no approved content artifact exists, stop at the content gate.
+- Public articles and blog posts must come from approved `content-seo` output at `project/contents/<slug>/published.md`. If no approved content artifact exists, stop at the content gate.
 - Never write a placeholder, stub, lorem ipsum, invented final article, or `noindex` article and present it as delivered public content.
 - If the site shell is useful before content approval, omit blocked public posts from the build or mark them as blocked in the active plan. Do not silently publish dependency gaps.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, case studies, testimonials, certifications, or proof.
@@ -33,7 +33,7 @@ Do not use this skill to create SEO strategy, approve brand positioning, draft f
 ### 1. Confirm The Site Scope And Gates
 **Check:** What pages are requested, which project context is approved, and which pages depend on unapproved content or strategy?
 
-**Strong:** "The home and services pages can use approved `project/wiki/index.md`; the blog post can use `project/artifacts/contents/seo-agentico/draft.md` only if it is explicitly approved; tone-dependent copy is blocked because `project/wiki/tom-de-voz/index.md` is still draft."
+**Strong:** "The home and services pages can use approved `project/wiki/index.md`; the blog post can use `project/contents/seo-agentico/published.md` only if it is approved; tone-dependent copy applies the wiki overlay flag from `project/wiki/tom-de-voz/index.md` (`voice_backed: true` only when `status: approved`)."
 
 **Weak:** "Use the draft tone page because it exists, invent one blog article, and treat the site as complete."
 
@@ -86,7 +86,7 @@ If validation cannot run, stop at the failed gate and report the cause, the comm
 
 ## Output Format
 
-When reporting the work, use this structure in the final note or in `project/workbench/next-website-creator/<slug>.yaml` when a durable plan is needed:
+When reporting the work, use this structure in the final note or in `project/audits/web-<slug>/report.yaml` when a durable plan is needed:
 
 ```yaml
 status: complete | blocked | incomplete
@@ -102,7 +102,7 @@ requested_pages:
     dependency: null
 content_dependencies:
   - route: /blog/<slug>
-    required_artifact: project/artifacts/contents/<slug>/...
+    required_artifact: project/contents/<slug>/published.md
     approval_status: approved | missing | draft | unknown
     action: rendered | omitted | blocked
 source_separation:

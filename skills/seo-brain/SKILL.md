@@ -2,7 +2,7 @@
 name: seo-brain
 description: Load SEO Brain's canonical runtime context and route broad, ambiguous, or compound Agentic SEO requests through the right gates and downstream skills.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # SEO Brain
@@ -31,7 +31,7 @@ Humans own judgment. Agents execute repeatable intelligence, extraction, formatt
 ## Critical Points
 
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, case studies, or proof. Unknown metrics stay `null`, `unknown`, or blocked.
-- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, complete deliverables in `project/artifacts/`, and approved or measured knowledge in `project/wiki/`.
+- Artifacts live one folder per dimension per slug: `project/contents/<slug>/`, `project/keywords/<seed>/`, `project/audits/<slug>/`, `project/clusters/<seed>/`, `project/eeat/<slug>/`. Each dimension folder owns its own `sources/`, `workbench/` (when applicable), and final deliverables. The `project/wiki/` tree is reserved for approved strategic context. See `AGENTS.md` § Wiki Rules → Project Subfolders.
 - User-directed writing is allowed: if the current user explicitly asks the agent to write or edit a Wiki page, content page, artifact, or draft, that request authorizes writing within the named scope.
 - Writing is not approval. Mark user-directed drafts, hypotheses, and unverified strategic notes as `draft`, `proposed`, `hypothesis`, or `user-provided`; do not treat them as approved operating context until the user explicitly approves that status.
 - Strategic Wiki pages require explicit approval before becoming operating context, but not before user-directed draft edits: `project/wiki/index.md`, `project/wiki/eeat.md`, `project/wiki/tecnologia/index.md`, and `project/wiki/tom-de-voz/index.md`.
@@ -63,9 +63,9 @@ Name missing gates before downstream execution. Common blockers:
 - `DataForSEO gate`: credentials are missing, invalid, or unavailable for required SEO evidence.
 - `DataForSEO bypass gate`: the user has not explicitly approved WebSearch, skip-data, or hypothesis-only output with the required consequence.
 - `Strategy approval gate`: approved strategic context is required before treating a page as operating truth; user-directed draft writing can proceed when clearly labeled.
-- `Tone-of-voice gate`: `project/wiki/tom-de-voz/index.md` is missing or unapproved before voice-backed public content or website copy; user-directed writing may proceed as a draft or bypassed output when marked clearly.
+- `Tone-of-voice overlay`: `project/wiki/tom-de-voz/index.md` is read as evidence when `status: approved`. When missing or `status: draft|proposed|hypothesis`, the artifact records `voice_backed: false` and proceeds; this is not a human gate, only a downgraded evidence flag.
 - `Content approval gate`: a brief, draft, or final public content artifact needs human approval before publishing or promotion; user-directed drafting may proceed when the requested scope is explicit.
-- `Source separation gate`: raw evidence has not been captured under `project/sources/` or cited separately from synthesis.
+- `Source separation gate`: raw evidence has not been captured inside the dimension folder (`project/<dimension>/<slug>/sources/`) or cited separately from synthesis.
 - `Browser handoff gate`: sensitive input, approval, or preview should be completed through a local browser flow rather than terminal-first instructions.
 
 When a required gate is missing, either return a blocked/approval-required routing decision or, if the user explicitly asked for writing anyway, create the requested draft within scope and disclose the missing gate in the artifact. Do not create a partial final artifact that hides the missing step.
@@ -96,9 +96,9 @@ If multiple skills are needed, route in dependency order and stop at the first m
 
 **Check:** Does each artifact make clear what came from raw evidence, what the agent inferred, and what the human approved?
 
-Use normal Markdown links for `project/sources/` files and Obsidian wikilinks only for real pages inside `project/wiki/`. Append important operational decisions and strategic approvals to `project/wiki/log/index.md` when the workflow writes Wiki state; each log entry must declare `type: strategic-approval` or `type: operational-decision`.
+Use normal Markdown links for `project/<dimension>/<slug>/sources/...` files and Obsidian wikilinks only for real pages inside `project/wiki/`. Append important operational decisions and strategic approvals to `project/wiki/log/index.md` only when the wiki exists and the workflow writes Wiki state; do not create the wiki just to log. Each log entry must declare `type: strategic-approval` or `type: operational-decision`.
 
-**Strong:** "Store SERP JSON in `project/sources/serp/`, write the analysis in `project/workbench/seo-analysis/`, request human approval, then promote only approved state."
+**Strong:** "Store SERP JSON in `project/audits/<slug>/sources/dataforseo/`, write the analysis in `project/audits/<slug>/report.yaml`, request human approval, then promote only approved state."
 
 **Weak:** "Summarize a competitor scan directly into `project/wiki/index.md` as a strategic fact."
 
@@ -150,9 +150,11 @@ gates:
   content_approval:
     status: approved | missing | not_needed
 source_separation:
-  raw_sources_path: project/sources/
-  drafts_path: project/workbench/
-  artifacts_path: project/artifacts/
+  contents_path: project/contents/<slug>/
+  keywords_path: project/keywords/<seed>/
+  audits_path: project/audits/<slug>/
+  clusters_path: project/clusters/<seed>/
+  eeat_path: project/eeat/<slug>/
   wiki_path: project/wiki/
 browser_handoff:
   recommended: true | false

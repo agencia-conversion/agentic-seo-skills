@@ -2,7 +2,7 @@
 name: internal-links
 description: When the user wants internal link opportunities, contextual link recommendations, anchor text improvements, or validation before applying internal links.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Internal Links
@@ -28,7 +28,7 @@ Do not use this skill to create new content, approve strategic topic clusters, r
 - Anchor text must be descriptive, natural, and useful out of context. Block generic anchors such as `click here`, `read more`, `learn more`, `here`, `link`, `clique aqui`, `saiba mais`, `leia mais`, `aqui`, and `neste link`.
 - Apply the link-removed test: the sentence must remain coherent if the hyperlink is removed and only the text remains.
 - Separate deterministic evidence from LLM judgment. Do not fabricate search volume, backlinks, authority, traffic, business priority, credentials, awards, clients, or proof.
-- Keep raw evidence in `project/sources/`, working analysis in `project/workbench/internal-links/`, and final approval artifacts in `project/artifacts/internal-links/`.
+- Keep raw evidence in `project/audits/<slug>/sources/`, working analysis in `project/audits/<slug>/report.yaml`, and final approval artifacts in `project/audits/<slug>/report.md`.
 - Do not write drafts, hypotheses, or unapproved strategic conclusions to `project/wiki/`.
 - `--apply-approved` or any apply mode may only change recommendations explicitly marked approved by a human. Approval of a report is not approval to apply every suggested edit unless the approval states that.
 - Preserve the requested output language and source-page language, including pt-BR accents in human-facing prose and anchors: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`, `SEO agêntico`.
@@ -91,7 +91,7 @@ The default status for new recommendations is `needs_approval`. Apply nothing un
 
 ## Output Format
 
-Write the machine-readable report to `project/workbench/internal-links/<run-slug>.yaml` unless the user asks for an inline preview first. Write the approval artifact to `project/artifacts/internal-links/<run-slug>.md` when recommendations are ready for review.
+Write the machine-readable report to `project/audits/<slug>/report.yaml` unless the user asks for an inline preview first. Write the approval artifact to `project/audits/<slug>/report.md` when recommendations are ready for review.
 
 ```yaml
 status: complete | blocked | incomplete | approval_required

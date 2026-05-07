@@ -2,7 +2,7 @@
 name: backlink-analysis
 description: When the user wants backlink, referring-domain, anchor, link-quality, or competitor link-profile analysis for one target domain or URL.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Backlink Analysis
@@ -23,7 +23,7 @@ Do not use this skill to run outreach, promise link acquisition, approve strateg
 - Never fabricate backlink counts, referring-domain counts, authority scores, traffic, spam scores, anchor counts, first-seen dates, client proof, awards, credentials, or competitor evidence.
 - Competitor deltas are allowed only from provided DataForSEO data. If a competitor was requested but not measured, mark its deltas as `unavailable`.
 - Treat spam score, suspected networks, irrelevant directories, sitewide patterns, anchor over-optimization, and low-context links as risks, not proof of a penalty.
-- Keep raw source data separate from synthesis. Raw provider responses belong under `project/sources/backlinks/`; normalized analysis belongs under `project/workbench/backlinks/`.
+- Keep raw source data separate from synthesis. Raw provider responses belong under `project/audits/<slug>/sources/dataforseo-backlinks/`; normalized analysis belongs under `project/audits/<slug>/`.
 - Do not write backlink drafts, hypotheses, or strategic conclusions to `project/wiki/`. Wiki promotion requires a separate approval workflow and is not part of this skill.
 - Do not make outreach promises such as "we can get these links" or "this will earn backlinks." Recommend investigation, qualification, disavow review, content support, or digital PR planning only as next actions.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
@@ -44,7 +44,7 @@ If the target is missing, ask for it before analysis. If competitors are not pro
 
 **Check:** Is measured backlink data available from DataForSEO Backlinks for the target and each provided competitor?
 
-**Strong:** "Use DataForSEO Backlinks live endpoints for summary, referring domains, anchors, and sample backlinks; save raw responses under `project/sources/backlinks/` with timestamped filenames."
+**Strong:** "Use DataForSEO Backlinks live endpoints for summary, referring domains, anchors, and sample backlinks; save raw responses under `project/audits/<slug>/sources/dataforseo-backlinks/` with timestamped filenames."
 
 **Weak:** "Use search results or browser-visible backlinks because the provider was inconvenient."
 
@@ -99,7 +99,7 @@ Recommendations must be framed as analysis, investigation, cleanup review, or pl
 
 ## Output Format
 
-Write the report to `project/workbench/backlinks/<target-slug>.yaml` unless the user asks for an inline preview first. Use this structure:
+Write the report to `project/audits/<slug>/report.yaml` unless the user asks for an inline preview first. Use this structure:
 
 ```yaml
 status: complete | blocked | incomplete
@@ -125,9 +125,9 @@ provider:
     backlink_mode: as_is
 sources:
   raw_provider_responses:
-    - path: project/sources/backlinks/...
+    - path: project/audits/<slug>/sources/dataforseo-backlinks/...
   normalized_workbench:
-    - path: project/workbench/backlinks/...
+    - path: project/audits/<slug>/report.yaml
 evidence:
   target_summary:
     backlinks: null
