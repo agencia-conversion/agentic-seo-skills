@@ -1,0 +1,42 @@
+---
+name: serp-extract
+description: Extract and normalize real SERP data with provider metadata, raw response storage, organic results, and SERP features.
+---
+
+# SERP Extract
+
+Use this skill when the user asks for SERP extraction, search result snapshots, competitor URLs, or SERP feature analysis.
+
+Read first when needed:
+
+- `skills/_shared/references/operating-model.md`
+- `skills/data-setup/SKILL.md`
+
+## Contract
+
+Inputs:
+
+- keyword;
+- optional location, language, device, and depth.
+
+Writes only:
+
+- `project/sources/serp/`
+- `project/workbench/serp/`
+
+## Required Behavior
+
+- Store raw provider response.
+- Store normalized runtime data as YAML; raw provider responses stay `.raw.json`.
+- Default to `standard` mode (`task_post` + `task_get`), unless the user asks for `live`, `async`, or `offline`.
+- Default location and language come from `.seo-brain/project.json` / `wiki/index.md`; do not silently use an English/global SERP for a project whose country/language is Brazil/pt-BR.
+- Normalize organic results and SERP features into stable YAML.
+- Record timestamp, provider, location, language, and device.
+- Deduplicate URLs.
+- Do not infer rankings from stale or missing data.
+
+## Done Criteria
+
+- Raw and normalized outputs exist.
+- Metadata is complete.
+- Output can feed `seo-analysis`.

@@ -7,6 +7,8 @@ node_modules/
 out/
 dist/*
 !dist/seo-brain.js
+!dist/commands/
+!dist/commands/runtime.js
 !dist/lib/
 !dist/lib/player-score.js
 coverage/
@@ -27,6 +29,7 @@ project/*
 .companion/
 
 # Autoresearch experiment artifacts.
+.context/skill-evals/
 runs/
 experiments/
 artifacts/

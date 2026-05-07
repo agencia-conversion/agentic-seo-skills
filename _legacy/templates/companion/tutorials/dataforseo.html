@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tutorial · Como obter credenciais DataForSEO</title>
+<!--CONTEXT-->
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f5f7; --card: #ffffff; --border: #e3e3e8;
+    --text: #1c1c1e; --muted: #6e6e73; --accent: #0a84ff;
+    --warn-bg: rgba(255,159,10,0.10); --warn-border: rgba(255,159,10,0.30); --warn-text: #b25a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000; --card: #1c1c1e; --border: #2c2c2e; --text: #f5f5f7; --muted: #98989d; --warn-text: #ffb84d; }
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 32px 16px; line-height: 1.55; }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 12px; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 28px; margin-bottom: 16px; }
+  h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: -0.01em; }
+  h2 { margin: 28px 0 8px; font-size: 16px; }
+  p.lead { margin: 0 0 22px; color: var(--muted); font-size: 14px; }
+  ol.steps { padding-left: 0; list-style: none; counter-reset: step; }
+  ol.steps li { position: relative; padding: 14px 14px 14px 50px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; counter-increment: step; }
+  ol.steps li::before { content: counter(step); position: absolute; left: 14px; top: 14px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
+  ol.steps strong { display: block; font-size: 14px; margin-bottom: 4px; }
+  ol.steps small { color: var(--muted); font-size: 13px; }
+  ol.steps a { color: var(--accent); text-decoration: none; }
+  ol.steps a:hover { text-decoration: underline; }
+  .warn { padding: 14px 16px; background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 10px; color: var(--warn-text); font-size: 13px; margin: 18px 0; }
+  .warn strong { display: block; margin-bottom: 4px; }
+  .tip { padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--muted); margin-top: 12px; }
+  code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border); }
+  .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 20px; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; margin-right: 6px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <span><span class="pill">tutorial</span> Configuração DataForSEO</span>
+    <span>O formulário está na outra aba ←</span>
+  </div>
+
+  <div class="card">
+    <h1>Como obter suas credenciais DataForSEO</h1>
+    <p class="lead">Siga os passos abaixo. Quando tiver o Login e a API password em mãos, volte para a aba do formulário e cole nos campos correspondentes.</p>
+
+    <div class="warn">
+      <strong>Atenção: API password ≠ senha do site</strong>
+      A senha que você usa pra entrar no painel DataForSEO <em>não funciona</em> nas chamadas de API. É preciso copiar uma "API password" específica, gerada no painel.
+    </div>
+
+    <h2>Passos</h2>
+    <ol class="steps">
+      <li>
+        <strong>Crie ou entre na sua conta</strong>
+        <small>Acesse <a href="https://app.dataforseo.com/register" target="_blank" rel="noopener">app.dataforseo.com/register</a> (ou faça login se já tem conta). Confirme o e-mail.</small>
+      </li>
+      <li>
+        <strong>Adicione crédito (se ainda não tiver)</strong>
+        <small>DataForSEO funciona com pré-pago. O depósito mínimo costuma ser baixo. Sem saldo, as chamadas falham — mas a validação inicial usa um endpoint de custo zero.</small>
+      </li>
+      <li>
+        <strong>Abra a página de API Access</strong>
+        <small>No painel: <a href="https://app.dataforseo.com/api-access" target="_blank" rel="noopener">app.dataforseo.com/api-access</a>. É onde ficam Login e API password.</small>
+      </li>
+      <li>
+        <strong>Copie o "Login"</strong>
+        <small>Geralmente é o e-mail da sua conta. Cole no campo <code>Login</code> do formulário.</small>
+      </li>
+      <li>
+        <strong>Copie a "API password"</strong>
+        <small>Use o botão de copiar ao lado da API password. Cole no campo <code>API password</code> do formulário. Se não encontrar, há a opção "Generate new password" — gera uma nova, mas torna a anterior inválida.</small>
+      </li>
+      <li>
+        <strong>Volte para a outra aba e clique "Salvar credenciais"</strong>
+        <small>O SEO Brain valida com uma chamada gratuita ao endpoint <code>/v3/appendix/user_data</code>. Se passar, sua credencial fica salva localmente, com permissão de leitura só pra você.</small>
+      </li>
+    </ol>
+
+    <div class="tip">
+      <strong>Sobre os modos:</strong> use <code>standard</code> no dia a dia (mais barato). <code>live</code> é mais rápido mas custa mais. <code>async</code> é pra volume alto. <code>offline</code> pula chamadas reais à API — útil pra desenvolvimento ou pra cadastrar a credencial sem testar.
+    </div>
+  </div>
+
+  <div class="footer">Esta aba é só leitura. Tudo acontece na aba do formulário.</div>
+</div>
+</body>
+</html>

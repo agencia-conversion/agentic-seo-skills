@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // CLI dispatcher for the /seo-brain:autoresearch skill engine.
-// See skills/_shared/references/autoresearch-protocol.md for the contract.
+// See program.md and seo-skills-creator references for the current contract.
 
 import * as fs from "node:fs";
 import * as path from "node:path";

@@ -8,32 +8,28 @@ const skill = readFileSync(resolve(root, "skills", "next-website-creator", "SKIL
 assert.ok(skill.startsWith("---\n"));
 assert.match(skill, /^name:\s*next-website-creator$/m);
 
-for (const section of ["## Contract", "## Required Behavior", "## Done Criteria"]) {
+for (const section of ["## When To Use", "## Critical Points", "## Framework", "## Output Format", "## Examples", "## Related Skills"]) {
   assert.ok(skill.includes(section), `missing ${section}`);
 }
 
 for (const required of [
-  "Public articles/posts must come from `content-seo` output",
-  "run the needed package-manager install before validation",
-  "Run `npm run build` from `project/web/` before presenting the site as done",
-  "configure and verify the static output directory",
-  "Start a local preview/dev server yourself",
-  "give the user the URL",
-  "Do not end with only a \"useful commands\" block unless execution was impossible",
+  "Public articles and blog posts must come from approved `content-seo` output",
+  "install missing dependencies when needed",
+  "run the build from `project/web/`",
+  "verify static export output such as `project/web/out/` when requested",
+  "start a localhost preview",
+  "Give the user the local preview URL",
   "If no approved content artifact exists",
-  "run or request `seo-analysis` plus `content-seo`",
-  "Do not substitute missing public content with a final stub",
-  "placeholder article",
-  "noindex page",
-  "leave the dependent post out of the public build",
-  "blocked in the active `spec-driven` plan",
-  "do not present it as delivered",
-  "Public article pages consume an approved `content-seo` draft",
-  "Dependencies are installed or already present",
-  "A local preview/dev server is running",
-  "Static export requests have a verified `project/web/out/`",
-  "stops before the dependent page",
-  "project/workbench/specs/<slug>/plan.md",
+  "use to create or approve content briefs and article drafts before blog posts are published",
+  "Never write a placeholder",
+  "`noindex` article",
+  "avoid creating public placeholder content",
+  "spec-driven",
+  "present it as delivered public content",
+  "approved content artifact",
+  "preview_url",
+  "static_output",
+  "Do not silently publish dependency gaps",
 ]) {
   assert.ok(skill.includes(required), `missing next website rule: ${required}`);
 }
