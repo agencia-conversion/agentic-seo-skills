@@ -13,7 +13,7 @@ Read this section first if you are a new session.
 
 ## Current Phase
 
-Phase 6 - final validation in progress.
+All planned refactor phases complete.
 
 Canonical rewrite targets have been cleared after the legacy snapshot:
 
@@ -50,6 +50,7 @@ Canonical runtime support files remain in place:
 - D18: Phase 4 Wave C approved `technical-seo`, `internal-links`, `next-website-creator`, and `payload-cms` in one iteration each.
 - D19: Phase 4 Wave D approved `seo-brain`, `spec-driven`, `data-setup`, `wiki-maintainer`, `project-init`, `autoresearch`, and the `start` alias in one iteration each.
 - D20: Phase 5 restored `src/seo-brain.ts` as a slim dispatcher/re-export surface and moved deterministic runtime parity into `src/commands/runtime.ts`; full `npm test` passes.
+- D21: Phase 6 completed final validation with `node scripts/validate_skills.mjs`, `node tests/tools/test_dataforseo_cli.mjs`, and `npm test`.
 
 ## Skills State
 
@@ -119,7 +120,7 @@ Canonical runtime support files remain in place:
 - Phase 3: complete on 2026-05-06.
 - Phase 4: complete on 2026-05-06.
 - Phase 5: complete on 2026-05-06.
-- Phase 6: in progress.
+- Phase 6: complete on 2026-05-06.
 
 ## Open Questions
 
@@ -140,7 +141,7 @@ Canonical runtime support files remain in place:
 - DataForSEO tool test: `tests/tools/test_dataforseo_cli.mjs`
 - Pre-rewrite tag: `v0-pre-rewrite`
 - Latest autoresearch run: `.context/skill-evals/start/20260506-211054-refactor-seo-brain-skill-start`
-- Latest sub-agent report: Phase 5 worker restored runtime parity, ran `npm install`, `npm run build`, TypeScript no-emit, and focused runtime tests. Main agent updated v1 skill tests, `audit-skills`, and confirmed full `npm test`.
+- Latest validation: `node scripts/validate_skills.mjs`, `node tests/tools/test_dataforseo_cli.mjs`, and `npm test` all passed.
 
 ## Checkpoint Log
 
@@ -254,4 +255,14 @@ Canonical runtime support files remain in place:
   - `npm run build`
   - `node scripts/validate_skills.mjs`
   - `node scripts/smoke_test.mjs`
+  - `npm test`
+
+### Checkpoint 7 - 2026-05-06
+
+- Phase: 6 - Final validation and closeout.
+- Approved by: autonomous continuation request.
+- Summary: Confirmed all narrative skills validate, the DataForSEO fork test passes, the deterministic runtime builds, and the full test suite including smoke test passes after the v1 rewrite.
+- Verification:
+  - `node scripts/validate_skills.mjs`
+  - `node tests/tools/test_dataforseo_cli.mjs`
   - `npm test`
