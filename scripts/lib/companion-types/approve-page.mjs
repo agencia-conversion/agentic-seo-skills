@@ -14,7 +14,14 @@ import {
 } from "../wiki-page.mjs";
 
 const VALID_DECISIONS = new Set(["approved", "rejected", "needs-evidence"]);
-const STRATEGIC_PAGES = new Set([
+const AUTHORIAL_BRAIN_PAGES = new Set([
+  "brain/index.md",
+  "brain/identidade.md",
+  "brain/voz.md",
+  "brain/tecnologia.md",
+  "brain/editorial.md",
+  "brain/topic-clusters.md",
+  // Legacy wiki paths still recognized while companion server migrates fully.
   "wiki/index.md",
   "wiki/eeat.md",
   "wiki/tecnologia/index.md",
@@ -53,7 +60,7 @@ export function buildContext({ projectRoot, fileRel }) {
   const missingSources = findMissingSources(body, fontesIndex);
   const brokenLinks = findBrokenWikilinks(body, wikiRoot);
   const diff = diffAgainstSnapshot(projectRoot, fileRel, body);
-  const isStrategic = STRATEGIC_PAGES.has(fileRel);
+  const isStrategic = AUTHORIAL_BRAIN_PAGES.has(fileRel);
   return {
     filePath,
     fileRel,

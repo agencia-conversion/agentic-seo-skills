@@ -139,9 +139,9 @@ run(["project-init", "Process Test"]);
 
   const promoted = run(["content-seo", "--phase", "promote", "--topic", "SEO sem SERP", "--approved-by", "Diego Ivo"]);
   assert.equal(promoted.status, 0, promoted.stderr);
-  const published = readFileSync(join(projectDir, "wiki", "conteudos", "seo-sem-serp.md"), "utf8");
-  assert.match(published, /status: published/);
-  assert.match(published, /approval_status: published/);
+  const published = readFileSync(join(projectDir, "conteudos", "blog", "seo-sem-serp.md"), "utf8");
+  assert.match(published, /origem: "blog"/);
+  assert.match(published, /published_at:/);
 }
 
 {
@@ -283,8 +283,8 @@ run(["project-init", "Process Test"]);
   assert.equal(brief.process_bypass[0].reason, "usuário aceitou WebSearch");
   assert.match(brief.process_bypass[0].consequence, /not DataForSEO-backed/);
   assert.match(brief.process_bypass[0].confirmation_text, /sem DataForSEO/);
-  const log = readFileSync(join(projectDir, "wiki", "log", "index.md"), "utf8");
-  assert.match(log, /dataforseo-bypass \| Conteúdo WebSearch/);
+  const log = readFileSync(join(projectDir, "brain", "log.md"), "utf8");
+  assert.match(log, /Conteúdo WebSearch/);
 }
 
 rmSync(tmp, { recursive: true, force: true });

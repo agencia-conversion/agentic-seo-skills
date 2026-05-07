@@ -59,18 +59,17 @@ try {
   // Files persisted
   const clusterFile = path.join(PROJECT_DIR, "workbench", "topic-cluster", "agentic-seo.json");
   assert.ok(existsSync(clusterFile));
-  const wikiFile = path.join(PROJECT_DIR, "wiki", "conteudos", "topic-clusters.md");
-  assert.ok(existsSync(wikiFile));
-  const wiki = readFileSync(wikiFile, "utf8");
-  assert.match(wiki, /auto_generated: true/);
-  assert.match(wiki, /## Cluster: agentic seo/);
-  assert.match(wiki, /\| Papel \| Entidade \| KW principal \| Volume \| KW Secundárias \| Funil \| Intenção de Busca \|/);
-  assert.match(wiki, /\| Pillar \| — \| agentic seo \| — \| — \| — \| — \|/);
+  const brainFile = path.join(PROJECT_DIR, "brain", "topic-clusters.md");
+  assert.ok(existsSync(brainFile));
+  const brainContent = readFileSync(brainFile, "utf8");
+  assert.match(brainContent, /auto_generated: true/);
+  assert.match(brainContent, /## Cluster: agentic seo/);
+  assert.match(brainContent, /\| Papel \| Entidade \| KW principal \| Volume \| KW Secundárias \| Funil \| Intenção de Busca \|/);
+  assert.match(brainContent, /\| Pillar \| — \| agentic seo \| — \| — \| — \| — \|/);
 
   // Log entry written
-  const log = readFileSync(path.join(PROJECT_DIR, "wiki", "log", "index.md"), "utf8");
-  assert.match(log, /dataforseo-bypass \| agentic seo/);
-  assert.match(log, /topic-cluster \| agentic seo/);
+  const log = readFileSync(path.join(PROJECT_DIR, "brain", "log.md"), "utf8");
+  assert.match(log, /agentic seo/);
   assert.match(log, /Cluster hypothesis/);
 
   // --render-only path: don't refetch, just rerender

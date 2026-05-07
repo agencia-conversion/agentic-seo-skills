@@ -44,8 +44,8 @@ function dataforseoBypassArgs(reason) {
 
 function main() {
   run("project-init", "Smoke test");
-  const lint = run("wiki-lint");
-  if (!lint.ok) throw new Error("Wiki lint failed");
+  const lint = run("brain-lint");
+  if (!lint.ok) throw new Error("Brain lint failed");
   run("data-setup");
   run("keyword-research", "--keyword", "seo agêntico", "--mode", "offline");
   run("serp-extract", "--keyword", "seo agêntico", "--mode", "offline");

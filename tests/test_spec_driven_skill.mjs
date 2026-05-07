@@ -27,7 +27,7 @@ for (const required of [
   "project/workbench/specs/<slug>/spec.md",
   "project/workbench/specs/<slug>/plan.md",
   "project/workbench/specs/<slug>/result-check.md",
-  "Never write specs, plans, drafts, hypotheses, or execution notes to `project/wiki/`",
+  "Never write specs, plans, drafts, hypotheses, or execution notes to `project/brain/`",
   "result-check",
   "upstream gate passes",
   "ask for approval before writing the workbench files",

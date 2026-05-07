@@ -60,13 +60,13 @@ function stamp() {
   return d.toISOString().replace(/[:.]/g, "-").slice(0, 19);
 }
 
-function defaultPagesForWiki(projDir) {
+function defaultPagesForBrain(projDir) {
   return [
-    { id: "wiki/eeat", path: "wiki/eeat.md", page_type: "about" },
-    { id: "wiki/index", path: "wiki/index.md", page_type: "homepage" },
-    { id: "wiki/estrategia", path: "wiki/estrategia/index.md", page_type: "service" },
-    { id: "wiki/tom-de-voz", path: "wiki/tom-de-voz/index.md", page_type: "policy" },
-    { id: "wiki/fontes", path: "wiki/fontes/index.md", page_type: "policy" },
+    { id: "brain/identidade", path: "brain/identidade.md", page_type: "about" },
+    { id: "brain/index", path: "brain/index.md", page_type: "homepage" },
+    { id: "brain/editorial", path: "brain/editorial.md", page_type: "service" },
+    { id: "brain/voz", path: "brain/voz.md", page_type: "policy" },
+    { id: "brain/tecnologia", path: "brain/tecnologia.md", page_type: "policy" },
   ].filter((p) => fs.existsSync(path.join(projDir, p.path)));
 }
 
@@ -98,14 +98,14 @@ const SUBCOMMANDS = {
     if (!["wiki", "url"].includes(mode)) fail("--mode must be wiki|url");
     const value = mode === "url" ? args.url : (args.value || path.join(projectDir(cwd), "wiki", "eeat.md"));
     if (mode === "url" && !value) fail("--url required for url mode");
-    const targetSlug = slugify(args.slug || (mode === "url" ? new URL(value).hostname : "wiki"));
+    const targetSlug = slugify(args.slug || (mode === "url" ? new URL(value).hostname : "brain"));
     const proj = projectDir(cwd);
     const runId = `${stamp()}-${targetSlug}`;
     const runDir = path.join(proj, "workbench", "eeat", runId);
     fs.mkdirSync(path.join(runDir, "raters"), { recursive: true });
     let pages;
     if (args["pages-file"]) pages = readJson(args["pages-file"]);
-    else if (mode === "wiki") pages = defaultPagesForWiki(proj);
+    else if (mode === "brain" || mode === "wiki") pages = defaultPagesForBrain(proj);
     else pages = defaultPagesForUrl(value);
     const reputationQuery = mode === "url"
       ? args["reputation-query"] || defaultReputationQuery(value)

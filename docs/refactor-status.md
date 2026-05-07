@@ -2,11 +2,9 @@
 
 ## Current state
 
-The skill layer is on the brain-only model: `project/brain/` (7 short authorial files) is the only authorial knowledge layer, and there is no separate `wiki/` layer. EEAT is no longer a dedicated page; proofs live as `tipo: prova` entries in `brain/log.md` and references inside `brain/editorial.md`.
+The skill layer, runtime CLI, and tests are aligned with the brain-only model. `project/brain/` (7 short authorial files) is the only authorial knowledge layer. EEAT is no longer a dedicated page; proofs live as `tipo: prova` entries in `brain/log.md` and references inside `brain/editorial.md`.
 
 Public content lives in `project/conteudos/<origem>/<slug>.md` outside the brain. Raw evidence stays in `project/sources/`. Drafts and analysis stay in `project/workbench/`. Complete deliverables stay in `project/artifacts/`.
-
-The skill `wiki-maintainer` was renamed to `brain-keeper` and rewritten with the brain-first protocol (mudança em arquivo autoral exige `tipo: aprovacao` em `brain/log.md` com `aprovador != pendente`). All other skills had references to the wiki model updated.
 
 ## Layout
 
@@ -30,23 +28,45 @@ project/
   workbench/
 ```
 
-## Skills
+## CLI commands
 
-All skills in `skills/` are aligned with the brain-only model. The `start` skill is a thin alias to `seo-brain`. Templates in `templates/project/` provide blank brain files and content templates.
+`bin/seo-brain` exposes:
 
-## Outstanding migration debt
+- `project-init` (creates the brain structure and seeds blank templates)
+- `brain-lint` (replaces former `wiki-lint`)
+- `brain-approve` (replaces former `wiki-approve`)
+- `brain-ingest` (replaces former `wiki-ingest`)
+- `data-setup`, `serp-extract`, `keyword-research`, `kw-volume`, `backlink-analysis`, `seo-analysis`, `topic-cluster`, `eeat`, `content-seo`, `technical-seo`, `next-website-creator`, `payload-cms`, `audit-skills`
 
-`src/commands/runtime.ts`, `scripts/`, and `tests/` still reference the old wiki model in some places. Concretely:
+## Log format
 
-- CLI commands `wiki-lint`, `wiki-approve`, `wiki-ingest` and helpers in `src/commands/runtime.ts`.
-- Helper modules in `scripts/lib/wiki-page.mjs` and a few companion-state files.
-- Test fixtures in `tests/test_wiki_review_protocol.mjs`, `tests/test_companion_*`, and others.
+`brain/log.md` is append-only. Each entry uses:
 
-These are runtime/CLI parity surfaces that the `bin/seo-brain` binary depends on. Migrating them requires renaming commands, updating output paths, and updating tests. Track this as a separate workstream when the brain-only skill layer has been validated end-to-end.
+```markdown
+## YYYY-MM-DD - <título>
+
+- tipo: aprovacao | decisao | errata | lint | ingestao | publicacao | prova
+- escopo: <arquivo(s) | área | cluster | fonte>
+- decisao: <o que mudou>
+- evidencia: <wikilinks, ../sources/..., urls>
+- aprovador: <nome humano | agent | pendente>
+- aprovado_em: <YYYY-MM-DD ou ausente>
+- notas: <opcional>
+```
 
 ## Tools
 
 DataForSEO CLI lives in `tools/clis/dataforseo.js`. Other providers (GSC, Ahrefs, Semrush, Similarweb, Keywords Everywhere, AIROPS) remain candidates for future forks from `coreyhaines31/marketingskills`.
+
+## Outstanding migration debt
+
+Companion server UI (browser-based approval/preview flow) still references the legacy wiki paths in three places:
+
+- `scripts/lib/wiki-page.mjs` (helper module, 132 lines).
+- `templates/companion/approve-page.html` (fixed UI strings referencing `wiki/fontes/index.md` and old frontmatter keys).
+- `tests/test_companion_*` fixtures still seed `project/wiki/` directories.
+
+The `scripts/lib/companion-types/approve-page.mjs` allowlist accepts both `brain/*.md` and the legacy `wiki/*.md` paths during the transition. Migrating these requires renaming the helper module, rewriting the HTML template, and updating fixtures. Track as a follow-up workstream when the companion approval flow is exercised against the new model.
 
 ## Pointers
 
@@ -55,3 +75,5 @@ DataForSEO CLI lives in `tools/clis/dataforseo.js`. Other providers (GSC, Ahrefs
 - Tools registry: `tools/REGISTRY.md`
 - Tool attribution: `tools/ATTRIBUTIONS.md`
 - DataForSEO tool test: `tests/tools/test_dataforseo_cli.mjs`
+- Brain-keeper protocol: `skills/brain-keeper/SKILL.md`
+- Project-init seeding: `skills/project-init/SKILL.md`

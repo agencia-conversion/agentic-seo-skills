@@ -15,6 +15,10 @@ Use this skill when the user asks to ingest a source, propose a change to a brai
 
 Do not use this skill to draft strategic content from scratch, run keyword research, build topic clusters, write content, run technical SEO audits, or publish content. Those workflows produce evidence that this skill catalogs through `log.md`.
 
+## Critical Points
+
+Hard rules for every brain-keeper run.
+
 ## Boundaries
 
 Allowed writes:
@@ -101,7 +105,7 @@ Run before declaring done:
 
 If a lint check fails, append `tipo: lint` entry to `log.md` describing the finding and stop with `status: blocked` until the user resolves it.
 
-## Output
+## Output Format
 
 Concise completion note. For multi-file changes, write a YAML summary to `project/workbench/brain-keeper/<slug>.yaml`:
 
@@ -117,7 +121,7 @@ files_touched:
 next_action: ""
 ```
 
-## Done criteria
+## Done Criteria
 
 - Sources captured untouched in `sources/`; no existing source modified.
 - Authorial brain pages changed only when `log.md` has matching approval entry with `aprovador != pendente`.
