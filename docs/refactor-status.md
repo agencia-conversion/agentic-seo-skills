@@ -13,7 +13,7 @@ Read this section first if you are a new session.
 
 ## Current Phase
 
-Phase 4 - Wave A checkpoint ready.
+Phase 5 - runtime restoration in progress.
 
 Canonical rewrite targets have been cleared after the legacy snapshot:
 
@@ -48,29 +48,30 @@ Canonical runtime support files remain in place:
 - D16: Phase 4 Wave A approved `keyword-research`, `serp-extract`, and `backlink-analysis` in one iteration each.
 - D17: Phase 4 Wave B approved `topic-cluster`, `content-seo`, and `eeat` in one iteration each.
 - D18: Phase 4 Wave C approved `technical-seo`, `internal-links`, `next-website-creator`, and `payload-cms` in one iteration each.
+- D19: Phase 4 Wave D approved `seo-brain`, `spec-driven`, `data-setup`, `wiki-maintainer`, `project-init`, `autoresearch`, and the `start` alias in one iteration each.
 
 ## Skills State
 
 | skill | status | run-id | last-score | iterations | notes |
 |---|---|---:|---:|---:|---|
-| autoresearch | fixture-ready | - | - | - | Keep; fixture created. |
+| autoresearch | approved | `20260506-210544-refactor-seo-brain-skill-autores` | 97 | 1 | Wave D passed. |
 | backlink-analysis | approved | `20260506-202827-refactor-seo-brain-skill-backlin` | 98 | 1 | Wave A passed. |
 | content-seo | approved | `20260506-203844-refactor-seo-brain-skill-content` | 97 | 1 | Wave B passed. |
-| data-setup | fixture-ready | - | - | - | Keep; fixture created. |
+| data-setup | approved | `20260506-205841-refactor-seo-brain-skill-data-se` | 97 | 1 | Wave D passed. |
 | eeat | approved | `20260506-203844-refactor-seo-brain-skill-eeat` | 97 | 1 | Wave B passed. |
 | internal-links | approved | `20260506-204557-refactor-seo-brain-skill-interna` | 96 | 1 | Wave C passed. |
 | keyword-research | approved | `20260506-202827-refactor-seo-brain-skill-keyword` | 98 | 1 | Wave A passed. |
 | next-website-creator | approved | `20260506-204557-refactor-seo-brain-skill-next-we` | 95 | 1 | Wave C passed. |
 | payload-cms | approved | `20260506-205207-refactor-seo-brain-skill-payload` | 99 | 1 | Wave C passed. |
-| project-init | fixture-ready | - | - | - | Keep; fixture created. |
+| project-init | approved | `20260506-210544-refactor-seo-brain-skill-project` | 97 | 1 | Wave D passed. |
 | seo-analysis | approved | `20260506-200703-refactor-seo-brain-skill-seo-ana` | 94 | 1 | Phase 3 calibration target passed; no rubric changes. |
-| seo-brain | fixture-ready | - | - | - | Router skill; fixture created. |
+| seo-brain | approved | `20260506-205840-refactor-seo-brain-skill-seo-bra` | 98 | 1 | Wave D passed. |
 | serp-extract | approved | `20260506-202827-refactor-seo-brain-skill-serp-ex` | 94 | 1 | Wave A passed; minor output path/status precision notes. |
-| spec-driven | fixture-ready | - | - | - | Keep for compound requests; fixture created. |
-| start | fixture-ready | - | - | - | Retire or alias pending approval; fixture created. |
+| spec-driven | approved | `20260506-205840-refactor-seo-brain-skill-spec-dr` | 97 | 1 | Wave D passed. |
+| start | approved | `20260506-211054-refactor-seo-brain-skill-start` | 96 | 1 | Kept as thin alias to `seo-brain`. |
 | technical-seo | approved | `20260506-204557-refactor-seo-brain-skill-technic` | 95 | 1 | Wave C passed. |
 | topic-cluster | approved | `20260506-203844-refactor-seo-brain-skill-topic-c` | 95 | 1 | Wave B passed. |
-| wiki-maintainer | fixture-ready | - | - | - | Keep; fixture created. |
+| wiki-maintainer | approved | `20260506-210544-refactor-seo-brain-skill-wiki-ma` | 98 | 1 | Wave D passed. |
 | seo-skills-creator | approved | `20260506-192337-refactor-seo-brain-skill-seo-ski` | 96.5 | 1 | Bootstrap approval by main agent; finalized. |
 | seo-tools-creator | approved | `20260506-192743-refactor-seo-brain-skill-seo-too` | 94 | 1 | Fixture output, reviewer validation, and tool CLI test passed. |
 
@@ -115,15 +116,15 @@ Canonical runtime support files remain in place:
 - Phase 1: complete on 2026-05-06.
 - Phase 2: complete on 2026-05-06.
 - Phase 3: complete on 2026-05-06.
-- Phase 4: in progress; Wave A ready for checkpoint approval on 2026-05-06.
-- Phase 5: pending.
+- Phase 4: complete on 2026-05-06.
+- Phase 5: in progress.
 - Phase 6: pending.
 
 ## Open Questions
 
-- Approve retiring `start` or keeping it as a thin alias.
-- Approve keeping `payload-cms` as a standalone optional technology skill.
-- Approve keeping `serp-extract` as a standalone data-capture skill.
+- `start` was kept as a thin alias to `seo-brain`.
+- `payload-cms` was kept as a standalone optional technology skill.
+- `serp-extract` was kept as a standalone data-capture skill.
 - Approve the Phase 2 tool fork list: DataForSEO first, other providers as candidates only.
 
 ## Pointers
@@ -137,8 +138,8 @@ Canonical runtime support files remain in place:
 - Tool attribution: `tools/ATTRIBUTIONS.md`
 - DataForSEO tool test: `tests/tools/test_dataforseo_cli.mjs`
 - Pre-rewrite tag: `v0-pre-rewrite`
-- Latest autoresearch run: `.context/skill-evals/payload-cms/20260506-205207-refactor-seo-brain-skill-payload`
-- Latest sub-agent report: Phase 4 Wave C approvers scored `technical-seo` 95, `internal-links` 96, `next-website-creator` 95, and `payload-cms` 99.
+- Latest autoresearch run: `.context/skill-evals/start/20260506-211054-refactor-seo-brain-skill-start`
+- Latest sub-agent report: Phase 4 Wave D approvers scored `seo-brain` 98, `spec-driven` 97, `data-setup` 97, `wiki-maintainer` 98, `project-init` 97, `autoresearch` 97, and `start` 96.
 
 ## Checkpoint Log
 
@@ -218,6 +219,25 @@ Canonical runtime support files remain in place:
   - `internal-links`: 96
   - `next-website-creator`: 95
   - `payload-cms`: 99
+- Verification:
+  - `node --check scripts/skill-loop.mjs`
+  - `node --check tools/clis/dataforseo.js`
+  - `node tests/tools/test_dataforseo_cli.mjs`
+  - `node tests/test_skill_loop_gate.mjs`
+
+### Checkpoint 5d - 2026-05-06
+
+- Phase: 4 - Wave D router/setup/meta skills.
+- Approved by: autonomous continuation request.
+- Summary: Rewrote `seo-brain`, `spec-driven`, `data-setup`, `wiki-maintainer`, `project-init`, and `autoresearch` as self-sufficient narrative skills, and kept `start` as a thin alias to `seo-brain`. All completed developer/executor/approver evaluation and passed threshold.
+- Scores:
+  - `seo-brain`: 98
+  - `spec-driven`: 97
+  - `data-setup`: 97
+  - `wiki-maintainer`: 98
+  - `project-init`: 97
+  - `autoresearch`: 97
+  - `start`: 96
 - Verification:
   - `node --check scripts/skill-loop.mjs`
   - `node --check tools/clis/dataforseo.js`
