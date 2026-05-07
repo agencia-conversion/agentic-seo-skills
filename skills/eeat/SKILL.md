@@ -1,6 +1,6 @@
 ---
 name: eeat
-description: When the user wants to audit, strengthen, or prepare evidence for Experience, Expertise, Authoritativeness, and Trust. Also use before updating strategic E-E-A-T context in `project/wiki/eeat.md`.
+description: When the user wants to audit, strengthen, or prepare evidence for Experience, Expertise, Authoritativeness, and Trust. Also use before registering proof entries in `project/brain/log.md` or referencing them in `project/brain/editorial.md`.
 metadata:
   version: 1.0.0
 ---
@@ -11,18 +11,18 @@ You are an E-E-A-T evidence reviewer for SEO Brain. Your goal is to turn availab
 
 ## When To Use
 
-Use this skill when the user asks to audit E-E-A-T, evaluate reputation and trust, review author or brand proof, assess YMYL risk, prepare `wiki/eeat.md`, or identify gaps in credibility evidence.
+Use this skill when the user asks to audit E-E-A-T, evaluate reputation and trust, review author or brand proof, assess YMYL risk, prepare evidence for `project/brain/editorial.md`, or identify gaps in credibility evidence.
 
-Do not use this skill to approve strategic positioning, publish claims to the wiki, create fictional bios, estimate revenue impact, run a technical SEO crawl, or write a full content strategy. Those workflows may use this review as evidence after the user approves the relevant strategic context.
+Do not use this skill to approve strategic positioning, register proof entries in the brain without evidence, create fictional bios, estimate revenue impact, run a technical SEO crawl, or write a full content strategy. Those workflows may use this review as evidence after the user approves the relevant strategic change.
 
 ## Critical Points
 
 - Build an evidence inventory before synthesis. Every usable claim must point to a source, excerpt, or observed artifact.
 - Separate raw evidence, rater-style judgment, and human approval. Agent consensus is not approval.
 - Never fabricate credentials, certifications, awards, clients, partnerships, years of experience, revenue proof, case-study results, backlinks, media mentions, or reputation signals.
-- Claims with no source remain gaps. Unverified strategic claims stay in `project/workbench/` or the final artifact, never in `project/wiki/`.
-- Strategic `project/wiki/eeat.md` requires explicit human approval before it is created or updated.
-- If the user approves a wiki update, write only sourced present-state findings and mark unresolved claims as gaps outside the wiki or in a clearly non-approved section only if the project convention allows it.
+- Claims with no source remain gaps. Unverified strategic claims stay in `project/workbench/eeat/` or the final artifact, never in `project/brain/`.
+- Adding proof to `project/brain/editorial.md` (or any other authorial brain page) requires a matching `tipo: aprovacao` entry in `project/brain/log.md` with `aprovador: <human name>` and `aprovado_em: <date>`.
+- If the user approves a brain update, write only sourced present-state findings and append the matching `tipo: prova` entry to `project/brain/log.md`.
 - Treat reputation as externally evidenced. Self-published claims can support experience or expertise, but they do not prove independent authoritativeness by themselves.
 - For YMYL topics, elevate trust requirements: clear responsibility, author qualifications, source quality, update practices, and risk disclosures matter more than persuasive copy.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
@@ -31,13 +31,13 @@ Do not use this skill to approve strategic positioning, publish claims to the wi
 
 ### 1. Define The E-E-A-T Scope
 
-**Check:** What entity, site, author, page, or wiki update is being evaluated, and is the topic YMYL?
+**Check:** What entity, site, author, page, or brain update is being evaluated, and is the topic YMYL?
 
-**Strong:** "Evaluate the consulting site's founder proof for `wiki/eeat.md`, with available sources under `project/sources/`; topic is marketing consulting, not medical or financial advice."
+**Strong:** "Evaluate the consulting site's founder proof for inclusion in `brain/editorial.md` Authority section, with available sources under `project/sources/`; topic is marketing consulting, not medical or financial advice."
 
 **Weak:** "Improve credibility for the brand broadly and write a polished authority page."
 
-State the assessed entity, assets reviewed, target artifact, topic category, and whether the result is an audit, a gap list, or a wiki-preparation review.
+State the assessed entity, assets reviewed, target artifact, topic category, and whether the result is an audit, a gap list, or a brain-preparation review.
 
 ### 2. Inventory The Evidence
 
@@ -84,7 +84,7 @@ When rater outputs are available, merge them by median or middle-ground judgment
 
 **Check:** Which missing evidence creates strategic, reputation, YMYL, or trust risk?
 
-**Strong:** "Awards, named clients, certifications, and revenue impact remain gaps because no provided source confirms them. They should not be used in public copy or wiki strategy."
+**Strong:** "Awards, named clients, certifications, and revenue impact remain gaps because no provided source confirms them. They should not be used in public copy or registered as `tipo: prova` in the brain."
 
 **Weak:** "Recommend adding client logos and revenue claims because they would make the page more persuasive."
 
@@ -101,11 +101,11 @@ Prioritize gaps that can mislead users or create quality risk:
 
 **Check:** Where should the result live, and what approval is required?
 
-**Strong:** "Write the E-E-A-T review to `project/workbench/eeat/<slug>.md`; request explicit human approval before updating `project/wiki/eeat.md`."
+**Strong:** "Write the E-E-A-T review to `project/workbench/eeat/<slug>.md`; request explicit human approval before adding proof entries to `project/brain/log.md` or referencing them in `project/brain/editorial.md`."
 
-**Weak:** "Write the improved E-E-A-T narrative directly into `project/wiki/eeat.md` because the review is confident."
+**Weak:** "Write the improved E-E-A-T narrative directly into `project/brain/editorial.md` because the review is confident."
 
-Use `project/workbench/eeat/` for audits, draft synthesis, and unverified strategic work. Use `project/artifacts/` for complete deliverables when the user asks for a shareable report. Use `project/wiki/eeat.md` only after explicit human approval, and only for sourced present-state strategic context.
+Use `project/workbench/eeat/` for audits, draft synthesis, and unverified strategic work. Use `project/artifacts/` for complete deliverables when the user asks for a shareable report. Add proof to `project/brain/log.md` (`tipo: prova`) and reference it in `project/brain/editorial.md` only after a matching `tipo: aprovacao` entry has `aprovador: <human name>` and `aprovado_em: <date>`.
 
 ## Output Format
 
@@ -115,10 +115,11 @@ Write the review to `project/workbench/eeat/<entity-or-run-slug>.md` unless the 
 status: complete | incomplete | blocked | approval_required
 entity: ""
 target_artifact: project/workbench/eeat/<slug>.md
-wiki_update:
+brain_update:
   requested: true | false
   approval_status: not_requested | approval_required | approved
-  wiki_path: project/wiki/eeat.md
+  editorial_path: project/brain/editorial.md
+  log_path: project/brain/log.md
 scope:
   topic: ""
   ymyl: true | false
@@ -165,15 +166,15 @@ recommendations:
 next_action: ""
 ```
 
-If the user asks to update `project/wiki/eeat.md` and approval is missing, return `status: approval_required`, summarize what would be written, name the missing approval, and stop before editing the wiki.
+If the user asks to register proof in `project/brain/editorial.md` or `project/brain/log.md` and approval is missing, return `status: approval_required`, summarize what would be written, name the missing approval, and stop before editing the brain.
 
 ## Examples
 
 ### Example: Evidence-backed consulting review
 
-Input: "Assess whether `wiki/eeat.md` can be updated for our consulting site. Evidence says the founder has 12 years of SEO experience and there is a public interview. Nothing confirms awards, named clients, certifications, or revenue impact. Raters disagree on reputation."
+Input: "Assess whether the consulting site has enough proof to add to `brain/editorial.md`. Evidence says the founder has 12 years of SEO experience and there is a public interview. Nothing confirms awards, named clients, certifications, or revenue impact. Raters disagree on reputation."
 
-Output: "Inventory the founder bio and interview as usable evidence, classify the bio as self-published and the interview as external if it is independent, keep awards, clients, certifications, and revenue impact as gaps, mark reputation consensus as mixed, and return `approval_required` before any `project/wiki/eeat.md` update."
+Output: "Inventory the founder bio and interview as usable evidence, classify the bio as self-published and the interview as external if it is independent, keep awards, clients, certifications, and revenue impact as gaps, mark reputation consensus as mixed, and return `approval_required` before any `tipo: prova` entry in `project/brain/log.md` or reference in `project/brain/editorial.md`."
 
 ### Example: YMYL trust gap
 

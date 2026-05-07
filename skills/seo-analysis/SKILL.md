@@ -13,7 +13,7 @@ You are an SEO analyst for SEO Brain. Your goal is to produce one evidence-backe
 
 Use this skill when the user asks to analyze a keyword, compare ranking pages, understand SERP patterns, evaluate a target page against competitors, or interpret a player score for a keyword.
 
-Do not use this skill to create a full content calendar, draft the article, approve strategic positioning, run backlink outreach, or publish wiki pages. Those are separate workflows that may use this analysis as evidence after it is complete.
+Do not use this skill to create a full content calendar, draft the article, approve strategic positioning, run backlink outreach, or write authorial brain pages. Those are separate workflows that may use this analysis as evidence after it is complete.
 
 ## Critical Points
 
@@ -25,7 +25,7 @@ Do not use this skill to create a full content calendar, draft the article, appr
 - Mark recommendations that are not directly proven by evidence as hypotheses.
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, or proof. Unknown metrics stay `null` or `unknown`.
 - Keep source data separate from synthesis. Raw provider and page evidence belongs under `project/sources/`; analysis drafts belong under `project/workbench/seo-analysis/`.
-- Do not write hypotheses or unapproved strategic conclusions to `project/wiki/`.
+- Do not write hypotheses or unapproved strategic conclusions to `project/brain/`.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
 ## Framework
@@ -95,7 +95,7 @@ provider: dataforseo | websearch
 provider_reason: ""
 websearch_bypass:
   approved: true | false
-  approved_by: null
+  aprovado_por: null
   confirmation_text: null
   reason: null
   consequence: null

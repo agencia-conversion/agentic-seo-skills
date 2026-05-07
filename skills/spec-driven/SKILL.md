@@ -1,6 +1,6 @@
 ---
 name: spec-driven
-description: MUST USE PROACTIVELY before executing a user request with two or more distinct deliverables, downstream skills, SEO Brain pillars, dependencies, or approval gates. Use for compound requests such as research plus Wiki, Wiki plus website, technical audit plus content plan, content plus site, or any bulleted/numbered request with separate outcomes. Do not use for a single clear task.
+description: MUST USE PROACTIVELY before executing a user request with two or more distinct deliverables, downstream skills, SEO Brain pillars, dependencies, or approval gates. Use for compound requests such as research plus brain updates, brain plus website, technical audit plus content plan, content plus site, or any bulleted/numbered request with separate outcomes. Do not use for a single clear task.
 metadata:
   version: 1.0.0
 ---
@@ -15,7 +15,7 @@ Use this skill when the user asks for two or more distinct outcomes in one messa
 
 Use it for requests that combine work such as:
 
-- source analysis plus Wiki updates;
+- source analysis plus brain updates;
 - strategy plus public content;
 - technical SEO plus content planning;
 - DataForSEO research plus SERP analysis plus brief creation;
@@ -26,11 +26,11 @@ Do not use this skill for a single clear task. If the user asks only for one key
 
 ## Critical Points
 
-- This skill creates control artifacts only. It does not execute downstream SEO, content, Wiki, technical, or website work by itself.
+- This skill creates control artifacts only. It does not execute downstream SEO, content, brain, technical, or website work by itself.
 - Always present a simple design and get human approval before writing `spec.md`, `plan.md`, or `result-check.md`.
-- Write the control files only under `project/workbench/specs/<slug>/`. Never write specs, plans, drafts, hypotheses, or execution notes to `project/wiki/`.
+- Write the control files only under `project/workbench/specs/<slug>/`. Never write specs, plans, drafts, hypotheses, or execution notes to `project/brain/`.
 - Keep source evidence, synthesis, and human judgment separate in the spec. Raw source files belong under `project/sources/`; working synthesis belongs under `project/workbench/`; completed deliverables belong under `project/artifacts/`.
-- Strategic Wiki pages require explicit human approval before promotion. Agent output is not approved strategic context.
+- Authorial brain pages require explicit human approval via `tipo: aprovacao` in `project/brain/log.md` before promotion. Agent output is not approved strategic context.
 - Do not bypass strategic approval, DataForSEO requirements, content briefing approval, content draft approval, source review, lint, or publication gates. Name missing gates as blockers or approval requirements.
 - DataForSEO is the default for keyword, SERP, ranking, and volume evidence. Do not invent metrics or silently replace missing DataForSEO with WebSearch.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, rankings, traffic, or proof. Unknown values stay unknown.
@@ -64,7 +64,7 @@ List:
 - deterministic checks;
 - blocked items and why they are blocked.
 
-Be explicit about gates. A website that depends on content cannot be treated as ready if the content brief or draft is not approved. A strategic Wiki page cannot be written as approved context without explicit approval. SERP or keyword metrics cannot be asserted without approved evidence.
+Be explicit about gates. A website that depends on content cannot be treated as ready if the content brief or draft is not approved. An authorial brain page cannot be written as approved context without an approved `tipo: aprovacao` entry in `brain/log.md`. SERP or keyword metrics cannot be asserted without approved evidence.
 
 ### 3. Present A Simple Design
 
@@ -112,8 +112,8 @@ The simple design can be inline. After approval, write the following Markdown st
 
 ## Status
 status: draft | approved-for-planning | blocked
-approved_by: <human or null>
-approved_at: <timestamp or null>
+aprovado_por: <human or null>
+aprovado_em: <timestamp or null>
 
 ## Request
 <short restatement of the compound request>
@@ -178,8 +178,8 @@ approved_at: <timestamp or null>
 
 ## Final Review
 - [ ] Sources stayed separate from synthesis.
-- [ ] No draft, hypothesis, or unapproved strategy was written to `project/wiki/`.
-- [ ] Strategic, DataForSEO, content, and publication gates were not bypassed.
+- [ ] No draft, hypothesis, or unapproved strategy was written to `project/brain/`.
+- [ ] Brain approval, DataForSEO, content, and publication gates were not bypassed.
 - [ ] pt-BR accents or other requested language features were preserved.
 ```
 
@@ -199,9 +199,9 @@ Output: Do not use this skill. Route to a SERP or keyword analysis workflow that
 
 ### Example: Weak Execution
 
-Input: "Analyze sources, update the Wiki, write two articles, and build the site."
+Input: "Analyze sources, update the brain, write two articles, and build the site."
 
-Output: Immediately update `project/wiki/`, draft articles, and create site pages because the user asked for all of it. This is weak because it skips the simple design, hides approval gates, mixes drafts with approved knowledge, and may publish work without source or content review.
+Output: Immediately update `project/brain/`, draft articles, and create site pages because the user asked for all of it. This is weak because it skips the simple design, hides approval gates, mixes drafts with approved knowledge, and may publish work without source or content review.
 
 ## Done Criteria
 
@@ -209,5 +209,5 @@ Output: Immediately update `project/wiki/`, draft articles, and create site page
 - The user saw and approved a simple design, unless equivalent approval already existed in the same conversation.
 - `spec.md`, `plan.md`, and `result-check.md` exist under `project/workbench/specs/<slug>/`.
 - Every deliverable has an owner, dependency, expected location, gate, and success check.
-- Missing strategic approval, DataForSEO evidence, content approval, source review, or publication checks are visible as gates or blockers.
-- No specs, drafts, hypotheses, or unapproved strategy were written to `project/wiki/`.
+- Missing brain approval, DataForSEO evidence, content approval, source review, or publication checks are visible as gates or blockers.
+- No specs, drafts, hypotheses, or unapproved strategy were written to `project/brain/`.

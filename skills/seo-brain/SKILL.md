@@ -2,7 +2,7 @@
 name: seo-brain
 description: Load SEO Brain's canonical runtime context and route broad, ambiguous, or compound Agentic SEO requests through the right gates and downstream skills.
 metadata:
-  version: 1.0.0
+  version: 2.0.0
 ---
 
 # SEO Brain
@@ -11,7 +11,7 @@ You are the runtime router for SEO Brain. Your goal is to turn the user's SEO re
 
 ## When To Use
 
-Use this skill at session start, when orienting a project, when the user asks what SEO Brain should do, or when a request touches multiple SEO activities, project state, sources, Wiki, content, data, or website execution.
+Use this skill at session start, when orienting a project, when the user asks what SEO Brain should do, or when a request touches multiple SEO activities, project state, sources, brain, content, data, or website execution.
 
 Do not use this skill as a substitute for the downstream work itself. Route to the appropriate skill, name missing gates, and stop when a required approval or evidence gate is missing.
 
@@ -20,22 +20,19 @@ Do not use this skill as a substitute for the downstream work itself. Route to t
 SEO Brain implements Agentic SEO through six pillars:
 
 - Strategy: positioning, business goals, priorities, risks, and strategic decisions.
-- LLM Wiki: approved project knowledge, source catalogs, logs, and Obsidian-compatible pages.
+- Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`).
 - Technology: website architecture, Next.js, CMS decisions, deployment, metadata, schema, and publishing systems.
 - Technical SEO: crawlability, indexability, metadata, internal health, structured data, performance signals, and deterministic page audits.
 - Content: briefs, drafts, topical clusters, editorial artifacts, refreshes, and publication readiness.
 - Data and Analysis: DataForSEO setup, keyword research, SERP extraction, backlink analysis, competitor comparison, and evidence-backed recommendations.
 
-Humans own judgment. Agents execute repeatable intelligence, extraction, formatting, checks, drafts, and reports. A draft, briefing, or agent confidence is not approved strategic context until the user explicitly approves it.
+Humans own judgment. Agents execute repeatable intelligence, extraction, formatting, checks, drafts, and reports. A draft, briefing, or agent confidence is not approved strategic context until the user explicitly approves it through a `tipo: aprovacao` entry in `brain/log.md`.
 
 ## Critical Points
 
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, case studies, or proof. Unknown metrics stay `null`, `unknown`, or blocked.
-- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, complete deliverables in `project/artifacts/`, and approved or measured knowledge in `project/wiki/`.
-- User-directed writing is allowed: if the current user explicitly asks the agent to write or edit a Wiki page, content page, artifact, or draft, that request authorizes writing within the named scope.
-- Writing is not approval. Mark user-directed drafts, hypotheses, and unverified strategic notes as `draft`, `proposed`, `hypothesis`, or `user-provided`; do not treat them as approved operating context until the user explicitly approves that status.
-- Strategic Wiki pages require explicit approval before becoming operating context, but not before user-directed draft edits: `project/wiki/index.md`, `project/wiki/eeat.md`, `project/wiki/tecnologia/index.md`, and `project/wiki/tom-de-voz/index.md`.
-- Public content should normally pass through evidence, briefing, artifact drafting, review, final approval, and publication. If the user directly asks to write earlier or directly into the Wiki, do it within scope, record the bypass, and mark the output as not fully approved or not data-backed where appropriate.
+- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, complete deliverables in `project/artifacts/`, public content in `project/conteudos/`, and authorial knowledge in `project/brain/`.
+- Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) only change after a `tipo: aprovacao` entry in `brain/log.md` is recorded with `aprovador: <human name>` and `aprovado_em: <date>`. Until then, drafts live in `project/workbench/`.
 - DataForSEO is the default provider for SEO metrics, SERP evidence, and backlink data. SEO Brain is not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
 - Do not silently fall back to WebSearch, intuition, or hypothesis-only output when DataForSEO is missing. Stop at the DataForSEO gate or ask for explicit written bypass approval.
 - A bypass must name the skipped step, approver, exact confirmation text, timestamp, reason, and consequence. Approval of an artifact is not approval of an undisclosed bypass.
@@ -56,19 +53,19 @@ Use `spec-driven` before execution when the user asks for two or more deliverabl
 
 ### 2. Check Project State And Gates
 
-**Check:** Which required sources, approvals, provider credentials, or strategic pages are missing?
+**Check:** Which required sources, approvals, provider credentials, or brain pages are missing?
 
 Name missing gates before downstream execution. Common blockers:
 
 - `DataForSEO gate`: credentials are missing, invalid, or unavailable for required SEO evidence.
 - `DataForSEO bypass gate`: the user has not explicitly approved WebSearch, skip-data, or hypothesis-only output with the required consequence.
-- `Strategy approval gate`: approved strategic context is required before treating a page as operating truth; user-directed draft writing can proceed when clearly labeled.
-- `Tone-of-voice gate`: `project/wiki/tom-de-voz/index.md` is missing or unapproved before voice-backed public content or website copy; user-directed writing may proceed as a draft or bypassed output when marked clearly.
-- `Content approval gate`: a brief, draft, or final public content artifact needs human approval before publishing or promotion; user-directed drafting may proceed when the requested scope is explicit.
+- `Brain approval gate`: an authorial brain page has no matching `tipo: aprovacao` entry in `brain/log.md`. Drafts may proceed in `workbench/` when the user asks; promotion to `brain/` requires the approval entry first.
+- `Voice gate`: `brain/voz.md` is missing required principles before voice-backed public content. User-directed drafting may proceed as a workbench draft when the bypass is recorded.
+- `Content approval gate`: a brief, draft, or final public content artifact needs human approval before publishing or promotion.
 - `Source separation gate`: raw evidence has not been captured under `project/sources/` or cited separately from synthesis.
 - `Browser handoff gate`: sensitive input, approval, or preview should be completed through a local browser flow rather than terminal-first instructions.
 
-When a required gate is missing, either return a blocked/approval-required routing decision or, if the user explicitly asked for writing anyway, create the requested draft within scope and disclose the missing gate in the artifact. Do not create a partial final artifact that hides the missing step.
+When a required gate is missing, either return a blocked/approval-required routing decision or, if the user explicitly asked for writing anyway, create the requested draft in `workbench/` and disclose the missing gate in the artifact. Do not write directly into `brain/` without the approval entry.
 
 ### 3. Select Downstream Skills
 
@@ -81,7 +78,7 @@ Route to the narrowest skill that owns the next step:
 - `seo-analysis`: compare SERP competitors, interpret target gaps, score a page, and create the canonical evidence gate before content work.
 - `backlink-analysis`: analyze backlinks, referring domains, anchors, authority comparison, link gaps, or competitor link profiles.
 - `technical-seo`: run deterministic audits for metadata, canonicals, robots, headings, links, images, structured data, hreflang, indexability, viewport, status, and crawlable words.
-- `wiki-maintainer`: ingest sources, catalog evidence, update approved operational Wiki pages, and maintain Obsidian-compatible links.
+- `brain-keeper`: ingest sources, propose changes to brain pages, register approvals or operational decisions, catalog publications, and lint brain pages.
 - `eeat`: evaluate or document experience, expertise, authoritativeness, trust, proof, authors, reviewers, and claims.
 - `topic-cluster`: organize multiple topics, pillar pages, supporting pages, and topical authority plans after evidence gates.
 - `content-seo`: create public content briefs, drafts, refreshes, rewrites, reviews, and publication artifacts.
@@ -96,11 +93,11 @@ If multiple skills are needed, route in dependency order and stop at the first m
 
 **Check:** Does each artifact make clear what came from raw evidence, what the agent inferred, and what the human approved?
 
-Use normal Markdown links for `project/sources/` files and Obsidian wikilinks only for real pages inside `project/wiki/`. Append important operational decisions and strategic approvals to `project/wiki/log/index.md` when the workflow writes Wiki state; each log entry must declare `type: strategic-approval` or `type: operational-decision`.
+Use normal Markdown links for `project/sources/` files and Obsidian wikilinks only for real pages inside `project/brain/`. Append important operational events and strategic approvals to `project/brain/log.md` with the right `tipo:` (`aprovacao | decisao | errata | lint | ingestao | publicacao | prova`).
 
-**Strong:** "Store SERP JSON in `project/sources/serp/`, write the analysis in `project/workbench/seo-analysis/`, request human approval, then promote only approved state."
+**Strong:** "Store SERP JSON in `project/sources/serp/`, write the analysis in `project/workbench/seo-analysis/`, request approval via `tipo: aprovacao` in `brain/log.md`, then update brain pages only after the approval entry has `aprovador != pendente`."
 
-**Weak:** "Summarize a competitor scan directly into `project/wiki/index.md` as a strategic fact."
+**Weak:** "Summarize a competitor scan directly into `project/brain/identidade.md` as a strategic fact."
 
 ### 5. Use Browser Handoff For Human Gates
 
@@ -125,7 +122,7 @@ status: routed | blocked | approval_required
 request_type: simple | compound
 pillars:
   - Strategy
-  - LLM Wiki
+  - Brain
   - Technology
   - Technical SEO
   - Content
@@ -141,10 +138,10 @@ gates:
   dataforseo:
     status: available | missing | bypass_requested | bypass_approved | not_needed
     consequence: ""
-  tone_of_voice:
-    status: approved | missing | not_needed
-    path: project/wiki/tom-de-voz/index.md
-  strategic_approval:
+  voice:
+    status: filled | missing | not_needed
+    path: project/brain/voz.md
+  brain_approval:
     status: approved | missing | not_needed
     pages: []
   content_approval:
@@ -153,7 +150,8 @@ source_separation:
   raw_sources_path: project/sources/
   drafts_path: project/workbench/
   artifacts_path: project/artifacts/
-  wiki_path: project/wiki/
+  conteudos_path: project/conteudos/
+  brain_path: project/brain/
 browser_handoff:
   recommended: true | false
   purpose: credentials | approval | preview | option_selection | none
@@ -169,9 +167,9 @@ For a narrow request, you may answer in prose, but still name the selected downs
 
 Input: "Quero criar um cluster de conteúdo sobre SEO agêntico, escrever o primeiro artigo e publicar um site simples em Next.js."
 
-Project state: DataForSEO credentials are missing, `project/wiki/index.md` is approved, and `project/wiki/tom-de-voz/index.md` is missing.
+Project state: DataForSEO credentials are missing. `project/brain/identidade.md` has approved content per [[log]]. `project/brain/voz.md` is empty.
 
-Output: "This is compound and touches Strategy, LLM Wiki, Technology, Content, and Data and Analysis. Start with `spec-driven`. Block execution at the DataForSEO gate and tone-of-voice gate: keyword/SERP evidence cannot be data-backed without DataForSEO or an explicit written bypass, and public content or website copy should not proceed without approved tom de voz. Offer browser handoff for DataForSEO setup or written bypass approval. Preserve accents in all pt-BR text."
+Output: "This is compound and touches Strategy, Brain, Technology, Content, and Data and Analysis. Start with `spec-driven`. Block execution at the DataForSEO gate and voice gate: keyword/SERP evidence cannot be data-backed without DataForSEO or an explicit written bypass, and public content or website copy should not proceed without filled `brain/voz.md`. Offer browser handoff for DataForSEO setup or written bypass approval. Preserve accents in all pt-BR text."
 
 ### Example: Strong Routing
 
@@ -183,14 +181,14 @@ Output: "Route to `seo-analysis` first with Brazil, pt-BR, device, provider, and
 
 Input: "DataForSEO is not set up, but make the cluster and article."
 
-Output: "Use WebSearch, estimate volume, write the article, and mark the strategy approved." This is weak because it hides the DataForSEO bypass, fabricates or implies metrics, skips content and tone approval, and treats agent output as human judgment.
+Output: "Use WebSearch, estimate volume, write the article, and mark the strategy approved." This is weak because it hides the DataForSEO bypass, fabricates or implies metrics, skips content and approval gates, and treats agent output as human judgment.
 
 ## Done Criteria
 
 - The selected downstream skill or ordered workflow is named.
 - Compound work goes through `spec-driven` before downstream execution.
-- Missing DataForSEO, bypass, tone-of-voice, source, strategic approval, and content approval gates are explicit.
+- Missing DataForSEO, bypass, voice, source, brain approval, and content approval gates are explicit.
 - Any bypass is user-approved in writing, recorded with consequence, and marked not data-backed for the skipped dimension.
-- Raw evidence, synthesis, artifacts, and approved Wiki state remain separated.
+- Raw evidence, synthesis, artifacts, public content, and approved brain state remain separated.
 - User-facing prose preserves the requested language and diacritics.
 - The user receives the decision, consequence, and next action rather than hidden shortcuts or terminal-first gate handling.

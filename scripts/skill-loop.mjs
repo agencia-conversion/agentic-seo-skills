@@ -98,11 +98,11 @@ function init(skill, args) {
 }
 
 function developerBrief(s) {
-  return `# Developer Brief: ${s.skill}\n\nWrite or revise \`${s.skill_dir}/SKILL.md\` using \`${s.template}\`, \`${s.rubric}\`, and \`${s.fixture}\`.\n\nDo not read \`_legacy/\` unless assigned. Do not change unrelated skill directories.\n`;
+  return `# Developer Brief: ${s.skill}\n\nWrite or revise \`${s.skill_dir}/SKILL.md\` using \`${s.template}\`, \`${s.rubric}\`, and \`${s.fixture}\`.\n\nDo not change unrelated skill directories.\n`;
 }
 
 function executorBrief(s) {
-  return `# Executor Brief: ${s.skill}\n\nUse only \`${s.skill_dir}/SKILL.md\` and \`${s.fixture}\`.\n\nProduce the deliverable under \`${s.loop_dir}/iter-N/output/\`. Do not consult the rubric, prior iterations, or \`_legacy/\`.\n`;
+  return `# Executor Brief: ${s.skill}\n\nUse only \`${s.skill_dir}/SKILL.md\` and \`${s.fixture}\`.\n\nProduce the deliverable under \`${s.loop_dir}/iter-N/output/\`. Do not consult the rubric or prior iterations.\n`;
 }
 
 function approverBrief(s) {

@@ -13,7 +13,7 @@ You are a backlink analyst for SEO Brain. Your goal is to produce one evidence-b
 
 Use this skill when the user asks about backlinks, referring domains, anchors, link gaps, link-quality risks, spam risk, authority claims that need backlink evidence, or competitor backlink deltas for a specific URL or domain.
 
-Do not use this skill to run outreach, promise link acquisition, approve strategic positioning, publish wiki pages, build a content calendar, or infer rankings from backlinks alone. Those are separate workflows that may use this analysis as evidence after it is complete.
+Do not use this skill to run outreach, promise link acquisition, approve strategic positioning, write authorial brain pages, build a content calendar, or infer rankings from backlinks alone. Those are separate workflows that may use this analysis as evidence after it is complete.
 
 ## Critical Points
 
@@ -24,7 +24,7 @@ Do not use this skill to run outreach, promise link acquisition, approve strateg
 - Competitor deltas are allowed only from provided DataForSEO data. If a competitor was requested but not measured, mark its deltas as `unavailable`.
 - Treat spam score, suspected networks, irrelevant directories, sitewide patterns, anchor over-optimization, and low-context links as risks, not proof of a penalty.
 - Keep raw source data separate from synthesis. Raw provider responses belong under `project/sources/backlinks/`; normalized analysis belongs under `project/workbench/backlinks/`.
-- Do not write backlink drafts, hypotheses, or strategic conclusions to `project/wiki/`. Wiki promotion requires a separate approval workflow and is not part of this skill.
+- Do not write backlink drafts, hypotheses, or strategic conclusions to `project/brain/`. Brain promotion requires a separate approval workflow with `tipo: aprovacao` in `project/brain/log.md` and is not part of this skill.
 - Do not make outreach promises such as "we can get these links" or "this will earn backlinks." Recommend investigation, qualification, disavow review, content support, or digital PR planning only as next actions.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
@@ -162,9 +162,9 @@ synthesis:
   hypotheses: []
 limitations: []
 next_actions: []
-wiki_promotion:
+brain_promotion:
   attempted: false
-  note: "Backlink analysis stays outside project/wiki unless a separate approval workflow promotes approved operational knowledge."
+  note: "Backlink analysis stays outside project/brain unless a separate approval workflow records `tipo: aprovacao` in project/brain/log.md."
 ```
 
 If blocked by missing provider access, missing target, or unavailable competitor evidence, return `status: blocked` or `status: incomplete` and explain the gate. Do not invent a partial backlink profile.

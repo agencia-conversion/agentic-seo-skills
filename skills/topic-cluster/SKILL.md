@@ -22,7 +22,7 @@ Do not use this skill to write the articles, approve strategic positioning, inve
 - `hypothesis-only` mode is allowed only after written bypass approval. It must emit `status: hypothesis`, use `null` for missing volumes and SERP intent, and clearly state that it is a curatable skeleton, not approved strategy.
 - Never fabricate keyword volume, SERP intent, rankings, backlinks, credentials, awards, clients, proof, or business impact. Unknown values stay `null` or `unknown`.
 - Separate evidence from strategic judgment. Raw provider evidence belongs under `project/sources/`; cluster drafts belong under `project/workbench/topic-cluster/`.
-- The wiki page, when allowed, is only an auto-generated projection from cluster JSONs. Do not treat it as the source of truth, and do not put hypotheses or unapproved strategic conclusions in the wiki.
+- The `brain/topic-clusters.md` projection, when allowed, is only an auto-generated reflection of cluster JSONs. Do not treat it as the source of truth, and do not put hypotheses or unapproved strategic conclusions in `brain/`.
 - Preserve human curation on rerun. Keep curated titles, entities, secondary keywords, funnel stages, SERP intent, and judgment unless fresh evidence requires a change; show any changed curated field.
 - Human judgment owns strategic approval. An agent-created cluster is not approved strategic context until the user explicitly approves it.
 - Preserve the requested output language, including pt-BR accents in human-facing prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
@@ -55,7 +55,7 @@ If DataForSEO is unavailable, stop before producing a data-backed cluster. Ask f
 
 **Strong:** "Store normalized keyword suggestions under `project/sources/keyword-research/`, SERP evidence under `project/sources/serp/`, and the working cluster under `project/workbench/topic-cluster/`."
 
-**Weak:** "Put all keyword notes directly into a wiki page and edit the wiki as the working draft."
+**Weak:** "Put all keyword notes directly into `brain/topic-clusters.md` and edit it as the working draft."
 
 For the default path, gather keyword suggestions for the seed and SERP listings for the pillar keyword plus selected supports. SERP listing evidence is enough; do not fetch article HTML unless another workflow explicitly requires page extraction. Use the top organic results and SERP features to inform intent, but keep observations separate from judgments.
 
@@ -91,13 +91,13 @@ When an existing `project/workbench/topic-cluster/<seed-slug>.json` exists, merg
 
 ### 7. Produce The Working Artifact And Optional Projection
 
-**Check:** Is the durable output in workbench, with wiki projection generated only when allowed?
+**Check:** Is the durable output in workbench, with the `brain/topic-clusters.md` projection generated only when allowed?
 
-**Strong:** "Write `project/workbench/topic-cluster/seo-agentico.json`; if wiki projection is allowed, regenerate `project/wiki/conteudos/topic-clusters.md` from all workbench cluster JSONs and mark it generated."
+**Strong:** "Write `project/workbench/topic-cluster/seo-agentico.json`; if projection is allowed, regenerate `project/brain/topic-clusters.md` from all workbench cluster JSONs and mark it generated. The projection requires a matching `tipo: aprovacao` entry in `project/brain/log.md`."
 
-**Weak:** "Write a polished strategy directly to `project/wiki/conteudos/topic-clusters.md` and ask for approval afterward."
+**Weak:** "Write a polished strategy directly to `project/brain/topic-clusters.md` and ask for approval afterward."
 
-The workbench JSON is the editable source of truth. A generated wiki projection may be created only when the project rules allow operational projections and it clearly reflects the JSONs. Strategic recommendations, hypotheses, or unapproved positioning remain in workbench or artifacts, not wiki pages.
+The workbench JSON is the editable source of truth. The `brain/topic-clusters.md` projection may be created only when an approval entry exists in `brain/log.md` and the projection clearly reflects the JSONs. Strategic recommendations, hypotheses, or unapproved positioning remain in workbench or artifacts, not in brain pages.
 
 ### 8. Report Completeness, Gaps, And Next Actions
 
@@ -118,7 +118,7 @@ Expected path conventions:
 - Keyword suggestions: `project/sources/keyword-research/<stamp>-<slug>.suggestions.raw.json` and `.normalized.json`.
 - SERP evidence: `project/sources/serp/<stamp>-cluster-<slug>.raw.json` and `.normalized.json`.
 - Working cluster: `project/workbench/topic-cluster/<seed-slug>.json`.
-- Optional generated projection: `project/wiki/conteudos/topic-clusters.md`, only when allowed.
+- Optional generated projection: `project/brain/topic-clusters.md`, only when an approval entry exists in `project/brain/log.md`.
 - Render-only requests regenerate the projection from existing workbench JSONs without refetching evidence.
 
 ```json
@@ -139,7 +139,7 @@ Expected path conventions:
     "provider_reason": "",
     "dataforseo_bypass": {
       "approved": false,
-      "approved_by": null,
+      "aprovado_por": null,
       "confirmation_text": null,
       "reason": null,
       "consequence": null,
@@ -207,7 +207,7 @@ Expected path conventions:
 
 If blocked by missing DataForSEO and no written bypass, return `status: blocked`, describe the gate, and do not emit a hypothesis cluster. If using `hypothesis-only` after approval, include a pillar skeleton, an empty support list unless the user supplied curated supports, `null` volumes, `null` SERP intent, and a limitation explaining the bypass.
 
-When a wiki projection is allowed, regenerate `project/wiki/conteudos/topic-clusters.md` from the workbench JSONs. The projection must include the columns `Papel`, `Entidade`, `KW principal`, `Volume`, `KW Secundárias`, `Funil`, and `Intenção de Busca`, and it must identify itself as generated from workbench data.
+When the projection is allowed (matching `tipo: aprovacao` entry in `project/brain/log.md`), regenerate `project/brain/topic-clusters.md` from the workbench JSONs. The projection uses one section per cluster (`## <Cluster> (<slug>)`) with a Markdown table containing `Subtópico`, `Intent`, `Status`, `Conteúdo relacionado`, `Gap`. It must identify itself as generated from workbench data.
 
 ## Examples
 
@@ -233,7 +233,7 @@ Output: "Record the written bypass, set `status: hypothesis`, keep volumes and S
 
 Input: "Make a topic cluster for `seo agêntico`."
 
-Output: "Guess high-volume keywords, infer commercial intent from keyword wording, overwrite curated page titles, and publish the cluster directly to the wiki." This is weak because it fabricates evidence, bypasses DataForSEO without approval, erases curation, and treats unapproved strategy as wiki state.
+Output: "Guess high-volume keywords, infer commercial intent from keyword wording, overwrite curated page titles, and write the cluster directly to `brain/topic-clusters.md`." This is weak because it fabricates evidence, bypasses DataForSEO without approval, erases curation, and treats unapproved strategy as approved brain state.
 
 ## Related Skills
 

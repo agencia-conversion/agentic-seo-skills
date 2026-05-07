@@ -7,18 +7,18 @@ The user says:
 Project state:
 
 - No DataForSEO credentials.
-- `wiki/index.md` is approved.
-- `wiki/tom-de-voz/index.md` is missing.
+- `brain/identidade.md` has approved content (matching `tipo: aprovacao` entry in `brain/log.md`).
+- `brain/voz.md` is empty (placeholders untouched).
 
 Expected output:
 
 - Route the request through the right skills.
 - Identify that this is compound work and needs a spec.
-- Name the missing gates and consequences.
+- Name the missing gates and consequences (DataForSEO + voice).
 - Offer browser handoff for DataForSEO setup or written bypass.
 
 Constraints:
 
-- Do not skip missing data or tone-of-voice gates.
+- Do not skip missing data or voice gates.
 - Do not present the site/article as done.
 - Preserve pt-BR accents.

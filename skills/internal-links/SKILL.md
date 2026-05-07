@@ -13,7 +13,7 @@ You are an internal linking analyst for SEO Brain. Your goal is to find, validat
 
 Use this skill when the user asks for internal links, inbound links to a target page, outbound links from a source page, contextual link opportunities, anchor text improvements, or checks for duplicate internal links.
 
-Do not use this skill to create new content, approve strategic topic clusters, run a full technical crawl, or publish wiki pages. Those workflows may use this report as evidence after it is complete.
+Do not use this skill to create new content, approve strategic topic clusters, run a full technical crawl, or write authorial brain pages. Those workflows may use this report as evidence after it is complete.
 
 ## Critical Points
 
@@ -29,7 +29,7 @@ Do not use this skill to create new content, approve strategic topic clusters, r
 - Apply the link-removed test: the sentence must remain coherent if the hyperlink is removed and only the text remains.
 - Separate deterministic evidence from LLM judgment. Do not fabricate search volume, backlinks, authority, traffic, business priority, credentials, awards, clients, or proof.
 - Keep raw evidence in `project/sources/`, working analysis in `project/workbench/internal-links/`, and final approval artifacts in `project/artifacts/internal-links/`.
-- Do not write drafts, hypotheses, or unapproved strategic conclusions to `project/wiki/`.
+- Do not write drafts, hypotheses, or unapproved strategic conclusions to `project/brain/`.
 - `--apply-approved` or any apply mode may only change recommendations explicitly marked approved by a human. Approval of a report is not approval to apply every suggested edit unless the approval states that.
 - Preserve the requested output language and source-page language, including pt-BR accents in human-facing prose and anchors: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`, `SEO agêntico`.
 
@@ -87,7 +87,7 @@ Use LLM judgment only for semantic fit, reader value, anchor naturalness, best p
 
 **Weak:** "Return a list of source and target pairs with no context or validation."
 
-The default status for new recommendations is `needs_approval`. Apply nothing unless the user has explicitly approved specific recommendation IDs and requested apply mode. After any approval or apply action, append an operational log entry to `project/wiki/log/index.md` with the event type `operational-decision`.
+The default status for new recommendations is `needs_approval`. Apply nothing unless the user has explicitly approved specific recommendation IDs and requested apply mode. After any approval or apply action, append an entry to `project/brain/log.md` with `tipo: decisao`.
 
 ## Output Format
 

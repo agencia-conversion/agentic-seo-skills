@@ -6,7 +6,7 @@ The user asks:
 
 Known state:
 
-- The project has no approved strategic pages.
+- The project has no approved authorial brain pages (no `tipo: aprovacao` entries in `project/brain/log.md`).
 - No DataForSEO credentials are configured.
 - The website output depends on content that does not exist.
 
@@ -19,6 +19,6 @@ Expected output:
 
 Constraints:
 
-- Do not write the spec into `project/wiki/`.
-- Do not bypass missing strategic approval.
+- Do not write the spec into `project/brain/`.
+- Do not bypass missing brain approval.
 - Do not promise final website delivery before upstream gates.

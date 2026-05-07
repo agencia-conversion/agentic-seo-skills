@@ -27,7 +27,7 @@ Do not use this skill to perform full SERP analysis, approve strategic positioni
 - Preserve user-provided keyword spelling, accents, and casing in evidence. Do not translate keywords unless the user asks.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
 - Keep raw source data separate from synthesis. Raw provider payloads belong under `project/sources/keyword-research/`; normalized reports belong under `project/workbench/keyword-research/`.
-- Do not write keyword hypotheses, unapproved strategy, or draft recommendations to `project/wiki/`.
+- Do not write keyword hypotheses, unapproved strategy, or draft recommendations to `project/brain/`.
 
 ## Framework
 
@@ -79,7 +79,7 @@ Use simple grouping that fits the evidence: core terms, variants, long-tail term
 
 **Strong:** "Next action: run `seo-analysis` for the top candidate terms before choosing content priorities."
 
-**Weak:** "Publish a strategic wiki page from this keyword list."
+**Weak:** "Publish strategic claims into `brain/` from this keyword list."
 
 Keyword research can suggest analysis steps, but it does not approve topic clusters, content calendars, strategic pages, or public content. Keep limitations visible, especially missing metrics, partial provider responses, language mismatch, or non-DataForSEO evidence.
 
@@ -133,9 +133,9 @@ synthesis:
   risks: []
 limitations: []
 next_analysis_steps: []
-wiki_promotion:
+brain_promotion:
   allowed: false
-  reason: "Keyword research is evidence and synthesis only; strategic wiki promotion requires a separate approved workflow."
+  reason: "Keyword research is evidence and synthesis only; promotion to brain pages requires a separate approved workflow with `tipo: aprovacao` in `brain/log.md`."
 ```
 
 If blocked because DataForSEO is unavailable and no approved substitute exists, return `status: blocked`, name the missing provider gate, and do not invent metrics.
@@ -158,7 +158,7 @@ Output: "Use DataForSEO Labs keyword suggestions, store the raw suggestions payl
 
 Input: "Give me keyword priorities for agentic SEO."
 
-Output: "Guess volumes, translate `seo agêntico` to English, rank keywords by assumed popularity, and write the priorities to `project/wiki/`." This is weak because it fabricates metrics, changes the language without permission, and promotes unapproved synthesis to the wiki.
+Output: "Guess volumes, translate `seo agêntico` to English, rank keywords by assumed popularity, and write the priorities to `project/brain/`." This is weak because it fabricates metrics, changes the language without permission, and promotes unapproved synthesis to authorial brain pages.
 
 ## Related Skills
 
