@@ -66,14 +66,14 @@ Every SEO Brain project should use Obsidian-compatible Markdown and separate sou
 - Generated and curated knowledge lives in `wiki/`; open `project/wiki/` as the Obsidian vault.
 - `wiki/fontes/index.md` is a catalog of raw evidence, but the raw files themselves remain in `sources/`.
 - Use Obsidian wikilinks only for real pages inside `wiki/`; use normal Markdown links for files under `../sources/`.
-- Strategic pages require explicit human approval.
+- Strategic pages require explicit user-directed writing before agents edit them. Mark the written state clearly as `draft`, `proposed`, `hypothesis`, or `approved`; only explicit approval makes it approved strategic context.
 - Operational and observational pages may be updated by agents when checks pass.
 - Important events must be appended to `wiki/log/index.md`. Each entry must declare a `type` of `strategic-approval` or `operational-decision` so events can be filtered by audience.
-- The wiki never holds drafts or hypotheses. Pages either reflect approved/measured state or do not exist yet.
+- The wiki may hold drafts, hypotheses, or user-directed strategic notes only when the current user explicitly asks the agent to write them there. They must be visibly labeled and must not be treated as approved context.
 - `project/workbench/` is only for construction: research, briefing, auxiliary analysis, and intermediate context.
 - Complete deliverables, including v0 artifacts, live in `project/artifacts/`; content drafts live in `project/artifacts/contents/<slug>/`.
-- Public content also lives in `project/wiki/conteudos/` only after final approval and `status: published`.
-- Hypothetical or unverified strategic work stays outside the Wiki until explicit human approval; operational pages may be promoted only after automated checks pass.
+- Public content may be drafted in `project/wiki/conteudos/` only when the user explicitly asks for that destination; mark it as `draft` until final publication approval and `status: published`.
+- Hypothetical or unverified strategic work should normally stay outside the Wiki, but may be written there on explicit user request when clearly marked as not approved. Operational pages may be promoted after automated checks pass.
 
 Required strategic approval pages:
 

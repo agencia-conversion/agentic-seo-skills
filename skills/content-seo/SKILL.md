@@ -17,15 +17,15 @@ Do not use this skill for raw keyword discovery, one-keyword SERP analysis witho
 
 ## Critical Points
 
-- Follow the content phases in order: `brief`, `approve`, `write`, `check`, `promote`. Do not draft before briefing approval, and do not publish before final approval.
+- Follow the content phases in order by default: `brief`, `approve`, `write`, `check`, `promote`. If the current user explicitly asks to draft before briefing approval or write directly to a destination, do it within the requested scope, record the bypass, and mark the output as draft/unapproved.
 - DataForSEO is the default source for SERP and keyword evidence. Do not silently replace it with WebSearch or memory.
 - Top 3 organic competitor evidence is required for Skyscraper briefing. If the Top 3 cannot be identified or measured, block unless the current user explicitly approves that named bypass.
 - A DataForSEO, SERP, Top 3, or tone-of-voice bypass requires written confirmation from the current user and must be recorded with approver, exact confirmation text, timestamp, reason, missing dimension, and consequence.
-- Bypass approval is not briefing approval, draft approval, final approval, or strategic wiki approval.
-- A briefing must be approved by a human before any draft body is written. Existing drafts, homepage context, or agent confidence do not waive this gate.
-- The approved tone-of-voice evidence gate is mandatory before drafting. Read `project/wiki/tom-de-voz/index.md` and record path, status, hash if available, short excerpts, and limitations. If the page is missing or not approved, block or return `approval_required`; do not invent voice guidance.
-- Keep construction files in `project/workbench/content/<slug>/`; keep draft and review deliverables in `project/artifacts/contents/<slug>/`; write public content to `project/wiki/conteudos/<slug>.md` only after final approval, passed checks, and `status: published`.
-- The wiki never holds drafts, hypotheses, unapproved briefings, or unpublished public content.
+- Bypass approval is not briefing approval, draft approval, final approval, or strategic wiki approval. A direct user request to write is authorization to write, not approval to publish or treat the result as evidence-backed.
+- A briefing should be approved by a human before draft body writing. Existing drafts, homepage context, or agent confidence do not waive this gate; an explicit user request such as "write the draft now" may bypass it when recorded in the artifact.
+- The approved tone-of-voice evidence gate is mandatory before voice-backed drafting. Read `project/wiki/tom-de-voz/index.md` and record path, status, hash if available, short excerpts, and limitations. If the page is missing or not approved, either block/return `approval_required` or, when the user explicitly asks to proceed, write a clearly marked tone-bypassed draft without inventing voice guidance.
+- Keep construction files in `project/workbench/content/<slug>/`; keep draft and review deliverables in `project/artifacts/contents/<slug>/`; write public content to `project/wiki/conteudos/<slug>.md` only after final approval and `status: published`, unless the user explicitly asks for a Wiki draft destination. Wiki drafts must be labeled `status: draft` or `status: proposed`.
+- The wiki may hold content drafts, hypotheses, unapproved briefings, or unpublished public content only when the user explicitly asks for that destination and the page is clearly labeled as not published.
 - Separate raw evidence, synthesis, and human judgment. Never fabricate keyword volume, rankings, backlinks, credentials, awards, clients, quotes, statistics, or proof.
 - Public source links must point to public URLs only. Do not expose local paths such as `project/sources/...` or `project/workbench/...` in public prose. Use clear, specific anchor text, not generic anchors like "click here" or "source".
 - Preserve the requested output language, including pt-BR accents in human-facing prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
@@ -74,25 +74,25 @@ The briefing must include a capacity check: the outline must plausibly support t
 
 ### 4. Request Briefing Approval
 
-**Check:** Has a human approved the briefing after seeing missing data, skipped checks, sources, and limitations?
+**Check:** Has a human approved the briefing after seeing missing data, skipped checks, sources, and limitations, or did the user explicitly ask to draft anyway?
 
-**Strong:** "Return `status: approval_required`, show the `brief.md` path, summarize missing dimensions, and ask for approval before drafting."
+**Strong:** "Return `status: approval_required`, show the `brief.md` path, summarize missing dimensions, and ask for approval before drafting unless the user already explicitly asked to draft now."
 
-**Weak:** "Treat the user's original content request as approval to draft."
+**Weak:** "Treat the user's original content request as final publication approval."
 
-Approval can happen in chat or a local browser handoff. Do not make terminal commands the primary UX for nontechnical approvals. Record approval decisions in the artifact and append important approvals or bypasses to `project/wiki/log/index.md` with `type: operational-decision` unless the current user explicitly constrained file writes; in that case, include the required log entry text in the artifact for the integrator.
+Approval or user-directed bypass can happen in chat or a local browser handoff. Do not make terminal commands the primary UX for nontechnical approvals. Record approval decisions and direct-write bypasses in the artifact and append important approvals or bypasses to `project/wiki/log/index.md` with `type: operational-decision` unless the current user explicitly constrained file writes; in that case, include the required log entry text in the artifact for the integrator.
 
-### 5. Write Only From An Approved Brief
+### 5. Write From An Approved Brief Or Explicit Direct Request
 
-**Check:** Is there an approved briefing, approved or sufficient tone-of-voice evidence, and a known artifact destination?
+**Check:** Is there an approved briefing, approved or sufficient tone-of-voice evidence, and a known artifact destination, or did the user explicitly request direct drafting with known bypasses?
 
 **Strong:** "Load the approved `brief.yaml`, preserve source-link rules, write `project/artifacts/contents/<slug>/draft.md`, and keep the wiki untouched."
 
-**Weak:** "Write a draft to `project/wiki/conteudos/` because it will eventually be published."
+**Weak:** "Publish a draft to `project/wiki/conteudos/` as final content because it will eventually be approved."
 
 The draft must avoid internal process language, hidden assumptions, generic source anchors, local evidence paths, and unverified claims. It may include frontmatter for artifact tracking, but public prose should read as final editorial copy.
 
-If tone-of-voice evidence is missing or unapproved, return `status: blocked` or `approval_required`; do not produce a full draft. If the user explicitly approves a tone bypass, log the bypass and clearly mark the draft as not voice-backed.
+If tone-of-voice evidence is missing or unapproved, return `status: blocked` or `approval_required` unless the user explicitly asks to proceed. If the user approves a tone bypass or directly requests drafting anyway, log the bypass and clearly mark the draft as not voice-backed.
 
 ### 6. Check The Draft
 
@@ -112,7 +112,7 @@ Write checks to `project/artifacts/contents/<slug>/checks.yaml` or include the s
 
 **Weak:** "Move the draft to the wiki so the user can review it there."
 
-Promotion is not a rewrite phase. If final approval is missing, return `approval_required`. If checks failed, return `blocked`. If the content is approved but not marked `status: published`, fix the status before promotion only when the approval explicitly covers publication.
+Promotion is not a rewrite phase. If final approval is missing, return `approval_required` unless the user explicitly asked for a non-published Wiki draft; in that case write it as `status: draft` and do not call it published. If checks failed, return `blocked` unless the user explicitly accepts a labeled draft with failed checks. If the content is approved but not marked `status: published`, fix the status before promotion only when the approval explicitly covers publication.
 
 ## Output Format
 
@@ -179,7 +179,7 @@ next_action: ""
 
 Input: "Create content workflow output for `O que é SEO agêntico` in pt-BR. SERP data is unavailable. I approve a DataForSEO bypass because this is `teste editorial sem DataForSEO`."
 
-Output: "Return `status: approval_required` for the briefing, preserve accents such as `conteúdo` and `evidência`, record the DataForSEO bypass with consequence, do not claim search volume or Top 3 findings, and block or condition the draft because `project/wiki/tom-de-voz/index.md` lacks approved evidence."
+Output: "Return `status: approval_required` for the briefing, preserve accents such as `conteúdo` and `evidência`, record the DataForSEO bypass with consequence, do not claim search volume or Top 3 findings, and ask whether to draft anyway with a tone-of-voice bypass because `project/wiki/tom-de-voz/index.md` lacks approved evidence."
 
 ### Example: Approved Brief To Draft
 
@@ -187,11 +187,17 @@ Input: "The brief for `seo agêntico` is approved. Write the draft."
 
 Output: "Verify the approval record, DataForSEO or bypass disclosures, Top 3 evidence, and approved tone-of-voice evidence. Then write only to `project/artifacts/contents/seo-agentico/draft.md` and leave `project/wiki/conteudos/` untouched."
 
+### Example: Direct User Draft Request
+
+Input: "Write the article now even without the approved brief. Put it in `project/wiki/conteudos/seo-agentico.md` as a draft."
+
+Output: "Write only the requested draft page, set `status: draft`, record that briefing and tone gates were bypassed by direct user request, avoid invented metrics or proof, and do not mark the content as published."
+
 ### Example: Weak Execution
 
 Input: "Write and publish an article about `seo agêntico`."
 
-Output: "Guess SERP intent, draft from memory, add local source paths in the article, and publish to the wiki." This is weak because it skips DataForSEO/SERP/Top 3 gates, briefing approval, final approval, source-link policy, and the artifact-before-wiki rule.
+Output: "Guess SERP intent, draft from memory, add local source paths in the article, and publish to the wiki." This is weak because it skips DataForSEO/SERP/Top 3 disclosures, treats drafting as publication approval, violates source-link policy, and hides the missing approval state.
 
 ## Related Skills
 

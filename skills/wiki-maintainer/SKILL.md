@@ -7,7 +7,7 @@ metadata:
 
 # Wiki Maintainer
 
-You are the steward of the SEO Brain LLM Wiki. Your goal is to keep `project/wiki/` useful, cited, Obsidian-compatible, and free of unapproved strategy while preserving raw evidence under `project/sources/`.
+You are the steward of the SEO Brain LLM Wiki. Your goal is to keep `project/wiki/` useful, cited, Obsidian-compatible, and safe for user-directed writing while preserving raw evidence under `project/sources/`.
 
 ## When To Use
 
@@ -18,26 +18,26 @@ Do not use this skill to create strategic recommendations from scratch, run keyw
 ## Critical Points
 
 - Raw source files live in `project/sources/` and are immutable or append-only. Do not rewrite, clean up, summarize over, or delete existing raw sources.
-- Generated and curated knowledge lives in `project/wiki/`; drafts, hypotheses, research notes, and unresolved synthesis belong in `project/workbench/` or `project/artifacts/`, not in the wiki.
+- Generated and curated knowledge lives in `project/wiki/`. Drafts, hypotheses, research notes, and unresolved synthesis normally belong in `project/workbench/` or `project/artifacts/`, but they may be written into the Wiki when the current user explicitly requests that destination and the status is clearly labeled.
 - Keep sources separate from synthesis. A wiki claim must cite raw evidence, approved wiki context, or clearly mark a gap.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, quotes, proof, or approvals. Unknown facts stay unknown.
-- Strategic pages require explicit human approval before they state strategy as accepted project context.
-- Human judgment owns strategic approval. An agent draft, prior artifact, or confident synthesis is not approved strategic context.
+- Strategic pages require explicit approval before they state strategy as accepted project context. They may still receive user-directed draft or proposed edits when the user asks for that exact write.
+- Human judgment owns strategic approval. An agent draft, prior artifact, user-directed note, or confident synthesis is not approved strategic context unless the user explicitly approves that status.
 - Preserve the requested output language. In pt-BR prose, keep accents and diacritics: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Use Obsidian wikilinks only for real pages inside `project/wiki/`. Use normal Markdown links for files under `project/sources/` or external URLs.
 - Append important events to `project/wiki/log/index.md` with `type: strategic-approval` or `type: operational-decision`.
 
 ## Write Boundaries
 
-Allowed writes for normal execution are `project/wiki/**` for curated pages, indexes, source catalog entries, and logs; `project/sources/**` only when capturing a newly provided raw source exactly as received or adding append-only metadata beside it; and `project/workbench/wiki-maintainer/**` for reconciliation notes, lint reports, proposed strategic changes, contradiction notes, and approval packets.
+Allowed writes for normal execution are `project/wiki/**` for curated pages, user-directed drafts, hypotheses, proposed strategic edits, indexes, source catalog entries, and logs; `project/sources/**` only when capturing a newly provided raw source exactly as received or adding append-only metadata beside it; and `project/workbench/wiki-maintainer/**` for reconciliation notes, lint reports, proposed strategic changes, contradiction notes, and approval packets.
 
-Do not write strategic drafts, unverified claims, or review notes into `project/wiki/`. Do not modify `project/sources/**` files that already exist unless the operation is append-only and clearly preserves the original evidence.
+Do not write strategic drafts, unverified claims, or review notes into `project/wiki/` unless the current user explicitly asks for that write or destination. When you do, label the status as `draft`, `proposed`, `hypothesis`, or `user-provided`, and include citations, gaps, or limitations. Do not modify `project/sources/**` files that already exist unless the operation is append-only and clearly preserves the original evidence.
 
 ## Strategic Boundaries
 
-Treat `project/wiki/index.md`, `project/wiki/eeat.md`, `project/wiki/tecnologia/index.md`, `project/wiki/tom-de-voz/index.md`, and any page that defines positioning, audience, value proposition, expertise, credibility, voice, technology choices, editorial doctrine, or business priorities as approval-gated.
+Treat `project/wiki/index.md`, `project/wiki/eeat.md`, `project/wiki/tecnologia/index.md`, `project/wiki/tom-de-voz/index.md`, and any page that defines positioning, audience, value proposition, expertise, credibility, voice, technology choices, editorial doctrine, or business priorities as approval-gated for accepted strategy, not for user-directed draft writing.
 
-If a requested change would add or alter strategic context and explicit approval is missing, stop before writing that claim into the wiki. Write a proposed change packet under `project/workbench/wiki-maintainer/` instead, then ask for approval and disclose what evidence is missing or contested. Approval of a draft is valid only when the user explicitly approves that specific strategic change with known gaps disclosed.
+If a requested change would add or alter strategic context and explicit approval is missing, first check whether the user explicitly asked you to write the page anyway. If yes, write only within the requested scope, mark the change as draft/proposed/unapproved, and log it as an operational decision. If not, write a proposed change packet under `project/workbench/wiki-maintainer/`, ask for approval, and disclose what evidence is missing or contested. Approval of a draft is valid only when the user explicitly approves that specific strategic change with known gaps disclosed.
 
 Operational and observational pages may be updated without strategic approval when they are evidence-backed and pass checks. Examples include a source catalog entry, a broken-link lint report, a log entry for an operational decision, or an observational note that a source contains a claim not yet accepted by the project.
 
@@ -102,11 +102,11 @@ Only use `[[Real Wiki Page]]` when that page exists or is being created in the s
 
 **Check:** Is each wiki claim approved, measured, or safely observational?
 
-Allowed wiki content includes approved strategic facts and decisions, measured or directly observed operational facts, source catalog entries, citations to raw evidence, contradiction and gap notes that do not present hypotheses as truth, and links between real wiki pages.
+Allowed wiki content includes approved strategic facts and decisions, measured or directly observed operational facts, source catalog entries, citations to raw evidence, user-directed drafts or hypotheses that are visibly labeled, contradiction and gap notes that do not present hypotheses as truth, and links between real wiki pages.
 
-Blocked from wiki: unapproved positioning, voice, technology strategy, E-E-A-T claims, hypotheses about what the brand should say or do, content drafts, unpublished public content, unsupported claims of expertise or proof, and "agent believes" synthesis presented as approved context.
+Blocked from wiki unless explicitly requested and clearly labeled: unapproved positioning, voice, technology strategy, E-E-A-T claims, hypotheses about what the brand should say or do, content drafts, unpublished public content, unsupported claims of expertise or proof, and "agent believes" synthesis. Always blocked: presenting any of those as approved context without explicit approval.
 
-If a source contains a claim that cannot be promoted, record it as a gap or contradiction in `project/workbench/wiki-maintainer/` and, when useful, add a neutral catalog note such as "source claims public proof exists; no corroborating wiki evidence found." Do not turn the claim into accepted wiki language.
+If a source contains a claim that cannot be promoted, record it as a gap or contradiction in `project/workbench/wiki-maintainer/` and, when useful, add a neutral catalog note such as "source claims public proof exists; no corroborating wiki evidence found." If the user asks you to write that claim into the Wiki, mark it as user-provided or unverified; do not turn it into accepted wiki language.
 
 ### 6. Write Citations And Links Correctly
 
@@ -200,7 +200,7 @@ log:
 next_action: ""
 ```
 
-If the task is blocked by missing strategic approval, use `status: approval_required`, write the proposal outside the wiki, update the log with `type: operational-decision`, and explain the exact claim that cannot be promoted.
+If the task is blocked by missing strategic approval and there is no explicit user-directed write request, use `status: approval_required`, write the proposal outside the wiki, update the log with `type: operational-decision`, and explain the exact claim that cannot be promoted. If the user did request the write, use `status: complete` or `incomplete`, label the Wiki content as unapproved, and name the remaining approval step.
 
 ## Examples
 
@@ -227,7 +227,7 @@ Output: "Rewrite `wiki/eeat.md` to say the founder is recognized and award-winni
 - Raw sources are unchanged unless newly captured exactly or appended safely.
 - `project/wiki/fontes/index.md` catalogs newly relevant sources.
 - Changed wiki pages cite sources or mark gaps.
-- Strategic pages contain only explicitly approved strategic context.
+- Strategic pages contain approved strategic context or clearly labeled user-directed drafts/proposals/hypotheses; only explicitly approved content can be treated as operating context.
 - Contradictions, gaps, stale claims, and missing citations are recorded.
 - Obsidian wikilinks are used only for real wiki pages; source links use normal Markdown.
 - Important events are appended to `project/wiki/log/index.md` with the correct `type`.

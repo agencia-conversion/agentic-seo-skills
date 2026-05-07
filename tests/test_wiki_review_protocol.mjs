@@ -6,9 +6,11 @@ const root = resolve(import.meta.dirname, "..");
 const skill = readFileSync(resolve(root, "skills", "wiki-maintainer", "SKILL.md"), "utf8");
 
 for (const required of [
-  "Strategic pages require explicit human approval",
-  "Do not write strategic drafts, unverified claims, or review notes into `project/wiki/`",
-  "Do not turn the claim into accepted wiki language",
+  "Strategic pages require explicit approval before they state strategy as accepted project context",
+  "Do not write strategic drafts, unverified claims, or review notes into `project/wiki/` unless the current user explicitly asks for that write or destination",
+  "Blocked from wiki unless explicitly requested and clearly labeled",
+  "Always blocked: presenting any of those as approved context without explicit approval",
+  "do not turn it into accepted wiki language",
   "Contradictions, gaps, stale claims, and missing citations are recorded",
   "type: strategic-approval",
   "type: operational-decision",

@@ -32,9 +32,10 @@ Humans own judgment. Agents execute repeatable intelligence, extraction, formatt
 
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, case studies, or proof. Unknown metrics stay `null`, `unknown`, or blocked.
 - Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, complete deliverables in `project/artifacts/`, and approved or measured knowledge in `project/wiki/`.
-- Do not write drafts, hypotheses, or unapproved strategic conclusions to `project/wiki/`.
-- Strategic Wiki pages require explicit human approval before becoming operating context: `project/wiki/index.md`, `project/wiki/eeat.md`, `project/wiki/tecnologia/index.md`, and `project/wiki/tom-de-voz/index.md`.
-- Public content must pass through evidence, briefing, approval, artifact drafting, review, final approval, and only then promotion to the Wiki or website.
+- User-directed writing is allowed: if the current user explicitly asks the agent to write or edit a Wiki page, content page, artifact, or draft, that request authorizes writing within the named scope.
+- Writing is not approval. Mark user-directed drafts, hypotheses, and unverified strategic notes as `draft`, `proposed`, `hypothesis`, or `user-provided`; do not treat them as approved operating context until the user explicitly approves that status.
+- Strategic Wiki pages require explicit approval before becoming operating context, but not before user-directed draft edits: `project/wiki/index.md`, `project/wiki/eeat.md`, `project/wiki/tecnologia/index.md`, and `project/wiki/tom-de-voz/index.md`.
+- Public content should normally pass through evidence, briefing, artifact drafting, review, final approval, and publication. If the user directly asks to write earlier or directly into the Wiki, do it within scope, record the bypass, and mark the output as not fully approved or not data-backed where appropriate.
 - DataForSEO is the default provider for SEO metrics, SERP evidence, and backlink data. SEO Brain is not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
 - Do not silently fall back to WebSearch, intuition, or hypothesis-only output when DataForSEO is missing. Stop at the DataForSEO gate or ask for explicit written bypass approval.
 - A bypass must name the skipped step, approver, exact confirmation text, timestamp, reason, and consequence. Approval of an artifact is not approval of an undisclosed bypass.
@@ -61,13 +62,13 @@ Name missing gates before downstream execution. Common blockers:
 
 - `DataForSEO gate`: credentials are missing, invalid, or unavailable for required SEO evidence.
 - `DataForSEO bypass gate`: the user has not explicitly approved WebSearch, skip-data, or hypothesis-only output with the required consequence.
-- `Strategy approval gate`: a required strategic Wiki page is missing or unapproved.
-- `Tone-of-voice gate`: `project/wiki/tom-de-voz/index.md` is missing or unapproved before public content or website copy.
-- `Content approval gate`: a brief, draft, or final public content artifact needs human approval before drafting, publishing, or promotion.
+- `Strategy approval gate`: approved strategic context is required before treating a page as operating truth; user-directed draft writing can proceed when clearly labeled.
+- `Tone-of-voice gate`: `project/wiki/tom-de-voz/index.md` is missing or unapproved before voice-backed public content or website copy; user-directed writing may proceed as a draft or bypassed output when marked clearly.
+- `Content approval gate`: a brief, draft, or final public content artifact needs human approval before publishing or promotion; user-directed drafting may proceed when the requested scope is explicit.
 - `Source separation gate`: raw evidence has not been captured under `project/sources/` or cited separately from synthesis.
 - `Browser handoff gate`: sensitive input, approval, or preview should be completed through a local browser flow rather than terminal-first instructions.
 
-When a required gate is missing, return a blocked or approval-required routing decision. Do not create a partial final artifact that hides the missing step.
+When a required gate is missing, either return a blocked/approval-required routing decision or, if the user explicitly asked for writing anyway, create the requested draft within scope and disclose the missing gate in the artifact. Do not create a partial final artifact that hides the missing step.
 
 ### 3. Select Downstream Skills
 
