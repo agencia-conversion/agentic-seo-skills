@@ -59,7 +59,7 @@ The refactor has three separations:
 | `payload-cms` | `src/commands/payload-cms.ts` | split or technology helper | Writes Payload config only; keep small. | Assert collections in generated config. |
 | `audit-skills` | `src/commands/audit-skills.ts` | split | Dev-only audit of narrative skill completeness. | Fixture skill directory and report path. |
 
-The restored `src/seo-brain.ts` should only parse args, reject `--project`, dispatch to commands, and export shared helpers required by tests.
+The restored `src/seo-brain.ts` should only parse args, reject the removed legacy project selector, dispatch to commands, and export shared helpers required by tests.
 
 ## Tools To Fork
 

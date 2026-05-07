@@ -11,20 +11,17 @@ assert.ok(skill.startsWith("---\n"));
 assert.match(skill, /^name:\s*seo-brain$/m);
 assert.match(skill, /^description:\s*.+/m);
 
-for (const section of ["## Contract", "## Required Behavior", "## Done Criteria"]) {
+for (const section of ["## When To Use", "## Operating Model", "## Critical Points", "## Routing Framework", "## Output Format", "## Examples"]) {
   assert.ok(skill.includes(section), `missing ${section}`);
 }
 
-for (const section of ["## Wiki", "## Conteúdo", "## Dados", "## Tecnologia", "## Ethos"]) {
-  assert.ok(skill.includes(section), `missing routing block: ${section}`);
-}
-
 for (const required of [
-  "seis pilares",
-  "aprovação humana",
+  "six pillars",
+  "Humans own judgment",
   "project/sources/",
   "project/workbench/",
-  "project/workbench/specs/",
+  "project/artifacts/",
+  "project/wiki/",
   "browser handoff",
   "página",
   "conteúdo",
@@ -46,22 +43,16 @@ for (const required of [
   "next-website-creator",
   "payload-cms",
   "DataForSEO",
-  "pay-as-you-go",
   "não somos afiliados",
   "Next.js",
-  "SSG",
-  "not complete when the agent only prints commands",
-  "run the build from `project/web/`",
-  "local preview",
+  "local browser handoff",
   "two or more deliverables",
   "approval-gated workflows",
-  "Compound requests",
-  "simple design",
-  "Stop at the content gate",
-  "not create a final stub",
-  "run `content-seo` brief",
-  "request an explicit bypass",
-  "declare the dependent deliverable blocked",
+  "Strategy approval gate",
+  "Content approval gate",
+  "explicit written bypass approval",
+  "Avoid presenting blocked downstream deliverables as complete",
+  "stop at the first missing gate",
 ]) {
   assert.ok(skill.includes(required), `missing runtime rule: ${required}`);
 }

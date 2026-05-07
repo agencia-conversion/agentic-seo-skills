@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SKILLS_DIR = path.join(ROOT, "skills");
-const REQUIRED_SECTIONS = ["## Contract", "## Required Behavior", "## Done Criteria"];
+const REQUIRED_SECTIONS = ["## When To Use", "## Critical Points", "## Output Format"];
+const STRUCTURAL_SECTIONS = ["## Framework", "## Examples", "## Done Criteria", "## Related Skills"];
 
 function validateSkill(filePath) {
   const text = fs.readFileSync(filePath, "utf8");
@@ -25,6 +26,20 @@ function validateSkill(filePath) {
   for (const section of REQUIRED_SECTIONS) {
     if (!text.includes(section)) errors.push(`missing section ${section}`);
   }
+
+  if (!STRUCTURAL_SECTIONS.some((section) => text.includes(section))) {
+    errors.push(`missing one structural section: ${STRUCTURAL_SECTIONS.join(" or ")}`);
+  }
+
+  const forbiddenRequirement = text
+    .split(/\r?\n/)
+    .some((line) => {
+      const mentionsForbiddenPath = /(skills\/_shared\/|_shared\/|_legacy\/)/i.test(line);
+      const requiresPath = /(must read|must use|required|requires|depend)/i.test(line);
+      const negatesRequirement = /(no |not |do not|does not|without|forbidden|fail when)/i.test(line);
+      return mentionsForbiddenPath && requiresPath && !negatesRequirement;
+    });
+  if (forbiddenRequirement) errors.push("must not require shared or legacy references");
 
   return errors;
 }

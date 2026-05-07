@@ -49,7 +49,13 @@ const about = runTechnical("tests/fixtures/technical-seo-about.html", "quem-somo
 assert.equal(about.page_type, "about");
 assert.ok(about.checks.some((check) => check.id === "about_schema" && check.passed));
 
-assert.ok(readFileSync(resolve(root, "skills/technical-seo/SKILL.md"), "utf8").includes("home, ecommerce_product, service_product, blog, about"));
+const technicalSkill = readFileSync(resolve(root, "skills/technical-seo/SKILL.md"), "utf8");
+for (const pageType of ["home", "ecommerce_product", "service_product", "blog", "about"]) {
+  assert.ok(technicalSkill.includes(pageType), `technical-seo skill missing page type: ${pageType}`);
+}
+for (const alias of ["inicial", "produto-ecommerce", "produto-ou-servico", "quem-somos"]) {
+  assert.ok(technicalSkill.includes(alias), `technical-seo skill missing page alias: ${alias}`);
+}
 
 rmSync(tmp, { recursive: true, force: true });
 console.log("technical seo ok");

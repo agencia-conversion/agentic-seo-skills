@@ -7,32 +7,34 @@ const skill = readFileSync(resolve(root, "skills", "spec-driven", "SKILL.md"), "
 
 assert.ok(skill.startsWith("---\n"));
 assert.match(skill, /^name:\s*spec-driven$/m);
-assert.match(skill, /^description:\s*.+compound SEO Brain requests/m);
+assert.match(skill, /^description:\s*.+compound requests/m);
 
-for (const section of ["## Contract", "## Required Behavior", "## Done Criteria"]) {
+for (const section of ["## When To Use", "## Critical Points", "## Framework", "## Output Format", "## Examples", "## Done Criteria"]) {
   assert.ok(skill.includes(section), `missing ${section}`);
 }
 
 for (const required of [
-  "two or more deliverables",
-  "two or more SEO Brain skills",
-  "two or more pillars",
-  "approval-gated artifact",
-  "content and website generation",
+  "two or more distinct deliverables",
+  "downstream skills",
+  "cross SEO Brain pillars",
+  "approval gates",
+  "content drafts plus Next.js website generation",
   "Do not use this skill for a single clear task",
-  "skills/_shared/references/operating-model.md",
-  "simple design",
-  "what will be done",
-  "where artifacts will live",
-  "what will prove success",
+  "Simple Design",
+  "deliverables",
+  "control file location",
+  "success criteria",
   "project/workbench/specs/<slug>/spec.md",
   "project/workbench/specs/<slug>/plan.md",
   "project/workbench/specs/<slug>/result-check.md",
-  "Never write the spec into `project/wiki/`",
-  "result check",
-  "run the required upstream flow",
-  "request the explicit bypass",
-  "declare the dependent deliverable blocked",
+  "Never write specs, plans, drafts, hypotheses, or execution notes to `project/wiki/`",
+  "result-check",
+  "upstream gate passes",
+  "ask for approval before writing the workbench files",
+  "mark the dependent deliverable blocked",
+  "Do not bypass strategic approval",
+  "DataForSEO is the default",
+  "local browser handoff",
 ]) {
   assert.ok(skill.includes(required), `missing spec-driven rule: ${required}`);
 }

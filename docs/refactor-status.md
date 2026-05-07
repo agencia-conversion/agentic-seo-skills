@@ -13,7 +13,7 @@ Read this section first if you are a new session.
 
 ## Current Phase
 
-Phase 5 - runtime restoration in progress.
+Phase 6 - final validation in progress.
 
 Canonical rewrite targets have been cleared after the legacy snapshot:
 
@@ -49,6 +49,7 @@ Canonical runtime support files remain in place:
 - D17: Phase 4 Wave B approved `topic-cluster`, `content-seo`, and `eeat` in one iteration each.
 - D18: Phase 4 Wave C approved `technical-seo`, `internal-links`, `next-website-creator`, and `payload-cms` in one iteration each.
 - D19: Phase 4 Wave D approved `seo-brain`, `spec-driven`, `data-setup`, `wiki-maintainer`, `project-init`, `autoresearch`, and the `start` alias in one iteration each.
+- D20: Phase 5 restored `src/seo-brain.ts` as a slim dispatcher/re-export surface and moved deterministic runtime parity into `src/commands/runtime.ts`; full `npm test` passes.
 
 ## Skills State
 
@@ -86,29 +87,29 @@ Canonical runtime support files remain in place:
 | similarweb.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after dependency audit. |
 | keywords-everywhere.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate after dependency audit. |
 | airops.js | candidate | `906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | `coreyhaines31/marketingskills` | Candidate only if useful for workflow automation. |
-| tools registry | planned | pending | mixed | To be created in Phase 2. |
+| tools registry | complete | pending | mixed | Initial registry, attribution, and DataForSEO integration docs created in Phase 2. |
 
 ## src/commands State
 
 | subcommand | status | parity-test | notes |
 |---|---|---|---|
-| project-init | mapped | pending | `src/commands/project-init.ts`. |
-| wiki-lint | mapped | pending | `src/commands/wiki-lint.ts`. |
-| wiki-approve | mapped | pending | `src/commands/wiki-approve.ts`. |
-| wiki-ingest | mapped | pending | `src/commands/wiki-ingest.ts`. |
-| data-setup | mapped | pending | `src/commands/data-setup.ts`. |
-| serp-extract | mapped | pending | `src/commands/serp-extract.ts`. |
-| keyword-research | mapped | pending | `src/commands/keyword-research.ts`. |
-| kw-volume | mapped | pending | Merge into keyword research as lean mode or wrapper. |
-| backlink-analysis | mapped | pending | `src/commands/backlink-analysis.ts`. |
-| seo-analysis | mapped | pending | `src/commands/seo-analysis.ts`. |
-| topic-cluster | mapped | pending | `src/commands/topic-cluster.ts`. |
-| eeat | mapped | pending | Compatibility stub or omit real command. |
-| content-seo | mapped | pending | `src/commands/content-seo.ts` plus helpers if needed. |
-| technical-seo | mapped | pending | `src/commands/technical-seo.ts`. |
-| next-website-creator | mapped | pending | `src/commands/next-website-creator.ts`. |
-| payload-cms | mapped | pending | `src/commands/payload-cms.ts`. |
-| audit-skills | mapped | pending | `src/commands/audit-skills.ts` or script-backed dev command. |
+| project-init | restored | passed | Implemented inside `src/commands/runtime.ts`; split into finer modules remains future cleanup. |
+| wiki-lint | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| wiki-approve | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| wiki-ingest | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| data-setup | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| serp-extract | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| keyword-research | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| kw-volume | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| backlink-analysis | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| seo-analysis | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| topic-cluster | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| eeat | restored | passed | Compatibility command restored inside `src/commands/runtime.ts`; richer E-E-A-T engine remains in `scripts/eeat.mjs`. |
+| content-seo | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| technical-seo | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| next-website-creator | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| payload-cms | restored | passed | Runtime parity restored inside `src/commands/runtime.ts`. |
+| audit-skills | restored | passed | Updated to v1 narrative skill checks inside `src/commands/runtime.ts`. |
 
 ## Approval Gates
 
@@ -117,8 +118,8 @@ Canonical runtime support files remain in place:
 - Phase 2: complete on 2026-05-06.
 - Phase 3: complete on 2026-05-06.
 - Phase 4: complete on 2026-05-06.
-- Phase 5: in progress.
-- Phase 6: pending.
+- Phase 5: complete on 2026-05-06.
+- Phase 6: in progress.
 
 ## Open Questions
 
@@ -139,7 +140,7 @@ Canonical runtime support files remain in place:
 - DataForSEO tool test: `tests/tools/test_dataforseo_cli.mjs`
 - Pre-rewrite tag: `v0-pre-rewrite`
 - Latest autoresearch run: `.context/skill-evals/start/20260506-211054-refactor-seo-brain-skill-start`
-- Latest sub-agent report: Phase 4 Wave D approvers scored `seo-brain` 98, `spec-driven` 97, `data-setup` 97, `wiki-maintainer` 98, `project-init` 97, `autoresearch` 97, and `start` 96.
+- Latest sub-agent report: Phase 5 worker restored runtime parity, ran `npm install`, `npm run build`, TypeScript no-emit, and focused runtime tests. Main agent updated v1 skill tests, `audit-skills`, and confirmed full `npm test`.
 
 ## Checkpoint Log
 
@@ -243,3 +244,14 @@ Canonical runtime support files remain in place:
   - `node --check tools/clis/dataforseo.js`
   - `node tests/tools/test_dataforseo_cli.mjs`
   - `node tests/test_skill_loop_gate.mjs`
+
+### Checkpoint 6 - 2026-05-06
+
+- Phase: 5 - Deterministic runtime restoration.
+- Approved by: autonomous continuation request.
+- Summary: Restored `src/seo-brain.ts` as a slim dispatcher and re-export file, restored deterministic command/API parity in `src/commands/runtime.ts`, updated the compiled CLI output, aligned v1 skill tests and `audit-skills` with narrative self-sufficient skills, and removed the last documentation reference to the retired project selector.
+- Verification:
+  - `npm run build`
+  - `node scripts/validate_skills.mjs`
+  - `node scripts/smoke_test.mjs`
+  - `npm test`
