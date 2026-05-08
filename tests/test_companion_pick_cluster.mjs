@@ -7,8 +7,8 @@ import YAML from "yaml";
 const tmp = mkdtempSync(join(tmpdir(), "seo-brain-uc3-"));
 process.env.HOME = tmp;
 const projectRoot = join(tmp, "project");
-mkdirSync(join(projectRoot, "wiki", "log"), { recursive: true });
-writeFileSync(join(projectRoot, "wiki", "log", "index.md"), "# Log\n");
+mkdirSync(join(projectRoot, "brain"), { recursive: true });
+writeFileSync(join(projectRoot, "brain", "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n");
 
 const { handleSubmit, processSubmission, buildClusterMarkdown, applyPillarOverrides } = await import(
   "../scripts/lib/companion-types/pick-cluster.mjs"
@@ -63,10 +63,10 @@ const supportingInput = (proposal, decisions) =>
   assert.equal(kept[0].user_overrides, undefined, "no overrides if user kept defaults");
 }
 
-// hypothesis-only: writes JSON only, never wiki
+// hypothesis-only: writes JSON only, never brain
 {
   const proposal = proposalFor("hypothesis-only", 5);
-  writeFileSync(join(projectRoot, "wiki", "log", "index.md"), "# Log\n");
+  writeFileSync(join(projectRoot, "brain", "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n");
   const ctx = { projectRoot, proposal };
   const result = await handleSubmit(
     { approver: "Diego", supporting: supportingInput(proposal, []) },
@@ -74,18 +74,18 @@ const supportingInput = (proposal, decisions) =>
   );
   assert.equal(result.ok, true);
   assert.equal(result.status, "hypothesis");
-  assert.equal(result.wiki, null, "hypothesis must not touch wiki");
+  assert.equal(result.brain, null, "hypothesis must not touch brain");
   assert.ok(existsSync(result.report));
-  assert.equal(existsSync(join(projectRoot, "wiki", "conteudos", "topic-clusters.md")), false);
-  const log = readFileSync(join(projectRoot, "wiki", "log", "index.md"), "utf8");
-  assert.ok(log.includes("Type: operational-decision"));
-  assert.ok(log.includes("hypothesis"));
+  assert.equal(existsSync(join(projectRoot, "brain", "topic-clusters.md")), false);
+  const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
+  assert.match(log, /tipo: decisao/);
+  assert.match(log, /hypothesis/);
 }
 
-// production with kept >= 3: writes wiki + JSON
+// production with kept >= 3: writes brain + JSON
 {
   const proposal = proposalFor("production", 5);
-  writeFileSync(join(projectRoot, "wiki", "log", "index.md"), "# Log\n");
+  writeFileSync(join(projectRoot, "brain", "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n");
   const ctx = { projectRoot, proposal };
   const result = await handleSubmit(
     { approver: "Diego Ivo", supporting: supportingInput(proposal, []) },
@@ -93,18 +93,18 @@ const supportingInput = (proposal, decisions) =>
   );
   assert.equal(result.ok, true);
   assert.equal(result.status, "draft");
-  assert.ok(result.wiki && existsSync(result.wiki));
-  const wiki = readFileSync(result.wiki, "utf8");
-  assert.ok(wiki.includes("status: draft"));
-  assert.ok(wiki.includes("Cluster: SEO Agêntico"));
-  assert.ok(wiki.includes("Páginas de apoio"));
+  assert.ok(result.brain && existsSync(result.brain));
+  const brainContent = readFileSync(result.brain, "utf8");
+  assert.ok(brainContent.includes("auto_generated: true"));
+  assert.ok(brainContent.includes("Cluster: SEO Agêntico"));
+  assert.ok(brainContent.includes("Páginas de apoio"));
 }
 
-// production with kept < 3: blocks wiki, writes JSON as needs-supporting
+// production with kept < 3: blocks brain, writes JSON as needs-supporting
 {
   const proposal = proposalFor("production", 5);
-  writeFileSync(join(projectRoot, "wiki", "log", "index.md"), "# Log\n");
-  rmSync(join(projectRoot, "wiki", "conteudos"), { recursive: true, force: true });
+  writeFileSync(join(projectRoot, "brain", "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n");
+  rmSync(join(projectRoot, "brain", "topic-clusters.md"), { force: true });
   const ctx = { projectRoot, proposal };
   const decisions = [
     { kept: true }, { kept: false }, { kept: true }, { kept: false }, { kept: false },
@@ -115,8 +115,8 @@ const supportingInput = (proposal, decisions) =>
   );
   assert.equal(result.ok, true);
   assert.equal(result.status, "needs-supporting");
-  assert.equal(result.wiki, null);
-  assert.equal(existsSync(join(projectRoot, "wiki", "conteudos", "topic-clusters.md")), false);
+  assert.equal(result.brain, null);
+  assert.equal(existsSync(join(projectRoot, "brain", "topic-clusters.md")), false);
 }
 
 // missing approver
@@ -135,7 +135,7 @@ const supportingInput = (proposal, decisions) =>
   const { kept } = processSubmission(supportingInput(proposal, []), proposal);
   const md = buildClusterMarkdown(proposal, kept);
   assert.ok(md.startsWith("---\ntitle:"));
-  assert.ok(md.includes("status: draft"));
+  assert.ok(md.includes("auto_generated: true"));
   assert.ok(md.includes("**Pilar:** SEO Agêntico"));
   assert.ok(md.includes("1. **Support 1**"));
 }
@@ -152,11 +152,11 @@ const supportingInput = (proposal, decisions) =>
   assert.equal(withEdit.intent, "informational");
 }
 
-// pillar overrides flow through handleSubmit and into wiki markdown
+// pillar overrides flow through handleSubmit and into brain markdown
 {
   const proposal = proposalFor("production", 3);
-  writeFileSync(join(projectRoot, "wiki", "log", "index.md"), "# Log\n");
-  rmSync(join(projectRoot, "wiki", "conteudos"), { recursive: true, force: true });
+  writeFileSync(join(projectRoot, "brain", "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n");
+  rmSync(join(projectRoot, "brain", "topic-clusters.md"), { force: true });
   const ctx = { projectRoot, proposal };
   const result = await handleSubmit(
     {
@@ -167,9 +167,9 @@ const supportingInput = (proposal, decisions) =>
     ctx,
   );
   assert.equal(result.ok, true);
-  const wiki = readFileSync(result.wiki, "utf8");
-  assert.ok(wiki.includes("Cluster: SEO Agêntico — guia 2026"));
-  assert.ok(wiki.includes("rota institucional"));
+  const brainContent = readFileSync(result.brain, "utf8");
+  assert.ok(brainContent.includes("Cluster: SEO Agêntico — guia 2026"));
+  assert.ok(brainContent.includes("rota institucional"));
   const report = YAML.parse(readFileSync(result.report, "utf8"));
   assert.deepEqual(report.pillar.user_overrides, {
     display_title: "SEO Agêntico — guia 2026",

@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const tmp = mkdtempSync(join(tmpdir(), "seo-brain-bypass-"));
 const projectRoot = join(tmp, "project");
-mkdirSync(join(projectRoot, "wiki", "log"), { recursive: true });
+mkdirSync(join(projectRoot, "brain"), { recursive: true });
+writeFileSync(join(projectRoot, "brain", "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n");
 
 const { buildContext, handleSubmit } = await import("../scripts/lib/companion-types/dataforseo-bypass.mjs");
 
@@ -30,15 +31,15 @@ const ok = await handleSubmit({
   confirmation_text: "Confirmo seguir sem DataForSEO neste fluxo.",
 }, ctx, projectRoot);
 assert.equal(ok.ok, true);
-assert.equal(ok.approval.approved_by, "Diego Ivo");
+assert.equal(ok.approval.aprovador, "Diego Ivo");
 assert.equal(ok.approval.reason, "teste sem provider");
 assert.equal(ok.approval.provider_used, "websearch");
 assert.match(ok.approval.confirmation_text, /sem DataForSEO/);
-assert.ok(ok.approval.confirmed_at);
+assert.ok(ok.approval.confirmado_em);
 
-const log = readFileSync(join(projectRoot, "wiki", "log", "index.md"), "utf8");
-assert.match(log, /Type: operational-decision/);
-assert.match(log, /dataforseo-bypass \| seo técnico/);
+const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
+assert.match(log, /tipo: decisao/);
+assert.match(log, /DataForSEO bypass · seo técnico/);
 assert.match(log, /Briefing usa provedor secundário/);
 
 rmSync(tmp, { recursive: true, force: true });

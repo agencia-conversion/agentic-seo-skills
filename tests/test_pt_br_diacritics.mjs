@@ -69,8 +69,8 @@ try {
   run("technical-seo", "--html-file", join(root, "tests", "fixtures", "technical-seo-valid.html"), "--page-type", "blog-post");
   run("next-website-creator");
 
-  const markdown = [...walk(join(project, "wiki")), ...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]
-    .filter((file) => file.endsWith(".md"))
+  const markdown = [...walk(join(project, "brain")), ...walk(join(project, "conteudos")), ...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]
+    .filter((file) => file.endsWith(".md") && !file.endsWith("log.md"))
     .map((file) => markdownProse(readFileSync(file, "utf8")))
     .join("\n");
   const structuredOutput = [...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]

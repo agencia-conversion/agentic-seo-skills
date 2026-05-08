@@ -10,7 +10,7 @@
     {
       "id": "brand-voice",
       "type": "judge",
-      "source": "alinhamento com tom-de-voz aprovado da marca",
+      "source": "alinhamento com a voz aprovada da marca",
       "weight": 2,
       "scoring": "0_to_100"
     },

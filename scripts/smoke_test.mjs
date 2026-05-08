@@ -44,8 +44,8 @@ function dataforseoBypassArgs(reason) {
 
 function main() {
   run("project-init", "Smoke test");
-  const lint = run("wiki-lint");
-  if (!lint.ok) throw new Error("Wiki lint failed");
+  const lint = run("brain-lint");
+  if (!lint.ok) throw new Error("Brain lint failed");
   run("data-setup");
   run("keyword-research", "--keyword", "seo agêntico", "--mode", "offline");
   run("serp-extract", "--keyword", "seo agêntico", "--mode", "offline");
@@ -68,7 +68,7 @@ function main() {
   }, { lineWidth: 0 }));
   run("seo-analysis", "--keyword", "seo agêntico");
   run("topic-cluster", "--seed", "seo agêntico", "--hypothesis-only", ...dataforseoBypassArgs("smoke test hypothesis-only sem DataForSEO"));
-  const eeatInit = spawnSync("node", [path.join(ROOT, "scripts", "eeat.mjs"), "init", "--mode", "wiki", "--slug", "smoke"], {
+  const eeatInit = spawnSync("node", [path.join(ROOT, "scripts", "eeat.mjs"), "init", "--mode", "brain", "--slug", "smoke"], {
     cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR },
   });
   if (eeatInit.status !== 0) throw new Error(`eeat init failed: ${eeatInit.stderr}`);

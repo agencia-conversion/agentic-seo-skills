@@ -10,15 +10,17 @@ import {
   diffAgainstSnapshot,
   writeSnapshot,
   appendLogEntry,
-  appendSourcesToCatalog,
-} from "../wiki-page.mjs";
+  appendSourcesAsIngest,
+} from "../brain-page.mjs";
 
 const VALID_DECISIONS = new Set(["approved", "rejected", "needs-evidence"]);
-const STRATEGIC_PAGES = new Set([
-  "wiki/index.md",
-  "wiki/eeat.md",
-  "wiki/tecnologia/index.md",
-  "wiki/tom-de-voz/index.md",
+const AUTHORIAL_BRAIN_PAGES = new Set([
+  "brain/index.md",
+  "brain/identidade.md",
+  "brain/voz.md",
+  "brain/tecnologia.md",
+  "brain/editorial.md",
+  "brain/topic-clusters.md",
 ]);
 
 function parseArgs(argv) {
@@ -47,13 +49,13 @@ export function buildContext({ projectRoot, fileRel }) {
   const text = readFileSync(filePath, "utf8");
   const hash = sha256(text);
   const { data: frontmatter, body } = parseFrontmatter(text);
-  const wikiRoot = join(projectRoot, "wiki");
-  const fontesIndex = join(wikiRoot, "fontes", "index.md");
+  const brainRoot = join(projectRoot, "brain");
+  const logFile = join(brainRoot, "log.md");
   const sources = extractSources(body);
-  const missingSources = findMissingSources(body, fontesIndex);
-  const brokenLinks = findBrokenWikilinks(body, wikiRoot);
+  const missingSources = findMissingSources(body, logFile);
+  const brokenLinks = findBrokenWikilinks(body, brainRoot);
   const diff = diffAgainstSnapshot(projectRoot, fileRel, body);
-  const isStrategic = STRATEGIC_PAGES.has(fileRel);
+  const isAuthorial = AUTHORIAL_BRAIN_PAGES.has(fileRel);
   return {
     filePath,
     fileRel,
@@ -64,7 +66,8 @@ export function buildContext({ projectRoot, fileRel }) {
     missingSources,
     brokenLinks,
     diff,
-    isStrategic,
+    isAuthorial,
+    isStrategic: isAuthorial,
     pageBaseName: basename(fileRel, ".md"),
   };
 }
@@ -84,13 +87,9 @@ export async function handleSubmit(body, ctx, deps = {}) {
   const approverClean = approver.trim();
   writeIdentity(approverClean);
   const today = todayIso();
-  const nowIso = new Date().toISOString();
 
   setFrontmatterValue(ctx.filePath, {
-    status: decision,
-    approved_by: JSON.stringify(approverClean),
-    approved_at: decision === "approved" ? JSON.stringify(nowIso) : "null",
-    last_reviewed: JSON.stringify(today),
+    updated: JSON.stringify(today),
   });
 
   let snapshotWritten = null;
@@ -100,24 +99,25 @@ export async function handleSubmit(body, ctx, deps = {}) {
     snapshotWritten = writeSnapshot(ctx.projectRoot, ctx.fileRel, newBody);
   }
 
+  const logFile = join(ctx.projectRoot, "brain", "log.md");
   let sourcesAdded = [];
   if (decision === "approved" && register_missing && ctx.missingSources.length) {
-    appendSourcesToCatalog(join(ctx.projectRoot, "wiki", "fontes", "index.md"), ctx.missingSources);
+    appendSourcesAsIngest(logFile, ctx.missingSources, approverClean);
     sourcesAdded = [...ctx.missingSources];
   }
 
-  const logFile = join(ctx.projectRoot, "wiki", "log", "index.md");
-  const summary = `${ctx.fileRel} marcado como ${decision} por ${approverClean}`;
+  const tipo = decision === "approved" ? (ctx.isAuthorial ? "aprovacao" : "decisao") : "decisao";
+  const decisao = `${ctx.fileRel} marcado como ${decision} por ${approverClean}.`;
   appendLogEntry(logFile, {
     date: today,
-    eventType: "wiki-approve",
-    title: `${ctx.pageBaseName} ${decision}`,
-    type: ctx.isStrategic ? "strategic-approval" : "operational-decision",
-    actor: approverClean,
-    files: [ctx.pageBaseName],
-    decision,
-    summary,
-    notes: notes ? notes.trim() : null,
+    tipo,
+    titulo: `${ctx.pageBaseName} ${decision}`,
+    escopo: ctx.fileRel,
+    decisao,
+    evidencia: ctx.fileRel,
+    aprovador: approverClean,
+    aprovado_em: decision === "approved" ? today : null,
+    notas: notes ? notes.trim() : null,
   });
 
   return {
@@ -145,7 +145,7 @@ export async function runApprovePage(argv = []) {
     handoff: "approve-page",
     file: ctx.fileRel,
     pageBaseName: ctx.pageBaseName,
-    isStrategic: ctx.isStrategic,
+    isAuthorial: ctx.isAuthorial,
     frontmatter: ctx.frontmatter,
     body: ctx.body,
     sources: ctx.sources,

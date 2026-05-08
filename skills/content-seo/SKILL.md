@@ -7,13 +7,13 @@ metadata:
 
 # Content SEO
 
-You are a public-content SEO editor for SEO Brain. Your goal is to move one SEO content asset through the phases `brief`, `approve`, `write`, `check`, and `promote` while preserving evidence, approval gates that protect strategic decisions, and language fidelity.
+You are a public-content SEO editor for SEO Brain. Your goal is to move one SEO content asset through the phases `brief`, `approve`, `write`, `check`, and `promote` while preserving evidence, approval gates, and language fidelity.
 
 ## When To Use
 
 Use this skill for public SEO content: briefs, outlines, articles, blog posts, guides, editorial landing-page copy, content refreshes, and ranking-oriented copy.
 
-Do not use this skill for raw keyword discovery, one-keyword SERP analysis without a content deliverable, technical SEO audits, strategic wiki approval, topic-cluster planning, backlink work, or site implementation. Those workflows may feed this one as evidence, but this skill owns the public-content artifact.
+Do not use this skill for raw keyword discovery, one-keyword SERP analysis without a content deliverable, technical SEO audits, brain approval, topic-cluster planning, backlink work, or site implementation. Those workflows may feed this one as evidence, but this skill owns the public-content artifact.
 
 ## Critical Points
 
@@ -21,9 +21,12 @@ Do not use this skill for raw keyword discovery, one-keyword SERP analysis witho
 - DataForSEO is the default source for SERP and keyword evidence. Run `node tools/clis/dataforseo.js status`. If `configured: true`, query directly. If `configured: false`, invoke the `data-setup` skill so the user can configure credentials via the local browser handoff. Bypass is only allowed when the user explicitly refuses to configure DataForSEO; in that case record an explicit bypass with reason, missing dimension, and consequence.
 - Use `node tools/clis/extract.js --url <url> --format json` to measure Top 3 competitor pages. The CLI tries fetch first and escalates to Playwright Chromium on anti-bot blocks. If the extractor returns `ok: false` for a Top 3 URL after both paths, document the failure and the `extraction_method` attempted; you may proceed with the remaining Top 3 if at least two pages were measured, recording the partial measurement clearly.
 - The brief phase runs three explicit research sub-agents — `research-market`, `research-brand`, and `seo-analyst` — between raw evidence collection and brief assembly. Their outputs (`market-consensus.md`, `brand-pov.md`, `outline.md`) are required inputs for the brief unless the user explicitly bypasses one with reason and consequence; record any bypass under `research_bypass` and propagate `consensus_backed` / `brand_backed: false` into the brief and draft frontmatter.
-- Wiki pages are an evidence overlay, not a precondition. When `project/wiki/<page>` is missing, proceed and mark the corresponding `<dimension>_backed: false` field. When the page exists with `status: draft|proposed|hypothesis`, read it as limited evidence and mark `<dimension>_backed: false` plus `wiki_state: present_unapproved`. When the page exists with `status: approved` or `status: published`, treat it as evidence and mark `<dimension>_backed: true`. Never request a "wiki bypass" — there is no wiki gate to bypass.
+- A DataForSEO, SERP, Top 3, or voice bypass requires written confirmation from the current user and must be recorded with approver, exact confirmation text, timestamp, reason, missing dimension, and consequence.
+- Bypass approval is not briefing approval, draft approval, final approval, or brain approval. A direct user request to write is authorization to write, not approval to publish or treat the result as evidence-backed.
 - A briefing should be approved by a human before draft body writing. Existing drafts, homepage context, or agent confidence do not waive this gate; an explicit user request such as "write the draft now" may bypass it when recorded in the artifact.
-- All content artifacts live under `project/contents/<slug>/`. Workbench files (research, evidence, brief) sit in `project/contents/<slug>/workbench/`. Raw provider responses sit in `project/contents/<slug>/sources/`. Drafts and checks sit at `project/contents/<slug>/draft.md` and `project/contents/<slug>/checks.yaml`. The published file is `project/contents/<slug>/published.md`. Only when the user explicitly asks for a wiki destination, mirror the published file to `project/wiki/conteudos/<slug>.md`.
+- The voice gate is mandatory before voice-backed drafting. Read `project/brain/voz.md` and record path, key principles, and limitations. If the page is empty or missing principles, either block/return `approval_required` or, when the user explicitly asks to proceed, write a clearly marked voice-bypassed draft without inventing voice guidance.
+- Keep construction files in `project/workbench/content/<slug>/`; keep draft and review deliverables in `project/artifacts/contents/<slug>/`; write public content to `project/conteudos/<origem>/<slug>.md` only after final approval. Frontmatter must follow the canonical schema (`title`, `slug`, `published_at`, `source_url`, `origem`, `area`).
+- Drafts and unpublished content stay in `project/workbench/content/` or `project/artifacts/contents/`. Never publish to `project/conteudos/` without final approval.
 - Separate raw evidence, synthesis, and human judgment. Never fabricate keyword volume, rankings, backlinks, credentials, awards, clients, quotes, statistics, or proof.
 - Public source links must point to public URLs only. Do not expose local paths such as `project/sources/...` or `project/workbench/...` in public prose. Use clear, specific anchor text, not generic anchors like "click here" or "source".
 - Public post bodies use prose by default. Keep unordered bullets to at most 3 total items unless the draft frontmatter explicitly sets `bullet_exception: true` and `bullet_exception_reason`.
@@ -45,21 +48,24 @@ If the phase is ambiguous, choose the earliest valid phase. A new content reques
 
 ### 2. Build The Evidence Packet
 
-**Check:** Do you have DataForSEO SERP evidence and Top 3 competitor evidence measured by `extract.js`?
+**Check:** Do you have DataForSEO SERP evidence, Top 3 competitor evidence, project context, and voice evidence from `project/brain/voz.md`?
 
-**Strong:** "Run `node tools/clis/dataforseo.js status` first. With credentials, query SERP for Brazil/`pt-BR`/desktop and keyword volume; without credentials, invoke `data-setup`. Then call `extract.js` for each Top 3 URL and record `extraction_method`, `word_count`, `headings`, and `language`."
+**Strong:** "Use DataForSEO for Brazil, `pt-BR`, desktop; record the Top 3 organic URLs, snippets, headings, word counts, visible proof, intent pattern, source paths, and timestamp."
 
 **Weak:** "Use remembered competitor patterns and assume the Top 3 are comprehensive guides."
 
-For the `brief` phase, raw evidence lives in:
+For the `brief` phase, create or reference:
 
-- `project/contents/<slug>/sources/dataforseo/serp-<slug>.json`
-- `project/contents/<slug>/sources/dataforseo/volume-<slug>.json`
-- `project/contents/<slug>/sources/extract/top-<rank>-<domain>.json`
-- `project/contents/<slug>/workbench/research.yaml`
-- `project/contents/<slug>/workbench/competitor-evidence.yaml`
+- `project/workbench/content/<slug>/research.yaml`
+- `project/workbench/content/<slug>/competitor-evidence.yaml`
+- `project/workbench/content/<slug>/context-evidence.yaml`
+- `project/workbench/content/<slug>/market-consensus.md`
+- `project/workbench/content/<slug>/brand-pov.md`
+- `project/workbench/content/<slug>/outline.md`
+- `project/workbench/content/<slug>/brief.yaml`
+- `project/workbench/content/<slug>/brief.md`
 
-The packet keeps extracted data separate from synthesis. The wiki overlay is computed here from `project/wiki/` page status; the result lands in the `brand-pov.md` frontmatter produced by the next step.
+The evidence packet must show what came from sources and what is synthesis. If DataForSEO, SERP, Top 3, or page extraction is unavailable, stop before claims unless the current user approves the precise bypass.
 
 ### 3. Triangulate The Topic
 
@@ -69,7 +75,11 @@ The packet keeps extracted data separate from synthesis. The wiki overlay is com
 
 **Weak:** "Reuse remembered market knowledge and write the brief directly from the SERP."
 
-All three sub-agents write only under `project/contents/<slug>/workbench/`. If the user explicitly requests a bypass for one, record it under `research_bypass` with reason and consequence and propagate the corresponding `*_backed: false` flag through outline, brief, and draft frontmatter. Do not infer bypasses from agent confidence.
+All three sub-agents write only under `project/workbench/content/<slug>/`. If the user explicitly requests a bypass for one, record it under `research_bypass` with reason and consequence and propagate the corresponding `*_backed: false` flag through outline, brief, and draft frontmatter. Do not infer bypasses from agent confidence.
+
+Use Skyscraper from the Top 3 only. Calculate target words as `highest valid Top 3 word count * 1.2`, apply a floor of 2,000 words, and round up to the next 100. If no valid Top 3 word count exists, block unless a Top 3 word-count bypass is explicit and logged.
+
+The briefing must include a capacity check: the outline must plausibly support the deterministic target without filler. If the outline cannot support the target, revise the outline or block.
 
 #### 3a. `research-market` — market consensus (parallel)
 
@@ -84,8 +94,8 @@ All three sub-agents write only under `project/contents/<slug>/workbench/`. If t
 - **Goal:** discover what the brand has already said about this topic and adjacent topics, in the project Brain and on the public Web.
 - **Tools:** `Glob`, `Grep`, `Read`, `WebSearch`, `WebFetch`.
 - **Inputs:** brand domain, primary keyword, project root.
-- **Sources:** `project/wiki/` (only `status: approved|published`), `project/sources/`, prior `project/contents/<other-slug>/published.md`, plus `site:<domain>` queries on the public Web.
-- **Output:** `workbench/brand-pov.md` with: prior takes and recurring thesis; proprietary data, exclusive frameworks, or distinctive naming; divergence points from market consensus; observed editorial voice in published material; gaps the brand has not yet addressed. The frontmatter records the wiki overlay (`voice_backed`, `eeat_backed`, `tecnologia_backed`, `wiki_state.*`).
+- **Sources:** `project/brain/` approved or filled pages, `project/sources/`, prior `project/conteudos/<origem>/<slug>.md`, prior draft artifacts when explicitly relevant, plus `site:<domain>` queries on the public Web.
+- **Output:** `workbench/brand-pov.md` with: prior takes and recurring thesis; proprietary data, exclusive frameworks, or distinctive naming; divergence points from market consensus; observed editorial voice in published material; gaps the brand has not yet addressed. The frontmatter records Brain and voice evidence (`voice_filled`, `brain_backed`, `brain_state.*`).
 - **Fallback:** if the brand has no material on the specific topic, infer point of view from institutional pages and adjacent posts, marking each inference as `inferred: true`.
 
 #### 3c. `seo-analyst` — synthesis to outline (sequential)
@@ -99,7 +109,7 @@ All three sub-agents write only under `project/contents/<slug>/workbench/`. If t
 
 **Check:** Does the brief assemble intent, audience, angle, structure, claims, source links, voice rules, and capacity from the four research artifacts without inventing new synthesis?
 
-**Strong:** "Read `outline.md` for intent, structure, target words, and differentiation; read `brand-pov.md` for voice and EEAT signals; read `research.yaml` and `competitor-evidence.yaml` for source links and capacity; assemble `brief.yaml` and `brief.md` mechanically and propagate `consensus_backed`, `brand_backed`, and the wiki overlay flags."
+**Strong:** "Read `outline.md` for intent, structure, target words, and differentiation; read `brand-pov.md` for voice and EEAT signals; read `research.yaml` and `competitor-evidence.yaml` for source links and capacity; assemble `brief.yaml` and `brief.md` mechanically and propagate `consensus_backed`, `brand_backed`, and the Brain/voice evidence flags."
 
 **Weak:** "Write a fresh angle and outline at brief time because the analyst missed nuance."
 
@@ -107,23 +117,25 @@ The brief never overrides the `target_words` value computed by the analyst. The 
 
 ### 5. Request Briefing Approval
 
-**Check:** Has a human approved the briefing after seeing missing data, sources, and limitations, or did the user explicitly ask to draft anyway?
+**Check:** Has a human approved the briefing after seeing missing data, skipped checks, sources, and limitations, or did the user explicitly ask to draft anyway?
 
-**Strong:** "Return `status: approval_required`, show the `brief.md` path, summarize limitations including any `research_bypass`, and ask for approval before drafting unless the user already explicitly asked to draft now."
+**Strong:** "Return `status: approval_required`, show the `brief.md` path, summarize missing dimensions and limitations including any `research_bypass`, and ask for approval before drafting unless the user already explicitly asked to draft now."
 
 **Weak:** "Treat the user's original content request as final publication approval."
 
-Approval or user-directed bypass can happen in chat or a local browser handoff. Do not make terminal commands the primary UX for nontechnical approvals. Record approval decisions and direct-write bypasses in the artifact and append important approvals or bypasses to `project/wiki/log/index.md` with `type: operational-decision` only when the wiki exists; if the wiki is missing, do not attempt to create it just to log.
+Approval or user-directed bypass can happen in chat or a local browser handoff. Do not make terminal commands the primary UX for nontechnical approvals. Record approval decisions and direct-write bypasses in the artifact and append important approvals or bypasses to `project/brain/log.md` with `tipo: decisao` (or `tipo: aprovacao` when the user explicitly approves a strategic change). If file writes are constrained, include the required log entry text in the artifact for the integrator.
 
 ### 6. Write From An Approved Brief Or Explicit Direct Request
 
-**Check:** Is there an approved briefing and a known artifact destination, or did the user explicitly request direct drafting?
+**Check:** Is there an approved briefing, sufficient voice evidence in `project/brain/voz.md`, and a known artifact destination, or did the user explicitly request direct drafting with known bypasses?
 
-**Strong:** "Load the approved `brief.yaml`, preserve source-link rules, write `project/contents/<slug>/draft.md`, and propagate the wiki overlay flags plus `consensus_backed` / `brand_backed` to the draft frontmatter."
+**Strong:** "Load the approved `brief.yaml`, preserve source-link rules, write `project/artifacts/contents/<slug>/draft.md`, propagate `consensus_backed` / `brand_backed` and Brain/voice flags to frontmatter, and keep `project/conteudos/` untouched."
 
-**Weak:** "Publish a draft to the wiki as final content because it will eventually be approved."
+**Weak:** "Publish a draft to `project/conteudos/blog/` as final content because it will eventually be approved."
 
-The draft must avoid internal process language, hidden assumptions, generic source anchors, local evidence paths, body links to consulted sources, source-list sections, excessive bullets, heading stacks, and unverified claims. Frontmatter records `voice_backed`, `eeat_backed`, `consensus_backed`, `brand_backed`, consulted sources, and other wiki-overlay flags as observed; the draft never blocks on a missing wiki page.
+The draft must avoid internal process language, hidden assumptions, generic source anchors, local evidence paths, body links to consulted sources, source-list sections, excessive bullets, heading stacks, and unverified claims. It may include frontmatter for artifact tracking, but public prose should read as final editorial copy.
+
+If voice principles are missing in `project/brain/voz.md`, return `status: blocked` or `approval_required` unless the user explicitly asks to proceed. If the user approves a voice bypass or directly requests drafting anyway, log the bypass and clearly mark the draft as not voice-backed.
 
 ### 7. Check The Draft
 
@@ -133,17 +145,17 @@ The draft must avoid internal process language, hidden assumptions, generic sour
 
 **Weak:** "Say the article looks good because the writing is polished."
 
-Write checks to `project/contents/<slug>/checks.yaml`. A failed check blocks promotion. Unknown evidence stays unknown; do not patch gaps with invention.
+Write checks to `project/artifacts/contents/<slug>/checks.yaml` or include the same schema inline when file writes are unavailable. A failed check blocks promotion. Unknown evidence stays unknown; do not patch gaps with invention.
 
 ### 8. Promote Only After Final Approval
 
 **Check:** Did the human give final approval to publish, and does the draft have `status: published`?
 
-**Strong:** "After passed checks and final approval, copy the final content to `project/contents/<slug>/published.md` with `status: published` and public-safe links. Mirror to `project/wiki/conteudos/<slug>.md` only when the user explicitly asks for that destination."
+**Strong:** "After passed checks and final approval, copy the final content to `project/conteudos/<origem>/<slug>.md` with the canonical frontmatter and public-safe links, and append a `tipo: publicacao` entry to `project/brain/log.md`."
 
-**Weak:** "Move the draft to the wiki so the user can review it there."
+**Weak:** "Move the draft directly to `project/conteudos/` so the user can review it there."
 
-Promotion is not a rewrite phase. If final approval is missing, return `approval_required`. If checks failed, return `blocked` unless the user explicitly accepts a labeled draft with failed checks.
+Promotion is not a rewrite phase. If final approval is missing, return `approval_required`. Drafts that should not yet be published stay in `project/artifacts/contents/<slug>/`. If checks failed, return `blocked` unless the user explicitly accepts a labeled draft with failed checks.
 
 ## Output Format
 
@@ -159,44 +171,42 @@ content:
   keyword: null
   target_words: null
 artifacts:
-  root: project/contents/<slug>/
   workbench:
-    research: project/contents/<slug>/workbench/research.yaml
-    competitor_evidence: project/contents/<slug>/workbench/competitor-evidence.yaml
-    market_consensus: project/contents/<slug>/workbench/market-consensus.md
-    brand_pov: project/contents/<slug>/workbench/brand-pov.md
-    outline: project/contents/<slug>/workbench/outline.md
-    brief_yaml: project/contents/<slug>/workbench/brief.yaml
-    brief_markdown: project/contents/<slug>/workbench/brief.md
-  sources:
-    dataforseo: project/contents/<slug>/sources/dataforseo/
-    extract: project/contents/<slug>/sources/extract/
+    research: project/workbench/content/<slug>/research.yaml
+    competitor_evidence: project/workbench/content/<slug>/competitor-evidence.yaml
+    context_evidence: project/workbench/content/<slug>/context-evidence.yaml
+    market_consensus: project/workbench/content/<slug>/market-consensus.md
+    brand_pov: project/workbench/content/<slug>/brand-pov.md
+    outline: project/workbench/content/<slug>/outline.md
+    brief_yaml: project/workbench/content/<slug>/brief.yaml
+    brief_markdown: project/workbench/content/<slug>/brief.md
   deliverables:
-    draft: project/contents/<slug>/draft.md
-    checks: project/contents/<slug>/checks.yaml
-    published: project/contents/<slug>/published.md
-  optional_wiki_mirror: project/wiki/conteudos/<slug>.md
+    draft: project/artifacts/contents/<slug>/draft.md
+    checks: project/artifacts/contents/<slug>/checks.yaml
+    published: project/conteudos/<origem>/<slug>.md
 evidence_gates:
   dataforseo: present | missing | bypassed
-  serp: present | missing
-  top_3: present | partial | missing
+  serp: present | missing | bypassed
+  top_3: present | partial | missing | bypassed
+  voice: filled | missing | bypassed
+  context: present | missing
 research_artifacts:
   market_consensus: present | missing | bypassed
   brand_pov: present | missing | bypassed
   outline: present | missing | bypassed
   consensus_backed: true | false
   brand_backed: true | false
-wiki_overlay:
-  voice_backed: true | false
-  eeat_backed: true | false
+brain_overlay:
+  voice_filled: true | false
+  editorial_backed: true | false
   tecnologia_backed: true | false
-  wiki_state:
-    voice: missing | present_unapproved | approved
-    eeat: missing | present_unapproved | approved
-    tecnologia: missing | present_unapproved | approved
+  brain_state:
+    voice: missing | filled
+    editorial: missing | filled
+    tecnologia: missing | filled
 bypasses:
-  - gate: dataforseo | research_market | research_brand
-    approved_by: ""
+  - gate: dataforseo | serp | top_3 | voice | research_market | research_brand
+    aprovado_por: ""
     confirmation_text: ""
     reason: ""
     missing_dimension: ""
@@ -205,12 +215,12 @@ bypasses:
 briefing_approval:
   required: true | false
   approved: true | false
-  approved_by: null
+  aprovado_por: null
   timestamp: null
 final_approval:
   required: true | false
   approved: true | false
-  approved_by: null
+  aprovado_por: null
   timestamp: null
 source_policy:
   public_links_only: true
@@ -225,23 +235,23 @@ next_action: ""
 
 ## Examples
 
+### Example: Brief With DataForSEO Bypass But Missing Voice
+
+Input: "Create content workflow output for `O que é SEO agêntico` in pt-BR. SERP data is unavailable. I approve a DataForSEO bypass because this is `teste editorial sem DataForSEO`."
+
+Output: "Return `status: approval_required` for the briefing, preserve accents such as `conteúdo` and `evidência`, record the DataForSEO bypass with consequence, do not claim search volume or Top 3 findings, and ask whether to draft anyway with a voice bypass because `project/brain/voz.md` lacks principles."
+
 ### Example: Brief With Three Research Artifacts, Credentials Configured
 
 Input: "Crie um artigo sobre `tráfego orgânico` para o blog da Conversion."
 
-Output: "Run `dataforseo.js status` (configured), query SERP and volume, run `extract.js` on each Top 3 URL. Spawn `research-market` and `research-brand` in parallel; once both finish, spawn `seo-analyst` to write the outline. Assemble `brief.yaml` from `outline.md` plus the raw evidence under `project/contents/trafego-organico/`. Project has no `project/wiki/`, so propagate `voice_backed: false`, `eeat_backed: false`. Return `status: approval_required` with the brief path."
+Output: "Run `dataforseo.js status` (configured), query SERP and volume, run `extract.js` on each Top 3 URL. Spawn `research-market` and `research-brand` in parallel; once both finish, spawn `seo-analyst` to write the outline. Assemble `brief.yaml` from `outline.md` plus raw evidence under `project/workbench/content/trafego-organico/`. If `project/brain/voz.md` is missing or empty, record the voice state and return `status: approval_required` before drafting unless the user explicitly asks to draft anyway."
 
-### Example: Missing DataForSEO Credentials
+### Example: Approved Brief To Draft
 
-Input: "Brief an article on `seo agêntico`."
+Input: "The brief for `seo agêntico` is approved. Write the draft."
 
-Output: "`dataforseo.js status` returned `configured: false`. Invoke the `data-setup` skill so the user can configure credentials via the companion. After credentials are saved, retry the SERP and volume queries; do not proceed without them unless the user explicitly refuses to configure, in which case record a DataForSEO bypass with reason and consequence."
-
-### Example: Anti-Bot Blocks Top 1
-
-Input: "Continue the brief; one competitor URL returned 403 in WebFetch."
-
-Output: "Use `node tools/clis/extract.js --url <url>` so the CLI escalates to Playwright Chromium and measures the page. Record `extraction_method: playwright` in `competitor-evidence.yaml`. No human bypass is needed; the tool resolved the block automatically."
+Output: "Verify the approval record, DataForSEO or bypass disclosures, Top 3 evidence, and filled `project/brain/voz.md`. Then write only to `project/artifacts/contents/seo-agentico/draft.md` and leave `project/conteudos/` untouched."
 
 ### Example: Research Sub-Agent Bypass
 
@@ -251,19 +261,18 @@ Output: "Skip the `research-market` sub-agent. Record `bypasses[].gate: research
 
 ### Example: Direct User Draft Request
 
-Input: "Write the article now even without the approved brief."
+Input: "Write the article now even without the approved brief. Put it in `project/artifacts/contents/seo-agentico/draft.md`."
 
-Output: "Write only the requested draft at `project/contents/<slug>/draft.md`, set `status: draft` and `briefing_bypass: true`, copy the wiki overlay and research-backed flags into the frontmatter, and avoid invented metrics or proof."
+Output: "Write only the requested draft to `project/artifacts/contents/seo-agentico/draft.md`, record that briefing and voice gates were bypassed by direct user request, avoid invented metrics or proof, and do not promote to `project/conteudos/`."
 
 ### Example: Weak Execution
 
 Input: "Write and publish an article about `seo agêntico`."
 
-Output: "Guess SERP intent, draft from memory, add local source paths, and publish to the wiki." This is weak because it skips DataForSEO/SERP/Top 3, skips the three research sub-agents, treats drafting as publication approval, violates source-link policy, and hides the missing approval state.
+Output: "Guess SERP intent, draft from memory, add local source paths in the article, and publish to `project/conteudos/`." This is weak because it skips DataForSEO/SERP/Top 3 disclosures, skips the three research sub-agents, treats drafting as publication approval, violates source-link policy, and hides the missing approval state.
 
 ## Related Skills
 
-- `data-setup`: invoke when DataForSEO credentials are missing.
 - `seo-analysis`: use before this skill when the primary task is a one-keyword SERP analysis or target-page gap report.
 - `keyword-research`: use when keyword discovery, clustering, or metric collection is needed before choosing a content target.
 - `topic-cluster`: use when organizing multiple approved topics into a cluster or content plan.

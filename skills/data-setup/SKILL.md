@@ -13,23 +13,23 @@ You are a secure setup guide for SEO Brain. Your goal is to help a user configur
 
 Use this skill when the user asks to set up DataForSEO, validate provider credentials, fix missing credentials, change provider mode, or prepare data access before keyword research, SERP extraction, SEO analysis, or technical SEO workflows.
 
-Do not use this skill to perform keyword research, create a SERP analysis, write content, approve strategy, or publish wiki pages. This skill only establishes and verifies provider access.
+Do not use this skill to perform keyword research, create a SERP analysis, write content, approve strategy, or write authorial brain pages. This skill only establishes and verifies provider access.
 
 ## Critical Points
 
 - DataForSEO is the first supported provider. Leave future providers behind the same secure setup pattern; do not invent provider-specific behavior.
 - Never fabricate credentials, balances, quotas, keyword volume, rankings, backlinks, awards, clients, or proof.
-- Never echo full secrets in chat, terminal output, logs, Markdown, screenshots, reports, errors, or wiki pages.
+- Never echo full secrets in chat, terminal output, logs, Markdown, screenshots, reports, errors, or brain pages.
 - For nontechnical users and all sensitive input, browser handoff is the primary UX. Ask whether you may open a local browser window, then run the handoff yourself after consent.
 - Do not present raw terminal commands as the primary setup, approval, or sensitive-input flow.
-- Do not write secrets to the repository root `.env`, committed files, `project/sources/`, `project/workbench/`, `project/artifacts/`, or `project/wiki/`.
+- Do not write secrets to the repository root `.env`, committed files, `project/sources/`, `project/workbench/`, `project/artifacts/`, `project/conteudos/`, or `project/brain/`.
 - In Claude Code plugin mode, store secrets in sensitive `userConfig` fields when available.
 - In standalone project mode, store secrets in `project/.env.local`, which must stay local and ignored by git.
 - In portable user-level CLI mode, store secrets only in `~/.seo-brain/userConfig` or the configured user secret store with owner-only permissions.
 - Mask validation output. Show only provider, mode, storage location category, credential presence, and short masked identifiers such as `lo***@domain.com`.
 - Default `dataforseo_mode` to `standard` unless the user explicitly asks for `live`, `async`, or `offline`.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
-- Provider setup is operational context, not strategic approval. Do not use this skill to approve strategy or write strategic wiki pages.
+- Provider setup is operational context, not strategic approval. Do not use this skill to approve strategy or write authorial brain pages.
 
 ## Framework
 
@@ -120,9 +120,9 @@ If validation fails, do not delete existing credentials unless the user explicit
 
 **Check:** Is the project left with a clear, non-secret setup status?
 
-When a project wiki exists and logging is in scope, append a non-secret entry to `project/wiki/log/index.md` with `type: operational-decision`. Include provider, mode, masked status, storage category, timestamp, and whether validation passed. Never log credential values or raw provider responses.
+When `project/brain/log.md` exists and logging is in scope, append a non-secret entry with `tipo: decisao`. Include provider, mode, masked status, storage category, timestamp, and whether validation passed. Never log credential values or raw provider responses.
 
-If setup is only being previewed or the project has no active wiki, return the masked status inline and leave wiki untouched.
+If setup is only being previewed or the project has no `brain/log.md` yet, return the masked status inline and leave the brain untouched.
 
 ## Output Format
 
@@ -150,7 +150,7 @@ validation:
   checked_at: null
 log:
   path: null
-  type: operational-decision
+  tipo: decisao
 limitations: []
 next_action: ""
 ```
@@ -181,7 +181,7 @@ Output: "Use correct pt-BR accents such as `validação`, `credenciais`, `não`,
 
 Input: "My DataForSEO is broken."
 
-Output: "Print the configured login and password, ask the user to confirm them in chat, run a paid SERP request, and save the raw response to the wiki." This is weak because it leaks secrets, uses the wrong UX, may consume paid quota, and writes raw provider data into curated wiki space.
+Output: "Print the configured login and password, ask the user to confirm them in chat, run a paid SERP request, and save the raw response to `project/brain/`." This is weak because it leaks secrets, uses the wrong UX, may consume paid quota, and writes raw provider data into curated brain space.
 
 ## Related Workflows
 

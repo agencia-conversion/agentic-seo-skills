@@ -3,7 +3,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import YAML from "yaml";
 import { runHandoff } from "../companion-server.mjs";
 import { newHandoffId, readIdentity, writeIdentity, sha256 } from "../companion-state.mjs";
-import { appendLogEntry } from "../wiki-page.mjs";
+import { appendLogEntry } from "../brain-page.mjs";
 const VALID_DECISIONS = new Set(["approved", "needs-rewrite", "rejected"]);
 
 function parseArgs(argv) {
@@ -61,8 +61,12 @@ function renderDraft(brief) {
   const slug = String(brief.topic_slug || "conteudo");
   const targetWords = Number(brief.skyscraper?.word_count?.target_words || brief.brief?.target_words || 2000);
   const evidenceSources = asStringList(brief.evidence_sources);
-  const voiceStatus = String(brief.context_evidence?.voice_evidence?.status || brief.voice_context?.status || "missing");
+  const voiceFilled = brief.context_evidence?.voice_evidence?.filled === true || brief.voice_context?.filled === true;
   const contextEvidencePath = String(brief.context_evidence?.path || `workbench/content/${slug}/context-evidence.yaml`);
+  const origem = String(brief.origem || "blog");
+  const publishedAt = String(brief.published_at || todayIso());
+  const sourceUrl = String(brief.source_url || "");
+  const area = String(brief.area || "");
   const outline = Array.isArray(brief.brief?.outline) && brief.brief.outline.length ? brief.brief.outline : [
     { level: 2, title: "O que significa", purpose: "Definir o tema em linguagem direta." },
     { level: 2, title: "Como aplicar na prática", purpose: "Transformar o conceito em orientação útil." },
@@ -73,7 +77,7 @@ function renderDraft(brief) {
     .filter((item) => Number(item.level) === 2)
     .map((item) => `## ${String(item.title || "Seção")}\n\n${String(item.purpose || "Desenvolver esta seção com orientação pública, evidência proporcional e próximos passos claros.")}`)
     .join("\n\n");
-  return `---\ntitle: ${yamlString(topic)}\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\npublic_content: true\ncontent_type: article\nurl: "/${slug}/"\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nbrief_status: approved\nvoice_status: ${yamlString(voiceStatus)}\ntarget_words: ${targetWords}\nsource_policy: frontmatter-consulted-sources\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\napproval_status: pending\napproved_by: null\napproved_at: null\n---\n\n# ${topic}\n\n${topic} precisa responder à intenção de busca com clareza, utilidade e limites explícitos. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar aplicação prática e evitar promessas que não possam ser sustentadas.\n\n${sections}\n`;
+  return `---\ntitle: ${yamlString(topic)}\nslug: ${yamlString(slug)}\npublished_at: ${yamlString(publishedAt)}\nsource_url: ${yamlString(sourceUrl)}\norigem: ${yamlString(origem)}\narea: ${yamlString(area)}\npublic_content: true\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nvoice_filled: ${voiceFilled}\ntarget_words: ${targetWords}\nsource_policy: frontmatter-consulted-sources\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\n---\n\n# ${topic}\n\n${topic} precisa responder à intenção de busca com clareza, utilidade e limites explícitos. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar aplicação prática e evitar promessas que não possam ser sustentadas.\n\n${sections}\n`;
 }
 
 function writeDraft(projectRoot, brief) {
@@ -117,21 +121,21 @@ function validateBriefForApproval(brief, projectRoot) {
   if (!competitorPath || !existsSync(resolve(projectRoot, competitorPath))) errors.push("missing-competitor-evidence-file");
   if (!Array.isArray(brief.serp_competitor_domains)) errors.push("missing-serp-competitor-domains");
   if (!Array.isArray(brief.forbidden_prose_terms)) errors.push("missing-forbidden-prose-terms");
-  if (!brief.voice_context?.status) errors.push("missing-voice-context");
+  if (!brief.voice_context || !("filled" in brief.voice_context)) errors.push("missing-voice-context");
   if (brief.brief?.outline_capacity?.can_support_target !== true) errors.push("outline-cannot-support-target");
   const context = brief.context_evidence;
   if (!context || typeof context !== "object") errors.push("missing-context-evidence");
   else {
     if (!context.path || !existsSync(resolve(projectRoot, context.path))) errors.push("missing-context-evidence-file");
-    const wikiPages = Array.isArray(context.wiki_pages_read) ? context.wiki_pages_read : [];
-    if (!wikiPages.length) errors.push("missing-wiki-pages-read");
-    for (const page of wikiPages) {
-      if (!page?.path || !page?.status || !("content_hash_sha256" in page)) errors.push(`invalid-wiki-evidence:${page?.path || "unknown"}`);
-      if (page?.status !== "missing" && !page?.content_hash_sha256) errors.push(`missing-wiki-hash:${page?.path || "unknown"}`);
+    const brainPages = Array.isArray(context.brain_pages_read) ? context.brain_pages_read : [];
+    if (!brainPages.length) errors.push("missing-brain-pages-read");
+    for (const page of brainPages) {
+      if (!page?.path || !("content_hash_sha256" in page)) errors.push(`invalid-brain-evidence:${page?.path || "unknown"}`);
+      if (page?.filled !== false && !page?.content_hash_sha256) errors.push(`missing-brain-hash:${page?.path || "unknown"}`);
     }
     const voice = context.voice_evidence;
-    if (!voice || typeof voice !== "object" || !voice.path || !voice.status || !("content_hash_sha256" in voice)) errors.push("missing-voice-evidence");
-    if (voice?.status !== "missing" && !voice?.content_hash_sha256) errors.push("missing-voice-hash");
+    if (!voice || typeof voice !== "object" || !voice.path || !("content_hash_sha256" in voice)) errors.push("missing-voice-evidence");
+    if (voice?.filled !== false && !voice?.content_hash_sha256) errors.push("missing-voice-hash");
   }
   return errors;
 }
@@ -172,15 +176,17 @@ export async function handleSubmit(body, ctx) {
 
   const approverClean = approver.trim();
   const status = decision === "approved" ? "approved" : decision === "rejected" ? "rejected" : "needs-rewrite";
-  const voiceStatus = brief.context_evidence?.voice_evidence?.status || brief.voice_context?.status;
-  if (status === "approved" && voiceStatus !== "approved" && !/\b(voz|voice|tom)\b/i.test(notes || "")) {
+  const voiceFilled = brief.context_evidence?.voice_evidence?.filled === true || brief.voice_context?.filled === true;
+  if (status === "approved" && !voiceFilled && !/\b(voz|voice|tom)\b/i.test(notes || "")) {
     return { ok: false, reason: "voice-context-not-acknowledged" };
   }
   writeIdentity(approverClean);
+  const today = todayIso();
   brief.approval = {
     mode: brief.approval?.mode || "handoff",
     status,
-    approved_by: status === "approved" ? approverClean : null,
+    aprovador: status === "approved" ? approverClean : null,
+    aprovado_em: status === "approved" ? today : null,
     decided_at: new Date().toISOString(),
     notes: notes?.trim() || null,
   };
@@ -194,16 +200,16 @@ export async function handleSubmit(body, ctx) {
   }
   writeFileSync(ctx.briefPath, serializeBrief(brief, ctx.briefPath), "utf8");
 
-  appendLogEntry(join(ctx.projectRoot, "wiki", "log", "index.md"), {
-    date: todayIso(),
-    eventType: "approve-briefing",
-    title: `${brief.topic} · ${status}`,
-    type: "operational-decision",
-    actor: approverClean,
-    files: [ctx.briefRel, ...(draftPath ? [relative(ctx.projectRoot, draftPath)] : [])],
-    decision: status,
-    summary: status === "approved" ? `Briefing ${ctx.briefRel} aprovado e draft gerado automaticamente em artifacts.` : `Briefing ${ctx.briefRel} marcado como ${status}.`,
-    notes: notes?.trim() || null,
+  appendLogEntry(join(ctx.projectRoot, "brain", "log.md"), {
+    date: today,
+    tipo: "decisao",
+    titulo: `${brief.topic} · ${status}`,
+    escopo: [ctx.briefRel, ...(draftPath ? [relative(ctx.projectRoot, draftPath)] : [])],
+    decisao: status === "approved" ? `Briefing ${ctx.briefRel} aprovado e draft gerado em artifacts.` : `Briefing ${ctx.briefRel} marcado como ${status}.`,
+    evidencia: ctx.briefRel,
+    aprovador: approverClean,
+    aprovado_em: status === "approved" ? today : null,
+    notas: notes?.trim() || null,
   });
   return { ok: true, status, approver: approverClean, brief: ctx.briefPath, draft: draftPath };
 }

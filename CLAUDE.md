@@ -2,11 +2,9 @@
 
 ## Refactor Continuity
 
-The v1 rewrite is checkpointed in `docs/refactor-status.md`. Read that file before continuing any refactor work.
+Current state is checkpointed in `docs/refactor-status.md`. Read that file before continuing structural refactor work.
 
-`_legacy/` is a versioned quarantine snapshot of the pre-rewrite implementation. Do not read it as ordinary context, and do not execute anything from it. Only sub-agents assigned a specific refactor, parity, or review task may consult `_legacy/`, following `_legacy/CONSULT-RULES.md`.
-
-**Project Subfolders.** All skill artifacts live under one folder per dimension per slug: `project/contents/<slug>/`, `project/keywords/<seed>/`, `project/audits/<slug>/`, `project/clusters/<seed>/`, `project/eeat/<slug>/`. The `project/wiki/` tree is reserved for approved strategic context. See `AGENTS.md` § Wiki Rules → Project Subfolders.
+**Project Subfolders.** Skill artifacts live under one folder per dimension per slug: `project/contents/<slug>/`, `project/keywords/<seed>/`, `project/audits/<slug>/`, `project/clusters/<seed>/`, `project/eeat/<slug>/`. The brain (`project/brain/`) is the only authorial knowledge layer and changes only via the brain-first approval protocol. See `AGENTS.md` § Brain Rules → Project Subfolders.
 
 ## Size & Language Budgets
 
@@ -26,10 +24,6 @@ Skill bodies should still use progressive discovery. The point of the 250-line t
 - **TypeScript (`src/**/*.ts`)** — code with reusable shapes, multi-module structure, or that grows over time. The build step pays for itself when ≥ 2 `type`/`interface` are reused across functions or ≥ 3 functions share related signatures.
 - **MJS (`scripts/*.mjs`, `tests/*.mjs`)** — linear, fixture-driven, single-purpose scripts under 200 lines. No build, executed directly with `node`.
 - Default to MJS for new utilities and tests; promote to TS only when the criteria above are met.
-
-### Known debt
-
-- `src/seo-brain.ts` has been removed from canonical source during Phase 0. Phase 5 restores it as a slim dispatcher and splits behavior into `src/commands/`.
 
 ## Claude Code Plugin Loading
 
@@ -69,9 +63,10 @@ After loading, invoke plugin skills with the namespace:
 /seo-brain:seo-analysis
 /seo-brain:technical-seo
 /seo-brain:autoresearch
+/seo-brain:brain-keeper
 ```
 
-`/seo-brain:autoresearch` runs a Karpathy-style autonomous research loop on any artifact. Engine: `node scripts/autoresearch.mjs <subcommand>`. Doctrine: `program.md`. The v0 protocol schema is quarantined under `_legacy/` until the v1 meta-skills replace it.
+`/seo-brain:autoresearch` runs a Karpathy-style autonomous research loop on any artifact. Engine: `node scripts/autoresearch.mjs <subcommand>`. Doctrine: `program.md`.
 
 The optional Claude Code statusline is not shipped through plugin settings because plugin default settings do not own the main `statusLine`. Install it explicitly:
 

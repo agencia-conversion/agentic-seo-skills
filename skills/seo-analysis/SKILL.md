@@ -2,7 +2,7 @@
 name: seo-analysis
 description: When the user wants a keyword SERP analysis with competitor comparison, target page gaps, or player-score interpretation. Also use before topic cluster or content brief work that needs SERP evidence.
 metadata:
-  version: 1.1.0
+  version: 1.0.0
 ---
 
 # SEO Analysis
@@ -13,20 +13,19 @@ You are an SEO analyst for SEO Brain. Your goal is to produce one evidence-backe
 
 Use this skill when the user asks to analyze a keyword, compare ranking pages, understand SERP patterns, evaluate a target page against competitors, or interpret a player score for a keyword.
 
-Do not use this skill to create a full content calendar, draft the article, approve strategic positioning, run backlink outreach, or publish wiki pages. Those are separate workflows that may use this analysis as evidence after it is complete.
+Do not use this skill to create a full content calendar, draft the article, approve strategic positioning, run backlink outreach, or write authorial brain pages. Those are separate workflows that may use this analysis as evidence after it is complete.
 
 ## Critical Points
 
-- DataForSEO is the default SERP source. Run `node tools/clis/dataforseo.js status` first. If `configured: true`, query directly. If `configured: false`, invoke the `data-setup` skill so the user can configure credentials via the local browser handoff. Bypass is only allowed when the user explicitly refuses to configure DataForSEO.
+- DataForSEO is the default SERP source. Do not silently use WebSearch when DataForSEO is missing, inconvenient, or incomplete.
 - WebSearch is allowed only after explicit written bypass approval from the user. Record the bypass reason, approver, exact confirmation text, timestamp, and consequence: `not data-backed by DataForSEO`.
-- Use `node tools/clis/extract.js --url <url>` to fetch ranking pages. The CLI tries fetch first and escalates to Playwright Chromium on anti-bot blocks. A 403 from a single URL is no longer a reason to skip page evidence.
 - Always record provider, provider reason, location, country or market, language, device, and generation timestamp.
 - Compare the top 3 organic results when available. If fewer than 3 are available, mark the analysis incomplete and explain the limitation.
 - For a target URL or domain, interpret page gaps against the ranking pages and explain the player score. Do not assume a homepage is the ranking URL.
 - Mark recommendations that are not directly proven by evidence as hypotheses.
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, or proof. Unknown metrics stay `null` or `unknown`.
-- Keep source data separate from synthesis. Raw provider and page evidence belongs under `project/audits/<slug>/sources/`; analysis drafts belong under `project/audits/<slug>/workbench/`.
-- Do not write hypotheses or unapproved strategic conclusions to `project/wiki/`.
+- Keep source data separate from synthesis. Raw provider and page evidence belongs under `project/sources/`; analysis drafts belong under `project/workbench/seo-analysis/`.
+- Do not write hypotheses or unapproved strategic conclusions to `project/brain/`.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
 ## Framework
@@ -47,7 +46,7 @@ If any required market detail is missing, use sensible defaults only when the us
 
 **Weak:** "Provider is `websearch` because it was faster, with no written bypass."
 
-If DataForSEO has no credentials, invoke `data-setup` and proceed once credentials are saved. Only when the user explicitly refuses to configure DataForSEO should you ask for a written WebSearch bypass approval. The approval must state that WebSearch is a fallback, the result may miss metrics or exact SERP ordering, and the artifact will disclose the bypass. Bypass approval is not approval of the analysis.
+If DataForSEO cannot be used, stop before analysis and request written bypass approval. The approval must state that WebSearch is a fallback, the result may miss metrics or exact SERP ordering, and the artifact will disclose the bypass. Bypass approval is not approval of the analysis.
 
 ### 3. Gather And Normalize Evidence
 **Check:** Are extracted facts stored separately from interpretation?
@@ -56,7 +55,7 @@ If DataForSEO has no credentials, invoke `data-setup` and proceed once credentia
 
 **Weak:** "Say a competitor has strong authority or many backlinks because it ranks first."
 
-For DataForSEO, store or reference normalized SERP evidence under `project/audits/<slug>/sources/dataforseo/`. For each Top 3 page measured by `extract.js`, store the JSON output under `project/audits/<slug>/sources/extract/`. For approved WebSearch fallback, store or reference results under `project/audits/<slug>/sources/websearch/` and set keyword metrics to `null` unless another approved source provides them.
+For DataForSEO, store or reference normalized SERP evidence under `project/sources/serp/`. For approved WebSearch fallback, store or reference results under `project/sources/websearch/` and set keyword metrics to `null` unless another approved source provides them.
 
 ### 4. Compare The Top 3
 **Check:** What do the top 3 pages reveal about intent, page type, proof, structure, and missing angles?
@@ -65,7 +64,7 @@ For DataForSEO, store or reference normalized SERP evidence under `project/audit
 
 **Weak:** "The best page is comprehensive, so we should make a better comprehensive page."
 
-Ground every competitor observation in title, snippet, headings, page copy, SERP features, or visible page evidence. If `extract.js` returns `ok: false` after both fetch and Playwright paths, keep the SERP facts, add a limitation citing the failed `extraction_method`, and proceed; the failure is a tooling limit, not a strategic gate.
+Ground every competitor observation in title, snippet, headings, page copy, SERP features, or visible page evidence. If a fetch fails, keep the SERP facts and add a limitation for missing page extraction.
 
 ### 5. Interpret Target Gaps And Player Score
 **Check:** How does the target page compare with ranking pages, and what does the score mean?
@@ -87,7 +86,7 @@ Write hypotheses as testable ideas, not promises. Include evidence references an
 
 ## Output Format
 
-Write the report to `project/audits/<slug>/report.yaml` (one folder per audit) unless the user asks for an inline preview first. Use this structure:
+Write the report to `project/workbench/seo-analysis/<keyword-slug>.yaml` unless the user asks for an inline preview first. Use this structure:
 
 ```yaml
 status: complete | blocked | incomplete
@@ -96,7 +95,7 @@ provider: dataforseo | websearch
 provider_reason: ""
 websearch_bypass:
   approved: true | false
-  approved_by: null
+  aprovado_por: null
   confirmation_text: null
   reason: null
   consequence: null
@@ -113,13 +112,12 @@ keyword_metrics:
   competition: null
 sources:
   serp:
-    - path: project/audits/<slug>/sources/dataforseo/...
+    - path: project/sources/serp/...
   websearch:
-    - path: project/audits/<slug>/sources/websearch/...
+    - path: project/sources/websearch/...
   pages:
     - url: ""
-      evidence_ref: project/audits/<slug>/sources/extract/...
-      extraction_method: fetch | playwright | failed
+      evidence_ref: ""
 top_results:
   - position: 1
     title: ""
@@ -178,7 +176,6 @@ Output: "Search the web, guess that volume is high, say competitors have strong 
 
 ## Related Skills
 
-- `data-setup`: invoke when DataForSEO credentials are missing.
 - `keyword-research`: use when the primary task is keyword discovery, clustering, or metric collection before SERP analysis.
 - `content-seo`: use after this analysis when the user wants a content brief or draft.
 - `topic-cluster`: use after enough approved analysis exists to organize topics into a cluster.

@@ -1,7 +1,7 @@
 {
   "name": "seo-brain",
   "version": "0.1.0",
-  "description": "Agentic SEO operating system with project Wikis, data-backed SEO analysis, content workflows, and technical SEO checks.",
+  "description": "Agentic SEO operating system with project brains, data-backed SEO analysis, content workflows, and technical SEO checks.",
   "author": {
     "name": "Agentic SEO"
   },
@@ -12,7 +12,7 @@
     "agentic-seo",
     "content",
     "technical-seo",
-    "llm-wiki",
+    "brain",
     "dataforseo"
   ],
   "skills": "./skills/",
