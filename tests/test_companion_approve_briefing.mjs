@@ -115,6 +115,9 @@ function writeJsonBrief(name, override = {}) {
   assert.equal(updated.approval.approved_by, "Diego Ivo");
   assert.equal(updated.draft_status, "draft");
   assert.equal(updated.draft_path, "artifacts/contents/o-que-e-seo-agentico/draft.md");
+  const draft = readFileSync(result.draft, "utf8");
+  assert.match(draft, /source_policy: frontmatter-consulted-sources/);
+  assert.doesNotMatch(draft, /\]\(https?:\/\//);
   const log = readFileSync(join(projectRoot, "wiki", "log", "index.md"), "utf8");
   assert.ok(log.includes("Type: operational-decision"));
   assert.ok(log.includes("Decision: approved"));
