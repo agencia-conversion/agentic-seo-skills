@@ -74,7 +74,7 @@ assert.ok(!existsSync(stray), "no leftover .tmp file");
 const metrics = {
   metrics: [
     { id: "title-length", type: "executable", source: "title.length <= 60", weight: 1, scoring: "binary" },
-    { id: "brand-voice", type: "judge", source: "alinhamento com tom-de-voz", weight: 2, scoring: "0_to_100" },
+    { id: "brand-voice", type: "judge", source: "alinhamento com a voz", weight: 2, scoring: "0_to_100" },
   ],
   aggregation: "weighted_mean",
   scale: "0_to_100",

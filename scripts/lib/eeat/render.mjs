@@ -26,7 +26,7 @@ export function renderMarkdown(r) {
 }
 
 function header(out, r) {
-  out.push(`# Relatório E-E-A-T — ${r.target.mode === "url" ? r.target.value : "wiki do projeto"}`);
+  out.push(`# Relatório E-E-A-T — ${r.target.mode === "url" ? r.target.value : "brain do projeto"}`);
   out.push("");
   out.push(`- **Score**: ${r.score} / 100`);
   out.push(`- **Page quality**: ${r.page_quality}`);

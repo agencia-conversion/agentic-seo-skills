@@ -1,6 +1,6 @@
 ---
 name: project-init
-description: Initializes SEO Brain project with the required folder layout, Wiki templates, status frontmatter, and log entry. Use when creating a new project.
+description: Initializes SEO Brain project with the required folder layout, blank brain templates, conteudos directories, and first log entry. Use when creating a new project.
 tools: Bash, Read, Write, Edit, LS, Glob, Grep
 skills:
   - "seo-brain:project-init"
@@ -17,8 +17,7 @@ bin/seo-brain project-init "<project name>"
 Validate with:
 
 ```bash
-bin/seo-brain wiki-lint
+bin/seo-brain brain-lint
 ```
 
-Never write secrets. Strategic Wiki pages must remain `draft` until the user explicitly approves them.
-
+Never write secrets. Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) come from blank templates with placeholders; the user fills them and registers approval via `tipo: aprovacao` in `project/brain/log.md`.

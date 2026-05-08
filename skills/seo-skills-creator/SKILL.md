@@ -16,11 +16,11 @@ Use this skill for creating or refactoring `skills/<name>/SKILL.md`. Do not use 
 ## Critical Points
 
 - One skill teaches one task. Router skills may route, but they must not hide gates.
-- Never require `_shared/`, `_legacy/`, or another skill as mandatory execution context.
+- Never require `_shared/` or another skill as mandatory execution context.
 - Repeat universal SEO Brain invariants inside the skill that needs them: no fabricated volume/backlinks/proof, source/synthesis separation, approval gates, language fidelity.
 - Human judgment owns strategic approval. Agent output is not approved strategic context until explicitly approved.
 - Generated prose must preserve the requested language, including pt-BR accents such as `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
-- Keep drafts and hypotheses outside `project/wiki/`; use `project/workbench/` or `project/artifacts/`.
+- Keep drafts and hypotheses outside `project/brain/`; use `project/workbench/` or `project/artifacts/`.
 
 ## Framework
 

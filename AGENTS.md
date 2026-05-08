@@ -7,13 +7,13 @@ SEO Brain is a Claude Code-first plugin that should remain portable to Codex, An
 SEO Brain implements Agentic SEO through six pillars:
 
 1. Strategy
-2. LLM Wiki
+2. Brain
 3. Technology
 4. Technical SEO
 5. Content
 6. Data and Analysis
 
-Humans own judgment. Agents execute intelligence. A draft created by an agent is not approved strategic context until the user explicitly approves it.
+Humans own judgment. Agents execute intelligence. A draft created by an agent is not approved strategic context until the user explicitly approves it through a `tipo: aprovacao` entry in `project/brain/log.md`.
 
 ## Repository Shape
 
@@ -22,10 +22,8 @@ This repository root is the plugin root.
 - Claude Code manifest: `.claude-plugin/plugin.json`
 - Codex manifest: `.codex-plugin/plugin.json`
 - Skills: `skills/<skill-name>/SKILL.md`
-- Legacy quarantine during the v1 rewrite: `_legacy/`
 - Refactor continuity: `docs/refactor-status.md`
-- Shared skill references: removed from canonical v1 skills; old references live only in `_legacy/`
-- Tools: `tools/` for deterministic provider CLIs after Phase 2
+- Tools: `tools/` for deterministic provider CLIs.
 - Templates: `templates/`
 - Utility scripts: `scripts/`
 - Runtime project: `project/` and ignored by git except `project/.gitkeep`
@@ -45,7 +43,7 @@ The default is to follow the full documented process. Do not skip analysis, appr
 
 - A process step may be skipped only when the current user explicitly asks to skip that specific step or confirms the bypass after the agent names the missing step and consequence.
 - Existing drafts, previous briefings, homepage-only context, or agent confidence do not waive preconditions.
-- When a bypass is explicit, record it in the artifact and log before presenting the result. State clearly that the artifact is not data-backed for the skipped dimension.
+- When a bypass is explicit, record it in the artifact and append a `tipo: decisao` entry to `project/brain/log.md` before presenting the result. State clearly that the artifact is not data-backed for the skipped dimension.
 - Approval of an artifact is not approval of an undisclosed bypass. Approval requests must show missing analysis, missing sources, and skipped checks before the user decides.
 - If a required process cannot run, stop at the gate, run the local browser handoff as the agent when possible, and present only a friendly user instruction. Do not hand bash commands to the user as the UX for approvals or gates.
 
@@ -58,33 +56,63 @@ SEO Brain is English-first and supports Brazilian Portuguese as an official seco
 - ASCII transliteration is allowed only for slugs, file paths, IDs, enum values, command names, provider payloads, code identifiers, or verbatim source text that originally has no diacritics.
 - Never strip accents from user-provided names, titles, claims, excerpts, anchors, or editorial text while summarizing, extracting, reviewing, or rewriting.
 
-## Wiki Rules
+## Brain Rules
 
-Every SEO Brain project should use Obsidian-compatible Markdown and separate sources from synthesis.
+Every SEO Brain project keeps authorial knowledge in one place: `project/brain/`. Open it as the Obsidian vault. Public content, evidence, and intermediate artifacts live outside `brain/` so the brain stays small and editable.
 
-- Raw sources live in `sources/` and should be treated as immutable or append-only.
-- Generated and curated knowledge lives in `wiki/`; open `project/wiki/` as the Obsidian vault.
-- `wiki/fontes/index.md` is a catalog of raw evidence, but the raw files themselves remain in `sources/`.
-- Use Obsidian wikilinks only for real pages inside `wiki/`; use normal Markdown links for files under `../sources/`.
-- Strategic pages require explicit user-directed writing before agents edit them. Mark the written state clearly as `draft`, `proposed`, `hypothesis`, or `approved`; only explicit approval makes it approved strategic context.
-- Operational and observational pages may be updated by agents when checks pass.
-- Important events must be appended to `wiki/log/index.md`. Each entry must declare a `type` of `strategic-approval` or `operational-decision` so events can be filtered by audience.
-- The wiki may hold drafts, hypotheses, or user-directed strategic notes only when the current user explicitly asks the agent to write them there. They must be visibly labeled and must not be treated as approved context.
-- `project/workbench/` is only for construction: research, briefing, auxiliary analysis, and intermediate context.
-- Complete deliverables, including v0 artifacts, live in `project/artifacts/`; content drafts live in `project/artifacts/contents/<slug>/`.
-- Public content may be drafted in `project/wiki/conteudos/` only when the user explicitly asks for that destination; mark it as `draft` until final publication approval and `status: published`.
-- Hypothetical or unverified strategic work should normally stay outside the Wiki, but may be written there on explicit user request when clearly marked as not approved. Operational pages may be promoted after automated checks pass.
+### Layout
 
-Required strategic approval pages:
+```
+project/
+  brain/
+    index.md          # mapa + dashboard curto
+    identidade.md     # brandbook narrativo (aposto, parágrafo, frase-marca, público, canais)
+    voz.md            # princípios editoriais
+    tecnologia.md     # stack + SEO técnico
+    editorial.md      # áreas de conteúdo
+    topic-clusters.md # clusters semânticos
+    log.md            # append-only, autoral
+  sources/            # raw, imutável
+  conteudos/          # produto público
+    blog/<slug>.md
+    linkedin/<slug>.md
+    podcast/<slug>.md
+    outros/<slug>.md
+  artifacts/          # entregáveis intermediários e drafts
+  workbench/          # rascunhos antes de virar entrada no brain
+```
 
-- `wiki/index.md`
-- `wiki/eeat.md`
-- `wiki/tecnologia/index.md`
-- `wiki/tom-de-voz/index.md`
+### Frontmatter
+
+Brain pages: `title`, `updated`. No `status`, `judgment_level`, `pillar`, `owner`, `approved_by`, `approved_at`. Confiança vem do log.
+
+Public content (`conteudos/<origem>/<slug>.md`): `title`, `slug`, `published_at`, `source_url`, `origem` (`blog | linkedin | podcast | outros`), `area` (slug que existe como seção em `brain/editorial.md`).
+
+### Brain-first protocol
+
+- Mudança em arquivo autoral do brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) requer entrada `tipo: aprovacao` em `brain/log.md` com `aprovador: <nome humano>` e `aprovado_em: <YYYY-MM-DD>`. Sem aprovação, mudança fica em `workbench/`.
+- Mudança operacional (catalogar fonte, registrar lint, registrar publicação, anotar errata) vai direto pro `log.md` com `aprovador: agent` ou nome humano.
+- O log é append-only. Erratas são novas entradas referenciando a entrada anterior, não reescrita.
+
+### Tipos de log
+
+`aprovacao`, `decisao`, `errata`, `lint`, `ingestao`, `publicacao`, `prova`. Schema completo na skill `brain-keeper`.
+
+### Wikilinks
+
+Use Obsidian wikilinks `[[...]]` apenas para arquivos reais dentro de `brain/`. Use Markdown links normais para `../sources/`, `../conteudos/`, e URLs externas.
+
+### Regra editorial
+
+A skill `brain-keeper` carrega a regra dura de escrita jornalística imparcial (lead na primeira frase, atribuição visível, sem opinião dissimulada, anti-IA-slop, anti-Conversion-explainer, preservação de acentos pt-BR). Particularidades do projeto vão em `brain/voz.md`.
+
+### Public content
+
+Public content lives in `project/conteudos/<origem>/<slug>.md`. Drafts and reviews stay in `project/workbench/content/<slug>/` and `project/artifacts/contents/<slug>/`. The `area:` field in the frontmatter must match a section slug in `brain/editorial.md`.
 
 ### Project Subfolders
 
-All skill artifacts live under one folder per dimension per slug:
+Skill artifacts live under one folder per dimension per slug, separate from the brain. The brain remains the only authorial knowledge layer; these dimension folders hold provider evidence, working analysis, drafts, and per-run deliverables.
 
 | Dimension | Canonical root | Layout |
 |---|---|---|
@@ -93,9 +121,9 @@ All skill artifacts live under one folder per dimension per slug:
 | Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml`, optional `report.md` |
 | Topic cluster | `project/clusters/<seed-slug>/` | `sources/`, `cluster.json`, optional projection |
 | EEAT | `project/eeat/<entity-or-run-slug>/` | `sources/`, `report.md` |
-| Wiki | `project/wiki/...` | only approved strategic context: `index.md`, `eeat.md`, `tecnologia/`, `tom-de-voz/`, `log/index.md`, `conteudos/<slug>.md` when explicit user request |
+| Brain (authorial) | `project/brain/` | only via brain-first protocol with `tipo: aprovacao` in `brain/log.md` |
 
-Skills do not require wiki pages to exist. When a relevant wiki page is approved (`status: approved` or `status: published`), the skill marks the artifact `<dimension>_backed: true` and uses the page as evidence. When the page is missing or `status: draft|proposed|hypothesis`, the skill marks `<dimension>_backed: false` and proceeds. Strategic writing to the wiki still requires explicit user request and approval.
+Skills read the brain for context (identidade, voz, tecnologia, editorial) but write only to their own dimension folder unless an approved `tipo: aprovacao` log entry permits a brain edit.
 
 ## Browser Handoff
 
@@ -106,20 +134,18 @@ For previews, approvals, sensitive input, and option selection, prefer a local b
 - Each handoff binds to `127.0.0.1` on an ephemeral port, requires a one-time token, validates `Origin`/`Host`, and shuts down on submit, cancel, or TTL expiry.
 - Sensitive values (credentials, API keys) are never echoed to agent stdout, never logged in full, and never written to the repo root `.env`. They are stored via Claude Code `userConfig` when running as a plugin, or in `project/.env.local` when running standalone.
 - Handoff state lives outside `project/` (in `.companion/handoffs/`, gitignored) so skill `Writes only` contracts remain intact.
-- Every handoff submission appends to `wiki/log/index.md` with the appropriate `type`.
+- Every handoff submission appends to `project/brain/log.md` with the appropriate `tipo:`.
 
 ## Plugin Development
 
-Use these rules when changing manifests, skills, shared references, templates, scripts, or agent instructions.
+Use these rules when changing manifests, skills, templates, scripts, or agent instructions.
 
-- Before continuing the v1 refactor, read `docs/refactor-status.md` and resume from the latest checkpoint.
-- `_legacy/` is a versioned quarantine snapshot. Main agents must not read it as ordinary context. Only sub-agents assigned a specific refactor, parity, or review task may consult it, following `_legacy/CONSULT-RULES.md`.
-- Do not execute binaries, scripts, tests, or generated artifacts from `_legacy/`.
-- Canonical v1 skills should be self-sufficient narrative `SKILL.md` files. Do not reintroduce required cross-skill reads through `skills/_shared/`.
+- Read `docs/refactor-status.md` for the current refactor state before starting work.
+- Canonical skills should be self-sufficient narrative `SKILL.md` files. Do not reintroduce required cross-skill reads through `skills/_shared/`.
 - Deterministic provider and audit behavior belongs in `tools/`, `scripts/`, or `src/commands/`, not hidden inside natural-language skill contracts.
 - Keep agent files short; put durable workflow detail in `skills/<skill>/SKILL.md`, local skill references, scripts, fixtures, or templates.
 - Treat every skill change as a verifiable workflow change. Before implementation is complete, define the skill contract, inputs, outputs, fixture strategy, and pass/fail criteria.
-- Prefer Autoresearch-style loops: one skill or subsystem per run, baseline first, fixed fixtures or budget, explicit metric or rubric, and a keep/reject decision. For deeper context, see `karpathy/autoresearch`. The runtime engine is `scripts/autoresearch.mjs`; doctrine lives in `program.md`. The v0 protocol schema is quarantined in `_legacy/skills/_shared/references/autoresearch-protocol.md` until the v1 meta-skills replace it. Use `bin/seo-brain audit-skills` for one-shot quality scoring of all skills after the command dispatcher is restored.
+- Prefer Autoresearch-style loops: one skill or subsystem per run, baseline first, fixed fixtures or budget, explicit metric or rubric, and a keep/reject decision. For deeper context, see `karpathy/autoresearch`. The runtime engine is `scripts/autoresearch.mjs`; doctrine lives in `program.md`.
 - Validate meaningful skill changes with sub-agents that run or simulate the target skill against fixtures. Use one executor-style sub-agent and, for nontrivial changes, one reviewer-style sub-agent focused on contract drift, hallucination risk, source separation, and approval gates.
 - Sub-agent output is evidence, not approval. The main agent remains responsible for integration, and humans still approve strategic context.
 - Keep eval artifacts reviewable. Save development run notes in `.context/skill-evals/`; commit only reusable fixtures, scripts, templates, and concise docs.
@@ -148,4 +174,4 @@ Skill bodies should still use progressive discovery. The point of the 250-line t
 
 ### Known debt
 
-- `src/seo-brain.ts` has been removed from canonical source during Phase 0. Phase 5 restores it as a slim dispatcher and splits behavior into `src/commands/`.
+- `src/seo-brain.ts` is a slim dispatcher; behavior is split into `src/commands/`.

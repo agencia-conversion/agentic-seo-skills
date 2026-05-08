@@ -21,14 +21,14 @@ Do not use this skill for ongoing SEO work after the project already has a defin
 - Do not create approved strategic context from a first-run greeting.
 - Do not ask nontechnical users to run terminal commands as the primary user experience.
 - Do not duplicate a full SEO Brain workflow here. Route to `seo-brain` for classification and `project-init` for project setup.
-- Keep raw sources, drafts, artifacts, and approved Wiki state separate once a project exists.
+- Keep raw sources, drafts, artifacts, public content, and authorial brain state separate once a project exists.
 - Preserve the user's language and diacritics. In pt-BR, write accents correctly: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
 ## Framework
 
 ### 1. Detect Project State
 
-Check whether `project/` already exists and whether it contains `.seo-brain/project.json`, `wiki/`, `sources/`, `workbench/`, or `artifacts/`.
+Check whether `project/` already exists and whether it contains `.seo-brain/project.json`, `brain/`, `sources/`, `workbench/`, `artifacts/`, or `conteudos/`.
 
 If no project exists, the next meaningful step is `project-init`.
 
@@ -47,12 +47,14 @@ If the user is nontechnical, offer a local browser handoff for setup and approva
 
 ### 3. Preserve Approval Boundaries
 
-First-run setup may create draft structure and operational logs, but it must not mark strategic pages as approved. Required strategic pages remain draft or approval-required until the user explicitly approves them:
+First-run setup may create blank brain templates and operational log entries, but it must not mark authorial brain pages as approved. The user fills these manually and approves through `tipo: aprovacao` entries in `project/brain/log.md`:
 
-- `project/wiki/index.md`
-- `project/wiki/eeat.md`
-- `project/wiki/tecnologia/index.md`
-- `project/wiki/tom-de-voz/index.md`
+- `project/brain/index.md`
+- `project/brain/identidade.md`
+- `project/brain/voz.md`
+- `project/brain/tecnologia.md`
+- `project/brain/editorial.md`
+- `project/brain/topic-clusters.md`
 
 ### 4. Route The Next Action
 
@@ -95,7 +97,7 @@ Output: Route to `seo-brain` because the request spans multiple pillars. Name li
 
 ### Weak Output
 
-Output: "I created a strategy, approved the Wiki, and started keyword research."
+Output: "I created a strategy, filled the brain, and started keyword research."
 
-This is weak because first-run routing cannot fabricate strategy, approve Wiki context, or skip provider and evidence gates.
+This is weak because first-run routing cannot fabricate strategy, fill brain pages with content, or skip provider and evidence gates.
 

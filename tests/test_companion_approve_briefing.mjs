@@ -7,10 +7,10 @@ import YAML from "yaml";
 const tmp = mkdtempSync(join(tmpdir(), "seo-brain-brief-"));
 process.env.HOME = tmp;
 const projectRoot = join(tmp, "project");
-mkdirSync(join(projectRoot, "wiki", "log"), { recursive: true });
+mkdirSync(join(projectRoot, "brain"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "content"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "seo-analysis"), { recursive: true });
-writeFileSync(join(projectRoot, "wiki", "log", "index.md"), "# Log\n");
+writeFileSync(join(projectRoot, "brain", "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n");
 writeFileSync(join(projectRoot, "workbench", "seo-analysis", "seo-agentico.json"), "{}\n");
 writeFileSync(join(projectRoot, "workbench", "content", "context-evidence.yaml"), "ok: true\n");
 writeFileSync(join(projectRoot, "workbench", "content", "competitor-evidence.yaml"), "ok: true\n");
@@ -18,15 +18,14 @@ const { buildContext, handleSubmit } = await import("../scripts/lib/companion-ty
 
 const contextEvidence = {
   path: "workbench/content/context-evidence.yaml",
-  wiki_pages_read: [
-    { path: "wiki/index.md", title: "Mapa", status: "approved", approved_by: "Diego", approved_at: "2026-05-05", content_hash_sha256: "abc123", excerpts_used: ["Contexto aprovado"] },
+  brain_pages_read: [
+    { path: "brain/identidade.md", title: "Identidade", filled: true, updated: "2026-05-05", content_hash_sha256: "abc123", excerpts_used: ["Contexto aprovado"] },
   ],
   voice_evidence: {
-    path: "wiki/tom-de-voz/index.md",
-    title: "Tom de voz",
-    status: "approved",
-    approved_by: "Diego",
-    approved_at: "2026-05-05",
+    path: "brain/voz.md",
+    title: "Voz",
+    filled: true,
+    updated: "2026-05-05",
     content_hash_sha256: "def456",
     patterns: ["Claro"],
     avoid: ["Exagero"],
@@ -70,8 +69,8 @@ const baseBrief = {
     ],
     outline_capacity: { target_words: 2000, min_h2_sections: 4, planned_h2_sections: 4, planned_words: 2000, can_support_target: true, iterations: [] },
   },
-  voice_context: { path: "wiki/tom-de-voz/index.md", status: "approved", title: "Tom de voz" },
-  approval: { phase: "briefing", mode: "handoff", status: "pending", approved_by: null, decided_at: null, notes: null },
+  voice_context: { path: "brain/voz.md", filled: true, title: "Voz", updated: "2026-05-05" },
+  approval: { phase: "briefing", mode: "handoff", status: "pending", aprovador: null, aprovado_em: null, decided_at: null, notes: null },
   draft_status: "briefing",
 };
 
@@ -112,22 +111,22 @@ function writeJsonBrief(name, override = {}) {
   assert.equal(existsSync(result.draft), true);
   const updated = YAML.parse(readFileSync(file, "utf8"));
   assert.equal(updated.approval.status, "approved");
-  assert.equal(updated.approval.approved_by, "Diego Ivo");
+  assert.equal(updated.approval.aprovador, "Diego Ivo");
   assert.equal(updated.draft_status, "draft");
   assert.equal(updated.draft_path, "artifacts/contents/o-que-e-seo-agentico/draft.md");
-  const log = readFileSync(join(projectRoot, "wiki", "log", "index.md"), "utf8");
-  assert.ok(log.includes("Type: operational-decision"));
-  assert.ok(log.includes("Decision: approved"));
-  assert.ok(log.includes("draft gerado automaticamente"));
+  const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
+  assert.match(log, /tipo: decisao/);
+  assert.match(log, /aprovador: Diego Ivo/);
+  assert.match(log, /draft gerado em artifacts/);
 }
 
 {
-  const draftVoice = { ...contextEvidence, voice_evidence: { ...contextEvidence.voice_evidence, status: "draft" } };
-  const file = writeBrief("voice-draft.brief.yaml", { context_evidence: draftVoice, voice_context: { path: "wiki/tom-de-voz/index.md", status: "draft", title: "Tom de voz" } });
+  const draftVoice = { ...contextEvidence, voice_evidence: { ...contextEvidence.voice_evidence, filled: false } };
+  const file = writeBrief("voice-draft.brief.yaml", { context_evidence: draftVoice, voice_context: { path: "brain/voz.md", filled: false, title: "Voz" } });
   const ctx = buildContext({ projectRoot, briefPath: file });
   const blocked = await handleSubmit({ decision: "approved", approver: "Diego", notes: "" }, ctx);
   assert.deepEqual(blocked, { ok: false, reason: "voice-context-not-acknowledged" });
-  const accepted = await handleSubmit({ decision: "approved", approver: "Diego", notes: "Tom de voz em draft reconhecido." }, ctx);
+  const accepted = await handleSubmit({ decision: "approved", approver: "Diego", notes: "Voz em draft reconhecida." }, ctx);
   assert.equal(accepted.ok, true);
   assert.equal(existsSync(accepted.draft), true);
 }
@@ -139,7 +138,7 @@ function writeJsonBrief(name, override = {}) {
   assert.equal(result.ok, true);
   const updated = YAML.parse(readFileSync(file, "utf8"));
   assert.equal(updated.approval.status, "needs-rewrite");
-  assert.equal(updated.approval.approved_by, null);
+  assert.equal(updated.approval.aprovador, null);
   assert.equal(updated.draft_status, "needs-rewrite");
 }
 

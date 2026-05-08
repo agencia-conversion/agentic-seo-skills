@@ -11,13 +11,10 @@ writeFileSync(
   page,
   `---
 title: "Resumo do projeto"
-status: draft
-pillar: wiki
-owner: human
+updated: "2026-05-04"
 sources:
   - sources/manual/brief.md
   - sources/manual/interview.md
-judgment_level: strategic
 ---
 
 # Resumo do projeto
@@ -26,15 +23,12 @@ judgment_level: strategic
 );
 
 setFrontmatterValue(page, {
-  status: "approved",
-  approved_by: '"Diego"',
-  approved_at: '"2026-05-04T12:00:00+00:00"',
+  updated: '"2026-05-07"',
 });
 
 const updated = readFileSync(page, "utf8");
-assert.ok(updated.includes("status: approved"));
-assert.ok(updated.includes('approved_by: "Diego"'));
+assert.ok(updated.includes('title: "Resumo do projeto"'));
+assert.ok(updated.includes('updated: "2026-05-07"'));
 assert.ok(updated.includes("sources:\n  - sources/manual/brief.md\n  - sources/manual/interview.md"));
-assert.ok(updated.includes("judgment_level: strategic"));
 
 console.log("frontmatter ok");

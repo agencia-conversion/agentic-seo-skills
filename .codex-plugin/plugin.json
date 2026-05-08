@@ -1,7 +1,7 @@
 {
   "name": "seo-brain",
   "version": "0.1.0",
-  "description": "Agentic SEO operating system with project Wikis, data-backed SEO analysis, content workflows, and technical SEO checks.",
+  "description": "Agentic SEO operating system with project brains, data-backed SEO analysis, content workflows, and technical SEO checks.",
   "author": {
     "name": "Agentic SEO",
     "url": "https://agenticseo.sh/"
@@ -13,14 +13,14 @@
     "agentic-seo",
     "content",
     "technical-seo",
-    "llm-wiki",
+    "brain",
     "dataforseo"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "SEO Brain",
-    "shortDescription": "Agentic SEO workflows for strategy, Wiki, content, data, and technical SEO.",
-    "longDescription": "SEO Brain helps teams run an Agentic SEO project with persistent LLM Wikis, human approval gates for strategy, DataForSEO-powered analysis, Brazilian Portuguese content standards, technical SEO checks, and local project dashboards.",
+    "shortDescription": "Agentic SEO workflows for strategy, brain, content, data, and technical SEO.",
+    "longDescription": "SEO Brain helps teams run an Agentic SEO project with a persistent authorial brain (identity, voice, technology, editorial, topic clusters, append-only log), human approval gates for strategy, DataForSEO-powered analysis, Brazilian Portuguese content standards, technical SEO checks, and local project dashboards.",
     "developerName": "Agentic SEO",
     "category": "Productivity",
     "capabilities": [
@@ -32,7 +32,7 @@
     "defaultPrompt": [
       "Crie um projeto SEO Brain",
       "Analise uma keyword com DataForSEO",
-      "Revise a Wiki e pendencias"
+      "Revise o brain e pendencias"
     ]
   }
 }

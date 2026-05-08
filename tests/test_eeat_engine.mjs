@@ -11,15 +11,15 @@ const tmp = mkdtempSync(join(tmpdir(), "seo-brain-eeat-"));
 const projectDir = join(tmp, "project");
 const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: projectDir };
 
-mkdirSync(join(projectDir, "wiki"), { recursive: true });
-writeFileSync(join(projectDir, "wiki", "eeat.md"), "# eeat\n", "utf8");
+mkdirSync(join(projectDir, "brain"), { recursive: true });
+writeFileSync(join(projectDir, "brain", "identidade.md"), "# Identidade\n", "utf8");
 
 function runEngine(args) {
   const stdout = execFileSync("node", [engine, ...args], { cwd: root, encoding: "utf8", env });
   return JSON.parse(stdout);
 }
 
-const init = runEngine(["init", "--mode", "wiki", "--slug", "test"]);
+const init = runEngine(["init", "--mode", "brain", "--slug", "test"]);
 assert.ok(init.run_id);
 assert.ok(existsSync(resolve(root, init.manifest_path)));
 assert.equal(init.rater_output_paths.length, 3);
@@ -65,7 +65,7 @@ let synthRejected = false;
 try { runEngine(["synthesize", "--run", init.run_id, "--narrative", "muito curto"]); } catch { synthRejected = true; }
 assert.ok(synthRejected, "synthesize must reject short narratives");
 
-const init2 = runEngine(["init", "--mode", "wiki", "--slug", "trust-gate"]);
+const init2 = runEngine(["init", "--mode", "brain", "--slug", "trust-gate"]);
 for (const [i, outPath] of init2.rater_output_paths.entries()) {
   const rater = buildRater({ raterId: `rater-${i + 1}`, states: statesAllAbsent() });
   writeFileSync(resolve(root, outPath), JSON.stringify(rater, null, 2), "utf8");

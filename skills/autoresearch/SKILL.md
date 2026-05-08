@@ -13,16 +13,16 @@ You are an experiment lead for SEO Brain. Your goal is to improve one editable s
 
 Use this skill when the user asks to iterate, benchmark, evaluate, tune, or improve an artifact through repeated attempts with measurable criteria. Use `skill-eval` mode when the editable surface is one `skills/<name>/SKILL.md` file.
 
-Do not use this skill for open-ended SEO analysis, publishing wiki pages, content drafting without an experiment question, or bypassing a required approval gate. Autoresearch can recommend a winner; it cannot approve strategic context for the human.
+Do not use this skill for open-ended SEO analysis, writing authorial brain pages, content drafting without an experiment question, or bypassing a required approval gate. Autoresearch can recommend a winner; it cannot approve strategic context for the human.
 
 ## Critical Points
 
-- One run has one editable surface. Everything else is immutable context: fixtures, rubrics, source packets, approved wiki pages, and prior run notes may be read, but not changed as part of the variation.
+- One run has one editable surface. Everything else is immutable context: fixtures, rubrics, source packets, approved brain pages, and prior run notes may be read, but not changed as part of the variation.
 - Always score a baseline before proposing improvements. Existing drafts do not waive the baseline step.
 - Commit metrics before the first variation and do not add, remove, rename, or relax metrics mid-run. If the metrics are wrong, stop and start a new run.
 - Never lower approval gates, quality thresholds, source requirements, or human-review requirements to make a candidate pass. A blocked gate is a result, not a reason to weaken the gate.
 - Keep raw evidence separate from synthesis: `project/sources/` for raw evidence, `.context/skill-evals/` or `project/workbench/` for working notes, and `project/artifacts/` for final deliverables.
-- Do not write drafts, hypotheses, or unapproved strategy into `project/wiki/`. Strategic wiki pages require explicit human approval.
+- Do not write drafts, hypotheses, or unapproved strategy into `project/brain/`. Authorial brain pages require explicit human approval via `tipo: aprovacao` in `project/brain/log.md`.
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, or proof. Unknown values stay `unknown` or `null`.
 - Preserve the requested output language in human-facing prose, including pt-BR accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Save reviewable run notes for skill-development runs under `.context/skill-evals/<skill-name>/<run-id>/`.
@@ -58,9 +58,9 @@ Use `.context/skill-evals/` for skill-development and meta-skill runs. Use `proj
 
 Propose at least three metrics before any variation. Mix deterministic checks and judgment checks when possible:
 
-- `executable`: line count, required headings, required output fields, forbidden path writes, fixture files present, no `_legacy/` dependency.
+- `executable`: line count, required headings, required output fields, forbidden path writes, fixture files present.
 - `judge`: task clarity, hallucination risk, behavioral parity, strength of examples, source/synthesis separation.
-- `gate`: human approval required, provider bypass required, wiki promotion blocked, minimum rubric threshold.
+- `gate`: human approval required, provider bypass required, brain promotion blocked, minimum rubric threshold.
 
 Present the metrics and stop for explicit approval when the user has not already approved the metric set. The approval must include threshold, maximum iterations, and plateau rule. If approval is skipped by explicit user instruction, record the bypass and consequence in the run notes before continuing.
 
@@ -192,7 +192,7 @@ Use `skill-eval` mode when improving an SEO Brain skill. The editable surface is
 Minimum skill-eval metrics:
 
 - `task_clarity`: the skill teaches one task and names routing boundaries.
-- `self_sufficiency`: normal execution does not require `_shared/`, `_legacy/`, or another skill.
+- `self_sufficiency`: normal execution does not require `_shared/` or another skill.
 - `examples`: at least one strong and one weak example materially contrast behavior.
 - `output_contract`: output schema or template is specific enough for stable execution.
 - `critical_gates`: anti-fabrication, source/synthesis separation, approval gates, and language fidelity are explicit.
@@ -227,13 +227,13 @@ autoresearch_result:
 
 Input: "Improve `skills/seo-analysis/SKILL.md` with an autoresearch loop."
 
-Output: "Run `skill-eval` with `skills/seo-analysis/SKILL.md` as the only editable surface, save notes under `.context/skill-evals/seo-analysis/<run-id>/`, score the baseline, commit metrics at threshold 90, test one candidate at a time, and keep only a candidate that improves the score without lowering DataForSEO, source separation, wiki approval, or pt-BR language gates."
+Output: "Run `skill-eval` with `skills/seo-analysis/SKILL.md` as the only editable surface, save notes under `.context/skill-evals/seo-analysis/<run-id>/`, score the baseline, commit metrics at threshold 90, test one candidate at a time, and keep only a candidate that improves the score without lowering DataForSEO, source separation, brain approval, or pt-BR language gates."
 
 ### Example: Weak Experiment
 
 Input: "Make this skill pass faster."
 
-Output: "Lower the threshold from 90 to 75, remove the approval-gate metric, edit the fixture to match the draft, and publish the draft to `project/wiki/`." This is weak because it changes the evaluation surface, lowers gates, and treats an unapproved draft as approved context.
+Output: "Lower the threshold from 90 to 75, remove the approval-gate metric, edit the fixture to match the draft, and publish the draft to `project/brain/`." This is weak because it changes the evaluation surface, lowers gates, and treats an unapproved draft as approved context.
 
 ## Done Criteria
 

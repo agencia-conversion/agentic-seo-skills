@@ -7,43 +7,33 @@ const tmp = mkdtempSync(join(tmpdir(), "seo-brain-uc2-"));
 process.env.HOME = tmp;
 const projectRoot = join(tmp, "project");
 
-const wiki = join(projectRoot, "wiki");
-mkdirSync(join(wiki, "fontes"), { recursive: true });
-mkdirSync(join(wiki, "log"), { recursive: true });
+const brain = join(projectRoot, "brain");
+mkdirSync(brain, { recursive: true });
 mkdirSync(join(projectRoot, "sources", "manual"), { recursive: true });
 
 writeFileSync(
-  join(wiki, "eeat.md"),
+  join(brain, "identidade.md"),
   `---
-title: "EEAT"
-status: needs-review
-pillar: estrategia
-owner: human
-last_reviewed: null
-approved_by: null
-approved_at: null
-sources:
-  - sources/manual/credentials.md
-judgment_level: strategic
+title: "Identidade"
+updated: "2026-05-07"
 ---
 
-# EEAT
+# Identidade
 
 Estudo registrado em [credenciais](../sources/manual/credentials.md) e [briefing](../sources/manual/briefing.md).
 
 Ver também [[index]] e [[pagina-inexistente]].
 `,
 );
-writeFileSync(join(wiki, "fontes", "index.md"), "# Fontes\n\n- [credentials.md](../sources/manual/credentials.md)\n");
-writeFileSync(join(wiki, "log", "index.md"), "# Log\n");
-writeFileSync(join(wiki, "index.md"), "# Index\n");
+writeFileSync(join(brain, "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n\n## 2026-05-06 - Ingestao credentials\n\n- tipo: ingestao\n- escopo: ../sources/manual/credentials.md\n- decisao: Catalogada manualmente.\n- evidencia: ../sources/manual/credentials.md\n- aprovador: agent\n");
+writeFileSync(join(brain, "index.md"), "---\ntitle: \"Index\"\nupdated: \"2026-05-07\"\n---\n\n# Index\n");
 
-const wikiPage = await import("../scripts/lib/wiki-page.mjs");
+const _brainPage = await import("../scripts/lib/brain-page.mjs");
 const { buildContext, handleSubmit } = await import("../scripts/lib/companion-types/approve-page.mjs");
 
-const ctx = { ...buildContext({ projectRoot, fileRel: "wiki/eeat.md" }), projectRoot };
-assert.equal(ctx.frontmatter.status, "needs-review");
-assert.equal(ctx.isStrategic, true);
+const ctx = { ...buildContext({ projectRoot, fileRel: "brain/identidade.md" }), projectRoot };
+assert.equal(ctx.frontmatter.title, "Identidade");
+assert.equal(ctx.isAuthorial, true);
 assert.equal(ctx.sources.length, 2, "two sources cited");
 assert.deepEqual(ctx.missingSources, ["../sources/manual/briefing.md"]);
 assert.deepEqual(ctx.brokenLinks, ["pagina-inexistente"]);
@@ -77,19 +67,16 @@ assert.equal(ok.approver, "Diego Ivo");
 assert.deepEqual(ok.sources_registered, ["../sources/manual/briefing.md"]);
 assert.ok(existsSync(ok.snapshot), "snapshot must exist");
 
-const finalText = readFileSync(ctx.filePath, "utf8");
-assert.ok(finalText.includes("status: approved"), "frontmatter status updated");
-const log = readFileSync(join(wiki, "log", "index.md"), "utf8");
-assert.ok(log.includes("Type: strategic-approval"));
-assert.ok(log.includes("Actor: Diego Ivo"));
-assert.ok(log.includes("Decision: approved"));
-assert.ok(log.includes("Notes: evidências consolidadas"));
-assert.ok(/wiki-approve \| eeat approved\n\n- Type:/.test(log), "blank line preserved between heading and fields");
+const log = readFileSync(join(brain, "log.md"), "utf8");
+assert.match(log, /## \d{4}-\d{2}-\d{2} - identidade approved/);
+assert.match(log, /- tipo: aprovacao/);
+assert.match(log, /- aprovador: Diego Ivo/);
+assert.match(log, /- aprovado_em: \d{4}-\d{2}-\d{2}/);
+assert.match(log, /- decisao: brain\/identidade\.md marcado como approved por Diego Ivo\./);
+assert.match(log, /- notas: evidências consolidadas/);
+assert.match(log, /## \d{4}-\d{2}-\d{2} - Ingestao de fonte: briefing\.md/, "missing source registered as tipo: ingestao");
 
-const fontes = readFileSync(join(wiki, "fontes", "index.md"), "utf8");
-assert.ok(fontes.includes("briefing.md"), "missing source registered in fontes index");
-
-writeFileSync(ctx.filePath, finalText + "\n<!-- modified -->\n");
+writeFileSync(ctx.filePath, readFileSync(ctx.filePath, "utf8") + "\n<!-- modified -->\n");
 const stale = await handleSubmit(
   { decision: "approved", approver: "Diego Ivo" },
   ctx,

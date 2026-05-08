@@ -6,8 +6,9 @@ The skill should teach an agent how to review a SERP evidence packet and decide 
 
 Constraints:
 
-- Do not require `_shared/` or `_legacy/`.
-- Preserve SEO Brain source separation: raw evidence in `project/sources/`, synthesis in `project/workbench/`, approved/public pages in `project/wiki/`.
+- Do not require `_shared/`.
+- Preserve SEO Brain source separation: raw evidence in `project/sources/`, synthesis in `project/workbench/`, public content in `project/conteudos/`, authorial knowledge in `project/brain/`.
+- Authorial brain pages require an approved `tipo: aprovacao` entry in `project/brain/log.md` before any change.
 - Never fabricate keyword volume or search intent.
 - Use an explicit output format.
 - Include a fixture strategy and pass/fail criteria for the skill.

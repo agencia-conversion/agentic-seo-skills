@@ -108,7 +108,7 @@
   <div class="tabs" id="tabs">
     <button class="tab active" data-tab="page">Página renderizada</button>
     <button class="tab" data-tab="diff">Diff</button>
-    <button class="tab" data-tab="missing">Fontes faltando <span class="pill" id="pill-missing">0</span></button>
+    <button class="tab" data-tab="missing">Fontes não registradas <span class="pill" id="pill-missing">0</span></button>
     <button class="tab" data-tab="broken">Wikilinks quebrados <span class="pill" id="pill-broken">0</span></button>
   </div>
 
@@ -121,7 +121,7 @@
     <div>
       <h2>Decisão</h2>
       <div class="decision-options" id="decision-opts" style="margin-top:8px;">
-        <label><input type="radio" name="decision" value="approved" required /><span><strong>Aprovar</strong><small>página entra como aprovada na wiki</small></span></label>
+        <label><input type="radio" name="decision" value="approved" required /><span><strong>Aprovar</strong><small>registra entrada de aprovação no brain/log.md</small></span></label>
         <label><input type="radio" name="decision" value="needs-evidence" /><span><strong>Falta evidência</strong><small>marcar para coletar fontes antes de aprovar</small></span></label>
         <label><input type="radio" name="decision" value="rejected" /><span><strong>Rejeitar</strong><small>agente deve reescrever</small></span></label>
       </div>
@@ -135,7 +135,7 @@
       <textarea id="notes" name="notes" placeholder="Motivo da decisão, evidências faltando, próximos passos..."></textarea>
     </div>
     <div class="row" id="register-row" style="display:none;">
-      <label><input type="checkbox" id="register_missing" name="register_missing" /> Catalogar fontes faltando em <code>wiki/fontes/index.md</code> ao aprovar</label>
+      <label><input type="checkbox" id="register_missing" name="register_missing" /> Registrar fontes faltando como entradas <code>tipo: ingestao</code> em <code>brain/log.md</code> ao aprovar</label>
     </div>
     <div id="error" class="alert-box" style="display:none;"></div>
     <div id="success" class="ok-box" style="display:none;">Decisão registrada. Pode fechar esta aba.</div>
@@ -145,7 +145,7 @@
     </div>
   </form>
 
-  <div class="footer">Janela local · 127.0.0.1 efêmero · revisão de página estratégica do SEO Brain</div>
+  <div class="footer">Janela local · 127.0.0.1 efêmero · revisão de página autoral do brain</div>
 </div>
 
 <script>
@@ -155,8 +155,8 @@
 
   const escape = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 
-  if (ctx.isStrategic) {
-    document.getElementById("strategic-tag").innerHTML = '<span class="strategic-pill">estratégica</span>';
+  if (ctx.isAuthorial) {
+    document.getElementById("strategic-tag").innerHTML = '<span class="strategic-pill">autoral</span>';
   }
   document.getElementById("page-name").textContent = ctx.file || "(arquivo)";
   if (ctx.identity?.name) {
@@ -166,15 +166,12 @@
 
   const fmEl = document.getElementById("fm-content");
   const fm = ctx.frontmatter || {};
-  const fmKeys = ["status", "pillar", "owner", "judgment_level", "approved_by", "approved_at", "last_reviewed"];
+  const fmKeys = ["title", "updated"];
   fmEl.innerHTML = fmKeys
     .filter((k) => k in fm)
     .map((k) => {
       const v = Array.isArray(fm[k]) ? fm[k].join(", ") : fm[k];
-      const display = k === "status"
-        ? `<span class="badge-status">${escape(v || "—")}</span>`
-        : escape(v || "—");
-      return `<div class="fm-row"><span>${k}</span><span>${display}</span></div>`;
+      return `<div class="fm-row"><span>${k}</span><span>${escape(v || "—")}</span></div>`;
     })
     .join("");
 
@@ -184,7 +181,7 @@
   const brokenCount = (ctx.brokenLinks || []).length;
   const items = [
     { label: "Fontes citadas", value: sourcesCount, alert: false },
-    { label: "Fontes faltando catálogo", value: missingCount, alert: missingCount > 0 },
+    { label: "Fontes não registradas no log", value: missingCount, alert: missingCount > 0 },
     { label: "Wikilinks quebrados", value: brokenCount, alert: brokenCount > 0 },
     { label: "Diff disponível", value: ctx.diff?.hasPrevious ? "sim" : "não", alert: false },
   ];
@@ -250,7 +247,7 @@
 
   // Missing sources
   const missingPane = document.getElementById("pane-missing");
-  if (!missingCount) missingPane.innerHTML = '<div class="empty">Todas as fontes citadas estão catalogadas em <code>wiki/fontes/index.md</code>.</div>';
+  if (!missingCount) missingPane.innerHTML = '<div class="empty">Todas as fontes citadas têm entradas <code>tipo: ingestao</code> em <code>brain/log.md</code>.</div>';
   else missingPane.innerHTML = '<ul class="source-list">' + ctx.missingSources.map((p) => `<li class="alert">${escape(p)}</li>`).join("") + "</ul>";
   if (missingCount) document.getElementById("register-row").style.display = "";
 

@@ -9,7 +9,7 @@ const bin = resolve(root, "bin", "seo-brain");
 const tmp = mkdtempSync(join(tmpdir(), "seo-brain-reject-project-"));
 const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: join(tmp, "project") };
 
-const result = spawnSync(bin, ["wiki-lint", "--project", "legacy"], {
+const result = spawnSync(bin, ["brain-lint", "--project", "legacy"], {
   cwd: root,
   encoding: "utf8",
   env,

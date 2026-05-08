@@ -14,5 +14,5 @@ Use the `next-website-creator` skill contract. Prefer:
 bin/seo-brain next-website-creator
 ```
 
-After scaffolding, run relevant build or file validation when dependencies exist. Keep site content aligned with the project Wiki.
+After scaffolding, run relevant build or file validation when dependencies exist. Keep site content aligned with the project brain (`project/brain/identidade.md`, `project/brain/voz.md`, `project/brain/editorial.md`, etc.).
 

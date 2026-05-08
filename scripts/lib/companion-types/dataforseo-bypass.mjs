@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { runHandoff } from "../companion-server.mjs";
 import { newHandoffId, readIdentity, writeIdentity } from "../companion-state.mjs";
-import { appendLogEntry } from "../wiki-page.mjs";
+import { appendLogEntry } from "../brain-page.mjs";
 
 function parseArgs(argv) {
   const out = {};
@@ -23,7 +23,7 @@ export function confirmationMentionsDataforseo(text) {
 }
 
 export function confirmationAcknowledgesBypass(text) {
-  const normalized = String(text || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const normalized = String(text || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase();
   return /\b(sem|without|bypass|dispens|dispenso|pular|skip|ignorar|secondary|secundario)\b/.test(normalized)
     || /\b(nao usar|not use|no dataforseo|not dataforseo)\b/.test(normalized);
 }
@@ -57,22 +57,22 @@ export async function handleSubmit(body, ctx, projectRoot) {
     step: ctx.step, workflow: ctx.workflow, subject: ctx.subject,
     confirmed: true,
     reason, consequence: ctx.consequence,
-    approved_by: approver, confirmation_text: confirmationText, confirmed_at: nowIso(),
+    aprovador: approver, confirmation_text: confirmationText, confirmado_em: nowIso(),
     approval_mode: "companion", required_provider: "dataforseo", provider_used: ctx.provider_used,
   };
-  const logFile = join(projectRoot, "wiki", "log", "index.md");
-  const hasProjectLog = existsSync(join(projectRoot, "wiki")) || existsSync(logFile);
+  const logFile = join(projectRoot, "brain", "log.md");
+  const hasProjectLog = existsSync(join(projectRoot, "brain")) || existsSync(logFile);
   if (hasProjectLog) {
     appendLogEntry(logFile, {
       date: todayIso(),
-      eventType: "dataforseo-bypass",
-      title: ctx.subject || ctx.workflow,
-      type: "operational-decision",
-      actor: approver,
-      files: [],
-      decision: "approved",
-      summary: `${ctx.workflow} approved without DataForSEO for ${ctx.step}: ${ctx.consequence}`,
-      notes: reason,
+      tipo: "decisao",
+      titulo: `DataForSEO bypass · ${ctx.subject || ctx.workflow}`,
+      escopo: ctx.workflow,
+      decisao: `${ctx.workflow} aprovado sem DataForSEO em ${ctx.step}: ${ctx.consequence}`,
+      evidencia: confirmationText,
+      aprovador: approver,
+      aprovado_em: todayIso(),
+      notas: reason,
     });
   }
   return { ok: true, approval };

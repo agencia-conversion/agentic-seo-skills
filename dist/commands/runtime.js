@@ -49,7 +49,7 @@ exports.normalizeBacklinkReport = normalizeBacklinkReport;
 exports.buildClusterPage = buildClusterPage;
 exports.mergeClusterPage = mergeClusterPage;
 exports.mergeClusterPages = mergeClusterPages;
-exports.renderTopicClustersWiki = renderTopicClustersWiki;
+exports.renderTopicClustersBrain = renderTopicClustersBrain;
 exports.renderTopicClustersMarkdown = renderTopicClustersMarkdown;
 exports.runCli = runCli;
 const node_buffer_1 = require("node:buffer");
@@ -65,22 +65,24 @@ const PROJECT_DIR = resolveProjectDir();
 const TEMPLATES_DIR = path.join(ROOT, "templates", "project");
 const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
 const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
-const REQUIRED_WIKI_PAGES = [
+const REQUIRED_BRAIN_PAGES = [
     "index.md",
-    "eeat.md",
-    "schema.md",
-    "estrategia/index.md",
-    "llm-wiki/index.md",
-    "tecnologia/index.md",
-    "seo-tecnico/index.md",
-    "tom-de-voz/index.md",
-    "conteudos/index.md",
-    "conteudos/topic-clusters.md",
-    "dados-e-analise/index.md",
-    "fontes/index.md",
-    "log/index.md",
+    "identidade.md",
+    "voz.md",
+    "tecnologia.md",
+    "editorial.md",
+    "topic-clusters.md",
+    "log.md",
 ];
-const STRATEGIC_PAGES = new Set(["index.md", "eeat.md", "tecnologia/index.md", "tom-de-voz/index.md"]);
+const AUTHORIAL_BRAIN_PAGES = new Set([
+    "index.md",
+    "identidade.md",
+    "voz.md",
+    "tecnologia.md",
+    "editorial.md",
+    "topic-clusters.md",
+]);
+const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "outros"]);
 function nowIso() {
     return new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
 }
@@ -270,37 +272,76 @@ function formatLogFileRefs(files) {
         return `[[${normalized}]]`;
     }).join(", ");
 }
-function appendLog(eventType, title, files, summary, approval) {
-    const wikiLog = path.join(PROJECT_DIR, "wiki", "log", "index.md");
-    mkdirp(path.dirname(wikiLog));
-    const links = formatLogFileRefs(files);
-    fs.appendFileSync(wikiLog, `\n\n## [${today()}] ${eventType} | ${title}\n\n- Actor: agent\n- Files: ${links}\n- Summary: ${summary}\n- Approval: ${approval}\n`, "utf8");
+function isBrainPageFilled(body) {
+    const stripped = body.replace(/<!--[\s\S]*?-->/g, "");
+    if (/<\w[^>]*>/.test(stripped))
+        return false;
+    return stripped.trim().length > 100;
 }
-function appendOperationalLog(eventType, title, files, decision, summary, notes) {
-    const wikiLog = path.join(PROJECT_DIR, "wiki", "log", "index.md");
-    mkdirp(path.dirname(wikiLog));
+function mapEventTypeToTipo(eventType) {
+    const lower = eventType.toLowerCase();
+    if (lower.includes("approv") || lower.includes("aprovac"))
+        return "aprovacao";
+    if (lower.includes("ingest"))
+        return "ingestao";
+    if (lower.includes("lint"))
+        return "lint";
+    if (lower.includes("publica"))
+        return "publicacao";
+    if (lower.includes("errat"))
+        return "errata";
+    if (lower.includes("prova") || lower.includes("proof"))
+        return "prova";
+    return "decisao";
+}
+function appendLog(eventType, title, files, summary, approval) {
+    const brainLog = path.join(PROJECT_DIR, "brain", "log.md");
+    mkdirp(path.dirname(brainLog));
     const links = formatLogFileRefs(files);
+    const tipo = mapEventTypeToTipo(eventType);
+    const aprovador = approval && approval !== "not-required" && approval !== "pending" ? approval : "agent";
+    const isHumanApprover = aprovador !== "agent" && aprovador !== "pendente";
     const lines = [
         "",
         "",
-        `## [${today()}] ${eventType} | ${title}`,
+        `## ${today()} - ${title}`,
         "",
-        "- Type: operational-decision",
-        "- Actor: agent",
-        `- Files: ${links}`,
-        `- Decision: ${decision}`,
-        `- Summary: ${summary}`,
+        `- tipo: ${tipo}`,
+        `- escopo: ${links}`,
+        `- decisao: ${summary}`,
+        `- evidencia: ${links}`,
+        `- aprovador: ${aprovador}`,
+    ];
+    if (isHumanApprover)
+        lines.push(`- aprovado_em: ${today()}`);
+    fs.appendFileSync(brainLog, lines.join("\n") + "\n", "utf8");
+}
+function appendOperationalLog(eventType, title, files, decision, summary, notes) {
+    const brainLog = path.join(PROJECT_DIR, "brain", "log.md");
+    mkdirp(path.dirname(brainLog));
+    const links = formatLogFileRefs(files);
+    const tipo = mapEventTypeToTipo(eventType);
+    const lines = [
+        "",
+        "",
+        `## ${today()} - ${title}`,
+        "",
+        `- tipo: ${tipo}`,
+        `- escopo: ${links}`,
+        `- decisao: ${decision}`,
+        `- evidencia: ${summary}`,
+        "- aprovador: agent",
     ];
     if (notes)
-        lines.push(`- Notes: ${notes}`);
-    fs.appendFileSync(wikiLog, lines.join("\n") + "\n", "utf8");
+        lines.push(`- notas: ${notes}`);
+    fs.appendFileSync(brainLog, lines.join("\n") + "\n", "utf8");
 }
 function appendDataforseoBypassLog(title, approvals, files) {
     const list = Array.isArray(approvals) ? approvals : approvals ? [approvals] : [];
     for (const approval of list) {
         if (approval?.required_provider !== "dataforseo" || approval.approval_mode === "companion")
             continue;
-        appendOperationalLog("dataforseo-bypass", title, files, "approved", `${approval.workflow} sem DataForSEO em ${approval.step}: ${approval.consequence}`, `Aprovado por ${approval.approved_by}; motivo: ${approval.reason}; confirmado em ${approval.confirmed_at}.`);
+        appendOperationalLog("dataforseo-bypass", title, files, `${approval.workflow} sem DataForSEO em ${approval.step}: ${approval.consequence}`, "approved", `Aprovado por ${approval.aprovador}; motivo: ${approval.reason}; confirmado em ${approval.confirmado_em}.`);
     }
 }
 function parseFrontmatter(text) {
@@ -467,9 +508,9 @@ function normalizeDataforseoBypassApproval(args, context, mode) {
         confirmed: true,
         reason,
         consequence: context.consequence,
-        approved_by: approvedBy,
+        aprovador: approvedBy,
         confirmation_text: confirmationText,
-        confirmed_at: confirmedAt,
+        confirmado_em: confirmedAt,
         approval_mode: mode,
         required_provider: "dataforseo",
         provider_used: context.provider_used || "secondary-or-none",
@@ -514,9 +555,9 @@ function requireDataforseoBypassApproval(args, context) {
         args.dataforseo_bypass_handoff = false;
         args.dataforseo_bypass_confirmed = true;
         args.dataforseo_bypass_reason = approval.reason;
-        args.dataforseo_bypass_approved_by = approval.approved_by;
+        args.dataforseo_bypass_approved_by = approval.aprovador;
         args.dataforseo_bypass_confirmation_text = approval.confirmation_text;
-        args.dataforseo_bypass_confirmed_at = approval.confirmed_at;
+        args.dataforseo_bypass_confirmed_at = approval.confirmado_em;
         args.dataforseo_bypass_approval_mode = "companion";
         return normalizeDataforseoBypassApproval(args, context, "companion");
     }
@@ -1306,7 +1347,7 @@ function loadKeywordMetrics(projectDir, keyword) {
 }
 function projectSettings(projectDir) {
     const config = path.join(projectDir, ".seo-brain", "project.json");
-    const wikiIndex = path.join(projectDir, "wiki", "index.md");
+    const brainIndex = path.join(projectDir, "brain", "index.md");
     let data = {};
     if (fs.existsSync(config)) {
         try {
@@ -1316,13 +1357,13 @@ function projectSettings(projectDir) {
             data = {};
         }
     }
-    if (fs.existsSync(wikiIndex)) {
+    if (fs.existsSync(brainIndex)) {
         try {
-            const [fm] = parseFrontmatter(fs.readFileSync(wikiIndex, "utf8"));
+            const [fm] = parseFrontmatter(fs.readFileSync(brainIndex, "utf8"));
             data = { ...data, ...fm };
         }
         catch {
-            // Keep project.json/defaults when the Wiki index is not parseable.
+            // Keep project.json/defaults when the brain index is not parseable.
         }
     }
     const clean = (value, fallback) => String(value || fallback).trim().replace(/^["']|["']$/g, "");
@@ -1372,69 +1413,82 @@ async function commandProjectInit(args) {
     const language = args.language || "pt-BR";
     const market = args.market || "Brasil";
     const country = args.country || market;
-    for (const dir of ["wiki", "web", "sources", "workbench", "artifacts", ".seo-brain"])
+    for (const dir of ["brain", "conteudos", "web", "sources", "workbench", "artifacts", ".seo-brain"])
         mkdirp(path.join(p, dir));
-    copyDir(path.join(TEMPLATES_DIR, "wiki"), path.join(p, "wiki"));
-    writeJson(path.join(p, ".seo-brain", "project.json"), { name, created_at: nowIso(), language, market, country, status: "draft" });
-    const wikiIndex = path.join(p, "wiki", "index.md");
-    setFrontmatterValue(wikiIndex, { language: JSON.stringify(language), market: JSON.stringify(market), country: JSON.stringify(country) });
-    writeText(wikiIndex, fs.readFileSync(wikiIndex, "utf8")
-        .replace(/- Pa[ií]s\/mercado de atua[cç][aã]o: .*/, `- País/mercado de atuação: ${country}.`)
-        .replace(/- Idioma principal: .*/, `- Idioma principal: ${language}.`));
-    appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado.`, "pending");
+    for (const origem of PUBLIC_CONTENT_ORIGENS)
+        mkdirp(path.join(p, "conteudos", origem));
+    copyDir(path.join(TEMPLATES_DIR, "brain"), path.join(p, "brain"));
+    copyDir(path.join(TEMPLATES_DIR, "conteudos"), path.join(p, "conteudos"));
+    writeJson(path.join(p, ".seo-brain", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
+    const brainIndex = path.join(p, "brain", "index.md");
+    if (fs.existsSync(brainIndex)) {
+        setFrontmatterValue(brainIndex, { title: JSON.stringify(name), updated: JSON.stringify(today()) });
+    }
+    appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado em ${country}/${language}.`, "agent");
     printJson({ ok: true, project_dir: p });
 }
-async function commandWikiLint(args) {
+async function commandBrainLint(args) {
     const p = ensureProject();
-    const wiki = path.join(p, "wiki");
+    const brain = path.join(p, "brain");
     const findings = [];
-    for (const rel of REQUIRED_WIKI_PAGES) {
-        const file = path.join(wiki, rel);
+    for (const rel of REQUIRED_BRAIN_PAGES) {
+        const file = path.join(brain, rel);
         if (!fs.existsSync(file)) {
-            findings.push({ severity: "error", file: rel, message: "required Wiki page missing" });
+            findings.push({ severity: "error", file: rel, message: "required brain page missing" });
             continue;
         }
         const [fm, body] = parseFrontmatter(fs.readFileSync(file, "utf8"));
-        if (!("status" in fm))
-            findings.push({ severity: "warning", file: rel, message: "missing status frontmatter" });
-        if (STRATEGIC_PAGES.has(rel) && fm.status === "approved" && !fm.approved_by)
-            findings.push({ severity: "error", file: rel, message: "strategic page approved without approved_by" });
+        if (!fm.title)
+            findings.push({ severity: "warning", file: rel, message: "missing title frontmatter" });
+        if (!fm.updated)
+            findings.push({ severity: "warning", file: rel, message: "missing updated frontmatter" });
+        for (const forbidden of ["status", "judgment_level", "pillar", "owner", "approved_by", "approved_at"]) {
+            if (forbidden in fm)
+                findings.push({ severity: "warning", file: rel, message: `obsolete frontmatter field: ${forbidden}` });
+        }
         for (const match of body.matchAll(/\[\[([^\]]+)\]\]/g)) {
-            const target = match[1].split("|", 1)[0].trim();
-            const candidate = path.join(wiki, target.endsWith(".md") ? target : `${target}.md`);
+            const target = match[1].split("|", 1)[0].split("#", 1)[0].trim();
+            if (!target)
+                continue;
+            const candidate = path.join(brain, target.endsWith(".md") ? target : `${target}.md`);
             if (!fs.existsSync(candidate))
                 findings.push({ severity: "warning", file: rel, message: `broken wikilink: [[${match[1]}]]` });
         }
     }
     findings.push(...lintContentPublication(p));
     const result = { ok: !findings.some((f) => f.severity === "error"), findings };
-    writeJson(path.join(p, "workbench", "wiki-lint.json"), result);
-    appendLog("lint", "Wiki lint", ["workbench/wiki-lint.json"], `${findings.length} apontamentos encontrados.`, "not-required");
+    writeJson(path.join(p, "workbench", "brain-lint.json"), result);
+    appendLog("lint", "Brain lint", ["workbench/brain-lint.json"], `${findings.length} apontamentos encontrados.`, "agent");
     printJson(result);
 }
 function lintContentPublication(projectDir) {
     const findings = [];
-    const contentDir = path.join(projectDir, "wiki", "conteudos");
-    if (!fs.existsSync(contentDir))
+    const conteudosRoot = path.join(projectDir, "conteudos");
+    if (!fs.existsSync(conteudosRoot))
         return findings;
-    for (const name of fs.readdirSync(contentDir)) {
-        if (!name.endsWith(".md") || ["index.md", "topic-clusters.md"].includes(name))
+    for (const origem of fs.readdirSync(conteudosRoot)) {
+        const origemDir = path.join(conteudosRoot, origem);
+        if (!fs.statSync(origemDir).isDirectory())
             continue;
-        const brief = contentBriefFile(projectDir, path.basename(name, ".md"));
-        if (!brief)
-            continue;
-        let data;
-        try {
-            data = readContentBrief(brief);
+        for (const name of fs.readdirSync(origemDir)) {
+            if (!name.endsWith(".md") || name.startsWith("_"))
+                continue;
+            const brief = contentBriefFile(projectDir, path.basename(name, ".md"));
+            if (!brief)
+                continue;
+            let data;
+            try {
+                data = readContentBrief(brief);
+            }
+            catch {
+                findings.push({ severity: "warning", file: `conteudos/${origem}/${name}`, message: `brief is not valid YAML/JSON: ${path.relative(projectDir, brief)}` });
+                continue;
+            }
+            const text = fs.readFileSync(path.join(origemDir, name), "utf8");
+            const issues = validatePublicContentDraft(text, data);
+            for (const issue of issues)
+                findings.push({ severity: "error", file: `conteudos/${origem}/${name}`, message: issue });
         }
-        catch {
-            findings.push({ severity: "warning", file: `conteudos/${name}`, message: `brief is not valid YAML/JSON: ${path.relative(projectDir, brief)}` });
-            continue;
-        }
-        const text = fs.readFileSync(path.join(contentDir, name), "utf8");
-        const issues = validatePublicContentDraft(text, data);
-        for (const issue of issues)
-            findings.push({ severity: "error", file: `conteudos/${name}`, message: issue });
     }
     return findings;
 }
@@ -1478,10 +1532,10 @@ function validatePublicContentDraft(text, brief) {
     const internalPatterns = [
         /\bworkbench\b/i,
         /\bbriefing\b/i,
-        /\bwiki\b/i,
+        /\bbrain\b/i,
         /\blog\b/i,
         ...(allowAgentTerm ? [] : [/\bagente?s?\b/i]),
-        /project\/(?:workbench|wiki|sources|artifacts)\//i,
+        /project\/(?:workbench|brain|sources|artifacts|conteudos)\//i,
         /\.\.\/(?:\.\.\/)?sources\//i,
         /\.brief\.(?:ya?ml|json)\b/i,
     ];
@@ -1495,7 +1549,7 @@ function validatePublicContentDraft(text, brief) {
         const anchor = link.anchor.toLowerCase();
         if (genericAnchors.has(anchor))
             issues.push(`generic Markdown anchor: ${link.anchor}`);
-        if (/^(?:\.{1,2}\/|\/Users\/|project\/|workbench\/|wiki\/|sources\/)/i.test(link.href))
+        if (/^(?:\.{1,2}\/|\/Users\/|project\/|workbench\/|brain\/|sources\/)/i.test(link.href))
             issues.push(`non-public link target in public body: ${link.href}`);
         const withoutLink = link.sentence.replace(`[${link.anchor}](${link.href})`, link.anchor).trim();
         if (withoutLink.length < 20 || !/\s/.test(withoutLink))
@@ -1509,17 +1563,23 @@ function validatePublicContentDraft(text, brief) {
         issues.push("empty sources frontmatter");
     return Array.from(new Set(issues));
 }
-async function commandWikiApprove(args) {
+async function commandBrainApprove(args) {
     const rel = required(args, "page").replace(/^\/+/, "");
     const by = required(args, "by");
-    const file = path.join(ensureProject(), "wiki", rel);
+    if (!by.trim() || by.trim() === "agent" || by.trim() === "pendente") {
+        throw new CliError("--by must be a human approver name (not 'agent' or 'pendente').");
+    }
+    if (!AUTHORIAL_BRAIN_PAGES.has(rel)) {
+        throw new CliError(`brain-approve only accepts authorial brain pages (${[...AUTHORIAL_BRAIN_PAGES].join(", ")}). Got: ${rel}`);
+    }
+    const file = path.join(ensureProject(), "brain", rel);
     if (!fs.existsSync(file))
-        throw new CliError(`Wiki page not found: ${file}`);
-    setFrontmatterValue(file, { status: "approved", approved_by: JSON.stringify(by), approved_at: JSON.stringify(nowIso()), last_reviewed: JSON.stringify(today()) });
-    appendLog("approval", rel, [rel.replace(/\.md$/, "")], `Página ${rel} aprovada por ${by}.`, "approved");
+        throw new CliError(`Brain page not found: ${file}`);
+    setFrontmatterValue(file, { updated: JSON.stringify(today()) });
+    appendLog("aprovacao", `Aprovação ${rel}`, [rel.replace(/\.md$/, "")], `Página ${rel} aprovada por ${by}.`, by);
     printJson({ ok: true, approved: rel, by });
 }
-async function commandWikiIngest(args) {
+async function commandBrainIngest(args) {
     const source = required(args, "source");
     if (!fs.existsSync(source))
         throw new CliError(`Source not found: ${source}`);
@@ -1527,7 +1587,7 @@ async function commandWikiIngest(args) {
     const target = path.join(p, "sources", "manual", `${today()}-${slugify(path.basename(source, path.extname(source)))}${path.extname(source)}`);
     mkdirp(path.dirname(target));
     fs.copyFileSync(source, target);
-    appendLog("ingest", path.basename(source), [path.relative(p, target)], "Fonte manual adicionada ao projeto.", "not-required");
+    appendLog("ingest", `Ingestão de fonte: ${path.basename(source)}`, [path.relative(p, target)], "Fonte manual adicionada ao projeto.", "agent");
     printJson({ ok: true, source: target });
 }
 async function commandDataSetup(args) {
@@ -1932,7 +1992,7 @@ async function commandTopicCluster(args) {
     if (args.render_only) {
         if (!existingCluster)
             throw new CliError(`No cluster JSON found for seed "${seed}". Run topic-cluster first.`);
-        renderTopicClustersWiki(p);
+        renderTopicClustersBrain(p);
         appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], "Wiki rerenderizada a partir dos JSONs.", "not-required");
         printJson({ ok: true, rendered: true, file: clusterFile });
         return;
@@ -2039,15 +2099,15 @@ async function commandTopicCluster(args) {
         keyword_pool: pool,
         completeness_gaps: existingCluster?.completeness_gaps ?? [],
         open_questions: existingCluster?.open_questions ?? [],
-        approval: existingCluster?.approval ?? { approved_by: null, approved_at: null, status: "draft" },
+        approval: existingCluster?.approval ?? { aprovador: null, aprovado_em: null, status: "draft" },
     };
     writeJson(clusterFile, cluster);
-    renderTopicClustersWiki(p);
-    appendDataforseoBypassLog(seed, dataforseoBypass, [path.relative(p, clusterFile), "conteudos/topic-clusters"]);
-    appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}).`, "pending");
+    renderTopicClustersBrain(p);
+    appendDataforseoBypassLog(seed, dataforseoBypass, [path.relative(p, clusterFile), "topic-clusters"]);
+    appendLog("topic-cluster", seed, ["topic-clusters"], `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}).`, "pendente");
     printJson(cluster);
 }
-function renderTopicClustersWiki(projectDir) {
+function renderTopicClustersBrain(projectDir) {
     const dir = path.join(projectDir, "workbench", "topic-cluster");
     const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".json")).sort() : [];
     const clusters = [];
@@ -2057,20 +2117,13 @@ function renderTopicClustersWiki(projectDir) {
         }
         catch { /* skip malformed JSON */ }
     }
-    writeText(path.join(projectDir, "wiki", "conteudos", "topic-clusters.md"), renderTopicClustersMarkdown(clusters));
+    writeText(path.join(projectDir, "brain", "topic-clusters.md"), renderTopicClustersMarkdown(clusters));
 }
 function renderTopicClustersMarkdown(clusters) {
     const lines = [];
     lines.push("---");
     lines.push('title: "Topic clusters"');
-    lines.push("status: draft");
-    lines.push("pillar: estrategia");
-    lines.push("owner: shared");
-    lines.push(`last_reviewed: "${today()}"`);
-    lines.push("approved_by: null");
-    lines.push("approved_at: null");
-    lines.push("sources: []");
-    lines.push("judgment_level: strategic");
+    lines.push(`updated: "${today()}"`);
     lines.push("auto_generated: true");
     lines.push("---");
     lines.push("");
@@ -2329,55 +2382,52 @@ function headingSectionItems(body, heading, max = 5) {
     }
     return out;
 }
-function readWikiEvidencePage(projectDir, rel) {
-    const file = path.join(projectDir, "wiki", rel);
+function readBrainEvidencePage(projectDir, rel) {
+    const file = path.join(projectDir, "brain", rel);
     if (!fs.existsSync(file)) {
         return {
-            path: `wiki/${rel}`,
+            path: `brain/${rel}`,
             title: path.basename(rel, ".md"),
-            status: "missing",
-            approved_by: null,
-            approved_at: null,
+            filled: false,
             content_hash_sha256: null,
             excerpts_used: [],
-            strategic: STRATEGIC_PAGES.has(rel),
+            authorial: AUTHORIAL_BRAIN_PAGES.has(rel),
         };
     }
     const text = fs.readFileSync(file, "utf8");
     const [fm, body] = parseFrontmatter(text);
+    const filled = isBrainPageFilled(body);
     return {
-        path: `wiki/${rel}`,
+        path: `brain/${rel}`,
         title: cleanFrontmatterValue(fm.title) || firstMarkdownTitle(body, path.basename(rel, ".md")),
-        status: cleanFrontmatterValue(fm.status) || "unknown",
-        approved_by: cleanFrontmatterValue(fm.approved_by),
-        approved_at: cleanFrontmatterValue(fm.approved_at),
+        updated: cleanFrontmatterValue(fm.updated),
+        filled,
         content_hash_sha256: sha256Text(text),
         excerpts_used: wikiExcerpts(body),
-        strategic: STRATEGIC_PAGES.has(rel),
+        authorial: AUTHORIAL_BRAIN_PAGES.has(rel),
     };
 }
 function buildContentContextEvidence(projectDir, topicSlug) {
-    const pageRels = ["index.md", "eeat.md", "tecnologia/index.md", "tom-de-voz/index.md", "conteudos/index.md"];
-    const wikiPages = pageRels.map((rel) => readWikiEvidencePage(projectDir, rel));
-    const voicePage = wikiPages.find((page) => page.path === "wiki/tom-de-voz/index.md") || readWikiEvidencePage(projectDir, "tom-de-voz/index.md");
-    const voiceFile = path.join(projectDir, "wiki", "tom-de-voz", "index.md");
+    const pageRels = ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md"];
+    const brainPages = pageRels.map((rel) => readBrainEvidencePage(projectDir, rel));
+    const voicePage = brainPages.find((page) => page.path === "brain/voz.md") || readBrainEvidencePage(projectDir, "voz.md");
+    const voiceFile = path.join(projectDir, "brain", "voz.md");
     let voiceBody = "";
     if (fs.existsSync(voiceFile))
         voiceBody = parseFrontmatter(fs.readFileSync(voiceFile, "utf8"))[1];
-    const limitations = wikiPages
-        .filter((page) => page.strategic && page.status !== "approved")
-        .map((page) => `Página estratégica ${page.path} está ${page.status}; orientação usada como limitação visível, não como contexto aprovado.`);
+    const limitations = brainPages
+        .filter((page) => page.authorial && !page.filled)
+        .map((page) => `Página autoral ${page.path} está vazia; orientação usada como limitação visível, não como contexto aprovado.`);
     return {
         generated_at: nowIso(),
         topic_slug: topicSlug,
-        method: "read approved/draft Wiki pages, hash content, extract short orientation excerpts",
-        wiki_pages_read: wikiPages,
+        method: "read authorial brain pages, hash content, extract short orientation excerpts",
+        brain_pages_read: brainPages,
         voice_evidence: {
             path: voicePage.path,
             title: voicePage.title,
-            status: voicePage.status,
-            approved_by: voicePage.approved_by,
-            approved_at: voicePage.approved_at,
+            filled: voicePage.filled,
+            updated: voicePage.updated,
             content_hash_sha256: voicePage.content_hash_sha256,
             patterns: headingSectionItems(voiceBody, /^##\s+(Princípios|Padrões)/i),
             avoid: headingSectionItems(voiceBody, /^##\s+Evitar/i),
@@ -2389,12 +2439,11 @@ function buildContentContextEvidence(projectDir, topicSlug) {
 function summarizeContextEvidence(evidence, projectDir, evidencePath) {
     return {
         path: path.relative(projectDir, evidencePath),
-        wiki_pages_read: (evidence.wiki_pages_read || []).map((page) => ({
+        brain_pages_read: (evidence.brain_pages_read || []).map((page) => ({
             path: page.path,
             title: page.title,
-            status: page.status,
-            approved_by: page.approved_by,
-            approved_at: page.approved_at,
+            filled: page.filled,
+            updated: page.updated,
             content_hash_sha256: page.content_hash_sha256,
             excerpts_used: (page.excerpts_used || []).slice(0, 2),
         })),
@@ -2620,12 +2669,14 @@ async function buildContentResearchPacket(topic, keyword, topicSlug, keywordSlug
     };
 }
 function contentVoiceContext(projectDir) {
-    const voicePath = path.join(projectDir, "wiki", "tom-de-voz", "index.md");
-    const [voiceFm] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
+    const voicePath = path.join(projectDir, "brain", "voz.md");
+    const [voiceFm, voiceBody] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
+    const filled = voiceBody.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]+>/g, "").trim().length > 50;
     return {
         path: fs.existsSync(voicePath) ? path.relative(projectDir, voicePath) : null,
-        status: cleanFrontmatterValue(voiceFm.status) || "missing",
-        title: cleanFrontmatterValue(voiceFm.title) || "Tom de voz",
+        filled,
+        title: cleanFrontmatterValue(voiceFm.title) || "Voz",
+        updated: cleanFrontmatterValue(voiceFm.updated),
     };
 }
 function buildContentBrief(research, projectDir, approvalMode, contextEvidence) {
@@ -2664,7 +2715,8 @@ function buildContentBrief(research, projectDir, approvalMode, contextEvidence) 
             phase: "briefing",
             mode: approvalMode,
             status: "pending",
-            approved_by: null,
+            aprovador: null,
+            aprovado_em: null,
             decided_at: null,
             visible_missing_analysis: bypasses.map((item) => item.consequence).filter(Boolean),
             notes: null,
@@ -2676,7 +2728,7 @@ function buildContentBrief(research, projectDir, approvalMode, contextEvidence) 
             promise: `Explicar ${research.topic} com foco em aplicação prática para SEO, sem linguagem interna de processo.`,
             target_words: targetWords,
             must_include: ["resposta direta no início", "orientação prática", "limites de evidência", "próximo passo útil para o leitor"],
-            must_avoid: ["linguagem de Wiki, workbench, briefing, log ou agente", "promessa de ranking sem evidência", "links para arquivos locais", "menção a concorrentes da SERP em prosa", "anchors genéricos"],
+            must_avoid: ["linguagem de brain, workbench, briefing, log ou agente", "promessa de ranking sem evidência", "links para arquivos locais", "menção a concorrentes da SERP em prosa", "anchors genéricos"],
             source_requirements: ["usar URLs públicas canônicas no corpo quando houver citação externa", "manter snapshots e reports apenas em metadados"],
             outline: outlinePlan.outline,
             outline_capacity: outlinePlan.capacity,
@@ -2792,21 +2844,21 @@ function validateContextEvidenceForApproval(brief, projectDir, notes = "") {
     const contextPath = context?.path ? path.join(projectDir, String(context.path)) : "";
     if (!context?.path || !fs.existsSync(contextPath))
         errors.push("missing-context-evidence-file");
-    const wikiPages = Array.isArray(context?.wiki_pages_read) ? context.wiki_pages_read : [];
-    if (!wikiPages.length)
-        errors.push("missing-wiki-pages-read");
-    for (const page of wikiPages) {
-        if (!page?.path || !page?.status || !("content_hash_sha256" in page))
-            errors.push(`invalid-wiki-evidence:${page?.path || "unknown"}`);
-        if (page?.status !== "missing" && !page?.content_hash_sha256)
-            errors.push(`missing-wiki-hash:${page?.path || "unknown"}`);
+    const brainPages = Array.isArray(context?.brain_pages_read) ? context.brain_pages_read : [];
+    if (!brainPages.length)
+        errors.push("missing-brain-pages-read");
+    for (const page of brainPages) {
+        if (!page?.path || !("content_hash_sha256" in page))
+            errors.push(`invalid-brain-evidence:${page?.path || "unknown"}`);
+        if (page?.filled !== false && !page?.content_hash_sha256)
+            errors.push(`missing-brain-hash:${page?.path || "unknown"}`);
     }
     const voice = context?.voice_evidence;
-    if (!voice || typeof voice !== "object" || !voice.path || !voice.status || !("content_hash_sha256" in voice))
+    if (!voice || typeof voice !== "object" || !voice.path || !("content_hash_sha256" in voice))
         errors.push("missing-voice-evidence");
-    if (voice?.status !== "missing" && !voice?.content_hash_sha256)
+    if (voice?.filled !== false && !voice?.content_hash_sha256)
         errors.push("missing-voice-hash");
-    if (voice?.status !== "approved" && !/\b(voz|voice|tom)\b/i.test(notes))
+    if (voice?.filled !== true && !/\b(voz|voice|tom)\b/i.test(notes))
         errors.push("voice-context-not-acknowledged");
     if (brief.brief?.outline_capacity?.can_support_target !== true)
         errors.push("outline-cannot-support-target");
@@ -2825,7 +2877,7 @@ function renderContentDraft(brief) {
     const fallbackOutline = buildDimensionedContentOutline(topic, null, targetWords).outline;
     const outline = Array.isArray(brief.brief?.outline) && brief.brief.outline.length ? brief.brief.outline : fallbackOutline;
     const sectionItems = outline.filter((item) => Number(item.level) === 2);
-    const voiceStatus = String(brief.voice_context?.status || "missing");
+    const voiceFilled = brief.voice_context?.filled === true;
     const evidenceSources = asStringList(brief.evidence_sources);
     const citations = Array.isArray(brief.public_citations) ? brief.public_citations : [];
     const contextEvidencePath = String(brief.context_evidence?.path || `workbench/content/${slug}/context-evidence.yaml`);
@@ -2833,7 +2885,11 @@ function renderContentDraft(brief) {
         ? `\n\nUma referência pública útil para aprofundar o tema é [${String(citations[0].title)}](${String(citations[0].url)}).`
         : "";
     const sections = sectionItems.map((item) => `## ${String(item.title || "Seção")}\n\n${String(item.purpose || "Desenvolver esta seção com orientação pública, evidência proporcional e próximos passos claros.")}`).join("\n\n");
-    return `---\ntitle: ${yamlString(topic)}\nstatus: draft\npillar: conteudo\nowner: shared\njudgment_level: editorial\npublic_content: true\ncontent_type: article\nurl: "/${slug}/"\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nbrief_status: approved\nvoice_status: ${yamlString(voiceStatus)}\ntarget_words: ${targetWords}\nsource_policy: cited-public-claims\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\napproval_status: pending\napproved_by: null\napproved_at: null\n---\n\n# ${topic}\n\n${topic} é uma busca que precisa entregar uma resposta clara, útil e proporcional ao que já pode ser comprovado. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar como aplicar a ideia e deixar explícitos os limites da orientação.${citationLine}\n\n${sections}\n`;
+    const origem = String(brief.origem || "blog");
+    const publishedAt = String(brief.published_at || today());
+    const sourceUrl = String(brief.source_url || "");
+    const area = String(brief.area || "");
+    return `---\ntitle: ${yamlString(topic)}\nslug: ${yamlString(slug)}\npublished_at: ${yamlString(publishedAt)}\nsource_url: ${yamlString(sourceUrl)}\norigem: ${yamlString(origem)}\narea: ${yamlString(area)}\npublic_content: true\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nvoice_filled: ${voiceFilled}\ntarget_words: ${targetWords}\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\n---\n\n# ${topic}\n\n${topic} é uma busca que precisa entregar uma resposta clara, útil e proporcional ao que já pode ser comprovado. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar como aplicar a ideia e deixar explícitos os limites da orientação.${citationLine}\n\n${sections}\n`;
 }
 function markdownH2Count(text) {
     const [, body] = parseFrontmatter(text);
@@ -2983,7 +3039,8 @@ async function commandContentSeo(args) {
             phase: "briefing",
             mode: brief.approval?.mode || "chat",
             status: decision,
-            approved_by: decision === "approved" ? approvedBy : null,
+            aprovador: decision === "approved" ? approvedBy : null,
+            aprovado_em: decision === "approved" ? today() : null,
             decided_at: nowIso(),
             notes: notes || null,
             visible_missing_analysis: brief.approval?.visible_missing_analysis || [],
@@ -3004,7 +3061,7 @@ async function commandContentSeo(args) {
     if (phase === "write") {
         assertBriefReadyForWriting(brief, p);
         validateContextEvidenceForApproval(brief, p, String(brief.approval?.notes || ""));
-        const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, String(brief.approval?.approved_by || "agent"), "write phase");
+        const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, String(brief.approval?.aprovador || "agent"), "write phase");
         printJson({ ok: true, phase, draft_path: draftResult.draft_path, brief_path: briefPath });
         return;
     }
@@ -3028,14 +3085,17 @@ async function commandContentSeo(args) {
         throw new CliError("Last publication checks did not pass.");
     if (fs.existsSync(paths.wordCountPath) && !readYaml(paths.wordCountPath).ok)
         throw new CliError("Word-count gate did not pass.");
-    const target = path.join(p, "wiki", "conteudos", `${paths.topicSlug}.md`);
+    const origem = String(brief.origem || "blog");
+    if (!PUBLIC_CONTENT_ORIGENS.has(origem))
+        throw new CliError(`Invalid origem: ${origem}. Use blog, linkedin, podcast, or outros.`);
+    const target = path.join(p, "conteudos", origem, `${paths.topicSlug}.md`);
     writeText(target, fs.readFileSync(paths.draftPath, "utf8"));
-    setFrontmatterValue(target, { status: "published", approval_status: "published", approved_by: yamlString(approvedBy), approved_at: yamlString(nowIso()) });
+    setFrontmatterValue(target, { published_at: yamlString(today()), origem: yamlString(origem) });
     brief.draft_status = "published";
-    brief.publication = { status: "published", path: path.relative(p, target), approved_by: approvedBy, approved_at: nowIso() };
+    brief.publication = { path: path.relative(p, target), aprovador: approvedBy, aprovado_em: nowIso(), origem };
     writeContentBrief(briefPath, brief);
-    appendOperationalLog("content-promote", paths.topic, [path.relative(p, target), path.relative(p, briefPath), path.relative(p, paths.checkPath)], "published", `Conteúdo público publicado por ${approvedBy}.`);
-    printJson({ ok: true, phase, promoted_path: target, approved_by: approvedBy });
+    appendLog("publicacao", `${paths.topic}`, [path.relative(p, target), path.relative(p, briefPath), path.relative(p, paths.checkPath)], `Conteúdo público publicado por ${approvedBy} em ${origem}.`, approvedBy);
+    printJson({ ok: true, phase, promoted_path: target, aprovador: approvedBy });
 }
 async function commandTechnicalSeo(args) {
     let html;
@@ -3127,9 +3187,9 @@ async function commandAuditSkills(args) {
 }
 const COMMANDS = {
     "project-init": commandProjectInit,
-    "wiki-lint": commandWikiLint,
-    "wiki-approve": commandWikiApprove,
-    "wiki-ingest": commandWikiIngest,
+    "brain-lint": commandBrainLint,
+    "brain-approve": commandBrainApprove,
+    "brain-ingest": commandBrainIngest,
     "data-setup": commandDataSetup,
     "serp-extract": commandSerpExtract,
     "keyword-research": commandKeywordResearch,

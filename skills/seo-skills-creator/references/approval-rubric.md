@@ -11,7 +11,7 @@ Maximum iterations: 5 before escalation.
 | Dimension | Weight | Scoring | Criteria |
 |---|---:|---|---|
 | Task clarity | 20 | 0-100 | The skill teaches one task in under 3 minutes of reading and makes routing boundaries clear. |
-| Self-sufficiency | 15 | 0 or 100 | The executor can complete the fixture from this skill alone. Required reads from `_shared/` or `_legacy/` score 0. |
+| Self-sufficiency | 15 | 0 or 100 | The executor can complete the fixture from this skill alone. Required reads from `_shared/` score 0. |
 | Examples | 15 | 0 or 100 | At least one strong example and one weak example are present and materially contrast behavior. |
 | Output format | 15 | 0-100 | The deliverable schema/template is specific enough for stable executor output. |
 | Critical points | 10 | 0-100 | Non-negotiable invariants are explicit: anti-fabrication, source/synthesis separation, approval gates, language fidelity. |
@@ -49,8 +49,8 @@ Maximum iterations: 5 before escalation.
 ## Automatic Blockers
 
 - Fabricates keyword volume, backlinks, credentials, awards, clients, or proof.
-- Allows a strategic wiki page to be approved without human approval.
-- Stores drafts or hypotheses in `project/wiki/`.
+- Allows an authorial brain page to change without an approved `tipo: aprovacao` entry in `project/brain/log.md`.
+- Stores drafts or hypotheses in `project/brain/`.
 - Tells a nontechnical user to run terminal commands as the primary approval or sensitive-input flow.
 - Strips accents from pt-BR human-facing prose.
-- Requires `_legacy/` or shared references for normal execution.
+- Requires shared references for normal execution.

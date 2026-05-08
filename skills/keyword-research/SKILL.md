@@ -2,7 +2,7 @@
 name: keyword-research
 description: When the user wants keyword research, keyword expansion, search volume, CPC, competition, long-tail opportunities, or clustering inputs for a market. Also use before topic-cluster or content planning work that needs keyword evidence.
 metadata:
-  version: 1.1.0
+  version: 1.0.0
 ---
 
 # Keyword Research
@@ -17,17 +17,17 @@ Do not use this skill to perform full SERP analysis, approve strategic positioni
 
 ## Critical Points
 
-- DataForSEO is the default provider for keyword metrics and suggestions. Run `node tools/clis/dataforseo.js status` first; if `configured: false`, invoke the `data-setup` skill so the user can configure credentials via the local browser handoff. Bypass is only allowed when the user explicitly refuses to configure DataForSEO.
+- DataForSEO is the default provider for keyword metrics and suggestions. Use it when configured.
 - Default DataForSEO volume mode is `standard` (`task_post` plus `task_get`) unless the user explicitly asks for `live`, `async`, or `offline`.
 - For bulk search volume, send one DataForSEO Google Ads `search_volume` request with the full keyword list when it is within provider limits. Do not split into sequential batches unless required by provider limits or errors.
 - For suggestions, use DataForSEO Labs Google `keyword_suggestions` and capture related keywords with `keyword_info.search_volume`, `keyword_info.competition`, `keyword_info.cpc`, and available `keyword_difficulty` and `search_intent_info`.
-- If the user explicitly refuses to configure DataForSEO and approves another provider, record the provider, reason, and limitations. Without DataForSEO and without an approved substitute, stop before claiming volume, CPC, competition, difficulty, or trends.
+- If DataForSEO is unavailable, stop before claiming volume, CPC, competition, difficulty, or trends unless the user explicitly approves another provider. Record the provider, reason, and limitations.
 - Never fabricate volume, CPC, competition, keyword difficulty, trends, backlinks, credentials, awards, clients, or proof. Unavailable metrics must be `null`, not estimated.
 - Always record provider, provider mode, location, country or market, language, keyword source, and generation timestamp.
 - Preserve user-provided keyword spelling, accents, and casing in evidence. Do not translate keywords unless the user asks.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
-- Keep raw source data separate from synthesis. All artifacts for a research run live under `project/keywords/<seed-slug>/`. Raw provider payloads go under `project/keywords/<seed-slug>/sources/dataforseo/`; normalized report goes to `project/keywords/<seed-slug>/report.yaml`.
-- Do not write keyword hypotheses, unapproved strategy, or draft recommendations to `project/wiki/`.
+- Keep raw source data separate from synthesis. Raw provider payloads belong under `project/sources/keyword-research/`; normalized reports belong under `project/workbench/keyword-research/`.
+- Do not write keyword hypotheses, unapproved strategy, or draft recommendations to `project/brain/`.
 
 ## Framework
 
@@ -49,7 +49,7 @@ If the market or language is missing, use explicit project context when availabl
 
 **Weak:** "Use search snippets, intuition, or a prior draft to decide that volume is probably high."
 
-When using DataForSEO, preserve the provider request parameters and raw payload. For one seed, save raw evidence as `project/keywords/<seed-slug>/sources/dataforseo/<stamp>-<seed-slug>.json`. For bulk volume, use `project/keywords/<seed-slug>/sources/dataforseo/<stamp>-bulk-<count>.json`. For suggestions, use `project/keywords/<seed-slug>/sources/dataforseo/<stamp>-<seed-slug>.suggestions.json`.
+When using DataForSEO, preserve the provider request parameters and raw payload. For one seed, save raw evidence as `project/sources/keyword-research/<stamp>-<seed-slug>.json`. For bulk volume, use `project/sources/keyword-research/<stamp>-bulk-<count>.json`. For suggestions, use `project/sources/keyword-research/<stamp>-<seed-slug>.suggestions.json`.
 
 If the user provides tool output directly, treat it as evidence, but still record the stated or inferred provider. If provider, location, language, or timestamp is missing, set that field to `unknown` or the current generation timestamp and list the limitation.
 
@@ -79,13 +79,13 @@ Use simple grouping that fits the evidence: core terms, variants, long-tail term
 
 **Strong:** "Next action: run `seo-analysis` for the top candidate terms before choosing content priorities."
 
-**Weak:** "Publish a strategic wiki page from this keyword list."
+**Weak:** "Publish strategic claims into `brain/` from this keyword list."
 
 Keyword research can suggest analysis steps, but it does not approve topic clusters, content calendars, strategic pages, or public content. Keep limitations visible, especially missing metrics, partial provider responses, language mismatch, or non-DataForSEO evidence.
 
 ## Output Format
 
-Write the normalized report to `project/keywords/<seed-or-topic-slug>/report.yaml` unless the user asks for an inline preview first. Use this structure:
+Write the normalized report to `project/workbench/keyword-research/<seed-or-topic-slug>.yaml` unless the user asks for an inline preview first. Use this structure:
 
 ```yaml
 status: complete | blocked | incomplete
@@ -106,7 +106,7 @@ inputs:
   limit: null
 source_evidence:
   raw_payloads:
-    - path: project/keywords/<seed-slug>/sources/dataforseo/...
+    - path: project/sources/keyword-research/...
       provider: ""
       request_type: search_volume | keyword_suggestions | user_supplied
       captured_at: ""
@@ -133,9 +133,9 @@ synthesis:
   risks: []
 limitations: []
 next_analysis_steps: []
-wiki_promotion:
+brain_promotion:
   allowed: false
-  reason: "Keyword research is evidence and synthesis only; strategic wiki promotion requires a separate approved workflow."
+  reason: "Keyword research is evidence and synthesis only; promotion to brain pages requires a separate approved workflow with `tipo: aprovacao` in `brain/log.md`."
 ```
 
 If blocked because DataForSEO is unavailable and no approved substitute exists, return `status: blocked`, name the missing provider gate, and do not invent metrics.
@@ -152,17 +152,16 @@ Output: "Use DataForSEO or the provided DataForSEO fixture, record Brazil, `pt-B
 
 Input: "Find long-tail keyword ideas from `seo agêntico`, limit 100."
 
-Output: "Use DataForSEO Labs keyword suggestions, store the raw suggestions payload under `project/keywords/<seed-slug>/sources/dataforseo/`, normalize related keywords with available volume, CPC, competition, difficulty, and intent, and set missing metrics to `null`."
+Output: "Use DataForSEO Labs keyword suggestions, store the raw suggestions payload under `project/sources/keyword-research/`, normalize related keywords with available volume, CPC, competition, difficulty, and intent, and set missing metrics to `null`."
 
 ### Example: Weak Execution
 
 Input: "Give me keyword priorities for agentic SEO."
 
-Output: "Guess volumes, translate `seo agêntico` to English, rank keywords by assumed popularity, and write the priorities to `project/wiki/`." This is weak because it fabricates metrics, changes the language without permission, and promotes unapproved synthesis to the wiki.
+Output: "Guess volumes, translate `seo agêntico` to English, rank keywords by assumed popularity, and write the priorities to `project/brain/`." This is weak because it fabricates metrics, changes the language without permission, and promotes unapproved synthesis to authorial brain pages.
 
 ## Related Skills
 
-- `data-setup`: invoke when DataForSEO credentials are missing.
 - `seo-analysis`: use after keyword research when the user needs SERP evidence, competitor comparison, target page gaps, or player-score interpretation.
 - `topic-cluster`: use after enough keyword and SERP evidence exists to organize terms into clusters.
 - `content-seo`: use after approved analysis when the user wants a content brief or draft.

@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { runHandoff } from "../companion-server.mjs";
 import { newHandoffId, readIdentity, writeIdentity, sha256 } from "../companion-state.mjs";
-import { appendLogEntry, parseFrontmatter } from "../wiki-page.mjs";
+import { appendLogEntry, parseFrontmatter } from "../brain-page.mjs";
 
 function parseArgs(argv) {
   const out = {};
@@ -141,7 +141,7 @@ export async function handleSubmit(body, ctx, projectRoot) {
   }
 
   const today = todayIso();
-  const logFile = join(projectRoot, "wiki", "log", "index.md");
+  const logFile = join(projectRoot, "brain", "log.md");
   const summaryParts = [];
   if (classification["accepted-v2"].length) {
     summaryParts.push(`aceitos como propostos: ${classification["accepted-v2"].length}`);
@@ -156,16 +156,17 @@ export async function handleSubmit(body, ctx, projectRoot) {
     const klass = Object.keys(classification).find((k) => classification[k].includes(f.path));
     return `${f.path}: ${klass}`;
   });
+  const accepted = classification["unchanged-from-v1"].length !== ctx.files.length;
   appendLogEntry(logFile, {
     date: today,
-    eventType: "wiki-review",
-    title: `review revisado em ${ctx.files.length} arquivo(s)`,
-    type: "operational-decision",
-    actor: approverClean,
-    files: ctx.files.map((f) => f.path.replace(/^wiki\//, "").replace(/\.md$/, "")),
-    decision: classification["unchanged-from-v1"].length === ctx.files.length ? "rejected" : "approved",
-    summary: summaryParts.join("; ") + " | " + detailLines.join(" / "),
-    notes: notes ? notes.trim() : null,
+    tipo: accepted ? "aprovacao" : "decisao",
+    titulo: `Review revisado em ${ctx.files.length} arquivo(s)`,
+    escopo: ctx.files.map((f) => f.path.replace(/^brain\//, "").replace(/\.md$/, "")).join(", "),
+    decisao: summaryParts.join("; ") + " | " + detailLines.join(" / "),
+    evidencia: ctx.files.map((f) => f.path).join(", "),
+    aprovador: approverClean,
+    aprovado_em: accepted ? today : null,
+    notas: notes ? notes.trim() : null,
   });
 
   return { ok: true, approver: approverClean, classification };

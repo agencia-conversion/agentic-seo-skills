@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -16,17 +16,27 @@ execFileSync(bin, ["project-init", "Context test", "--market", "Portugal", "--co
   env,
 });
 
-const wikiIndex = readFileSync(join(project, "wiki", "index.md"), "utf8");
 const config = JSON.parse(readFileSync(join(project, ".seo-brain", "project.json"), "utf8"));
-
 assert.equal(config.country, "Portugal");
 assert.equal(config.market, "Portugal");
 assert.equal(config.language, "pt-PT");
-assert.ok(wikiIndex.includes('country: "Portugal"'));
-assert.ok(wikiIndex.includes('market: "Portugal"'));
-assert.ok(wikiIndex.includes('language: "pt-PT"'));
-assert.ok(wikiIndex.includes("- País/mercado de atuação: Portugal."));
-assert.ok(wikiIndex.includes("- Idioma principal: pt-PT."));
+assert.equal(config.schema_version, "2.0.0");
+assert.equal(config.single_project_root, "project");
+
+const brainIndex = readFileSync(join(project, "brain", "index.md"), "utf8");
+assert.ok(brainIndex.includes('title: "Context test"'));
+
+for (const page of ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md", "topic-clusters.md", "log.md"]) {
+  assert.ok(existsSync(join(project, "brain", page)), `missing brain/${page}`);
+}
+for (const origem of ["blog", "linkedin", "podcast", "outros"]) {
+  assert.ok(existsSync(join(project, "conteudos", origem, "_template.md")), `missing conteudos/${origem}/_template.md`);
+}
+
+const log = readFileSync(join(project, "brain", "log.md"), "utf8");
+assert.match(log, /## \d{4}-\d{2}-\d{2} - Projeto criado/);
+assert.match(log, /tipo: decisao/);
+assert.match(log, /Portugal/);
 
 rmSync(tmp, { recursive: true, force: true });
 console.log("project context ok");
