@@ -114,6 +114,9 @@ function writeJsonBrief(name, override = {}) {
   assert.equal(updated.approval.aprovador, "Diego Ivo");
   assert.equal(updated.draft_status, "draft");
   assert.equal(updated.draft_path, "artifacts/contents/o-que-e-seo-agentico/draft.md");
+  const draft = readFileSync(result.draft, "utf8");
+  assert.match(draft, /source_policy: frontmatter-consulted-sources/);
+  assert.doesNotMatch(draft, /\]\(https?:\/\//);
   const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
   assert.match(log, /tipo: decisao/);
   assert.match(log, /aprovador: Diego Ivo/);

@@ -47,7 +47,7 @@ function competitorPage(title, h1, words) {
 
 function longBody(title) {
   const sentence = "Esta seção aprofunda a orientação pública com critérios verificáveis, exemplos proporcionais e limites claros para evitar promessa sem evidência. ";
-  return `# ${title}\n\nA página explica o tema com uma referência pública em [anchor descritivo](https://example.com/referencia-publica).\n\n## O que significa\n\n${sentence.repeat(140)}\n\n## Como aplicar na prática\n\n${sentence.repeat(140)}\n\n## Erros comuns\n\n${sentence.repeat(140)}\n\n## Como avançar\n\n${sentence.repeat(140)}\n`;
+  return `# ${title}\n\nA página explica o tema com uma referência pública consultada somente no frontmatter.\n\n## O que significa\n\n${sentence.repeat(140)}\n\n## Como aplicar na prática\n\n${sentence.repeat(140)}\n\n## Erros comuns\n\n${sentence.repeat(140)}\n\n## Como avançar\n\n${sentence.repeat(140)}\n`;
 }
 
 run(["project-init", "Process Test"]);
@@ -127,7 +127,25 @@ run(["project-init", "Process Test"]);
 
   const draft = readFileSync(join(artifactDir, "draft.md"), "utf8");
   const frontmatter = draft.slice(0, draft.indexOf("\n---", 4) + 4);
-  writeFileSync(join(artifactDir, "draft.md"), `${frontmatter}\n\n${longBody("SEO sem SERP")}`, "utf8");
+  const sourceFrontmatter = frontmatter.replace(/sources:\n(?:  - .+\n)+/, 'sources:\n  - "https://example.com/referencia-publica"\n');
+
+  writeFileSync(join(artifactDir, "draft.md"), `${frontmatter}\n\n# SEO sem SERP\n\n## O que significa\n\nTexto curto com heading empilhado.\n`, "utf8");
+  const badHeadingCheck = run(["content-seo", "--phase", "check", "--topic", "SEO sem SERP"]);
+  assert.notEqual(badHeadingCheck.status, 0);
+  assert.match(badHeadingCheck.stdout, /heading missing preceding paragraph/);
+
+  writeFileSync(join(artifactDir, "draft.md"), `${frontmatter}\n\n# SEO sem SERP\n\nEste parágrafo antecede a lista, mas há itens demais para um post público.\n\n- Um\n- Dois\n- Três\n- Quatro\n`, "utf8");
+  const badBulletsCheck = run(["content-seo", "--phase", "check", "--topic", "SEO sem SERP"]);
+  assert.notEqual(badBulletsCheck.status, 0);
+  assert.match(badBulletsCheck.stdout, /too many unordered bullet items in public body: 4\/3/);
+
+  writeFileSync(join(artifactDir, "draft.md"), `${sourceFrontmatter}\n\n# SEO sem SERP\n\nEste parágrafo introduz a seção de fontes, que não deve aparecer no corpo.\n\n## Fontes públicas consultadas\n\nVeja a [referência pública](https://example.com/referencia-publica).\n`, "utf8");
+  const badSourcesCheck = run(["content-seo", "--phase", "check", "--topic", "SEO sem SERP"]);
+  assert.notEqual(badSourcesCheck.status, 0);
+  assert.match(badSourcesCheck.stdout, /consulted source section in public body/);
+  assert.match(badSourcesCheck.stdout, /consulted public source link in public body/);
+
+  writeFileSync(join(artifactDir, "draft.md"), `${sourceFrontmatter}\n\n${longBody("SEO sem SERP")}`, "utf8");
   const goodCheck = run(["content-seo", "--phase", "check", "--topic", "SEO sem SERP"]);
   assert.equal(goodCheck.status, 0, goodCheck.stderr);
   assert.equal(JSON.parse(goodCheck.stdout).ok, true);

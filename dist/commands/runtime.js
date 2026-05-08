@@ -1513,11 +1513,81 @@ function markdownLinks(body) {
     }
     return out;
 }
+function searchNormalized(value) {
+    return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+}
+function normalizedPublicUrl(value) {
+    const raw = value.trim().replace(/^["']|["']$/g, "");
+    if (!/^https?:\/\//i.test(raw))
+        return null;
+    try {
+        const url = new URL(raw);
+        url.hash = "";
+        return url.toString().replace(/\/$/, "");
+    }
+    catch {
+        return raw.replace(/#.*$/, "").replace(/\/$/, "");
+    }
+}
+function publicSourceUrls(fm, brief) {
+    const urls = new Set();
+    for (const source of frontmatterListValue(fm, "sources")) {
+        const normalized = normalizedPublicUrl(source);
+        if (normalized)
+            urls.add(normalized);
+    }
+    for (const citation of Array.isArray(brief.public_citations) ? brief.public_citations : []) {
+        const normalized = normalizedPublicUrl(String(citation?.url || citation));
+        if (normalized)
+            urls.add(normalized);
+    }
+    return urls;
+}
+function unorderedBulletCount(body) {
+    return (body.match(/^\s{0,3}[-*+]\s+\S/gm) || []).length;
+}
+function frontmatterBoolean(fm, key) {
+    return cleanFrontmatterValue(fm[key]) === "true";
+}
+function isMarkdownHeading(line) {
+    return line.match(/^\s{0,3}(#{1,6})\s+\S/);
+}
+function isParagraphLine(line) {
+    const trimmed = line.trim();
+    return Boolean(trimmed)
+        && !isMarkdownHeading(trimmed)
+        && !/^\s{0,3}[-*+]\s+\S/.test(line)
+        && !/^\s{0,3}\d+[.)]\s+\S/.test(line)
+        && !/^\s{0,3}>/.test(line)
+        && !/^\s{0,3}\|/.test(line)
+        && !/^\s{0,3}<\/?[a-z][^>]*>\s*$/i.test(line);
+}
+function headingSpacingIssues(body) {
+    const issues = [];
+    let previousNonEmpty = "";
+    for (const line of body.split(/\r?\n/)) {
+        const heading = isMarkdownHeading(line);
+        if (heading && heading[1].length > 1 && !isParagraphLine(previousNonEmpty)) {
+            issues.push(`heading missing preceding paragraph: ${line.trim()}`);
+        }
+        if (line.trim())
+            previousNonEmpty = line;
+    }
+    return issues;
+}
 function validatePublicContentDraft(text, brief) {
     const issues = [];
     const [fm, body] = parseFrontmatter(text);
     const cleanBody = body.replace(/```[\s\S]*?```/g, "");
     const lower = cleanBody.toLowerCase();
+    const searchableBody = searchNormalized(cleanBody);
+    const bulletCount = unorderedBulletCount(cleanBody);
+    const bulletException = frontmatterBoolean(fm, "bullet_exception") && Boolean(cleanFrontmatterValue(fm.bullet_exception_reason));
+    if (bulletCount > 3 && !bulletException)
+        issues.push(`too many unordered bullet items in public body: ${bulletCount}/3`);
+    if (searchableBody.includes("fontes publicas consultadas"))
+        issues.push("consulted source section in public body: Fontes públicas consultadas");
+    issues.push(...headingSpacingIssues(cleanBody));
     const topicalText = [brief.topic, brief.keyword, brief.brief?.promise].map((v) => String(v || "").toLowerCase()).join(" ");
     const allowAgentTerm = /\bag[eê]nt/i.test(topicalText);
     const forbidden = [
@@ -1545,12 +1615,16 @@ function validatePublicContentDraft(text, brief) {
     }
     const links = markdownLinks(cleanBody);
     const genericAnchors = new Set(["aqui", "clique aqui", "saiba mais", "link", "neste link", "leia mais"]);
+    const consultedSourceUrls = publicSourceUrls(fm, brief);
     for (const link of links) {
         const anchor = link.anchor.toLowerCase();
         if (genericAnchors.has(anchor))
             issues.push(`generic Markdown anchor: ${link.anchor}`);
         if (/^(?:\.{1,2}\/|\/Users\/|project\/|workbench\/|brain\/|sources\/)/i.test(link.href))
             issues.push(`non-public link target in public body: ${link.href}`);
+        const normalizedHref = normalizedPublicUrl(link.href);
+        if (normalizedHref && consultedSourceUrls.has(normalizedHref))
+            issues.push(`consulted public source link in public body: ${link.href}`);
         const withoutLink = link.sentence.replace(`[${link.anchor}](${link.href})`, link.anchor).trim();
         if (withoutLink.length < 20 || !/\s/.test(withoutLink))
             issues.push(`linked sentence fails link-removed test: ${link.anchor}`);
@@ -2879,17 +2953,13 @@ function renderContentDraft(brief) {
     const sectionItems = outline.filter((item) => Number(item.level) === 2);
     const voiceFilled = brief.voice_context?.filled === true;
     const evidenceSources = asStringList(brief.evidence_sources);
-    const citations = Array.isArray(brief.public_citations) ? brief.public_citations : [];
     const contextEvidencePath = String(brief.context_evidence?.path || `workbench/content/${slug}/context-evidence.yaml`);
-    const citationLine = citations.length
-        ? `\n\nUma referência pública útil para aprofundar o tema é [${String(citations[0].title)}](${String(citations[0].url)}).`
-        : "";
     const sections = sectionItems.map((item) => `## ${String(item.title || "Seção")}\n\n${String(item.purpose || "Desenvolver esta seção com orientação pública, evidência proporcional e próximos passos claros.")}`).join("\n\n");
     const origem = String(brief.origem || "blog");
     const publishedAt = String(brief.published_at || today());
     const sourceUrl = String(brief.source_url || "");
     const area = String(brief.area || "");
-    return `---\ntitle: ${yamlString(topic)}\nslug: ${yamlString(slug)}\npublished_at: ${yamlString(publishedAt)}\nsource_url: ${yamlString(sourceUrl)}\norigem: ${yamlString(origem)}\narea: ${yamlString(area)}\npublic_content: true\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nvoice_filled: ${voiceFilled}\ntarget_words: ${targetWords}\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\n---\n\n# ${topic}\n\n${topic} é uma busca que precisa entregar uma resposta clara, útil e proporcional ao que já pode ser comprovado. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar como aplicar a ideia e deixar explícitos os limites da orientação.${citationLine}\n\n${sections}\n`;
+    return `---\ntitle: ${yamlString(topic)}\nslug: ${yamlString(slug)}\npublished_at: ${yamlString(publishedAt)}\nsource_url: ${yamlString(sourceUrl)}\norigem: ${yamlString(origem)}\narea: ${yamlString(area)}\npublic_content: true\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nvoice_filled: ${voiceFilled}\ntarget_words: ${targetWords}\nsource_policy: frontmatter-consulted-sources\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\n---\n\n# ${topic}\n\n${topic} é uma busca que precisa entregar uma resposta clara, útil e proporcional ao que já pode ser comprovado. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar como aplicar a ideia e deixar explícitos os limites da orientação.\n\n${sections}\n`;
 }
 function markdownH2Count(text) {
     const [, body] = parseFrontmatter(text);
