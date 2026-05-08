@@ -4,6 +4,8 @@
 
 Current state is checkpointed in `docs/refactor-status.md`. Read that file before continuing structural refactor work.
 
+**Project Subfolders.** Skill artifacts live under one folder per dimension per slug: `project/contents/<slug>/`, `project/keywords/<seed>/`, `project/audits/<slug>/`, `project/clusters/<seed>/`, `project/eeat/<slug>/`. The brain (`project/brain/`) is the only authorial knowledge layer and changes only via the brain-first approval protocol. See `AGENTS.md` § Brain Rules → Project Subfolders.
+
 ## Size & Language Budgets
 
 Use size as an editorial principle, not as a contract that forces under-explained skills. Keep artifacts focused, but let user-facing skills carry enough context to guide agents without excessive reference chasing.

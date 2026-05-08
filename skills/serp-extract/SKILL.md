@@ -2,7 +2,7 @@
 name: serp-extract
 description: When the user wants to capture SERP evidence, search result snapshots, competitor URLs, or SERP features for specific keywords without doing SEO analysis.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # SERP Extract
@@ -21,8 +21,8 @@ Do not use this skill to infer search intent, recommend content strategy, compar
 - DataForSEO is the default provider. Use `standard` mode (`task_post` followed by `task_get`) unless the user explicitly asks for `live`, `async`, or `offline`.
 - Offline fixture mode is allowed for tests and development. Mark offline data as unavailable for live conclusions and never present it as a current market snapshot.
 - Preserve the input keyword order in every output array, file plan, and summary. Do not sort by volume, ranking count, alphabet, or perceived importance.
-- Raw provider responses belong under `project/sources/serp/` as `.raw.json`. Treat raw files as immutable evidence once written.
-- Normalized extraction outputs belong under `project/workbench/serp/` as YAML. Keep normalized data separate from raw provider payloads.
+- Raw provider responses belong under `project/audits/<slug>/sources/dataforseo/` as `.raw.json`. Treat raw files as immutable evidence once written. Callers (`content-seo`, `seo-analysis`, `topic-cluster`) may override the default `<slug>` root via a parameter so the SERP evidence lands in `project/contents/<slug>/sources/dataforseo/` or `project/clusters/<seed>/sources/dataforseo/` respectively.
+- Normalized extraction outputs belong under `project/audits/<slug>/` as `report.yaml`. Keep normalized data separate from raw provider payloads.
 - Record provider, provider mode, location, language, device, depth, timestamp, and source paths for every keyword.
 - Default location, language, and device may come from the user request or approved project context. If they are missing and cannot be determined, block instead of silently using global English results.
 - Normalize organic results and SERP features exactly as observed. Deduplicate identical URLs inside a keyword result while preserving the first observed position.
@@ -61,13 +61,13 @@ If no provider credentials or deterministic tool are available, return `status: 
 
 ### 3. Store Raw Evidence
 
-**Check:** Is the raw provider payload stored or planned under `project/sources/serp/` with stable naming?
+**Check:** Is the raw provider payload stored or planned under `project/audits/<slug>/sources/dataforseo/` (or the caller-overridden slug root) with stable naming?
 
-**Strong:** "`project/sources/serp/2026-05-06-seo-agentico-brazil-pt-br-desktop.raw.json` contains the provider response for the first keyword."
+**Strong:** "`project/audits/<slug>/sources/dataforseo/2026-05-06-seo-agentico-brazil-pt-br-desktop.raw.json` contains the provider response for the first keyword."
 
 **Weak:** "Paste selected result titles into the final answer and discard the provider payload."
 
-Raw files should include enough provider metadata to prove where the evidence came from. Do not edit raw files to make them cleaner; normalization happens in workbench YAML.
+Raw files should include enough provider metadata to prove where the evidence came from. Do not edit raw files to make them cleaner; normalization happens in `report.yaml`.
 
 ### 4. Normalize Observed Results
 
@@ -93,7 +93,7 @@ Offline fixture data is evidence of the fixture only. Set `is_offline_fixture: t
 
 **Check:** Can `seo-analysis` or another downstream workflow consume the output without guessing paths, provider context, or result shape?
 
-**Strong:** "Write one normalized YAML file under `project/workbench/serp/` with ordered keyword entries, source path references, organic results, SERP features, limitations, and a log entry plan."
+**Strong:** "Write one normalized YAML file at `project/audits/<slug>/report.yaml` with ordered keyword entries, source path references, organic results, SERP features, limitations, and a log entry plan."
 
 **Weak:** "Return a prose summary that says the extraction is done."
 
@@ -101,7 +101,7 @@ The artifact is operational evidence, not approved strategy. Do not write it int
 
 ## Output Format
 
-Write normalized extraction output to `project/workbench/serp/<run-slug>.yaml` unless the user only asks for an inline plan. Use this structure:
+Write normalized extraction output to `project/audits/<slug>/report.yaml` unless the user only asks for an inline plan. Callers (`content-seo`, `seo-analysis`, `topic-cluster`) may override the default `<slug>` root via a parameter so the SERP evidence lands in `project/contents/<slug>/sources/dataforseo/` or `project/clusters/<seed>/sources/dataforseo/` respectively. Use this structure:
 
 ```yaml
 status: complete | blocked | incomplete
@@ -121,10 +121,10 @@ keywords:
     input_order: 1
     status: complete | empty | blocked | incomplete
     raw_source:
-      path: project/sources/serp/...
+      path: project/audits/<slug>/sources/dataforseo/...
       format: raw_json
     normalized_source:
-      path: project/workbench/serp/...
+      path: project/audits/<slug>/report.yaml
       format: yaml
     provider_metadata:
       task_id: null
@@ -152,9 +152,9 @@ keywords:
     limitations: []
 sources:
   raw:
-    - project/sources/serp/...
+    - project/audits/<slug>/sources/dataforseo/...
   normalized:
-    - project/workbench/serp/...
+    - project/audits/<slug>/report.yaml
 log_entry_plan:
   path: project/brain/log.md
   tipo: decisao
@@ -171,7 +171,7 @@ If blocked, include the missing input, credential, fixture, or provider conditio
 
 Input: "Capture SERPs for `seo agêntico` and `seo com agentes` in Brazil, pt-BR, desktop."
 
-Output: "Use DataForSEO `standard` mode, keep the two keywords in the requested order, store raw `.raw.json` files under `project/sources/serp/`, write normalized YAML under `project/workbench/serp/`, and include organic results plus observed SERP features without intent inference."
+Output: "Use DataForSEO `standard` mode, keep the two keywords in the requested order, store raw `.raw.json` files under `project/audits/<slug>/sources/dataforseo/`, write normalized YAML to `project/audits/<slug>/report.yaml`, and include organic results plus observed SERP features without intent inference."
 
 ### Example: Offline Fixture Capture
 

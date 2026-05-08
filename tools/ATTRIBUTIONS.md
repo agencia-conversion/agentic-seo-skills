@@ -32,3 +32,15 @@
 - Local changes:
   - Rewritten around SEO Brain credential policy, offline/dry-run modes, and anti-fabrication rules.
   - Removed unrelated marketing skill references.
+
+## Extract CLI
+
+- Local files: `tools/clis/extract.js` and `tools/clis/lib/extract-*.js`
+- Status: `original`
+- Description: Cascading HTML extractor (fetch with Chrome UA → Playwright lazy install fallback) that returns Readability-cleaned Markdown and structural metadata.
+- Runtime dependencies (declared in `package.json`):
+  - `playwright` — Apache-2.0 (Microsoft).
+  - `@mozilla/readability` — Apache-2.0 (Mozilla).
+  - `jsdom` — MIT (jsdom contributors).
+  - `turndown` — MIT (Dom Christie).
+- Browsers: Chromium binary downloaded on demand by Playwright into the platform-default cache (`~/Library/Caches/ms-playwright`, `%USERPROFILE%\AppData\Local\ms-playwright`, `~/.cache/ms-playwright`).

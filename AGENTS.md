@@ -110,6 +110,21 @@ A skill `brain-keeper` carrega a regra dura de escrita jornalística imparcial (
 
 Public content lives in `project/conteudos/<origem>/<slug>.md`. Drafts and reviews stay in `project/workbench/content/<slug>/` and `project/artifacts/contents/<slug>/`. The `area:` field in the frontmatter must match a section slug in `brain/editorial.md`.
 
+### Project Subfolders
+
+Skill artifacts live under one folder per dimension per slug, separate from the brain. The brain remains the only authorial knowledge layer; these dimension folders hold provider evidence, working analysis, drafts, and per-run deliverables.
+
+| Dimension | Canonical root | Layout |
+|---|---|---|
+| Content | `project/contents/<slug>/` | `workbench/`, `sources/`, `draft.md`, `published.md`, `checks.yaml` |
+| Keywords | `project/keywords/<seed-slug>/` | `sources/`, `report.yaml` |
+| Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml`, optional `report.md` |
+| Topic cluster | `project/clusters/<seed-slug>/` | `sources/`, `cluster.json`, optional projection |
+| EEAT | `project/eeat/<entity-or-run-slug>/` | `sources/`, `report.md` |
+| Brain (authorial) | `project/brain/` | only via brain-first protocol with `tipo: aprovacao` in `brain/log.md` |
+
+Skills read the brain for context (identidade, voz, tecnologia, editorial) but write only to their own dimension folder unless an approved `tipo: aprovacao` log entry permits a brain edit.
+
 ## Browser Handoff
 
 For previews, approvals, sensitive input, and option selection, prefer a local browser handoff over terminal interaction.
