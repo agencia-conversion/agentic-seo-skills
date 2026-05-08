@@ -299,8 +299,22 @@ function appendLog(eventType, title, files, summary, approval) {
     mkdirp(path.dirname(brainLog));
     const links = formatLogFileRefs(files);
     const tipo = mapEventTypeToTipo(eventType);
-    const aprovador = approval && approval !== "not-required" ? approval : "agent";
-    fs.appendFileSync(brainLog, `\n\n## ${today()} - ${title}\n\n- tipo: ${tipo}\n- escopo: ${links}\n- decisao: ${summary}\n- aprovador: ${aprovador}\n`, "utf8");
+    const aprovador = approval && approval !== "not-required" && approval !== "pending" ? approval : "agent";
+    const isHumanApprover = aprovador !== "agent" && aprovador !== "pendente";
+    const lines = [
+        "",
+        "",
+        `## ${today()} - ${title}`,
+        "",
+        `- tipo: ${tipo}`,
+        `- escopo: ${links}`,
+        `- decisao: ${summary}`,
+        `- evidencia: ${links}`,
+        `- aprovador: ${aprovador}`,
+    ];
+    if (isHumanApprover)
+        lines.push(`- aprovado_em: ${today()}`);
+    fs.appendFileSync(brainLog, lines.join("\n") + "\n", "utf8");
 }
 function appendOperationalLog(eventType, title, files, decision, summary, notes) {
     const brainLog = path.join(PROJECT_DIR, "brain", "log.md");
@@ -327,7 +341,7 @@ function appendDataforseoBypassLog(title, approvals, files) {
     for (const approval of list) {
         if (approval?.required_provider !== "dataforseo" || approval.approval_mode === "companion")
             continue;
-        appendOperationalLog("dataforseo-bypass", title, files, `${approval.workflow} sem DataForSEO em ${approval.step}: ${approval.consequence}`, "approved", `Aprovado por ${approval.approved_by}; motivo: ${approval.reason}; confirmado em ${approval.confirmed_at}.`);
+        appendOperationalLog("dataforseo-bypass", title, files, `${approval.workflow} sem DataForSEO em ${approval.step}: ${approval.consequence}`, "approved", `Aprovado por ${approval.aprovador}; motivo: ${approval.reason}; confirmado em ${approval.confirmado_em}.`);
     }
 }
 function parseFrontmatter(text) {
@@ -494,9 +508,9 @@ function normalizeDataforseoBypassApproval(args, context, mode) {
         confirmed: true,
         reason,
         consequence: context.consequence,
-        approved_by: approvedBy,
+        aprovador: approvedBy,
         confirmation_text: confirmationText,
-        confirmed_at: confirmedAt,
+        confirmado_em: confirmedAt,
         approval_mode: mode,
         required_provider: "dataforseo",
         provider_used: context.provider_used || "secondary-or-none",
@@ -541,9 +555,9 @@ function requireDataforseoBypassApproval(args, context) {
         args.dataforseo_bypass_handoff = false;
         args.dataforseo_bypass_confirmed = true;
         args.dataforseo_bypass_reason = approval.reason;
-        args.dataforseo_bypass_approved_by = approval.approved_by;
+        args.dataforseo_bypass_approved_by = approval.aprovador;
         args.dataforseo_bypass_confirmation_text = approval.confirmation_text;
-        args.dataforseo_bypass_confirmed_at = approval.confirmed_at;
+        args.dataforseo_bypass_confirmed_at = approval.confirmado_em;
         args.dataforseo_bypass_approval_mode = "companion";
         return normalizeDataforseoBypassApproval(args, context, "companion");
     }
@@ -1552,6 +1566,12 @@ function validatePublicContentDraft(text, brief) {
 async function commandBrainApprove(args) {
     const rel = required(args, "page").replace(/^\/+/, "");
     const by = required(args, "by");
+    if (!by.trim() || by.trim() === "agent" || by.trim() === "pendente") {
+        throw new CliError("--by must be a human approver name (not 'agent' or 'pendente').");
+    }
+    if (!AUTHORIAL_BRAIN_PAGES.has(rel)) {
+        throw new CliError(`brain-approve only accepts authorial brain pages (${[...AUTHORIAL_BRAIN_PAGES].join(", ")}). Got: ${rel}`);
+    }
     const file = path.join(ensureProject(), "brain", rel);
     if (!fs.existsSync(file))
         throw new CliError(`Brain page not found: ${file}`);
@@ -2079,7 +2099,7 @@ async function commandTopicCluster(args) {
         keyword_pool: pool,
         completeness_gaps: existingCluster?.completeness_gaps ?? [],
         open_questions: existingCluster?.open_questions ?? [],
-        approval: existingCluster?.approval ?? { approved_by: null, approved_at: null, status: "draft" },
+        approval: existingCluster?.approval ?? { aprovador: null, aprovado_em: null, status: "draft" },
     };
     writeJson(clusterFile, cluster);
     renderTopicClustersBrain(p);
@@ -2695,7 +2715,8 @@ function buildContentBrief(research, projectDir, approvalMode, contextEvidence) 
             phase: "briefing",
             mode: approvalMode,
             status: "pending",
-            approved_by: null,
+            aprovador: null,
+            aprovado_em: null,
             decided_at: null,
             visible_missing_analysis: bypasses.map((item) => item.consequence).filter(Boolean),
             notes: null,
@@ -3018,7 +3039,8 @@ async function commandContentSeo(args) {
             phase: "briefing",
             mode: brief.approval?.mode || "chat",
             status: decision,
-            approved_by: decision === "approved" ? approvedBy : null,
+            aprovador: decision === "approved" ? approvedBy : null,
+            aprovado_em: decision === "approved" ? today() : null,
             decided_at: nowIso(),
             notes: notes || null,
             visible_missing_analysis: brief.approval?.visible_missing_analysis || [],
@@ -3039,7 +3061,7 @@ async function commandContentSeo(args) {
     if (phase === "write") {
         assertBriefReadyForWriting(brief, p);
         validateContextEvidenceForApproval(brief, p, String(brief.approval?.notes || ""));
-        const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, String(brief.approval?.approved_by || "agent"), "write phase");
+        const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, String(brief.approval?.aprovador || "agent"), "write phase");
         printJson({ ok: true, phase, draft_path: draftResult.draft_path, brief_path: briefPath });
         return;
     }
@@ -3070,10 +3092,10 @@ async function commandContentSeo(args) {
     writeText(target, fs.readFileSync(paths.draftPath, "utf8"));
     setFrontmatterValue(target, { published_at: yamlString(today()), origem: yamlString(origem) });
     brief.draft_status = "published";
-    brief.publication = { path: path.relative(p, target), aprovado_por: approvedBy, aprovado_em: nowIso(), origem };
+    brief.publication = { path: path.relative(p, target), aprovador: approvedBy, aprovado_em: nowIso(), origem };
     writeContentBrief(briefPath, brief);
     appendLog("publicacao", `${paths.topic}`, [path.relative(p, target), path.relative(p, briefPath), path.relative(p, paths.checkPath)], `Conteúdo público publicado por ${approvedBy} em ${origem}.`, approvedBy);
-    printJson({ ok: true, phase, promoted_path: target, approved_by: approvedBy });
+    printJson({ ok: true, phase, promoted_path: target, aprovador: approvedBy });
 }
 async function commandTechnicalSeo(args) {
     let html;

@@ -14,7 +14,7 @@ export function validateRaterOutput(data) {
   const errors = [];
   if (!data || typeof data !== "object") return ["root must be an object"];
   if (!/^rater-[1-3]$/.test(data.rater_id ?? "")) errors.push("rater_id must match rater-1|rater-2|rater-3");
-  if (!data.target || !["wiki", "url"].includes(data.target.mode)) errors.push("target.mode must be wiki|url");
+  if (!data.target || !["brain", "url"].includes(data.target.mode)) errors.push("target.mode must be brain|url");
   if (!data.target?.value) errors.push("target.value required");
   if (!PAGE_TYPES.includes(data.page_type ?? data.target?.page_type ?? "")) errors.push("page_type must be a supported page type");
   if (typeof data.ymyl?.value !== "boolean") errors.push("ymyl.value must be boolean");

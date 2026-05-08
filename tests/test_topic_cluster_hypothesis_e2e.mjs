@@ -41,7 +41,7 @@ try {
   assert.equal(cluster.seed, "agentic seo");
   assert.equal(cluster.status, "hypothesis");
   assert.equal(cluster.data_provenance.hypothesis_only, true);
-  assert.equal(cluster.data_provenance.provider_bypass.approved_by, "Diego Ivo");
+  assert.equal(cluster.data_provenance.provider_bypass.aprovador, "Diego Ivo");
   assert.match(cluster.data_provenance.provider_bypass.confirmation_text, /DataForSEO/);
   assert.equal(cluster.data_provenance.suggestions, null);
   assert.equal(cluster.data_provenance.serp, null);

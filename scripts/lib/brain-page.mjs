@@ -42,27 +42,37 @@ export function extractWikilinks(body) {
   return matches.map((m) => m[1].trim());
 }
 
-export function listCatalogedSources(fontesIndexPath) {
-  if (!existsSync(fontesIndexPath)) return [];
-  const text = readFileSync(fontesIndexPath, "utf8");
-  return [...text.matchAll(/\[([^\]]+)\]\((\.\.\/sources\/[^)]+)\)/g)].map((m) => m[2]);
+export function listIngestedSources(logFile) {
+  if (!existsSync(logFile)) return [];
+  const text = readFileSync(logFile, "utf8");
+  const sources = new Set();
+  const blocks = text.split(/^## /m).slice(1);
+  for (const block of blocks) {
+    if (!/^- tipo:\s*ingestao\b/m.test(block)) continue;
+    const escopo = block.match(/^- escopo:\s*(.+)$/m);
+    if (escopo) sources.add(escopo[1].trim());
+    const evidencia = block.match(/^- evidencia:\s*(.+)$/m);
+    if (evidencia) sources.add(evidencia[1].trim());
+  }
+  return [...sources];
 }
 
-export function findMissingSources(body, fontesIndexPath) {
+export function findMissingSources(body, logFile) {
   const used = extractSources(body).map((s) => s.path);
-  const cataloged = new Set(listCatalogedSources(fontesIndexPath));
-  return [...new Set(used)].filter((p) => !cataloged.has(p));
+  const ingested = new Set(listIngestedSources(logFile));
+  return [...new Set(used)].filter((p) => !ingested.has(p));
 }
 
-export function findBrokenWikilinks(body, wikiRoot) {
+export function findBrokenWikilinks(body, brainRoot) {
   const links = extractWikilinks(body);
   const broken = [];
   for (const link of links) {
-    const candidates = [
-      join(wikiRoot, `${link}.md`),
-      join(wikiRoot, link, "index.md"),
-    ];
-    if (!candidates.some((p) => existsSync(p))) broken.push(link);
+    const target = link.split("#", 1)[0].trim();
+    if (!target) continue;
+    const candidate = target.endsWith(".md")
+      ? join(brainRoot, target)
+      : join(brainRoot, `${target}.md`);
+    if (!existsSync(candidate)) broken.push(link);
   }
   return broken;
 }
@@ -102,29 +112,40 @@ export function diffAgainstSnapshot(projectRoot, pageRel, currentBody) {
 }
 
 export function appendLogEntry(logFile, entry) {
-  const { date, eventType, title, type, actor, files, decision, summary, notes } = entry;
+  const { date, tipo, titulo, escopo, decisao, evidencia, aprovador, aprovado_em, notas } = entry;
   mkdirSync(dirname(logFile), { recursive: true });
-  const links = files.length ? files.map((f) => `[[${f}]]`).join(", ") : "n/a";
+  const escopoStr = Array.isArray(escopo) ? escopo.join(", ") : (escopo || "n/a");
   const lines = [
     "",
     "",
-    `## [${date}] ${eventType} | ${title}`,
+    `## ${date} - ${titulo}`,
     "",
-    `- Type: ${type}`,
-    `- Actor: ${actor}`,
-    `- Files: ${links}`,
-    `- Decision: ${decision}`,
-    `- Summary: ${summary}`,
+    `- tipo: ${tipo}`,
+    `- escopo: ${escopoStr}`,
+    `- decisao: ${decisao}`,
   ];
-  if (notes) lines.push(`- Notes: ${notes}`);
+  if (evidencia) lines.push(`- evidencia: ${evidencia}`);
+  lines.push(`- aprovador: ${aprovador || "agent"}`);
+  if (aprovado_em) lines.push(`- aprovado_em: ${aprovado_em}`);
+  if (notas) lines.push(`- notas: ${notas}`);
   appendFileSync(logFile, lines.join("\n") + "\n", "utf8");
 }
 
-export function appendSourcesToCatalog(fontesIndexPath, missing) {
-  if (!missing.length) return;
-  mkdirSync(dirname(fontesIndexPath), { recursive: true });
-  const lines = missing.map((p) => `- [${p.split("/").pop()}](${p})`);
-  appendFileSync(fontesIndexPath, "\n" + lines.join("\n") + "\n", "utf8");
+export function appendSourcesAsIngest(logFile, sources, aprovador) {
+  if (!sources || !sources.length) return;
+  const date = new Date().toISOString().slice(0, 10);
+  for (const sourcePath of sources) {
+    const label = sourcePath.split("/").pop() || sourcePath;
+    appendLogEntry(logFile, {
+      date,
+      tipo: "ingestao",
+      titulo: `Ingestao de fonte: ${label}`,
+      escopo: sourcePath,
+      decisao: "Catalogada via aprovacao de pagina do brain.",
+      evidencia: sourcePath,
+      aprovador: aprovador || "agent",
+    });
+  }
 }
 
 export function pageRelative(projectRoot, absolutePath) {

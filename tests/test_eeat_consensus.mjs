@@ -5,7 +5,7 @@ import { buildRater, statesAllPresent, statesAllAbsent } from "./fixtures/eeat/r
 
 // happy path consensus
 const all = [1, 2, 3].map((n) => buildRater({ raterId: `rater-${n}`, states: statesAllPresent() }));
-const scored = all.map((r) => scoreRater(r, { mode: "wiki" }));
+const scored = all.map((r) => scoreRater(r, { mode: "brain" }));
 const cons = consensusFromScored(scored);
 assert.equal(cons.score, 100);
 assert.equal(cons.page_quality, "Highest");
@@ -18,7 +18,7 @@ const mixed = [
   buildRater({ raterId: "rater-1", states: statesAllAbsent() }),
   buildRater({ raterId: "rater-2", states: statesAllPresent() }),
   buildRater({ raterId: "rater-3", states: statesAllAbsent() }),
-].map((r) => scoreRater(r, { mode: "wiki" }));
+].map((r) => scoreRater(r, { mode: "brain" }));
 const consMixed = consensusFromScored(mixed);
 assert.equal(consMixed.score, mixed.map((m) => m.score).sort((a, b) => a - b)[1]);
 assert.equal(consMixed.numeric_scores.trust, 0, "median of [0, 100, 0] is 0");

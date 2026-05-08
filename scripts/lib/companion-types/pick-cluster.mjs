@@ -3,7 +3,7 @@ import { join, resolve, dirname } from "node:path";
 import YAML from "yaml";
 import { runHandoff } from "../companion-server.mjs";
 import { newHandoffId, readIdentity, writeIdentity } from "../companion-state.mjs";
-import { appendLogEntry } from "../wiki-page.mjs";
+import { appendLogEntry } from "../brain-page.mjs";
 
 const VALID_MODES = new Set(["production", "hypothesis-only"]);
 
@@ -33,19 +33,12 @@ export function buildClusterMarkdown(proposal, kept) {
   });
   return [
     "---",
-    `title: "Topic Clusters"`,
-    "status: draft",
-    "pillar: estrategia",
-    "owner: agent",
-    `last_reviewed: "${todayIso()}"`,
-    "approved_by: null",
-    "approved_at: null",
-    "sources:",
-    `  - workbench/topic-cluster/${proposal.seed}.yaml`,
-    "judgment_level: editorial",
+    `title: "Topic clusters"`,
+    `updated: "${todayIso()}"`,
+    "auto_generated: true",
     "---",
     "",
-    "# Topic Clusters",
+    "# Topic clusters",
     "",
     `## Cluster: ${proposal.pillar.user_overrides?.display_title || proposal.pillar.title}`,
     "",
@@ -59,9 +52,9 @@ export function buildClusterMarkdown(proposal, kept) {
 }
 
 function classifyDecision(mode, keptCount) {
-  if (mode === "hypothesis-only") return { status: "hypothesis", writeWiki: false };
-  if (keptCount >= 3) return { status: "draft", writeWiki: true };
-  return { status: "needs-supporting", writeWiki: false };
+  if (mode === "hypothesis-only") return { status: "hypothesis", writeBrain: false };
+  if (keptCount >= 3) return { status: "draft", writeBrain: true };
+  return { status: "needs-supporting", writeBrain: false };
 }
 
 function buildOverrides(item, original) {
@@ -115,9 +108,10 @@ export async function handleSubmit(body, ctx) {
   const approverClean = approver.trim();
   const finalPillar = applyPillarOverrides(ctx.proposal.pillar, pillarEdit);
   const { kept, dropped } = processSubmission(supporting, ctx.proposal);
-  const { status, writeWiki } = classifyDecision(ctx.proposal.mode, kept.length);
+  const { status, writeBrain } = classifyDecision(ctx.proposal.mode, kept.length);
 
   writeIdentity(approverClean);
+  const today = todayIso();
 
   const reportPath = join(
     ctx.projectRoot,
@@ -130,7 +124,8 @@ export async function handleSubmit(body, ctx) {
     seed: ctx.proposal.seed,
     mode: ctx.proposal.mode,
     status,
-    approved_by: approverClean,
+    aprovador: approverClean,
+    aprovado_em: status === "draft" ? today : null,
     decided_at: new Date().toISOString(),
     data_provenance: ctx.proposal.data_provenance ?? null,
     pillar: finalPillar,
@@ -140,23 +135,23 @@ export async function handleSubmit(body, ctx) {
   };
   writeFileSync(reportPath, YAML.stringify(report, { lineWidth: 0 }));
 
-  let wikiPath = null;
-  if (writeWiki) {
-    wikiPath = join(ctx.projectRoot, "wiki", "conteudos", "topic-clusters.md");
-    mkdirSync(dirname(wikiPath), { recursive: true });
-    writeFileSync(wikiPath, buildClusterMarkdown({ ...ctx.proposal, pillar: finalPillar }, kept));
+  let brainPath = null;
+  if (writeBrain) {
+    brainPath = join(ctx.projectRoot, "brain", "topic-clusters.md");
+    mkdirSync(dirname(brainPath), { recursive: true });
+    writeFileSync(brainPath, buildClusterMarkdown({ ...ctx.proposal, pillar: finalPillar }, kept));
   }
 
-  appendLogEntry(join(ctx.projectRoot, "wiki", "log", "index.md"), {
-    date: todayIso(),
-    eventType: "pick-cluster",
-    title: `cluster ${ctx.proposal.seed} · ${status}`,
-    type: "operational-decision",
-    actor: approverClean,
-    files: writeWiki ? ["topic-clusters"] : [],
-    decision: status,
-    summary: `${kept.length}/${ctx.proposal.supporting.length} supporting kept · mode ${ctx.proposal.mode}`,
-    notes: notes?.trim() || null,
+  appendLogEntry(join(ctx.projectRoot, "brain", "log.md"), {
+    date: today,
+    tipo: writeBrain ? "aprovacao" : "decisao",
+    titulo: `Cluster ${ctx.proposal.seed} · ${status}`,
+    escopo: writeBrain ? "topic-clusters" : ctx.proposal.seed,
+    decisao: `${kept.length}/${ctx.proposal.supporting.length} suportes mantidos · modo ${ctx.proposal.mode}`,
+    evidencia: reportPath,
+    aprovador: approverClean,
+    aprovado_em: status === "draft" ? today : null,
+    notas: notes?.trim() || null,
   });
 
   return {
@@ -166,7 +161,7 @@ export async function handleSubmit(body, ctx) {
     kept_count: kept.length,
     dropped_count: dropped.length,
     report: reportPath,
-    wiki: wikiPath,
+    brain: brainPath,
     approver: approverClean,
   };
 }

@@ -217,15 +217,15 @@
     btn.classList.remove("warn");
 
     if (isHyp) {
-      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>relatório JSON</strong> (sem wiki, modo hipótese)</span>`;
+      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>relatório JSON</strong> (sem brain, modo hipótese)</span>`;
       btn.textContent = "Salvar como hipótese";
       btn.classList.add("warn");
     } else if (keptCount >= 3) {
-      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>wiki + relatório JSON</strong></span>`;
-      btn.textContent = "Salvar cluster (rascunho na wiki)";
+      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>brain/topic-clusters.md + relatório JSON</strong></span>`;
+      btn.textContent = "Salvar cluster (rascunho no brain)";
     } else {
-      summary.innerHTML = `<span class="alert"><strong>${keptCount}/${total}</strong> mantidas — mínimo 3 para entrar na wiki</span><span>destino atual: <strong>relatório JSON</strong> com status <code>needs-supporting</code></span>`;
-      btn.textContent = "Salvar como needs-supporting (sem wiki)";
+      summary.innerHTML = `<span class="alert"><strong>${keptCount}/${total}</strong> mantidas — mínimo 3 para entrar no brain</span><span>destino atual: <strong>relatório JSON</strong> com status <code>needs-supporting</code></span>`;
+      btn.textContent = "Salvar como needs-supporting (sem brain)";
     }
   }
 

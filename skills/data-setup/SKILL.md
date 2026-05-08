@@ -150,7 +150,7 @@ validation:
   checked_at: null
 log:
   path: null
-  type: operational-decision
+  tipo: decisao
 limitations: []
 next_action: ""
 ```

@@ -2,9 +2,9 @@
 
 ## Current state
 
-The skill layer, runtime CLI, and tests are aligned with the brain-only model. `project/brain/` (7 short authorial files) is the only authorial knowledge layer. EEAT is no longer a dedicated page; proofs live as `tipo: prova` entries in `brain/log.md` and references inside `brain/editorial.md`.
+Brain-only model is fully shipped. The skill layer, runtime CLI, helper scripts, companion server, agents, templates, and tests no longer reference the legacy wiki model. `project/brain/` (7 short authorial files) is the only authorial knowledge layer; EEAT proofs live as `tipo: prova` entries in `brain/log.md` and references inside `brain/editorial.md`.
 
-Public content lives in `project/conteudos/<origem>/<slug>.md` outside the brain. Raw evidence stays in `project/sources/`. Drafts and analysis stay in `project/workbench/`. Complete deliverables stay in `project/artifacts/`.
+Public content lives in `project/conteudos/<origem>/<slug>.md`. Raw evidence stays in `project/sources/`. Drafts and analysis stay in `project/workbench/`. Complete deliverables stay in `project/artifacts/`.
 
 ## Layout
 
@@ -33,9 +33,7 @@ project/
 `bin/seo-brain` exposes:
 
 - `project-init` (creates the brain structure and seeds blank templates)
-- `brain-lint` (replaces former `wiki-lint`)
-- `brain-approve` (replaces former `wiki-approve`)
-- `brain-ingest` (replaces former `wiki-ingest`)
+- `brain-lint`, `brain-approve`, `brain-ingest` (replaced the former `wiki-*` commands)
 - `data-setup`, `serp-extract`, `keyword-research`, `kw-volume`, `backlink-analysis`, `seo-analysis`, `topic-cluster`, `eeat`, `content-seo`, `technical-seo`, `next-website-creator`, `payload-cms`, `audit-skills`
 
 ## Log format
@@ -54,19 +52,18 @@ project/
 - notas: <opcional>
 ```
 
+## Companion server
+
+The browser-based approval/preview flow runs on the brain model:
+
+- Helper module: `scripts/lib/brain-page.mjs` (renamed from `wiki-page.mjs`).
+- Approval target paths are `brain/<page>.md`; the only authorial pages are `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`.
+- Missing sources detected during page review are registered as `tipo: ingestao` entries in `brain/log.md` (no separate sources catalog).
+- `eeat` engine accepts `--mode brain` or `--mode url`.
+
 ## Tools
 
 DataForSEO CLI lives in `tools/clis/dataforseo.js`. Other providers (GSC, Ahrefs, Semrush, Similarweb, Keywords Everywhere, AIROPS) remain candidates for future forks from `coreyhaines31/marketingskills`.
-
-## Outstanding migration debt
-
-Companion server UI (browser-based approval/preview flow) still references the legacy wiki paths in three places:
-
-- `scripts/lib/wiki-page.mjs` (helper module, 132 lines).
-- `templates/companion/approve-page.html` (fixed UI strings referencing `wiki/fontes/index.md` and old frontmatter keys).
-- `tests/test_companion_*` fixtures still seed `project/wiki/` directories.
-
-The `scripts/lib/companion-types/approve-page.mjs` allowlist accepts both `brain/*.md` and the legacy `wiki/*.md` paths during the transition. Migrating these requires renaming the helper module, rewriting the HTML template, and updating fixtures. Track as a follow-up workstream when the companion approval flow is exercised against the new model.
 
 ## Pointers
 
@@ -77,3 +74,4 @@ The `scripts/lib/companion-types/approve-page.mjs` allowlist accepts both `brain
 - DataForSEO tool test: `tests/tools/test_dataforseo_cli.mjs`
 - Brain-keeper protocol: `skills/brain-keeper/SKILL.md`
 - Project-init seeding: `skills/project-init/SKILL.md`
+- Companion approve-page contract: `scripts/lib/companion-types/approve-page.mjs`

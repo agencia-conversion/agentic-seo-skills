@@ -94,9 +94,9 @@ function defaultReputationQuery(rootUrl) {
 
 const SUBCOMMANDS = {
   init(args, cwd) {
-    const mode = args.mode || (args.url ? "url" : "wiki");
-    if (!["wiki", "url"].includes(mode)) fail("--mode must be wiki|url");
-    const value = mode === "url" ? args.url : (args.value || path.join(projectDir(cwd), "wiki", "eeat.md"));
+    const mode = args.mode || (args.url ? "url" : "brain");
+    if (!["brain", "url"].includes(mode)) fail("--mode must be brain|url");
+    const value = mode === "url" ? args.url : (args.value || path.join(projectDir(cwd), "brain", "identidade.md"));
     if (mode === "url" && !value) fail("--url required for url mode");
     const targetSlug = slugify(args.slug || (mode === "url" ? new URL(value).hostname : "brain"));
     const proj = projectDir(cwd);
@@ -105,7 +105,7 @@ const SUBCOMMANDS = {
     fs.mkdirSync(path.join(runDir, "raters"), { recursive: true });
     let pages;
     if (args["pages-file"]) pages = readJson(args["pages-file"]);
-    else if (mode === "brain" || mode === "wiki") pages = defaultPagesForBrain(proj);
+    else if (mode === "brain") pages = defaultPagesForBrain(proj);
     else pages = defaultPagesForUrl(value);
     const reputationQuery = mode === "url"
       ? args["reputation-query"] || defaultReputationQuery(value)
