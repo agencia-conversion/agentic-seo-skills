@@ -3,6 +3,7 @@ export interface MentionHydrationState {
   broken: boolean;
   title: string;
   slug: string | null;
+  hash: string;
 }
 
 export interface MentionHydrationPage {
@@ -13,13 +14,19 @@ export interface MentionHydrationPage {
   trashed?: unknown;
 }
 
-export function resolveMentionHydration(pageId: string | null, pages: MentionHydrationPage[], alias?: string | null): MentionHydrationState {
+export function resolveMentionHydration(
+  pageId: string | null,
+  pages: MentionHydrationPage[],
+  alias?: string | null,
+  anchor?: string | null
+): MentionHydrationState {
   if (!pageId) {
     return {
       text: '@unknown',
       broken: true,
       title: 'This page is unavailable',
       slug: null,
+      hash: '',
     };
   }
 
@@ -30,13 +37,17 @@ export function resolveMentionHydration(pageId: string | null, pages: MentionHyd
       broken: true,
       title: 'This page is unavailable',
       slug: null,
+      hash: '',
     };
   }
 
+  const anchorClean = String(anchor || '').trim();
+  const label = String(alias || anchorClean || page.title || 'Untitled').trim();
   return {
-    text: `${page.icon ? `${page.icon} ` : ''}@${alias || page.title || 'Untitled'}`,
+    text: `${page.icon ? `${page.icon} ` : ''}@${label}`,
     broken: false,
-    title: page.title || 'Untitled',
+    title: anchorClean ? `${page.title || 'Untitled'}#${anchorClean}` : page.title || 'Untitled',
     slug: page.slug,
+    hash: anchorClean ? `#${encodeURIComponent(anchorClean)}` : '',
   };
 }

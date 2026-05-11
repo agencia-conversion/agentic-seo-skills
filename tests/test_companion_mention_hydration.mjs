@@ -33,21 +33,39 @@ const pages = [
     icon: '🧠',
     slug: 'brain-voz',
   },
+  {
+    id: 'brain/editorial.md',
+    title: 'Editorial',
+    icon: '🗂️',
+    slug: 'brain-editorial',
+  },
 ];
 
 const resolved = resolveMentionHydration('brain/voz.md', pages);
 assert.equal(resolved.text, '🧠 @Voz');
 assert.equal(resolved.broken, false);
 assert.equal(resolved.slug, 'brain-voz');
+assert.equal(resolved.hash, '');
 
 const aliased = resolveMentionHydration('brain/voz.md', pages, 'tom editorial');
 assert.equal(aliased.text, '🧠 @tom editorial');
 assert.equal(aliased.broken, false);
 
+const section = resolveMentionHydration('brain/editorial.md', pages, null, 'SEO estratégico');
+assert.equal(section.text, '🗂️ @SEO estratégico');
+assert.equal(section.broken, false);
+assert.equal(section.slug, 'brain-editorial');
+assert.equal(section.hash, '#SEO%20estrat%C3%A9gico');
+
+const sectionAlias = resolveMentionHydration('brain/editorial.md', pages, 'área estratégica', 'SEO estratégico');
+assert.equal(sectionAlias.text, '🗂️ @área estratégica');
+assert.equal(sectionAlias.hash, '#SEO%20estrat%C3%A9gico');
+
 const missing = resolveMentionHydration('brain/inexistente.md', pages);
 assert.equal(missing.text, '@removed');
 assert.equal(missing.broken, true);
 assert.equal(missing.slug, null);
+assert.equal(missing.hash, '');
 
 const unknown = resolveMentionHydration(null, pages);
 assert.equal(unknown.text, '@unknown');

@@ -3,8 +3,9 @@ import Suggestion from '@tiptap/suggestion';
 import { PluginKey } from '@tiptap/pm/state';
 
 /**
- * Page mention node. Stores just the pageId; title and icon are resolved at
- * render time from the workspace store so mentions stay live.
+ * Page mention node. Stores just the pageId plus optional Obsidian anchor;
+ * title and icon are resolved at render time from the workspace store so
+ * mentions stay live.
  *
  * Rendered in the DOM as:
  *   <span data-page-mention data-page-id="..." class="page-mention"></span>
@@ -26,6 +27,11 @@ export const PageMention = Node.create({
         default: null,
         parseHTML: (el) => (el as HTMLElement).getAttribute('data-page-id'),
         renderHTML: (attrs) => (attrs.pageId ? { 'data-page-id': attrs.pageId } : {}),
+      },
+      anchor: {
+        default: null,
+        parseHTML: (el) => (el as HTMLElement).getAttribute('data-anchor'),
+        renderHTML: (attrs) => (attrs.anchor ? { 'data-anchor': attrs.anchor } : {}),
       },
       alias: {
         default: null,
@@ -54,7 +60,7 @@ export const PageMention = Node.create({
   },
 
   renderText({ node }) {
-    return `@${node.attrs.pageId || ''}`;
+    return `@${node.attrs.anchor || node.attrs.pageId || ''}`;
   },
 
   addProseMirrorPlugins() {

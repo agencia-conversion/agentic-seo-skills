@@ -29,7 +29,7 @@ export function MentionChipHydrator({ editorRootId }: { editorRootId: string }) 
         if (!el.classList.contains('page-mention')) el.classList.add('page-mention');
 
         const id = el.getAttribute('data-page-id');
-        const state = resolveMentionHydration(id, pages, el.getAttribute('data-alias'));
+        const state = resolveMentionHydration(id, pages, el.getAttribute('data-alias'), el.getAttribute('data-anchor'));
         if (el.textContent !== state.text) el.textContent = state.text;
         if (state.broken) {
           el.classList.add('page-mention--broken');
@@ -37,7 +37,7 @@ export function MentionChipHydrator({ editorRootId }: { editorRootId: string }) 
           el.classList.remove('page-mention--broken');
         }
         if (el.title !== state.title) el.title = state.title;
-        const nextHref = state.slug ? pagePath(state.slug) : '';
+        const nextHref = state.slug ? `${pagePath(state.slug)}${state.hash}` : '';
         if (el.dataset.href !== nextHref) el.dataset.href = nextHref;
       });
     };

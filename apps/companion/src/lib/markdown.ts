@@ -14,17 +14,26 @@ function textNode(text: string): JsonNode {
   return { type: 'text', text };
 }
 
+function splitWikilinkTarget(raw: string) {
+  const target = raw.trim();
+  const hashIndex = target.indexOf('#');
+  if (hashIndex === -1) return { pageTarget: target, anchor: null as string | null };
+  const pageTarget = target.slice(0, hashIndex).trim();
+  const anchor = target.slice(hashIndex + 1).trim();
+  return { pageTarget, anchor: anchor || null };
+}
+
 function inlineNodes(text: string, resolver?: MentionResolver): JsonNode[] {
   const nodes: JsonNode[] = [];
   const re = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
   let last = 0;
   for (const match of text.matchAll(re)) {
     if (match.index! > last) nodes.push(textNode(text.slice(last, match.index)));
-    const target = match[1].trim();
+    const { pageTarget, anchor } = splitWikilinkTarget(match[1]);
     const alias = match[2]?.trim();
-    const pageId = resolver?.findPageId(target);
+    const pageId = pageTarget ? resolver?.findPageId(pageTarget) : null;
     if (pageId) {
-      nodes.push({ type: 'pageMention', attrs: { pageId, alias: alias || null } });
+      nodes.push({ type: 'pageMention', attrs: { pageId, anchor, alias: alias || null } });
     } else {
       nodes.push(textNode(match[0]));
     }
@@ -158,8 +167,10 @@ function textFromInline(node: JsonNode, resolver?: MentionResolver): string {
   if (node.type === 'text') return node.text || '';
   if (node.type === 'pageMention') {
     const label = resolver?.labelForPageId(node.attrs?.pageId) || node.attrs?.pageId || 'page';
+    const anchor = String(node.attrs?.anchor || '').trim();
+    const target = anchor ? `${label}#${anchor}` : label;
     const alias = String(node.attrs?.alias || '').trim();
-    return alias ? `[[${label}|${alias}]]` : `[[${label}]]`;
+    return alias ? `[[${target}|${alias}]]` : `[[${target}]]`;
   }
   return (node.content || []).map((child) => textFromInline(child, resolver)).join('');
 }
