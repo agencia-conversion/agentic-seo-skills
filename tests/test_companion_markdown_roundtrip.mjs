@@ -32,18 +32,25 @@ const mjsFile = join(outDir, "markdown.mjs");
 if (existsSync(jsFile)) renameSync(jsFile, mjsFile);
 
 const { markdownToDoc, docToMarkdown } = await import(`../${mjsFile}`);
+const seenTargets = [];
 const resolver = {
   findPageId(target) {
-    return target === "voz" || target === "Voz" ? "brain/voz.md" : null;
+    seenTargets.push(target);
+    const clean = target.toLowerCase();
+    if (clean === "voz") return "brain/voz.md";
+    if (clean === "editorial") return "brain/editorial.md";
+    return null;
   },
   labelForPageId(id) {
-    return id === "brain/voz.md" ? "voz" : id;
+    if (id === "brain/voz.md") return "voz";
+    if (id === "brain/editorial.md") return "editorial";
+    return id;
   },
 };
 
 const markdown = `# Título
 
-Conteúdo com acentuação: página, análise e aprovação. Veja [[voz]] e [[voz|tom editorial]].
+Conteúdo com acentuação: página, análise e aprovação. Veja [[voz]], [[voz|tom editorial]], [[editorial#SEO estratégico]] e [[editorial#SEO estratégico|SEO estratégico]].
 
 | A | B |
 |---|---|
@@ -54,7 +61,10 @@ Conteúdo com acentuação: página, análise e aprovação. Veja [[voz]] e [[vo
 
 const doc = markdownToDoc(markdown, resolver);
 assert.equal(doc.type, "doc");
-assert.match(JSON.stringify(doc), /pageMention/);
+const serializedDoc = JSON.stringify(doc);
+assert.match(serializedDoc, /pageMention/);
+assert.match(serializedDoc, /"anchor":"SEO estratégico"/);
+assert.equal(seenTargets.includes("editorial#SEO estratégico"), false);
 assert.match(JSON.stringify(doc), /rawMarkdown/);
 assert.match(JSON.stringify(doc), /"hidden":true/);
 
@@ -62,6 +72,8 @@ const out = docToMarkdown(doc, resolver);
 assert.match(out, /página, análise e aprovação/);
 assert.match(out, /\[\[voz\]\]/);
 assert.match(out, /\[\[voz\|tom editorial\]\]/);
+assert.match(out, /\[\[editorial#SEO estratégico\]\]/);
+assert.match(out, /\[\[editorial#SEO estratégico\|SEO estratégico\]\]/);
 assert.match(out, /\| A \| B \|/);
 assert.match(out, /<!-- comentário preservado -->/);
 

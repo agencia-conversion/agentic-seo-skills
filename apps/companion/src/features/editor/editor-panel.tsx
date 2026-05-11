@@ -90,6 +90,26 @@ function relativeMarkdownPath(fromPath: string, toPath: string) {
   return [...Array(fromParts.length - common).fill('..'), ...toParts.slice(common)].join('/') || pageLinkLabel(toPath);
 }
 
+function normalizeHeadingAnchor(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function currentHashAnchor() {
+  if (typeof window === 'undefined' || !window.location.hash) return '';
+  const raw = window.location.hash.slice(1);
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const { t } = useI18n();
   const activePageId = useWorkspace((s) => s.activePageId);
@@ -131,6 +151,35 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   });
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!mounted || !activePage?.loaded || activePage.sourceMode) return;
+    let firstFrame: number | null = null;
+    let secondFrame: number | null = null;
+
+    const scrollToHash = () => {
+      const anchor = normalizeHeadingAnchor(currentHashAnchor());
+      if (!anchor) return;
+      if (firstFrame !== null) cancelAnimationFrame(firstFrame);
+      if (secondFrame !== null) cancelAnimationFrame(secondFrame);
+      firstFrame = requestAnimationFrame(() => {
+        secondFrame = requestAnimationFrame(() => {
+          const root = document.getElementById(`noteblock-editor-${activePage.id}`);
+          const headings = Array.from(root?.querySelectorAll<HTMLHeadingElement>('h1,h2,h3') || []);
+          const heading = headings.find((el) => normalizeHeadingAnchor(el.textContent || '') === anchor);
+          heading?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        });
+      });
+    };
+
+    scrollToHash();
+    window.addEventListener('hashchange', scrollToHash);
+    return () => {
+      window.removeEventListener('hashchange', scrollToHash);
+      if (firstFrame !== null) cancelAnimationFrame(firstFrame);
+      if (secondFrame !== null) cancelAnimationFrame(secondFrame);
+    };
+  }, [activePage?.id, activePage?.loaded, activePage?.sourceMode, mounted]);
 
   useEffect(() => {
     if (!pendingPasteHtml) return;
