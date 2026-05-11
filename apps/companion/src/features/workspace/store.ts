@@ -3,6 +3,16 @@ import { docToMarkdown, markdownToDoc } from '@/lib/markdown';
 import { LocalePreference } from '@/lib/i18n';
 import { projectPageSlug } from '@/lib/project-slugs';
 
+const SIDEBAR_STORAGE_KEY = 'seo-brain:companion:sidebar';
+const DEFAULT_SIDEBAR_WIDTH = 300;
+const MIN_SIDEBAR_WIDTH = 240;
+const MAX_SIDEBAR_WIDTH = 480;
+
+interface SidebarPreference {
+  collapsed?: boolean;
+  width?: number;
+}
+
 export type PageWidth = 'sm' | 'md' | 'lg' | 'full';
 export type DatabaseViewType = 'table' | 'kanban' | 'calendar' | 'gallery' | 'timeline' | 'list';
 
@@ -141,6 +151,34 @@ const DEFAULT_SETTINGS: WorkspaceState['settings'] = {
   defaultPageWidth: 'md',
   language: 'system',
 };
+
+function clampSidebarWidth(width: number) {
+  return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
+}
+
+function readSidebarPreference(): SidebarPreference {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = window.localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as SidebarPreference;
+    return {
+      collapsed: typeof parsed.collapsed === 'boolean' ? parsed.collapsed : undefined,
+      width: typeof parsed.width === 'number' && Number.isFinite(parsed.width) ? clampSidebarWidth(parsed.width) : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+function writeSidebarPreference(next: SidebarPreference) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify({ ...readSidebarPreference(), ...next }));
+  } catch {
+    // Ignore storage failures; the UI should continue to work without persistence.
+  }
+}
 
 function emptyDoc() {
   return { type: 'doc', content: [{ type: 'paragraph' }] };
@@ -292,8 +330,8 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   projectName: 'SEO Brain',
   projectRoot: '',
   token: null,
-  sidebarCollapsed: false,
-  sidebarWidth: 346,
+  sidebarCollapsed: readSidebarPreference().collapsed ?? false,
+  sidebarWidth: readSidebarPreference().width ?? DEFAULT_SIDEBAR_WIDTH,
   expandedPageIds: [],
   templates: [],
   settings: { ...DEFAULT_SETTINGS },
@@ -425,9 +463,21 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   },
 
   setHasHydrated: (_hasHydrated) => set({ _hasHydrated }),
-  toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-  setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
-  setSidebarWidth: (width) => set({ sidebarWidth: Math.min(480, Math.max(240, width)) }),
+  toggleSidebar: () =>
+    set((s) => {
+      const sidebarCollapsed = !s.sidebarCollapsed;
+      writeSidebarPreference({ collapsed: sidebarCollapsed });
+      return { sidebarCollapsed };
+    }),
+  setSidebarCollapsed: (sidebarCollapsed) => {
+    writeSidebarPreference({ collapsed: sidebarCollapsed });
+    set({ sidebarCollapsed });
+  },
+  setSidebarWidth: (width) => {
+    const sidebarWidth = clampSidebarWidth(width);
+    writeSidebarPreference({ width: sidebarWidth });
+    set({ sidebarWidth });
+  },
   toggleExpandPage: (id) =>
     set((s) => ({
       expandedPageIds: s.expandedPageIds.includes(id)
