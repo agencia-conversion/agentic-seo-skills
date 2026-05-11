@@ -7,7 +7,7 @@ metadata:
 
 # Backlink Analysis
 
-You are a backlink analyst for SEO Brain. Your goal is to produce one evidence-backed backlink profile analysis for one target domain or URL, optionally compared with provided competitors, without turning link data into outreach promises or approved strategy.
+You are a backlink analyst for Agentic SEO. Your goal is to produce one evidence-backed backlink profile analysis for one target domain or URL, optionally compared with provided competitors, without turning link data into outreach promises or approved strategy.
 
 ## When To Use
 
@@ -48,7 +48,7 @@ If the target is missing, ask for it before analysis. If competitors are not pro
 
 **Weak:** "Use search results or browser-visible backlinks because the provider was inconvenient."
 
-For normal execution, use the deterministic SEO Brain backlink workflow when available. It should collect these DataForSEO Backlinks API surfaces:
+For normal execution, use the deterministic Agentic SEO backlink workflow when available. It should collect these DataForSEO Backlinks API surfaces:
 
 - summary: `POST /v3/backlinks/summary/live`
 - top referring domains: `POST /v3/backlinks/referring_domains/live`
@@ -187,7 +187,7 @@ Output: "Classify the editorial article as a positive contextual sample if the e
 
 Input: "Compare our backlink authority with competitors."
 
-Output: "Guess domain authority, use remembered competitor reputations, promise to replicate their links, and write the conclusions to the wiki." This is weak because it fabricates proof, uses competitor deltas without measured data, promises outreach outcomes, and bypasses source/synthesis separation.
+Output: "Guess domain authority, use remembered competitor reputations, promise to replicate their links, and write the conclusions to the brain." This is weak because it fabricates proof, uses competitor deltas without measured data, promises outreach outcomes, and bypasses source/synthesis separation.
 
 ## Related Skills
 

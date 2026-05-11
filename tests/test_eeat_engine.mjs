@@ -7,9 +7,9 @@ import { buildRater, statesAllPresent, statesAllAbsent } from "./fixtures/eeat/r
 
 const root = resolve(import.meta.dirname, "..");
 const engine = resolve(root, "scripts", "eeat.mjs");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-eeat-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-eeat-"));
 const projectDir = join(tmp, "project");
-const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: projectDir };
+const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: projectDir };
 
 mkdirSync(join(projectDir, "brain"), { recursive: true });
 writeFileSync(join(projectDir, "brain", "identidade.md"), "# Identidade\n", "utf8");

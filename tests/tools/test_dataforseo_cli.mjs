@@ -6,7 +6,7 @@ import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "../..");
 const cli = resolve(root, "tools", "clis", "dataforseo.js");
-const home = join(tmpdir(), `seo-brain-tools-home-${process.pid}`);
+const home = join(tmpdir(), `agentic-seo-tools-home-${process.pid}`);
 
 function run(args, env = {}) {
   return JSON.parse(execFileSync(process.execPath, [cli, ...args], {
@@ -26,14 +26,14 @@ try {
   assert.equal(missing.credentials.configured, false);
   assert.equal(missing.credentials.login_present, false);
 
-  mkdirSync(join(home, ".seo-brain"), { recursive: true });
-  writeFileSync(join(home, ".seo-brain", "credentials.json"), JSON.stringify({
+  mkdirSync(join(home, ".agentic-seo"), { recursive: true });
+  writeFileSync(join(home, ".agentic-seo", "credentials.json"), JSON.stringify({
     dataforseo_login: "user@example.com",
     dataforseo_password: "secret-password",
   }));
   const status = run(["status"]);
   assert.equal(status.credentials.configured, true);
-  assert.equal(status.credentials.source, "~/.seo-brain/credentials.json");
+  assert.equal(status.credentials.source, "~/.agentic-seo/credentials.json");
 
   const serp = run(["serp", "google", "--keyword", "seo agêntico", "--location", "Brazil", "--language", "Portuguese", "--offline"]);
   assert.equal(serp.mode, "offline");

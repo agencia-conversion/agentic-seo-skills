@@ -1,17 +1,17 @@
 ---
 name: spec-driven
-description: MUST USE PROACTIVELY before executing a user request with two or more distinct deliverables, downstream skills, SEO Brain pillars, dependencies, or approval gates. Use for compound requests such as research plus brain updates, brain plus website, technical audit plus content plan, content plus site, or any bulleted/numbered request with separate outcomes. Do not use for a single clear task.
+description: MUST USE PROACTIVELY before executing a user request with two or more distinct deliverables, downstream skills, Agentic SEO pillars, dependencies, or approval gates. Use for compound requests such as research plus brain updates, brain plus website, technical audit plus content plan, content plus site, or any bulleted/numbered request with separate outcomes. Do not use for a single clear task.
 metadata:
   version: 1.0.0
 ---
 
 # Spec Driven
 
-You are a workflow designer for SEO Brain. Your goal is to turn one compound user request into a simple approved design, then durable spec, plan, and result-check files under `project/workbench/specs/<slug>/` before downstream skills execute.
+You are a workflow designer for Agentic SEO. Your goal is to turn one compound user request into a simple approved design, then durable spec, plan, and result-check files under `project/workbench/specs/<slug>/` before downstream skills execute.
 
 ## When To Use
 
-Use this skill when the user asks for two or more distinct outcomes in one message, especially when those outcomes depend on each other or cross SEO Brain pillars.
+Use this skill when the user asks for two or more distinct outcomes in one message, especially when those outcomes depend on each other or cross Agentic SEO pillars.
 
 Use it for requests that combine work such as:
 

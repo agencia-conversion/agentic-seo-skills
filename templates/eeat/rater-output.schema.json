@@ -9,7 +9,7 @@
       "type": "object",
       "required": ["mode", "value"],
       "properties": {
-        "mode": { "enum": ["wiki", "url"] },
+        "mode": { "enum": ["brain", "url"] },
         "value": { "type": "string", "minLength": 1 }
       }
     },

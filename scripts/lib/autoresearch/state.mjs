@@ -36,14 +36,14 @@ export function generateRunId(problem, now = new Date()) {
 }
 
 export function resolveProjectRoot(cwd) {
-  const configured = process.env.CLAUDE_PLUGIN_OPTION_project_dir || process.env.SEO_BRAIN_PROJECT_DIR;
+  const configured = process.env.CLAUDE_PLUGIN_OPTION_project_dir || process.env.AGENTIC_SEO_PROJECT_DIR;
   if (configured) return configured.startsWith("/") ? configured : join(cwd, configured);
   return join(cwd, "project");
 }
 
 export function resolveRunDir(cwd, runId) {
   const projectRoot = resolveProjectRoot(cwd);
-  if (existsSync(join(projectRoot, ".seo-brain"))) {
+  if (existsSync(join(projectRoot, ".agentic-seo"))) {
     return join(projectRoot, ".context", "autoresearch", runId);
   }
   return join(cwd, ".context", "autoresearch", runId);
@@ -76,7 +76,7 @@ export function createRun({ cwd, problem, mode = "general", maxIter = 8, thresho
     iter: 0,
     best: { iter: null, score: null, path: null },
     history: [],
-    project_root: existsSync(join(projectRoot, ".seo-brain")) ? projectRoot : null,
+    project_root: existsSync(join(projectRoot, ".agentic-seo")) ? projectRoot : null,
     created_at: now.toISOString(),
     updated_at: now.toISOString(),
   };

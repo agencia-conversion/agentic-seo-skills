@@ -14,4 +14,4 @@ Weak traits to avoid:
 - "Read the shared operating model before doing anything."
 - "If DataForSEO is missing, just use WebSearch."
 - "Estimate search volume from result quality."
-- "Write findings directly into the wiki."
+- "Write findings directly into the brain."

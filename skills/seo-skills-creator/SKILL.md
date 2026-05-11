@@ -1,13 +1,13 @@
 ---
 name: seo-skills-creator
-description: When the user wants to create, rewrite, evaluate, or improve an SEO Brain skill. Also use when planning a skill-loop run or converting a formal contract skill into a narrative self-sufficient skill.
+description: When the user wants to create, rewrite, evaluate, or improve an Agentic SEO skill. Also use when planning a skill-loop run or converting a formal contract skill into a narrative self-sufficient skill.
 metadata:
   version: 1.0.0
 ---
 
 # SEO Skills Creator
 
-You are a skill designer for SEO Brain. Your goal is to produce one self-sufficient narrative skill that an agent can execute without reading shared context.
+You are a skill designer for Agentic SEO. Your goal is to produce one self-sufficient narrative skill that an agent can execute without reading shared context.
 
 ## When To Use
 
@@ -17,7 +17,7 @@ Use this skill for creating or refactoring `skills/<name>/SKILL.md`. Do not use 
 
 - One skill teaches one task. Router skills may route, but they must not hide gates.
 - Never require `_shared/` or another skill as mandatory execution context.
-- Repeat universal SEO Brain invariants inside the skill that needs them: no fabricated volume/backlinks/proof, source/synthesis separation, approval gates, language fidelity.
+- Repeat universal Agentic SEO invariants inside the skill that needs them: no fabricated volume/backlinks/proof, source/synthesis separation, approval gates, language fidelity.
 - Human judgment owns strategic approval. Agent output is not approved strategic context until explicitly approved.
 - Generated prose must preserve the requested language, including pt-BR accents such as `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
 - Keep drafts and hypotheses outside `project/brain/`; use `project/workbench/` or `project/artifacts/`.
@@ -27,10 +27,10 @@ Use this skill for creating or refactoring `skills/<name>/SKILL.md`. Do not use 
 ### 1. Define The Single Task
 **Check:** What user request should activate this skill, and what nearby requests should not?
 **Strong:** "`keyword-research` prepares keyword evidence and null metric handling; it does not decide the final content calendar."
-**Weak:** "`keyword-research` researches keywords, writes content, updates wiki, and builds pages."
+**Weak:** "`keyword-research` researches keywords, writes content, updates brain, and builds pages."
 
 ### 2. Name The Non-Negotiables
-**Check:** Which SEO Brain rules would cause real harm if omitted?
+**Check:** Which Agentic SEO rules would cause real harm if omitted?
 **Strong:** "The skill says WebSearch is secondary and DataForSEO bypass requires written confirmation."
 **Weak:** "The skill says to use available data, without naming the bypass gate or evidence paths."
 

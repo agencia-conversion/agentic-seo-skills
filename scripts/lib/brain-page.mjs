@@ -96,7 +96,7 @@ export function writeSnapshot(projectRoot, pageRel, body) {
 export function diffAgainstSnapshot(projectRoot, pageRel, currentBody) {
   const previous = readSnapshot(projectRoot, pageRel);
   if (previous === null) return { hasPrevious: false, unified: "" };
-  const dir = mkdtempSync(join(tmpdir(), "seo-brain-diff-"));
+  const dir = mkdtempSync(join(tmpdir(), "agentic-seo-diff-"));
   const tmpA = join(dir, "previous.md");
   const tmpB = join(dir, "current.md");
   try {

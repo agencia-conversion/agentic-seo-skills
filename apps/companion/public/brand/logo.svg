@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="Agentic SEO">
+  <!-- Asterisk mark (4-line cross) escalado para 200×200 -->
+  <g transform="translate(60,60)">
+    <g transform="scale(3.571)" stroke="#3a5bd9" stroke-width="3.5" stroke-linecap="round" fill="none">
+      <line x1="28" y1="6"  x2="28" y2="50"/>
+      <line x1="6"  y1="28" x2="50" y2="28"/>
+      <line x1="13" y1="13" x2="43" y2="43"/>
+      <line x1="43" y1="13" x2="13" y2="43"/>
+    </g>
+  </g>
+  <!-- Wordmark "agentic seo" lowercase. Sharp resolve a stack do sistema na renderização. -->
+  <text x="290" y="218"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+    font-weight="600" letter-spacing="-4" font-size="148" fill="#0b0d10">agentic seo</text>
+</svg>

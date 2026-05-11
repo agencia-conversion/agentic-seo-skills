@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SEO Brain · Aprovar briefing</title>
+<title>Agentic SEO · Aprovar briefing</title>
 <!--CONTEXT-->
 <style>
   :root {
@@ -62,7 +62,7 @@
 <body>
 <div class="wrap">
   <div class="top">
-    <span>SEO Brain · Web Companion · aprovação de briefing</span>
+    <span>Agentic SEO · Web Companion · aprovação de briefing</span>
     <span id="approver-display"></span>
   </div>
   <h1>Briefing <code id="brief-name">brief</code></h1>
@@ -100,7 +100,7 @@
   </div>
 
   <div class="panel" style="margin: 0 0 18px;">
-    <h2>Evidência de Wiki consumida</h2>
+    <h2>Evidência de brain consumida</h2>
     <div id="context-evidence"></div>
   </div>
 
@@ -221,11 +221,11 @@
     list(brief.must_not_mention_in_prose),
   ].join("");
 
-  const wikiPages = contextEvidence.wiki_pages_read || [];
+  const brainPages = contextEvidence.brain_pages_read || [];
   document.getElementById("context-evidence").innerHTML = [
     row("arquivo", contextEvidence.path),
     "<h2>Páginas lidas</h2>",
-    `<ul class="list">${wikiPages.map((page) => `<li><strong>${escape(page.path)}</strong> · ${escape(page.status)}<br><span>${escape(page.title)} · hash ${escape(page.content_hash_sha256 || "ausente")}</span></li>`).join("")}</ul>`,
+    `<ul class="list">${brainPages.map((page) => `<li><strong>${escape(page.path)}</strong> · ${escape(page.status)}<br><span>${escape(page.title)} · hash ${escape(page.content_hash_sha256 || "ausente")}</span></li>`).join("")}</ul>`,
     "<h2>Limitações</h2>",
     list(contextEvidence.limitations),
   ].join("");

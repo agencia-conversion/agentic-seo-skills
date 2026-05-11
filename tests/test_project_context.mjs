@@ -5,10 +5,10 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const bin = resolve(root, "bin", "seo-brain");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-project-context-"));
+const bin = resolve(root, "bin", "agentic-seo");
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-project-context-"));
 const project = join(tmp, "project");
-const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: project };
+const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: project };
 
 execFileSync(bin, ["project-init", "Context test", "--market", "Portugal", "--country", "Portugal", "--language", "pt-PT"], {
   cwd: root,
@@ -16,7 +16,7 @@ execFileSync(bin, ["project-init", "Context test", "--market", "Portugal", "--co
   env,
 });
 
-const config = JSON.parse(readFileSync(join(project, ".seo-brain", "project.json"), "utf8"));
+const config = JSON.parse(readFileSync(join(project, ".agentic-seo", "project.json"), "utf8"));
 assert.equal(config.country, "Portugal");
 assert.equal(config.market, "Portugal");
 assert.equal(config.language, "pt-PT");

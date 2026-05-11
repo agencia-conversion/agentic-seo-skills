@@ -47,7 +47,7 @@ function init(skill, args) {
   const { dir, fixture } = requireSkill(skill);
   const created = runAutoresearch([
     "init",
-    "--problem", `Refactor SEO Brain skill: ${skill}`,
+    "--problem", `Refactor Agentic SEO skill: ${skill}`,
     "--mode", "skill-loop",
     "--threshold", args.threshold ?? "90",
     "--max-iter", args.max_iter ?? "5",

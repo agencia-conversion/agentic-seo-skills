@@ -50,7 +50,7 @@ function todayIso() {
 }
 
 function normalizeProjectRoot(projectRoot?: string | null) {
-  return resolve(/*turbopackIgnore: true*/ projectRoot || process.env.SEO_BRAIN_PROJECT_ROOT || 'project');
+  return resolve(/*turbopackIgnore: true*/ projectRoot || process.env.AGENTIC_SEO_PROJECT_ROOT || 'project');
 }
 
 function yamlString(value: unknown) {
@@ -107,7 +107,7 @@ function resolveAllowedFile(projectRoot: string | undefined, rel: string) {
 }
 
 function companionUiPath(root: string) {
-  return join(root, '.seo-brain', 'companion-ui.json');
+  return join(root, '.agentic-seo', 'companion-ui.json');
 }
 
 function readCompanionUi(root: string) {
@@ -269,7 +269,7 @@ function titleFromFile(rel: string, frontmatter: Record<string, any>) {
 
 function projectDisplayName(projectRoot?: string) {
   const root = normalizeProjectRoot(projectRoot);
-  const config = join(root, '.seo-brain', 'project.json');
+  const config = join(root, '.agentic-seo', 'project.json');
   if (existsSync(config)) {
     try {
       const data = JSON.parse(readFileSync(config, 'utf8'));
@@ -277,7 +277,7 @@ function projectDisplayName(projectRoot?: string) {
       if (data?.brand_name) return String(data.brand_name);
     } catch {}
   }
-  return 'SEO Brain';
+  return 'Agentic SEO';
 }
 
 function readSummary(projectRoot: string, rel: string, ui: Record<string, any>): ProjectTreeItem | null {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-const { buildClusterPage, mergeClusterPage, mergeClusterPages, renderTopicClustersMarkdown } = await import("../dist/seo-brain.js");
+const { buildClusterPage, mergeClusterPage, mergeClusterPages, renderTopicClustersMarkdown } = await import("../dist/agentic-seo.js");
 
 // buildClusterPage with SERP evidence
 {
