@@ -3,14 +3,14 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.HOME = join(tmpdir(), `seo-brain-home-${process.pid}`);
-mkdirSync(join(process.env.HOME, ".seo-brain"), { recursive: true });
+process.env.HOME = join(tmpdir(), `agentic-seo-home-${process.pid}`);
+mkdirSync(join(process.env.HOME, ".agentic-seo"), { recursive: true });
 writeFileSync(
-  join(process.env.HOME, ".seo-brain", "credentials.json"),
+  join(process.env.HOME, ".agentic-seo", "credentials.json"),
   JSON.stringify({ dataforseo_login: "user@example.com", dataforseo_password: "secret-api-pw", dataforseo_mode: "live" }),
 );
 
-const { dataforseoCredentialStatus, normalizeBacklinkReport, taskResultReady } = await import("../dist/seo-brain.js");
+const { dataforseoCredentialStatus, normalizeBacklinkReport, taskResultReady } = await import("../dist/agentic-seo.js");
 
 const credentialStatus = dataforseoCredentialStatus();
 assert.equal(credentialStatus.dataforseo_configured, true);

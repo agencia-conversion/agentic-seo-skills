@@ -14,11 +14,11 @@ function argMode() {
 }
 
 function settingsPath() {
-  return process.env.SEO_BRAIN_CLAUDE_SETTINGS || join(homedir(), ".claude", "settings.json");
+  return process.env.AGENTIC_SEO_CLAUDE_SETTINGS || join(homedir(), ".claude", "settings.json");
 }
 
 function wrapperDir() {
-  return process.env.SEO_BRAIN_STATUSLINE_DIR || join(homedir(), ".claude", "seo-brain");
+  return process.env.AGENTIC_SEO_STATUSLINE_DIR || join(homedir(), ".claude", "agentic-seo");
 }
 
 function readSettings(file) {
@@ -31,7 +31,7 @@ function shQuote(value) {
 }
 
 function wrapperText(oldCommand) {
-  const pluginData = process.env.CLAUDE_PLUGIN_DATA || process.env.SEO_BRAIN_PLUGIN_DATA || "";
+  const pluginData = process.env.CLAUDE_PLUGIN_DATA || process.env.AGENTIC_SEO_PLUGIN_DATA || "";
   return `#!/usr/bin/env bash
 set -euo pipefail
 input="$(cat)"
@@ -39,7 +39,7 @@ old_output=""
 if [[ -n ${shQuote(oldCommand || "")} ]]; then
   old_output="$(printf '%s' "$input" | eval ${shQuote(oldCommand)} 2>/dev/null || true)"
 fi
-seo_output="$(printf '%s' "$input" | SEO_BRAIN_PLUGIN_DATA=${shQuote(pluginData)} node ${shQuote(statuslineScript)} 2>/dev/null || true)"
+seo_output="$(printf '%s' "$input" | AGENTIC_SEO_PLUGIN_DATA=${shQuote(pluginData)} node ${shQuote(statuslineScript)} 2>/dev/null || true)"
 old_output="\${old_output%%$'\\n'*}"
 seo_output="\${seo_output%%$'\\n'*}"
 if [[ -n "$old_output" && -n "$seo_output" ]]; then

@@ -3,9 +3,9 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const { setFrontmatterValue } = await import("../dist/seo-brain.js");
+const { setFrontmatterValue } = await import("../dist/agentic-seo.js");
 
-const dir = mkdtempSync(join(tmpdir(), "seo-brain-fm-"));
+const dir = mkdtempSync(join(tmpdir(), "agentic-seo-fm-"));
 const page = join(dir, "index.md");
 writeFileSync(
   page,

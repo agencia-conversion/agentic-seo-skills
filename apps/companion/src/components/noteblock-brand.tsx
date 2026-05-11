@@ -1,8 +1,6 @@
 import { NoteblockLogo } from './noteblock-logo';
 import { cn } from '@/lib/utils';
 
-const CONVERSION_LOGO_SRC = '/conversion-logo-sidebar.svg';
-
 interface NoteblockBrandProps {
   size?: number;
   textSize?: 'sm' | 'base' | 'lg';
@@ -17,8 +15,8 @@ export function NoteblockBrand({ size = 20, textSize = 'sm', className }: Notebl
         className
       )}
     >
-      <NoteblockLogo size={size} className="text-notion-text shrink-0" />
-      <span className="flex items-center gap-1.5 min-w-0">
+      <NoteblockLogo size={size} className="text-agentic-blue shrink-0" />
+      <span className="flex items-center gap-1.5 min-w-0 font-display">
         <span
           className={cn(
             'font-semibold text-notion-text',
@@ -27,17 +25,8 @@ export function NoteblockBrand({ size = 20, textSize = 'sm', className }: Notebl
             textSize === 'lg' && 'text-lg'
           )}
         >
-          SEO Brain
+          Agentic SEO Skills
         </span>
-        <span className="text-[11px] font-medium text-notion-text-muted">by</span>
-        <img
-          src={CONVERSION_LOGO_SRC}
-          alt="Conversion"
-          width={70}
-          height={11}
-          className="h-[11px] w-auto shrink-0"
-          style={{ opacity: 0.78 }}
-        />
       </span>
     </div>
   );

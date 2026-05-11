@@ -6,10 +6,10 @@ import { resolve } from "node:path";
 import YAML from "yaml";
 
 const root = resolve(import.meta.dirname, "..");
-const bin = resolve(root, "bin", "seo-brain");
-const tmp = mkdtempSync(resolve(tmpdir(), "seo-brain-player-score-"));
+const bin = resolve(root, "bin", "agentic-seo");
+const tmp = mkdtempSync(resolve(tmpdir(), "agentic-seo-player-score-"));
 const project = resolve(tmp, "project");
-const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: project };
+const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: project };
 const keyword = "seo player score";
 const sourceDir = resolve(project, "sources", "websearch");
 

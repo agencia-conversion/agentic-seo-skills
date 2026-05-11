@@ -1,14 +1,14 @@
 # DataForSEO Integration
 
-SEO Brain supports DataForSEO as the first-class SEO data provider.
+Agentic SEO supports DataForSEO as the first-class SEO data provider.
 
 ## Modes
 
 Default mode: `standard`.
 
 - `live`: ultrafast mode. Uses DataForSEO `/live` endpoints and returns data in one request. Use when the user needs results in seconds.
-- `standard`: medium mode. Uses `task_post` and polls `task_get` until results are ready. This is the SEO Brain default.
-- `async`: asynchronous mode. Uses `task_post` with optional `pingback_url` or `postback_url`. SEO Brain stores the task IDs and callback metadata.
+- `standard`: medium mode. Uses `task_post` and polls `task_get` until results are ready. This is the Agentic SEO default.
+- `async`: asynchronous mode. Uses `task_post` with optional `pingback_url` or `postback_url`. Agentic SEO stores the task IDs and callback metadata.
 - `offline`: test mode. Does not call DataForSEO and does not consume credits.
 
 ## API Coverage
@@ -27,7 +27,7 @@ Keyword search volume:
 
 Backlinks:
 
-- DataForSEO Backlinks API v3 supports live retrieval for this workflow. SEO Brain maps `standard` to live endpoints and records `requested_mode`.
+- DataForSEO Backlinks API v3 supports live retrieval for this workflow. Agentic SEO maps `standard` to live endpoints and records `requested_mode`.
 - summary: `POST /v3/backlinks/summary/live`
 - top referring domains: `POST /v3/backlinks/referring_domains/live`
 - top anchors: `POST /v3/backlinks/anchors/live`
@@ -38,22 +38,22 @@ Backlinks:
 ## CLI Examples
 
 ```bash
-bin/seo-brain data-setup --check
+bin/agentic-seo data-setup --check
 
-bin/seo-brain serp-extract \
+bin/agentic-seo serp-extract \
   --keyword "seo agentico" \
   --mode standard
 
-bin/seo-brain keyword-research \
+bin/agentic-seo keyword-research \
   --keyword "seo agentico" \
   --mode standard
 
-bin/seo-brain serp-extract \
+bin/agentic-seo serp-extract \
   --keyword "seo agentico" \
   --mode async \
   --pingback-url 'https://example.com/ping?id=$id&tag=$tag'
 
-bin/seo-brain backlink-analysis \
+bin/agentic-seo backlink-analysis \
   --target conversion.com.br \
   --competitors "concorrente-a.com.br,concorrente-b.com.br" \
   --mode standard \

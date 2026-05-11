@@ -24,7 +24,7 @@ assert.equal(consMixed.score, mixed.map((m) => m.score).sort((a, b) => a - b)[1]
 assert.equal(consMixed.numeric_scores.trust, 0, "median of [0, 100, 0] is 0");
 
 // recomputeGateFlags re-derives from consensused numeric scores, not per-rater union
-const gates = recomputeGateFlags({ numeric_scores: consMixed.numeric_scores, ymyl: false, mode: "wiki", reputationCount: 0 });
+const gates = recomputeGateFlags({ numeric_scores: consMixed.numeric_scores, ymyl: false, mode: "brain", reputationCount: 0 });
 assert.ok(gates.includes("trust_gate_triggered"));
 assert.ok(!gates.includes("reputation_only_self_published"), "reputation cap is url-only");
 

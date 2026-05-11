@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export function rejectUnlessLocal(req: NextRequest) {
-  const expectedToken = process.env.SEO_BRAIN_COMPANION_TOKEN;
+  const expectedToken = process.env.AGENTIC_SEO_COMPANION_TOKEN;
   if (!expectedToken) return NextResponse.json({ ok: false, reason: 'missing-server-token' }, { status: 500 });
 
   const token = req.headers.get('x-companion-token') || req.nextUrl.searchParams.get('token');
@@ -23,5 +23,5 @@ export function rejectUnlessLocal(req: NextRequest) {
 }
 
 export function projectRoot() {
-  return process.env.SEO_BRAIN_PROJECT_ROOT || 'project';
+  return process.env.AGENTIC_SEO_PROJECT_ROOT || 'project';
 }

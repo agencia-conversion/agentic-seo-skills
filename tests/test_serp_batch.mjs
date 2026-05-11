@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-const { normalizeSerpBatch } = await import("../dist/seo-brain.js");
+const { normalizeSerpBatch } = await import("../dist/agentic-seo.js");
 
 // Per-task keyword decoded from result.keyword and items split organic vs features
 {

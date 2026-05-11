@@ -63,5 +63,5 @@ Output: "Return `approval_required`; authorial brain pages require an approved `
 
 ## Related Skills
 
-- `seo-brain`: route broad or ambiguous SEO Brain requests.
+- `agentic-seo`: route broad or ambiguous Agentic SEO requests.
 - `seo-tools-creator`: create deterministic tools, not narrative skills.

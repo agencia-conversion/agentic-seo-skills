@@ -17,7 +17,7 @@ Follow the `content-seo` skill contract exactly:
 2. Use DataForSEO (`node tools/clis/dataforseo.js status`) as the default source for SERP and keyword evidence. If not configured, invoke the `data-setup` skill.
 3. Measure Top 3 competitor pages via `node tools/clis/extract.js --url <url> --format json`.
 4. Write artifacts under `project/contents/<slug>/` only — `workbench/`, `sources/`, `draft.md`, `checks.yaml`, `published.md`.
-5. Treat `project/wiki/` as evidence overlay, not a precondition. Mirror to `project/wiki/conteudos/<slug>.md` only on explicit user request.
+5. Treat `project/brain/` as authorial context, not a publication target. Promote public content only through the approved content workflow.
 6. Separate raw evidence, synthesis, and human judgment. Never fabricate volume, rankings, backlinks, credentials, or proof.
 7. Require human approval of the briefing before draft body writing, unless the user explicitly asks to skip.
 

@@ -7,7 +7,7 @@ metadata:
 
 # SERP Extract
 
-You are a SERP evidence extractor for SEO Brain. Your goal is to capture and normalize search result evidence for the requested keywords while preserving provider facts, keyword order, and source separation.
+You are a SERP evidence extractor for Agentic SEO. Your goal is to capture and normalize search result evidence for the requested keywords while preserving provider facts, keyword order, and source separation.
 
 ## When To Use
 
@@ -183,7 +183,7 @@ Output: "Set `provider_mode: offline`, `is_offline_fixture: true`, and `live_con
 
 Input: "Extract competitor URLs for `seo agêntico`."
 
-Output: "Search manually, summarize the top pages as informational intent, estimate demand, and write conclusions to the wiki." This is weak because it bypasses the default provider, mixes evidence with analysis, fabricates unavailable metrics, and promotes unapproved conclusions.
+Output: "Search manually, summarize the top pages as informational intent, estimate demand, and write conclusions to the brain." This is weak because it bypasses the default provider, mixes evidence with analysis, fabricates unavailable metrics, and promotes unapproved conclusions.
 
 ## Related Skills
 

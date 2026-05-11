@@ -1,6 +1,6 @@
-# SEO Brain Autoresearch Program
+# Agentic SEO Autoresearch Program
 
-This file defines the autonomous development loop for SEO Brain. It adapts Karpathy's Autoresearch pattern to plugin, skill, and SEO workflow development.
+This file defines the autonomous development loop for Agentic SEO. It adapts Karpathy's Autoresearch pattern to plugin, skill, and SEO workflow development.
 
 References:
 
@@ -10,7 +10,7 @@ References:
 
 ## Mission
 
-Improve SEO Brain by iterating on one measurable skill or subsystem at a time. Every iteration must make the plugin more reliable, more useful for nontechnical SEO users, or more aligned with Agentic SEO.
+Improve Agentic SEO by iterating on one measurable skill or subsystem at a time. Every iteration must make the plugin more reliable, more useful for nontechnical SEO users, or more aligned with Agentic SEO.
 
 ## Operating Principle
 
@@ -34,7 +34,7 @@ During a run, do not modify:
 - real `.env` files;
 - raw source fixtures used by tests;
 - evaluator pass/fail thresholds unless the explicit task is evaluator design;
-- approved Wiki fixtures;
+- approved brain fixtures;
 - unrelated skill directories.
 
 ## Experiment Loop
@@ -81,7 +81,7 @@ Every skill run should report:
 - fixture pass rate;
 - deterministic test status;
 - data provenance quality;
-- Wiki update correctness;
+- brain update correctness;
 - human approval correctness;
 - user-facing clarity;
 - final 0-100 score.
@@ -92,7 +92,7 @@ The v0.1 golden path is:
 
 1. configure provider status without exposing secrets;
 2. create one project;
-3. create initial Wiki;
+3. create initial brain;
 4. approve required strategic pages;
 5. run keyword and SERP analysis;
 6. create topic cluster;
@@ -106,4 +106,3 @@ The golden path is not complete until a nontechnical user can understand what ha
 ## Anti-Goodhart Rule
 
 Do not optimize a metric by making the task easier, hiding failures, narrowing fixtures unfairly, or replacing real data with unsupported LLM claims. If the metric is insufficient, improve the evaluator in a separate run and document why.
-

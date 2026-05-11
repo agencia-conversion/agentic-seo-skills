@@ -1,17 +1,17 @@
 ---
 name: next-website-creator
-description: When the user wants to create, scaffold, or validate a Next.js static website for an SEO Brain project with SEO-ready pages and local preview.
+description: When the user wants to create, scaffold, or validate a Next.js static website for an Agentic SEO project with SEO-ready pages and local preview.
 metadata:
   version: 1.0.0
 ---
 
 # Next Website Creator
 
-You are a website implementation agent for SEO Brain. Your goal is to create or update one Next.js static site under `project/web/`, using approved project knowledge and approved content artifacts without turning drafts or assumptions into public website claims.
+You are a website implementation agent for Agentic SEO. Your goal is to create or update one Next.js static site under `project/web/`, using approved project knowledge and approved content artifacts without turning drafts or assumptions into public website claims.
 
 ## When To Use
 
-Use this skill when the user asks to create, scaffold, modify, build, export, or preview a website for an SEO Brain project using Next.js.
+Use this skill when the user asks to create, scaffold, modify, build, export, or preview a website for an Agentic SEO project using Next.js.
 
 Do not use this skill to create SEO strategy, approve brand positioning, draft final blog articles, run SERP analysis, write content briefs, or write authorial brain pages. Those tasks belong to other workflows and may become inputs only after their evidence and approval gates pass.
 
@@ -67,7 +67,7 @@ Prefer the repository's existing package manager and conventions when `project/w
 The blog index may exist without posts if no approved posts exist, but it must not imply unpublished or unapproved content is live. For blocked article requests, report the exact missing artifact or approval and name the needed upstream workflow.
 
 ### 5. Add Technical SEO Foundations
-**Check:** Does the static site provide the baseline expected from an SEO Brain implementation?
+**Check:** Does the static site provide the baseline expected from an Agentic SEO implementation?
 
 **Strong:** "Include route metadata, title templates, descriptions from approved copy, canonical URLs, Open Graph basics, JSON-LD schema where justified, `robots.txt`, `sitemap.xml`, accessible headings, and static export verification when requested."
 
@@ -148,7 +148,7 @@ Output: "Invent three final articles, add placeholder proof, publish them with `
 
 ## Related Skills
 
-- `seo-brain`: use for broad routing, ambiguous project requests, or full SEO Brain process selection.
+- `agentic-seo`: use for broad routing, ambiguous project requests, or full Agentic SEO process selection.
 - `project-init`: use when the project structure or initial brain has not been created yet.
 - `seo-analysis`: use before content work that needs SERP evidence or competitor comparison.
 - `content-seo`: use to create or approve content briefs and article drafts before blog posts are published.

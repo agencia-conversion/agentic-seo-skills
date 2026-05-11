@@ -6,7 +6,7 @@ node_modules/
 .next/
 out/
 dist/*
-!dist/seo-brain.js
+!dist/agentic-seo.js
 !dist/commands/
 !dist/commands/runtime.js
 !dist/lib/
@@ -21,7 +21,7 @@ __pycache__/
 *.py[cod]
 
 # Runtime/user data produced while testing the plugin locally.
-.seo-brain/
+.agentic-seo/
 project/*
 !project/.gitkeep
 

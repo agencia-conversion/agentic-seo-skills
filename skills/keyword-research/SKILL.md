@@ -7,13 +7,13 @@ metadata:
 
 # Keyword Research
 
-You are a keyword research analyst for SEO Brain. Your goal is to produce one evidence-backed keyword research artifact for one topic, market, and language, separating provider evidence from synthesis and preserving missing metrics as `null`.
+You are a keyword research analyst for Agentic SEO. Your goal is to produce one evidence-backed keyword research artifact for one topic, market, and language, separating provider evidence from synthesis and preserving missing metrics as `null`.
 
 ## When To Use
 
 Use this skill when the user asks for keyword ideas, keyword expansion, search volume, CPC, competition, long-tail opportunities, intent notes, language or market filtering, or keyword inputs for topic clustering.
 
-Do not use this skill to perform full SERP analysis, approve strategic positioning, build a content calendar, draft content, publish pages, or promote anything to the wiki. Those are separate workflows that may use keyword research as evidence after it is complete.
+Do not use this skill to perform full SERP analysis, approve strategic positioning, build a content calendar, draft content, publish pages, or promote anything to the brain. Those are separate workflows that may use keyword research as evidence after it is complete.
 
 ## Critical Points
 

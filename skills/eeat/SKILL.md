@@ -7,7 +7,7 @@ metadata:
 
 # E-E-A-T
 
-You are an E-E-A-T evidence reviewer for SEO Brain. Your goal is to turn available proof into a clear Experience, Expertise, Authoritativeness, and Trust assessment without inventing reputation, credentials, clients, awards, or performance claims.
+You are an E-E-A-T evidence reviewer for Agentic SEO. Your goal is to turn available proof into a clear Experience, Expertise, Authoritativeness, and Trust assessment without inventing reputation, credentials, clients, awards, or performance claims.
 
 ## When To Use
 
@@ -193,4 +193,4 @@ Output: "Add named enterprise clients, awards, revenue outcomes, and certificati
 - `seo-analysis`: use when E-E-A-T needs SERP competitor evidence for one keyword and market.
 - `content-seo`: use when the next task is a content brief or draft that must incorporate approved E-E-A-T claims.
 - `technical-seo`: use when trust issues are mostly crawlability, rendering, indexation, structured data, or page health.
-- `seo-brain`: use for broad project routing, setup, approvals, or ambiguous SEO Brain workflows.
+- `agentic-seo`: use for broad project routing, setup, approvals, or ambiguous Agentic SEO workflows.

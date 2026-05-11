@@ -11,14 +11,14 @@ import {
   validateProjectFileRel,
 } from "../scripts/lib/project-browser-files.mjs";
 
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-browser-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-browser-"));
 const projectRoot = join(tmp, "project");
 const brain = join(projectRoot, "brain");
 mkdirSync(brain, { recursive: true });
 mkdirSync(join(projectRoot, "conteudos", "blog"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "drafts"), { recursive: true });
-mkdirSync(join(projectRoot, ".seo-brain"), { recursive: true });
-writeFileSync(join(projectRoot, ".seo-brain", "project.json"), JSON.stringify({ name: "Projeto Teste" }), "utf8");
+mkdirSync(join(projectRoot, ".agentic-seo"), { recursive: true });
+writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Projeto Teste" }), "utf8");
 
 writeFileSync(
   join(brain, "voz.md"),
@@ -98,7 +98,7 @@ assert.equal(vozSummary.requiresApproval, true);
 assert.ok(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path === "conteudos/blog/post-teste.md"));
 assert.equal(tree.sections.some((section) => section.id === "workbench"), false);
 
-writeFileSync(join(projectRoot, ".seo-brain", "project.json"), JSON.stringify({ name: "Conversion" }), "utf8");
+writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Conversion" }), "utf8");
 const conversionTree = buildProjectTree({ projectRoot });
 assert.equal(conversionTree.project.icon, null);
 

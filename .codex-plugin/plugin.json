@@ -1,7 +1,7 @@
 {
-  "name": "seo-brain",
+  "name": "agentic-seo",
   "version": "0.2.0",
-  "description": "Agentic SEO operating system with project brains, data-backed SEO analysis, content workflows, and technical SEO checks.",
+  "description": "Agentic SEO Skills adds project brains, data-backed SEO analysis, content workflows, and technical SEO checks to Agentic SEO.",
   "author": {
     "name": "Agentic SEO",
     "url": "https://agenticseo.sh/"
@@ -18,9 +18,9 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "SEO Brain",
-    "shortDescription": "Agentic SEO workflows for strategy, brain, content, data, and technical SEO.",
-    "longDescription": "SEO Brain helps teams run an Agentic SEO project with a persistent authorial brain (identity, voice, technology, editorial, topic clusters, append-only log), human approval gates for strategy, DataForSEO-powered analysis, Brazilian Portuguese content standards, technical SEO checks, and local project dashboards.",
+    "displayName": "Agentic SEO Skills",
+    "shortDescription": "Agentic SEO skills for strategy, brain, content, data, and technical SEO.",
+    "longDescription": "Agentic SEO Skills helps teams run an Agentic SEO project with a persistent authorial brain (identity, voice, technology, editorial, topic clusters, append-only log), human approval gates for strategy, DataForSEO-powered analysis, Brazilian Portuguese content standards, technical SEO checks, and local project dashboards.",
     "developerName": "Agentic SEO",
     "category": "Productivity",
     "capabilities": [
@@ -28,9 +28,9 @@
       "Interactive"
     ],
     "websiteURL": "https://agenticseo.sh/",
-    "brandColor": "#0F766E",
+    "brandColor": "#3a5bd9",
     "defaultPrompt": [
-      "Crie um projeto SEO Brain",
+      "Crie um projeto Agentic SEO",
       "Analise uma keyword com DataForSEO",
       "Revise o brain e pendencias"
     ]

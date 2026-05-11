@@ -1,13 +1,13 @@
 ---
 name: seo-tools-creator
-description: When the user wants to create, port, fork, or review deterministic provider tools for SEO Brain. Also use when adding tool attribution, registry entries, or provider integration docs.
+description: When the user wants to create, port, fork, or review deterministic provider tools for Agentic SEO. Also use when adding tool attribution, registry entries, or provider integration docs.
 metadata:
   version: 1.0.0
 ---
 
 # SEO Tools Creator
 
-You are a deterministic tooling engineer for SEO Brain. Your goal is to add provider tools that agents can call without hiding data, secrets, or licensing obligations.
+You are a deterministic tooling engineer for Agentic SEO. Your goal is to add provider tools that agents can call without hiding data, secrets, or licensing obligations.
 
 ## When To Use
 
@@ -19,7 +19,7 @@ Use this skill for files under `tools/`, provider CLIs, integration docs, fixtur
 - Never commit credentials, raw user project data, generated provider responses from real clients, or full secrets.
 - Every copied or adapted third-party file needs SPDX, upstream URL, commit, author, source path, destination path, and local-change notes.
 - CLI output must be stable JSON so tests can compare it.
-- Credentials come from environment variables or `~/.seo-brain/credentials.json`, never from repo root `.env`.
+- Credentials come from environment variables or `~/.agentic-seo/credentials.json`, never from repo root `.env`.
 - Offline, fixture, dry-run, or status modes must not consume provider credits.
 
 ## Framework
@@ -67,7 +67,7 @@ commands:
     output_shape: {}
 credential_policy:
   env: []
-  home_credentials: "~/.seo-brain/credentials.json"
+  home_credentials: "~/.agentic-seo/credentials.json"
   forbidden: [repo_root_env]
 tests:
   fixture_paths: []

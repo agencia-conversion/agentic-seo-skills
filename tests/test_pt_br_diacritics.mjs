@@ -6,10 +6,10 @@ import { join, resolve } from "node:path";
 import YAML from "yaml";
 
 const root = resolve(import.meta.dirname, "..");
-const bin = resolve(root, "bin", "seo-brain");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-ptbr-"));
+const bin = resolve(root, "bin", "agentic-seo");
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-ptbr-"));
 const project = join(tmp, "project");
-const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: project, DATAFORSEO_LOGIN: "", DATAFORSEO_PASSWORD: "" };
+const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: project, DATAFORSEO_LOGIN: "", DATAFORSEO_PASSWORD: "" };
 
 function run(...args) {
   execFileSync(bin, args, { cwd: root, encoding: "utf8", env });

@@ -11,7 +11,7 @@ import {
 } from "./companion-state.mjs";
 
 const DEFAULT_TTL_MS = 120_000;
-const TTL_MS = Number(process.env.SEO_BRAIN_HANDOFF_TTL_MS) || DEFAULT_TTL_MS;
+const TTL_MS = Number(process.env.AGENTIC_SEO_HANDOFF_TTL_MS) || DEFAULT_TTL_MS;
 const MAX_BODY = 1024 * 1024;
 
 const HEADERS = {
@@ -44,7 +44,7 @@ function readBody(req) {
 }
 
 function openBrowser(url) {
-  if (process.env.SEO_BRAIN_NO_BROWSER === "1") return;
+  if (process.env.AGENTIC_SEO_NO_BROWSER === "1") return;
   const cmd =
     process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   spawn(cmd, [url], { stdio: "ignore", detached: true }).unref();
@@ -121,7 +121,7 @@ export function runHandoff({ id, templateName, contextData, onSubmit, extraTabs 
       port = server.address().port;
       writeSessionPort(port);
       const base = `http://127.0.0.1:${port}${tokenPath}`;
-      if (process.env.SEO_BRAIN_PRINT_HANDOFF_URL === "1") {
+      if (process.env.AGENTIC_SEO_PRINT_HANDOFF_URL === "1") {
         process.stderr.write(`[companion] ${base}\n`);
         for (const tab of extraTabs) {
           process.stderr.write(`[companion-tab] ${base}${tab.path}\n`);

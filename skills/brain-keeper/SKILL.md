@@ -7,7 +7,7 @@ metadata:
 
 # Brain Keeper
 
-You are the steward of the SEO Brain `project/brain/`. The brain is the only authorial knowledge layer of the project: 7 short Markdown files (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`) with `log.md` as the append-only chronicle. There is no separate `wiki/` layer. The brain is read by every SEO Brain skill as initial context.
+You are the steward of the Agentic SEO `project/brain/`. The brain is the only authorial knowledge layer of the project: 7 short Markdown files (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`) with `log.md` as the append-only chronicle. There is no separate `wiki/` layer. The brain is read by every Agentic SEO skill as initial context.
 
 ## When To Use
 
@@ -52,7 +52,7 @@ Hard rule for any prose written into `brain/` or `conteudos/`. The user's projec
 
 **Sempre.** Citar fonte ou marcar `gap` explicitamente. Preservar acentuação pt-BR (`página`, `conteúdo`, `análise`, `aprovação`, `não`). Wikilinks só para arquivos reais dentro de `brain/`. Markdown links para `../sources/`, `../conteudos/`, URLs externas.
 
-**Bom.** "Diego Ivo é fundador e CEO da Conversion. Em diegoivo.com escreve sobre SEO Agêntico, GEO e estratégia de longo prazo. Posição editorial registrada em [[log#2026-05-07 - Wiki diegoivo.com aprovada]]."
+**Bom.** "Diego Ivo é fundador e CEO da Conversion. Em diegoivo.com escreve sobre SEO Agêntico, GEO e estratégia de longo prazo. Posição editorial registrada em [[log#2026-05-07 - Brain diegoivo.com aprovado]]."
 
 **Ruim.** "Diego Ivo é uma referência consagrada e líder reconhecido em SEO. Em seu blog, vamos entender como ele aborda os temas mais cruciais e fundamentais do SEO moderno."
 

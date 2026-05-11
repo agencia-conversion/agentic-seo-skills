@@ -92,7 +92,7 @@ function resolveAllowedFile(projectRoot, rel) {
 }
 
 function companionUiPath(root) {
-  return join(root, ".seo-brain", "companion-ui.json");
+  return join(root, ".agentic-seo", "companion-ui.json");
 }
 
 function readCompanionUi(root) {
@@ -154,7 +154,7 @@ function titleFromFile(rel, frontmatter) {
 
 function projectDisplayName(projectRoot) {
   const root = normalizeProjectRoot(projectRoot);
-  const config = join(root, ".seo-brain", "project.json");
+  const config = join(root, ".agentic-seo", "project.json");
   if (existsSync(config)) {
     try {
       const data = JSON.parse(readFileSync(config, "utf8"));
@@ -169,7 +169,7 @@ function projectDisplayName(projectRoot) {
       if (data.title) return String(data.title).replace(/^["']|["']$/g, "");
     } catch {}
   }
-  return "SEO Brain";
+  return "Agentic SEO";
 }
 
 function readBrainPageSummary(projectRoot, rel, ui) {

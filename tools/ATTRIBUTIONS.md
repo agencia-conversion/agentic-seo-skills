@@ -13,11 +13,11 @@
 - SPDX: `MIT`
 - Local changes:
   - Deferred credential requirement so `help`, `status`, `--offline`, and `--dry-run` work without secrets.
-  - Added `~/.seo-brain/credentials.json` lookup.
+  - Added `~/.agentic-seo/credentials.json` lookup.
   - Added stable JSON success/error envelopes.
   - Added offline fixture responses for tests.
-  - Switched SERP endpoint to advanced organic output for SEO Brain parity.
-  - Added keyword suggestions command and SEO Brain naming.
+  - Switched SERP endpoint to advanced organic output for Agentic SEO parity.
+  - Added keyword suggestions command and Agentic SEO naming.
 
 ## DataForSEO Integration Guide
 
@@ -30,7 +30,7 @@
 - License: MIT
 - SPDX: `MIT`
 - Local changes:
-  - Rewritten around SEO Brain credential policy, offline/dry-run modes, and anti-fabrication rules.
+  - Rewritten around Agentic SEO credential policy, offline/dry-run modes, and anti-fabrication rules.
   - Removed unrelated marketing skill references.
 
 ## Extract CLI

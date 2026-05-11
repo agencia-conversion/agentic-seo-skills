@@ -6,13 +6,13 @@ import { spawnSync } from "node:child_process";
 import * as path from "node:path";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const BIN = path.join(ROOT, "bin", "seo-brain");
-const TMP = mkdtempSync(path.join(tmpdir(), "seo-brain-cluster-"));
+const BIN = path.join(ROOT, "bin", "agentic-seo");
+const TMP = mkdtempSync(path.join(tmpdir(), "agentic-seo-cluster-"));
 const PROJECT_DIR = path.join(TMP, "project");
 
 function run(...args) {
-  const result = spawnSync(BIN, args, { cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR } });
-  if (result.status !== 0) throw new Error(`Command failed: seo-brain ${args.join(" ")}\n${result.stderr}`);
+  const result = spawnSync(BIN, args, { cwd: ROOT, encoding: "utf8", env: { ...process.env, AGENTIC_SEO_PROJECT_DIR: PROJECT_DIR } });
+  if (result.status !== 0) throw new Error(`Command failed: agentic-seo ${args.join(" ")}\n${result.stderr}`);
   try { return JSON.parse(result.stdout); } catch { return { stdout: result.stdout }; }
 }
 
@@ -32,7 +32,7 @@ function bypassArgs() {
 
 try {
   run("project-init", "Topic cluster e2e");
-  const blocked = spawnSync(BIN, ["topic-cluster", "--seed", "agentic seo", "--hypothesis-only"], { cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR } });
+  const blocked = spawnSync(BIN, ["topic-cluster", "--seed", "agentic seo", "--hypothesis-only"], { cwd: ROOT, encoding: "utf8", env: { ...process.env, AGENTIC_SEO_PROJECT_DIR: PROJECT_DIR } });
   assert.notEqual(blocked.status, 0);
   assert.match(blocked.stderr, /requires written approval/);
   const cluster = run("topic-cluster", "--seed", "agentic seo", "--hypothesis-only", ...bypassArgs());
@@ -78,7 +78,7 @@ try {
   assert.equal(rendered.rendered, true);
 
   // --render-only fails for unknown seed
-  const result = spawnSync(BIN, ["topic-cluster", "--seed", "nao-existe", "--render-only"], { cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR } });
+  const result = spawnSync(BIN, ["topic-cluster", "--seed", "nao-existe", "--render-only"], { cwd: ROOT, encoding: "utf8", env: { ...process.env, AGENTIC_SEO_PROJECT_DIR: PROJECT_DIR } });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /No cluster JSON/);
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Validate SEO Brain skill skeletons without external dependencies.
+// Validate Agentic SEO skill skeletons without external dependencies.
 
 import * as fs from "node:fs";
 import * as path from "node:path";
