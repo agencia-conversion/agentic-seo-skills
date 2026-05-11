@@ -5,6 +5,7 @@ import { runApproveBriefing } from "./lib/companion-types/approve-briefing.mjs";
 import { runDataforseoBypass } from "./lib/companion-types/dataforseo-bypass.mjs";
 import { runPickCluster } from "./lib/companion-types/pick-cluster.mjs";
 import { runReviewChanges } from "./lib/companion-types/review-changes.mjs";
+import { runProjectBrowser } from "./lib/project-browser-server.mjs";
 
 const HANDOFFS = {
   "collect-env": runCollectEnv,
@@ -13,6 +14,7 @@ const HANDOFFS = {
   "dataforseo-bypass": runDataforseoBypass,
   "pick-cluster": runPickCluster,
   "review-changes": runReviewChanges,
+  "project-browser": runProjectBrowser,
 };
 
 async function main() {

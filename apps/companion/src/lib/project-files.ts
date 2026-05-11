@@ -1,0 +1,419 @@
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
+import { createHash } from 'node:crypto';
+
+export const AUTHORIAL_BRAIN_PAGES = new Set([
+  'brain/index.md',
+  'brain/identidade.md',
+  'brain/voz.md',
+  'brain/tecnologia.md',
+  'brain/editorial.md',
+  'brain/topic-clusters.md',
+]);
+
+const BRAIN_PAGE_ORDER = [
+  'brain/index.md',
+  'brain/identidade.md',
+  'brain/voz.md',
+  'brain/tecnologia.md',
+  'brain/editorial.md',
+  'brain/topic-clusters.md',
+  'brain/log.md',
+];
+
+const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'outros']);
+
+export interface ProjectTreeItem {
+  path: string;
+  title: string;
+  updated: string | null;
+  readOnly: boolean;
+  requiresApproval: boolean;
+  excerpt: string;
+  hash: string;
+}
+
+export interface ProjectTreeSection {
+  id: string;
+  title: string;
+  items: ProjectTreeItem[];
+}
+
+function sha256(content: string) {
+  return createHash('sha256').update(content, 'utf8').digest('hex');
+}
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function normalizeProjectRoot(projectRoot?: string | null) {
+  return resolve(/*turbopackIgnore: true*/ projectRoot || process.env.SEO_BRAIN_PROJECT_ROOT || 'project');
+}
+
+function yamlString(value: unknown) {
+  return JSON.stringify(String(value ?? ''));
+}
+
+function isSafeSegment(segment: string) {
+  return !!segment && segment !== '.' && segment !== '..' && !segment.startsWith('.');
+}
+
+export function validateProjectFileRel(rawPath: unknown, { write = false } = {}) {
+  if (typeof rawPath !== 'string' || !rawPath.trim()) {
+    return { ok: false as const, reason: 'missing-path' };
+  }
+  const rel = rawPath.trim().replace(/^\/+/, '');
+  if (rel.includes('\\') || rel.includes('\0')) {
+    return { ok: false as const, reason: 'path-not-allowed' };
+  }
+  const parts = rel.split('/');
+  if (!parts.every(isSafeSegment) || !rel.endsWith('.md')) {
+    return { ok: false as const, reason: 'path-not-allowed' };
+  }
+  const allowed =
+    /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
+    /^conteudos\/(blog|linkedin|podcast|outros)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
+    /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel);
+  if (!allowed) return { ok: false as const, reason: 'path-not-allowed' };
+  if (write && rel === 'brain/log.md') return { ok: false as const, reason: 'read-only-log' };
+  return { ok: true as const, rel };
+}
+
+function resolveAllowedFile(projectRoot: string | undefined, rel: string) {
+  const root = normalizeProjectRoot(projectRoot);
+  const filePath = resolve(root, rel);
+  const allowedRoots = ['brain', 'conteudos', 'workbench'].map((dir) => resolve(root, dir));
+  if (!allowedRoots.some((allowed) => filePath === allowed || filePath.startsWith(`${allowed}${sep}`))) {
+    throw new Error('path escaped project root');
+  }
+  return { root, filePath };
+}
+
+export function parseFrontmatter(text: string) {
+  if (!text.startsWith('---\n')) return { data: {} as Record<string, any>, body: text, raw: '' };
+  const end = text.indexOf('\n---', 4);
+  if (end === -1) return { data: {} as Record<string, any>, body: text, raw: '' };
+  const raw = text.slice(4, end);
+  const body = text.slice(end + 4).replace(/^\n/, '');
+  const data: Record<string, any> = {};
+  let currentList: string[] | null = null;
+  for (const line of raw.split(/\r?\n/)) {
+    if (/^\s/.test(line) && currentList) {
+      const m = line.match(/^\s+-\s*(.+)$/);
+      if (m) currentList.push(m[1].replace(/^["']|["']$/g, ''));
+      continue;
+    }
+    const idx = line.indexOf(':');
+    if (idx <= 0) continue;
+    const key = line.slice(0, idx).trim();
+    const val = line.slice(idx + 1).trim();
+    if (val === '' || val === '[]') {
+      currentList = [];
+      data[key] = currentList;
+    } else {
+      data[key] = val.replace(/^["']|["']$/g, '');
+      currentList = null;
+    }
+  }
+  return { data, body, raw };
+}
+
+function setFrontmatterFields(text: string, fields: Record<string, unknown>) {
+  const linesForFields = Object.entries(fields).map(([key, value]) => `${key}: ${yamlString(value)}`);
+  if (!text.startsWith('---\n')) {
+    return `---\n${linesForFields.join('\n')}\n---\n\n${text.replace(/^\n+/, '')}`;
+  }
+  const end = text.indexOf('\n---', 4);
+  if (end === -1) {
+    return `---\n${linesForFields.join('\n')}\n---\n\n${text}`;
+  }
+  const raw = text.slice(4, end);
+  const after = text.slice(end + 4);
+  const lines = raw.split(/\r?\n/);
+  const seen = new Set<string>();
+  const nextLines = lines.map((line) => {
+    for (const [key, value] of Object.entries(fields)) {
+      if (new RegExp(`^${key}\\s*:`).test(line)) {
+        seen.add(key);
+        return `${key}: ${yamlString(value)}`;
+      }
+    }
+    return line;
+  });
+  for (const [key, value] of Object.entries(fields)) {
+    if (!seen.has(key)) nextLines.push(`${key}: ${yamlString(value)}`);
+  }
+  return `---\n${nextLines.join('\n')}\n---${after}`;
+}
+
+function appendLogEntry(logFile: string, entry: Record<string, string | null | undefined>) {
+  mkdirSync(dirname(logFile), { recursive: true });
+  const lines = [
+    '',
+    '',
+    `## ${entry.date} - ${entry.titulo}`,
+    '',
+    `- tipo: ${entry.tipo}`,
+    `- escopo: ${entry.escopo || 'n/a'}`,
+    `- decisao: ${entry.decisao}`,
+  ];
+  if (entry.evidencia) lines.push(`- evidencia: ${entry.evidencia}`);
+  lines.push(`- aprovador: ${entry.aprovador || 'agent'}`);
+  if (entry.aprovado_em) lines.push(`- aprovado_em: ${entry.aprovado_em}`);
+  if (entry.notas) lines.push(`- notas: ${entry.notas}`);
+  appendFileSync(logFile, lines.join('\n') + '\n', 'utf8');
+}
+
+function titleFromFile(rel: string, frontmatter: Record<string, any>) {
+  const title = String(frontmatter.title || '').trim().replace(/^["']|["']$/g, '');
+  if (title) return title;
+  if (rel === 'brain/log.md') return 'Log';
+  return basename(rel, '.md')
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function projectDisplayName(projectRoot?: string) {
+  const root = normalizeProjectRoot(projectRoot);
+  const config = join(root, '.seo-brain', 'project.json');
+  if (existsSync(config)) {
+    try {
+      const data = JSON.parse(readFileSync(config, 'utf8'));
+      if (data?.name) return String(data.name);
+      if (data?.brand_name) return String(data.brand_name);
+    } catch {}
+  }
+  return 'SEO Brain';
+}
+
+function readSummary(projectRoot: string, rel: string): ProjectTreeItem | null {
+  const { filePath } = resolveAllowedFile(projectRoot, rel);
+  if (!existsSync(filePath) || !statSync(filePath).isFile()) return null;
+  const text = readFileSync(filePath, 'utf8');
+  const { data: frontmatter, body } = parseFrontmatter(text);
+  return {
+    path: rel,
+    title: titleFromFile(rel, frontmatter),
+    updated: frontmatter.updated || frontmatter.published_at || null,
+    readOnly: rel === 'brain/log.md',
+    requiresApproval: AUTHORIAL_BRAIN_PAGES.has(rel),
+    excerpt: body.replace(/\s+/g, ' ').trim().slice(0, 180),
+    hash: sha256(text),
+  };
+}
+
+function walkMarkdown(root: string, current = root): string[] {
+  if (!existsSync(current)) return [];
+  const out: string[] = [];
+  for (const name of readdirSync(current).sort((a, b) => a.localeCompare(b, 'pt-BR'))) {
+    if (name.startsWith('.')) continue;
+    const full = join(current, name);
+    const st = statSync(full);
+    if (st.isDirectory()) out.push(...walkMarkdown(root, full));
+    if (st.isFile() && name.endsWith('.md')) out.push(relative(root, full).split(sep).join('/'));
+  }
+  return out;
+}
+
+export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
+  const root = normalizeProjectRoot(projectRoot);
+  const brainRoot = join(root, 'brain');
+  const brainRels = new Set(BRAIN_PAGE_ORDER);
+  if (existsSync(brainRoot)) {
+    for (const name of readdirSync(brainRoot)) {
+      const rel = `brain/${name}`;
+      const full = join(brainRoot, name);
+      if (!name.startsWith('.') && name.endsWith('.md') && statSync(full).isFile()) brainRels.add(rel);
+    }
+  }
+  const orderedBrain = [...brainRels].sort((a, b) => {
+    const ia = BRAIN_PAGE_ORDER.indexOf(a);
+    const ib = BRAIN_PAGE_ORDER.indexOf(b);
+    if (ia !== -1 || ib !== -1) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+    return a.localeCompare(b, 'pt-BR');
+  });
+
+  const contentItems: ProjectTreeItem[] = [];
+  for (const origem of CONTENT_ORIGINS) {
+    const dir = join(root, 'conteudos', origem);
+    for (const rel of walkMarkdown(dir).map((child) => `conteudos/${origem}/${child}`)) {
+      const item = readSummary(root, rel);
+      if (item) contentItems.push(item);
+    }
+  }
+
+  const workbenchItems = walkMarkdown(join(root, 'workbench'))
+    .map((child) => readSummary(root, `workbench/${child}`))
+    .filter(Boolean) as ProjectTreeItem[];
+
+  const sections: ProjectTreeSection[] = [
+    {
+      id: 'brain',
+      title: 'Brain',
+      items: orderedBrain.map((rel) => readSummary(root, rel)).filter(Boolean) as ProjectTreeItem[],
+    },
+  ];
+  if (contentItems.length) sections.push({ id: 'conteudos', title: 'Conteúdos', items: contentItems });
+  if (workbenchItems.length) sections.push({ id: 'workbench', title: 'Workbench', items: workbenchItems });
+
+  return { ok: true, project: { root, name: projectDisplayName(root) }, sections };
+}
+
+export function readProjectFile({ projectRoot, fileRel }: { projectRoot?: string; fileRel: unknown }) {
+  const validation = validateProjectFileRel(fileRel);
+  if (!validation.ok) return { ok: false, reason: validation.reason };
+  const { root, filePath } = resolveAllowedFile(projectRoot, validation.rel);
+  if (!existsSync(filePath)) return { ok: false, reason: 'file-not-found' };
+  const text = readFileSync(filePath, 'utf8');
+  const { data: frontmatter, body, raw } = parseFrontmatter(text);
+  return {
+    ok: true,
+    projectRoot: root,
+    path: validation.rel,
+    title: titleFromFile(validation.rel, frontmatter),
+    frontmatter,
+    frontmatterRaw: raw,
+    body,
+    text,
+    hash: sha256(text),
+    readOnly: validation.rel === 'brain/log.md',
+    requiresApproval: AUTHORIAL_BRAIN_PAGES.has(validation.rel),
+  };
+}
+
+export function saveProjectFile({
+  projectRoot,
+  fileRel,
+  expectedHash,
+  title,
+  body,
+  approver,
+  notes,
+}: {
+  projectRoot?: string;
+  fileRel: unknown;
+  expectedHash?: string;
+  title?: string;
+  body?: string;
+  approver?: string;
+  notes?: string;
+}) {
+  const validation = validateProjectFileRel(fileRel, { write: true });
+  if (!validation.ok) return { ok: false, reason: validation.reason };
+  const { root, filePath } = resolveAllowedFile(projectRoot, validation.rel);
+  if (!existsSync(filePath)) return { ok: false, reason: 'file-not-found' };
+  if (typeof body !== 'string') return { ok: false, reason: 'invalid-body' };
+  const current = readFileSync(filePath, 'utf8');
+  const currentHash = sha256(current);
+  if (!expectedHash || expectedHash !== currentHash) {
+    return { ok: false, reason: 'file-modified', currentHash };
+  }
+  const requiresApproval = AUTHORIAL_BRAIN_PAGES.has(validation.rel);
+  const approverClean = String(approver || '').trim();
+  if (requiresApproval && !approverClean) return { ok: false, reason: 'missing-approver' };
+
+  const { data: existingFrontmatter } = parseFrontmatter(current);
+  const finalTitle = String(title || existingFrontmatter.title || titleFromFile(validation.rel, existingFrontmatter)).trim();
+  const fields: Record<string, unknown> = { title: finalTitle || titleFromFile(validation.rel, existingFrontmatter) };
+  if (validation.rel.startsWith('brain/')) fields.updated = todayIso();
+  const textWithFrontmatter = setFrontmatterFields(current, fields);
+  const { raw } = parseFrontmatter(textWithFrontmatter);
+  const finalText = `---\n${raw}\n---\n\n${body.replace(/^\n+/, '').replace(/\s*$/, '\n')}`;
+  writeFileSync(filePath, finalText, 'utf8');
+
+  if (validation.rel.startsWith('brain/')) {
+    const today = todayIso();
+    appendLogEntry(join(root, 'brain', 'log.md'), {
+      date: today,
+      tipo: requiresApproval ? 'aprovacao' : 'decisao',
+      titulo: `${basename(validation.rel, '.md')} editado no Companion`,
+      escopo: validation.rel,
+      decisao: `${validation.rel} editado no Companion Web${approverClean ? ` por ${approverClean}` : ''}.`,
+      evidencia: validation.rel,
+      aprovador: approverClean || 'agent',
+      aprovado_em: requiresApproval ? today : null,
+      notas: notes ? String(notes).trim() : null,
+    });
+  }
+
+  const next = readFileSync(filePath, 'utf8');
+  return {
+    ok: true,
+    path: validation.rel,
+    title: finalTitle,
+    updated: todayIso(),
+    hash: sha256(next),
+    requiresApproval,
+    logAppended: validation.rel.startsWith('brain/'),
+  };
+}
+
+function slugFromTitle(title: string) {
+  return (title || 'nova-pagina')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .slice(0, 60) || 'nova-pagina';
+}
+
+function uniqueRel(root: string, rel: string) {
+  const ext = '.md';
+  const base = rel.endsWith(ext) ? rel.slice(0, -ext.length) : rel;
+  let candidate = `${base}${ext}`;
+  let i = 2;
+  while (existsSync(join(root, candidate))) {
+    candidate = `${base}-${i}${ext}`;
+    i++;
+  }
+  return candidate;
+}
+
+export function createProjectFile({
+  projectRoot,
+  kind = 'workbench',
+  title = 'Nova página',
+}: {
+  projectRoot?: string;
+  kind?: 'workbench' | 'content';
+  title?: string;
+}) {
+  const root = normalizeProjectRoot(projectRoot);
+  const slug = slugFromTitle(title);
+  const rel =
+    kind === 'content'
+      ? uniqueRel(root, `conteudos/outros/${slug}.md`)
+      : uniqueRel(root, `workbench/companion/${slug}.md`);
+  const validation = validateProjectFileRel(rel, { write: true });
+  if (!validation.ok) return { ok: false, reason: validation.reason };
+  const { filePath } = resolveAllowedFile(root, validation.rel);
+  mkdirSync(dirname(filePath), { recursive: true });
+  const today = todayIso();
+  const text =
+    kind === 'content'
+      ? `---\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigem: "outros"\narea: ""\n---\n\n`
+      : `---\ntitle: ${yamlString(title)}\nupdated: ${yamlString(today)}\n---\n\n`;
+  writeFileSync(filePath, text, 'utf8');
+  const file = readProjectFile({ projectRoot: root, fileRel: rel });
+  return { ...file, created: true };
+}
+
+export function readProjectLog({ projectRoot }: { projectRoot?: string }) {
+  const file = readProjectFile({ projectRoot, fileRel: 'brain/log.md' });
+  if (!file.ok) return file;
+  const entries = [];
+  const blocks = String(file.body || '').split(/^## /m).slice(1);
+  for (const block of blocks) {
+    const heading = block.split(/\r?\n/, 1)[0].trim();
+    if (!heading) continue;
+    const tipo = block.match(/^- tipo:\s*(.+)$/m)?.[1]?.trim() || '';
+    const escopo = block.match(/^- escopo:\s*(.+)$/m)?.[1]?.trim() || '';
+    const decisao = block.match(/^- decisao:\s*(.+)$/m)?.[1]?.trim() || '';
+    const aprovador = block.match(/^- aprovador:\s*(.+)$/m)?.[1]?.trim() || '';
+    const aprovadoEm = block.match(/^- aprovado_em:\s*(.+)$/m)?.[1]?.trim() || '';
+    entries.push({ heading, tipo, escopo, decisao, aprovador, aprovadoEm });
+  }
+  return { ...file, entries };
+}

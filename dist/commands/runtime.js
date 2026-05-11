@@ -1407,6 +1407,27 @@ function runDataSetupHandoff() {
         return { ok: false, reason: `handoff-exit-${result.status}` };
     return { ok: true };
 }
+async function commandProjectBrowser(args) {
+    const p = ensureProject();
+    const childArgs = [
+        path.join(ROOT, "scripts", "companion.mjs"),
+        "project-browser",
+        "--project-root",
+        p,
+    ];
+    if (args.no_open || args.no_browser)
+        childArgs.push("--no-open");
+    const result = (0, node_child_process_1.spawnSync)(process.execPath, childArgs, {
+        cwd: ROOT,
+        env: process.env,
+        stdio: "inherit",
+    });
+    if (result.error)
+        throw new CliError(result.error.message);
+    if (result.status !== 0 && result.signal !== "SIGINT") {
+        throw new CliError(`Project browser failed with exit ${result.status ?? result.signal}`);
+    }
+}
 async function commandProjectInit(args) {
     const name = args._[0] || "SEO Brain Project";
     const p = PROJECT_DIR;
@@ -3257,6 +3278,7 @@ async function commandAuditSkills(args) {
 }
 const COMMANDS = {
     "project-init": commandProjectInit,
+    "project-browser": commandProjectBrowser,
     "brain-lint": commandBrainLint,
     "brain-approve": commandBrainApprove,
     "brain-ingest": commandBrainIngest,

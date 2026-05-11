@@ -1,0 +1,625 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Command,
+  EditorBubble,
+  EditorBubbleItem,
+  EditorCommand,
+  EditorCommandEmpty,
+  EditorCommandItem,
+  EditorCommandList,
+  EditorContent,
+  EditorRoot,
+  JSONContent,
+  handleCommandNavigation,
+  renderItems,
+} from 'novel';
+import {
+  Bold,
+  Check,
+  Code,
+  FileText,
+  Highlighter,
+  Image as ImageIcon,
+  Italic,
+  Link2,
+  Maximize2,
+  MoreHorizontal,
+  PanelLeftOpen,
+  Save,
+  Smile,
+  Star,
+  Strikethrough,
+  Underline,
+  X,
+} from 'lucide-react';
+import { useWorkspace } from '../workspace/store';
+import { cn } from '@/lib/utils';
+import { useClickOutside } from '@/hooks/use-click-outside';
+import { getExtensions } from './editor-extensions';
+import { buildSuggestionItems, SuggestionItem } from './editor-commands';
+import { showToast } from '@/components/toast';
+import { CoverPicker } from './cover-picker';
+import { TitleEditor } from './title-editor';
+import { BlockPlusButton } from './block-plus-button';
+import { BlockHandleMenu } from './block-handle-menu';
+import { getPageWidthOptions, resolvePageWidth, widthToClass } from '../workspace/page-width';
+import { usePagePath } from '@/hooks/use-page-path';
+import { MentionPopup } from './mention-popup';
+import { MentionChipHydrator } from './mention-chip-hydrator';
+import { useI18n } from '@/components/i18n-provider';
+
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-[352px] h-[435px] flex items-center justify-center text-sm text-notion-text-muted">
+      Carregando...
+    </div>
+  ),
+});
+
+const INITIAL_DOC = {
+  type: 'doc',
+  content: [],
+};
+
+interface EditorPanelProps {
+  pageId?: string;
+  isModal?: boolean;
+}
+
+export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
+  const { t } = useI18n();
+  const activePageId = useWorkspace((s) => s.activePageId);
+  const effectivePageId = pageId || activePageId;
+  const activePage = useWorkspace((s) => s.pages.find((p) => p.id === effectivePageId));
+  const sidebarCollapsed = useWorkspace((s) => s.sidebarCollapsed);
+  const toggleSidebar = useWorkspace((s) => s.toggleSidebar);
+  const updatePage = useWorkspace((s) => s.updatePage);
+  const savePage = useWorkspace((s) => s.savePage);
+  const setSourceMode = useWorkspace((s) => s.setSourceMode);
+  const toggleFavorite = useWorkspace((s) => s.toggleFavorite);
+  const effectiveWidth = useWorkspace((s) =>
+    resolvePageWidth(effectivePageId || null, s.pages, s.settings.defaultPageWidth)
+  );
+  const pagePath = usePagePath();
+
+  const [mounted, setMounted] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showWidthSub, setShowWidthSub] = useState(false);
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const [pendingPasteHtml, setPendingPasteHtml] = useState<{ html?: string; text?: string } | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const lastPlusTimeRef = useRef(0);
+  const editorInstanceRef = useRef<any>(null);
+  const router = useRouter();
+
+  useClickOutside(emojiPickerRef, () => setShowEmojiPicker(false));
+  useClickOutside(menuRef, () => {
+    setShowMenu(false);
+    setShowWidthSub(false);
+  });
+
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!pendingPasteHtml) return;
+    const editor = editorInstanceRef.current;
+    if (!editor) return;
+    try {
+      if (pendingPasteHtml.html) {
+        editor.commands.insertContent(pendingPasteHtml.html, {
+          parseOptions: { preserveWhitespace: 'full' },
+        });
+      } else if (pendingPasteHtml.text) {
+        for (const block of pendingPasteHtml.text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)) {
+          editor.commands.insertContent({ type: 'paragraph', content: [{ type: 'text', text: block }] });
+        }
+      }
+    } finally {
+      setPendingPasteHtml(null);
+    }
+  }, [pendingPasteHtml]);
+
+  if (!mounted) return <div className="flex-1 bg-background" />;
+  if (!activePage) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-background">
+        <p className="text-notion-text-muted">{t('editor.loadingWorkspace')}</p>
+      </div>
+    );
+  }
+
+  const breadcrumbs = [activePage];
+  const pageWidthOptions = getPageWidthOptions(t);
+  const validContent: JSONContent =
+    activePage.content && typeof activePage.content === 'object' && 'type' in activePage.content
+      ? (activePage.content as JSONContent)
+      : (INITIAL_DOC as JSONContent);
+  const suggestionItems: SuggestionItem[] = buildSuggestionItems();
+  const isReadOnly = activePage.readOnly;
+
+  const handleSave = async () => {
+    if (isReadOnly) return;
+    let approver: string | undefined;
+    if (activePage.requiresApproval) {
+      approver = window.prompt('Nome do aprovador humano para registrar em brain/log.md') || undefined;
+      if (!approver?.trim()) {
+        showToast('Aprovação humana obrigatória para salvar esta página do Brain.', 'error');
+        return;
+      }
+    }
+    const ok = await savePage(activePage.id, { approver, notes: 'salvo no companion Noteon local' });
+    if (ok) {
+      setLastSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      showToast('Arquivo salvo.', 'success');
+    } else {
+      showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || 'Falha ao salvar.', 'error');
+    }
+  };
+
+  const statusLabel = activePage.saving
+    ? 'Salvando...'
+    : activePage.saveError
+      ? activePage.saveError
+      : activePage.dirty
+        ? 'Não salvo'
+        : lastSavedAt
+          ? `Salvo ${lastSavedAt}`
+          : 'Salvo';
+
+  return (
+    <div className={cn('flex-1 flex flex-col h-full bg-background overflow-hidden relative', isModal && 'rounded-lg overflow-y-auto')}>
+      {!isModal && (
+        <header className="h-12 px-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-20 select-none">
+          <div className="flex items-center gap-2 overflow-hidden mr-4 text-sm text-notion-text-muted">
+            {sidebarCollapsed && (
+              <button
+                onClick={toggleSidebar}
+                className="p-1.5 hover:bg-notion-hover rounded text-notion-text-muted hover:text-notion-text transition-colors shrink-0"
+                aria-label={t('editor.expandSidebar')}
+                title={t('editor.expandSidebar')}
+              >
+                <PanelLeftOpen className="w-4 h-4" />
+              </button>
+            )}
+            {breadcrumbs.map((crumb) => (
+              <div key={crumb.id} className="flex items-center gap-1">
+                <div
+                  onClick={() => router.push(pagePath(crumb.slug))}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-notion-hover cursor-pointer transition-colors max-w-[360px] overflow-hidden truncate"
+                >
+                  <span className="w-[18px] h-[18px] flex items-center justify-center shrink-0 text-notion-text-muted">
+                    {crumb.icon || <FileText className="w-[18px] h-[18px]" />}
+                  </span>
+                  <span className="text-notion-text truncate font-medium">{crumb.title || t('common.untitled')}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 text-notion-text-muted relative" ref={menuRef}>
+            <span className={cn('text-[11px] mr-1', activePage.saveError ? 'text-red-500' : 'text-notion-text-muted')}>
+              {statusLabel}
+            </span>
+            {!isReadOnly && (
+              <HeaderButton
+                icon={activePage.saving ? <div className="w-3.5 h-3.5 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+                onClick={handleSave}
+                ariaLabel="Salvar"
+              />
+            )}
+            <HeaderButton
+              icon={<Star className={cn('w-4 h-4', activePage.favorite && 'fill-amber-400 text-amber-400')} />}
+              onClick={() => toggleFavorite(activePage.id)}
+              ariaLabel="Toggle favorite"
+            />
+            <div className="relative">
+              <HeaderButton icon={<MoreHorizontal className="w-4 h-4" />} onClick={() => setShowMenu(!showMenu)} ariaLabel={t('editor.more')} />
+              <AnimatePresence>
+                {showMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="absolute right-0 top-full mt-2 w-60 bg-background border border-notion-border rounded-md shadow-lg z-50 py-1 overflow-hidden"
+                  >
+                    <MenuAction
+                      icon={<Check className="w-4 h-4" />}
+                      label={activePage.sourceMode ? 'Editor visual' : 'Markdown source'}
+                      onClick={() => {
+                        setSourceMode(activePage.id, !activePage.sourceMode);
+                        setShowMenu(false);
+                      }}
+                    />
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowWidthSub((v) => !v)}
+                        className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-notion-text"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Maximize2 className="w-4 h-4" />
+                          {t('pageWidth.pageWidth')}
+                        </span>
+                        <span className="text-[10px] text-notion-text-muted uppercase">{activePage.width || t('pageWidth.auto')}</span>
+                      </button>
+                      {showWidthSub && (
+                        <div className="absolute left-full top-0 ml-1 w-64 bg-background border border-notion-border rounded-md shadow-lg py-1 z-[60]">
+                          {pageWidthOptions.map((opt) => (
+                            <WidthMenuItem
+                              key={opt.value}
+                              active={activePage.width === opt.value}
+                              label={opt.label}
+                              description={opt.description}
+                              onClick={() => {
+                                updatePage(activePage.id, { width: opt.value });
+                                setShowWidthSub(false);
+                                setShowMenu(false);
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="h-px bg-notion-border my-1" />
+                    <div className="px-3 py-1.5 text-[10px] text-notion-text-muted truncate">{activePage.path}</div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </header>
+      )}
+
+      <div className="flex-1 overflow-y-auto scrollbar-hide relative pb-32">
+        {activePage.cover && (
+          <div className={cn('w-full relative group/cover', isModal ? 'h-32 sm:h-48' : 'h-48 sm:h-64')}>
+            <img src={activePage.cover} alt="Cover" className="w-full h-full object-cover" />
+            <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover/cover:opacity-100 transition-opacity">
+              <button onClick={() => setShowCoverPicker(true)} className="bg-background/80 backdrop-blur text-xs px-2 py-1 rounded shadow-sm cursor-pointer text-notion-text">
+                Change cover
+              </button>
+              <button onClick={() => updatePage(activePage.id, { cover: null })} className="bg-background/80 backdrop-blur text-xs px-2 py-1 rounded shadow-sm cursor-pointer text-notion-text">
+                Remove
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div
+          className={cn(
+            'w-full mx-auto',
+            widthToClass(effectiveWidth),
+            isModal ? 'px-10 pt-14' : 'px-12 md:px-16 pt-10',
+            activePage.cover ? 'mt-6' : 'mt-2'
+          )}
+        >
+          <div className="group/title relative mb-4">
+            <div className="opacity-0 group-hover/title:opacity-100 transition-opacity flex gap-2 absolute -top-8 left-0 text-sm text-notion-text-muted">
+              {!activePage.readOnly && !activePage.icon && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowEmojiPicker(true);
+                  }}
+                  className="hover:bg-notion-hover px-2 py-1 rounded flex items-center gap-1 cursor-pointer"
+                >
+                  <Smile className="w-4 h-4" /> Add icon
+                </button>
+              )}
+              {!activePage.readOnly && !activePage.cover && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowCoverPicker(true);
+                  }}
+                  className="hover:bg-notion-hover px-2 py-1 rounded flex items-center gap-1 cursor-pointer"
+                >
+                  <ImageIcon className="w-4 h-4" /> Add cover
+                </button>
+              )}
+              <CoverPicker
+                open={showCoverPicker}
+                currentCover={activePage.cover}
+                onClose={() => setShowCoverPicker(false)}
+                onChange={(cover) => updatePage(activePage.id, { cover })}
+              />
+            </div>
+            {activePage.icon && (
+              <div className={cn('relative group/icon-container w-fit', activePage.cover && 'mt-2')}>
+                <div
+                  className={cn(
+                    'leading-none mb-4 w-fit rounded-lg transition-colors -ml-1',
+                    !activePage.readOnly && 'cursor-pointer hover:bg-notion-hover',
+                    isModal ? 'text-[64px]' : 'text-[78px]'
+                  )}
+                  onClick={(e) => {
+                    if (activePage.readOnly) return;
+                    e.stopPropagation();
+                    setShowEmojiPicker(true);
+                  }}
+                >
+                  {activePage.icon}
+                </div>
+                {!activePage.readOnly && (
+                  <button
+                    onClick={() => updatePage(activePage.id, { icon: null })}
+                    className="absolute -top-2 -right-2 p-1 bg-background border border-notion-border rounded-full opacity-0 group-hover/icon-container:opacity-100 transition-opacity shadow-sm hover:bg-notion-hover cursor-pointer"
+                  >
+                    <X className="w-3 h-3 text-notion-text-muted" />
+                  </button>
+                )}
+              </div>
+            )}
+            <AnimatePresence>
+              {showEmojiPicker && (
+                <motion.div
+                  ref={emojiPickerRef}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="absolute z-50 left-0 top-12 shadow-xl border border-notion-border rounded-lg bg-background"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <EmojiPicker
+                    onEmojiClick={(emoji) => {
+                      updatePage(activePage.id, { icon: emoji.emoji });
+                      setShowEmojiPicker(false);
+                    }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <TitleEditor
+              pageId={activePage.id}
+              initialTitle={activePage.title}
+              placeholder={t('common.untitled')}
+              isModal={isModal}
+              autoFocus={!activePage.title && !activePage.readOnly}
+              readOnly={activePage.readOnly}
+              onEnter={() => {
+                const editorEl = document.querySelector('.ProseMirror') as HTMLElement | null;
+                editorEl?.focus();
+              }}
+              onPasteMultiline={(p) => setPendingPasteHtml(p)}
+            />
+            <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
+              {activePage.requiresApproval && <span className="rounded bg-amber-500/10 text-amber-600 px-2 py-0.5">aprovação obrigatória</span>}
+              {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">somente leitura</span>}
+              <span className="truncate">{activePage.path}</span>
+            </div>
+          </div>
+
+          {activePage.sourceMode ? (
+            <textarea
+              value={activePage.sourceBody}
+              readOnly={isReadOnly}
+              onChange={(e) => updatePage(activePage.id, { sourceBody: e.target.value })}
+              className="w-full min-h-[520px] resize-y rounded-md border border-notion-border bg-background px-4 py-3 font-mono text-sm leading-6 text-notion-text outline-none focus:ring-2 focus:ring-notion-text/10"
+              spellCheck={false}
+            />
+          ) : !activePage.loaded ? (
+            <div className="py-24 flex justify-center">
+              <div className="w-8 h-8 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div id={`noteblock-editor-${activePage.id}`} className="novel-editor relative group/editor">
+              <MentionChipHydrator editorRootId={`noteblock-editor-${activePage.id}`} />
+              <EditorRoot key={activePage.id}>
+                <EditorContent
+                  initialContent={validContent}
+                  immediatelyRender={false}
+                  editable={!isReadOnly}
+                  extensions={[
+                    ...getExtensions(),
+                    Command.configure({
+                      suggestion: {
+                        items: ({ query }: any) => {
+                          if (!query) return suggestionItems;
+                          return suggestionItems.filter((item) => {
+                            const q = query.toLowerCase();
+                            return item.title.toLowerCase().includes(q) || item.searchTerms?.some((term) => term.includes(q));
+                          });
+                        },
+                        render: renderItems,
+                      },
+                    }),
+                  ]}
+                  onUpdate={({ editor }) => {
+                    editorInstanceRef.current = editor;
+                    updatePage(activePage.id, { content: editor.getJSON() });
+                  }}
+                  onCreate={({ editor }) => {
+                    editorInstanceRef.current = editor;
+                  }}
+                  editorProps={{
+                    attributes: {
+                      class: cn('prose prose-zinc dark:prose-invert max-w-none focus:outline-none', isModal ? 'min-h-[300px]' : 'min-h-[500px]'),
+                    },
+                    handleKeyDown: (view, event) => {
+                      if (handleCommandNavigation(event)) return true;
+                      if (event.key === '+') {
+                        const now = Date.now();
+                        if (now - lastPlusTimeRef.current < 350) {
+                          event.preventDefault();
+                          const { state } = view;
+                          const { selection } = state;
+                          view.dispatch(state.tr.delete(selection.from - 1, selection.from));
+                          showToast('AI local ainda não está habilitada neste companion.', 'error');
+                          lastPlusTimeRef.current = 0;
+                          return true;
+                        }
+                        lastPlusTimeRef.current = now;
+                      }
+                      return false;
+                    },
+                  }}
+                >
+                  <EditorCommand className="z-50 h-auto max-h-[330px] w-72 overflow-y-auto rounded-md border border-notion-border bg-background px-1 py-2 shadow-md">
+                    <EditorCommandEmpty className="px-2 text-notion-text-muted">No results</EditorCommandEmpty>
+                    <EditorCommandList>
+                      {suggestionItems.map((item) => (
+                        <EditorCommandItem
+                          value={item.title}
+                          onCommand={(val) => item.command(val as any)}
+                          className="flex w-full items-center space-x-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-notion-hover aria-selected:bg-notion-hover cursor-pointer"
+                          key={item.title}
+                        >
+                          <div className="flex h-10 w-10 items-center justify-center rounded-md border border-notion-border bg-background shrink-0">
+                            {item.icon}
+                          </div>
+                          <div>
+                            <p className="font-medium text-notion-text">{item.title}</p>
+                            <p className="text-xs text-notion-text-muted">{item.description}</p>
+                          </div>
+                        </EditorCommandItem>
+                      ))}
+                    </EditorCommandList>
+                  </EditorCommand>
+                  <EditorBubble className="flex w-fit max-w-[90vw] overflow-hidden rounded-lg border border-notion-border bg-background shadow-xl">
+                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleBold().run()} label="Bold">
+                      <Bold className="w-4 h-4" />
+                    </BubbleBtn>
+                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleItalic().run()} label="Italic">
+                      <Italic className="w-4 h-4" />
+                    </BubbleBtn>
+                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleUnderline().run()} label="Underline">
+                      <Underline className="w-4 h-4" />
+                    </BubbleBtn>
+                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleStrike().run()} label="Strikethrough">
+                      <Strikethrough className="w-4 h-4" />
+                    </BubbleBtn>
+                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleCode().run()} label="Code">
+                      <Code className="w-4 h-4" />
+                    </BubbleBtn>
+                    <BubbleSep />
+                    <BubbleBtn
+                      onSelect={(ed) => {
+                        const url = window.prompt('URL');
+                        if (url) ed.chain().focus().setLink({ href: url }).run();
+                      }}
+                      label="Link"
+                    >
+                      <Link2 className="w-4 h-4" />
+                    </BubbleBtn>
+                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleHighlight().run()} label="Highlight">
+                      <Highlighter className="w-4 h-4" />
+                    </BubbleBtn>
+                  </EditorBubble>
+                </EditorContent>
+              </EditorRoot>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <MentionPopup
+        onSelect={(mentionPageId) => {
+          const editor = editorInstanceRef.current;
+          if (!editor) return;
+          editor.commands.insertContent([{ type: 'pageMention', attrs: { pageId: mentionPageId } }, { type: 'text', text: ' ' }]);
+        }}
+      />
+      {!isModal && !isReadOnly && !activePage.sourceMode && (
+        <>
+          <BlockPlusButton editorRef={editorInstanceRef} />
+          <BlockHandleMenu editorRef={editorInstanceRef} />
+        </>
+      )}
+    </div>
+  );
+}
+
+function BubbleBtn({
+  onSelect,
+  label,
+  children,
+  className,
+}: {
+  onSelect: (editor: any) => void;
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <EditorBubbleItem
+      onSelect={onSelect}
+      className={cn('flex h-8 w-8 items-center justify-center text-notion-text hover:bg-notion-hover cursor-pointer', className)}
+      aria-label={label}
+    >
+      {children}
+    </EditorBubbleItem>
+  );
+}
+
+function BubbleSep() {
+  return <div className="w-px h-5 bg-notion-border self-center" />;
+}
+
+function HeaderButton({ icon, onClick, ariaLabel }: { icon: React.ReactNode; onClick?: () => void; ariaLabel?: string }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className="p-1.5 rounded hover:bg-notion-hover text-notion-text-muted hover:text-notion-text transition-colors cursor-pointer"
+    >
+      {icon}
+    </button>
+  );
+}
+
+function MenuAction({
+  icon,
+  label,
+  onClick,
+  className,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn('w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-notion-text', className)}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function WidthMenuItem({
+  active,
+  label,
+  description,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn('w-full flex items-start gap-2 px-3 py-2 text-left hover:bg-notion-hover cursor-pointer', active && 'bg-notion-active')}
+    >
+      <span className="w-4 h-4 mt-0.5 flex items-center justify-center">
+        {active && <Check className="w-3.5 h-3.5 text-notion-text" />}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm text-notion-text">{label}</span>
+        <span className="block text-[11px] text-notion-text-muted">{description}</span>
+      </span>
+    </button>
+  );
+}
