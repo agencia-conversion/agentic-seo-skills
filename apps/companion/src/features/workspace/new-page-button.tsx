@@ -59,11 +59,11 @@ export function NewPageButton() {
             Projeto local
           </div>
           <button
-            onClick={() => create('Nota de workbench')}
+            onClick={() => create('Novo conteúdo')}
             className="w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-left text-notion-text"
           >
             <FileText className="w-4 h-4 text-notion-text-muted" />
-            <span className="flex-1 truncate">Nota em workbench</span>
+            <span className="flex-1 truncate">Conteúdo em outros</span>
           </button>
         </div>
       )}

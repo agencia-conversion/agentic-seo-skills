@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { docToMarkdown, markdownToDoc } from '@/lib/markdown';
 import { LocalePreference } from '@/lib/i18n';
+import { projectPageSlug } from '@/lib/project-slugs';
 
 export type PageWidth = 'sm' | 'md' | 'lg' | 'full';
 export type DatabaseViewType = 'table' | 'kanban' | 'calendar' | 'gallery' | 'timeline' | 'list';
@@ -62,10 +63,13 @@ export interface Page {
   sectionId: string;
   hash: string | null;
   frontmatter?: Record<string, any>;
+  frontmatterText: string;
   bodyMarkdown: string;
   sourceBody: string;
   loaded: boolean;
   dirty: boolean;
+  fileDirty: boolean;
+  uiDirty: boolean;
   saving: boolean;
   saveError: string | null;
   readOnly: boolean;
@@ -143,34 +147,34 @@ function emptyDoc() {
 }
 
 function iconForPath(path: string) {
+  if (path === 'brain/index.md') return '🧠';
+  if (path === 'brain/identidade.md') return '🏷️';
+  if (path === 'brain/voz.md') return '🎙️';
+  if (path === 'brain/tecnologia.md') return '🛠️';
+  if (path === 'brain/editorial.md') return '🗂️';
+  if (path === 'brain/topic-clusters.md') return '🧩';
   if (path === 'brain/log.md') return '🕒';
-  if (path.startsWith('brain/')) return '🧠';
+  if (path.startsWith('brain/')) return '📄';
+  if (path.startsWith('conteudos/blog/')) return '📝';
+  if (path.startsWith('conteudos/linkedin/')) return '💼';
+  if (path.startsWith('conteudos/podcast/')) return '🎧';
   if (path.startsWith('conteudos/')) return '✍️';
   return '📝';
 }
 
-function pathSlug(path: string, title: string) {
-  const base = (title || path.replace(/\.md$/, ''))
-    .toLowerCase()
-    .trim()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-    .slice(0, 60);
-  const suffix = path.replace(/\.md$/, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/(^-|-$)/g, '').toLowerCase();
-  return `${base || 'pagina'}-${suffix}`;
+function pathSlug(path: string, _title: string) {
+  return projectPageSlug(path);
 }
 
-function pageFromSummary(item: any, sectionId: string, sortOrder: number): Page {
+function pageFromSummary(item: any, sectionId: string, sortOrder: number, parentId: string | null = null): Page {
   return {
     id: item.path,
     slug: pathSlug(item.path, item.title),
     title: item.title || item.path,
     content: emptyDoc(),
-    parentId: null,
-    icon: iconForPath(item.path),
-    cover: null,
+    parentId,
+    icon: Object.prototype.hasOwnProperty.call(item, 'icon') ? item.icon ?? null : iconForPath(item.path),
+    cover: Object.prototype.hasOwnProperty.call(item, 'cover') ? item.cover ?? null : null,
     type: 'doc',
     favorite: false,
     sortOrder,
@@ -180,10 +184,14 @@ function pageFromSummary(item: any, sectionId: string, sortOrder: number): Page 
     path: item.path,
     sectionId,
     hash: item.hash || null,
+    frontmatter: {},
+    frontmatterText: '',
     bodyMarkdown: '',
     sourceBody: '',
     loaded: false,
     dirty: false,
+    fileDirty: false,
+    uiDirty: false,
     saving: false,
     saveError: null,
     readOnly: !!item.readOnly,
@@ -207,6 +215,61 @@ function mentionResolver(pages: Page[]) {
       return page?.path.split('/').pop()?.replace(/\.md$/, '') || page?.title || pageId;
     },
   };
+}
+
+function yamlString(value: unknown) {
+  return JSON.stringify(String(value ?? ''));
+}
+
+export function frontmatterToText(fields: Record<string, any> = {}) {
+  return Object.entries(fields)
+    .map(([key, value]) => {
+      if (Array.isArray(value)) {
+        return value.length ? `${key}:\n${value.map((item) => `  - ${yamlString(item)}`).join('\n')}` : `${key}: []`;
+      }
+      return `${key}: ${yamlString(value)}`;
+    })
+    .join('\n');
+}
+
+export function parseFrontmatterText(raw: string) {
+  const data: Record<string, any> = {};
+  let currentList: string[] | null = null;
+  for (const line of raw.replace(/\r\n/g, '\n').split('\n')) {
+    if (/^\s/.test(line) && currentList) {
+      const item = line.match(/^\s+-\s*(.+)$/);
+      if (item) currentList.push(item[1].replace(/^["']|["']$/g, ''));
+      continue;
+    }
+    const idx = line.indexOf(':');
+    if (idx <= 0) continue;
+    const key = line.slice(0, idx).trim();
+    const val = line.slice(idx + 1).trim();
+    if (!val || val === '[]') {
+      currentList = [];
+      data[key] = currentList;
+    } else {
+      data[key] = val.replace(/^["']|["']$/g, '');
+      currentList = null;
+    }
+  }
+  return data;
+}
+
+function setFrontmatterTextField(raw: string, key: string, value: unknown) {
+  const nextLine = `${key}: ${yamlString(value)}`;
+  if (!raw.trim()) return nextLine;
+  const lines = raw.replace(/\r\n/g, '\n').split('\n');
+  let found = false;
+  const next = lines.map((line) => {
+    if (new RegExp(`^${key}\\s*:`).test(line)) {
+      found = true;
+      return nextLine;
+    }
+    return line;
+  });
+  if (!found) next.push(nextLine);
+  return next.join('\n');
 }
 
 async function apiFetch(token: string | null, url: string, init?: RequestInit) {
@@ -244,10 +307,14 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     const sections: ProjectSection[] = [];
     for (const section of tree.sections || []) {
       const pageIds: string[] = [];
-      (section.items || []).forEach((item: any, index: number) => {
-        const page = pageFromSummary(item, section.id, index);
+      const items = section.items || [];
+      const brainRootId =
+        section.id === 'brain' ? items.find((item: any) => item.path === 'brain/index.md')?.path || items[0]?.path || null : null;
+      items.forEach((item: any, index: number) => {
+        const parentId = section.id === 'brain' && brainRootId && item.path !== brainRootId ? brainRootId : null;
+        const page = pageFromSummary(item, section.id, index, parentId);
         pages.push(page);
-        pageIds.push(page.id);
+        if (!parentId) pageIds.push(page.id);
       });
       sections.push({ id: section.id, title: section.title, pageIds });
     }
@@ -258,7 +325,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       activePageId: firstPageId,
       projectName: tree.project?.name || 'SEO Brain',
       projectRoot: tree.project?.root || '',
-      expandedPageIds: pages.filter((p) => p.sectionId === 'brain').map((p) => p.id),
+      expandedPageIds: pages.filter((p) => p.path === 'brain/index.md' || (p.sectionId === 'brain' && !p.parentId)).map((p) => p.id),
       _hasHydrated: true,
     });
     if (firstPageId) void get().loadPage(firstPageId);
@@ -283,14 +350,19 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
               title: file.title || p.title,
               slug: pathSlug(p.path, file.title || p.title),
               frontmatter: file.frontmatter || {},
+              frontmatterText: file.frontmatterRaw || frontmatterToText(file.frontmatter || {}),
               bodyMarkdown: file.body || '',
               sourceBody: file.body || '',
               content: markdownToDoc(file.body || '', resolver),
               hash: file.hash,
+              icon: Object.prototype.hasOwnProperty.call(file, 'icon') ? file.icon ?? null : p.icon,
+              cover: Object.prototype.hasOwnProperty.call(file, 'cover') ? file.cover ?? null : p.cover,
               readOnly: !!file.readOnly,
               requiresApproval: !!file.requiresApproval,
               loaded: true,
               dirty: false,
+              fileDirty: false,
+              uiDirty: false,
               saveError: null,
             }
           : p
@@ -301,21 +373,28 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   savePage: async (id, options = {}) => {
     const page = get().pages.find((p) => p.id === id);
     if (!page || page.readOnly || page.saving) return false;
+    if (!page.dirty) return true;
     set((state) => ({
       pages: state.pages.map((p) => (p.id === id ? { ...p, saving: true, saveError: null } : p)),
     }));
     const resolver = mentionResolver(get().pages);
-    const body = page.sourceMode ? page.sourceBody : docToMarkdown(page.content, resolver);
+    const body = page.fileDirty ? (page.sourceMode ? page.sourceBody : docToMarkdown(page.content, resolver)) : page.bodyMarkdown;
+    const payload: Record<string, any> = { path: page.path };
+    if (page.fileDirty) {
+      payload.hash = page.hash;
+      payload.title = page.title;
+      payload.body = body;
+      payload.frontmatter = page.frontmatter || {};
+      payload.frontmatterRaw = page.frontmatterText;
+      payload.approver = options.approver;
+      payload.notes = options.notes;
+    }
+    if (page.uiDirty) {
+      payload.ui = { icon: page.icon, cover: page.cover };
+    }
     const result = await apiFetch(get().token, '/api/project/file', {
       method: 'POST',
-      body: JSON.stringify({
-        path: page.path,
-        hash: page.hash,
-        title: page.title,
-        body,
-        approver: options.approver,
-        notes: options.notes,
-      }),
+      body: JSON.stringify(payload),
     });
     set((state) => ({
       pages: state.pages.map((p) =>
@@ -327,6 +406,8 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
                 bodyMarkdown: body,
                 sourceBody: body,
                 dirty: false,
+                fileDirty: false,
+                uiDirty: false,
                 saving: false,
                 saveError: null,
                 updatedAt: Date.now(),
@@ -368,7 +449,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   createContentPage: async (title = 'Nova página') => {
     const result = await apiFetch(get().token, '/api/project/file/create', {
       method: 'POST',
-      body: JSON.stringify({ kind: 'workbench', title }),
+      body: JSON.stringify({ kind: 'content', title }),
     });
     if (!result.ok) return null;
     await get().initializeProject(get().token!);
@@ -378,22 +459,43 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   },
   updatePage: (id, updates) =>
     set((s) => ({
-      pages: s.pages.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              ...updates,
-              slug: updates.title !== undefined ? pathSlug(p.path, updates.title || p.title) : p.slug,
-              dirty:
-                p.dirty ||
-                updates.content !== undefined ||
-                updates.title !== undefined ||
-                updates.sourceBody !== undefined ||
-                updates.icon !== undefined ||
-                updates.cover !== undefined,
-            }
-          : p
-      ),
+      pages: s.pages.map((p) => {
+        if (p.id !== id) return p;
+        const fileChanged =
+          updates.content !== undefined ||
+          updates.title !== undefined ||
+          updates.sourceBody !== undefined ||
+          updates.frontmatter !== undefined ||
+          updates.frontmatterText !== undefined;
+        const uiChanged = updates.icon !== undefined || updates.cover !== undefined;
+        let nextFrontmatter = updates.frontmatter !== undefined ? { ...(updates.frontmatter || {}) } : { ...(p.frontmatter || {}) };
+        let nextFrontmatterText =
+          updates.frontmatterText !== undefined
+            ? updates.frontmatterText
+            : p.frontmatterText || frontmatterToText(nextFrontmatter);
+        if (updates.frontmatterText !== undefined && updates.frontmatter === undefined) {
+          nextFrontmatter = parseFrontmatterText(updates.frontmatterText);
+        }
+        if (updates.frontmatter !== undefined && updates.frontmatterText === undefined) {
+          nextFrontmatterText = frontmatterToText(nextFrontmatter);
+        }
+        if (updates.title !== undefined) {
+          nextFrontmatter = { ...nextFrontmatter, title: updates.title || '' };
+          nextFrontmatterText = setFrontmatterTextField(nextFrontmatterText, 'title', updates.title || '');
+        }
+        const nextFileDirty = p.fileDirty || fileChanged;
+        const nextUiDirty = p.uiDirty || uiChanged;
+        return {
+          ...p,
+          ...updates,
+          frontmatter: nextFrontmatter,
+          frontmatterText: nextFrontmatterText,
+          slug: updates.title !== undefined ? pathSlug(p.path, updates.title || p.title) : p.slug,
+          fileDirty: nextFileDirty,
+          uiDirty: nextUiDirty,
+          dirty: p.dirty || nextFileDirty || nextUiDirty,
+        };
+      }),
     })),
   toggleFavorite: (id) =>
     set((s) => ({

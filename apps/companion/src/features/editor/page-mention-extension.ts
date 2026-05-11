@@ -27,6 +27,11 @@ export const PageMention = Node.create({
         parseHTML: (el) => (el as HTMLElement).getAttribute('data-page-id'),
         renderHTML: (attrs) => (attrs.pageId ? { 'data-page-id': attrs.pageId } : {}),
       },
+      alias: {
+        default: null,
+        parseHTML: (el) => (el as HTMLElement).getAttribute('data-alias'),
+        renderHTML: (attrs) => (attrs.alias ? { 'data-alias': attrs.alias } : {}),
+      },
     };
   },
 

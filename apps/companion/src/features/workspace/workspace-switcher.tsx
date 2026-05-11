@@ -36,9 +36,7 @@ export function WorkspaceSwitcher() {
             Projeto local
           </div>
           <div className="w-full flex items-center gap-2 px-2 py-1.5 rounded bg-notion-active/40 text-sm text-left">
-            <div className="w-6 h-6 rounded bg-notion-text/10 text-notion-text flex items-center justify-center shrink-0">
-              <Folder className="w-3.5 h-3.5" />
-            </div>
+            <ProjectIcon />
             <div className="min-w-0 flex-1">
               <div className="truncate text-notion-text">{projectName}</div>
               <div className="truncate text-[10px] text-notion-text-muted">{projectRoot}</div>
@@ -59,6 +57,15 @@ export function WorkspaceSwitcher() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ProjectIcon() {
+  const cls = 'w-6 h-6 rounded bg-notion-text/10 text-notion-text flex items-center justify-center shrink-0 overflow-hidden';
+  return (
+    <div className={cls}>
+      <Folder className="w-3.5 h-3.5" />
     </div>
   );
 }

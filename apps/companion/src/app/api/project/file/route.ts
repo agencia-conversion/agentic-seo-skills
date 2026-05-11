@@ -26,6 +26,9 @@ export async function POST(req: NextRequest) {
       expectedHash: body.hash,
       title: body.title,
       body: body.body,
+      frontmatter: body.frontmatter,
+      frontmatterRaw: body.frontmatterRaw,
+      ui: body.ui,
       approver: body.approver,
       notes: body.notes,
     })

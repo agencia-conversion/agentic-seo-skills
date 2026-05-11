@@ -1,5 +1,5 @@
 ---
-title: "Identidade — <Nome do projeto>"
+title: "Identidade"
 updated: "<YYYY-MM-DD>"
 ---
 

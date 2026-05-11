@@ -21,9 +21,10 @@ function inlineNodes(text: string, resolver?: MentionResolver): JsonNode[] {
   for (const match of text.matchAll(re)) {
     if (match.index! > last) nodes.push(textNode(text.slice(last, match.index)));
     const target = match[1].trim();
+    const alias = match[2]?.trim();
     const pageId = resolver?.findPageId(target);
     if (pageId) {
-      nodes.push({ type: 'pageMention', attrs: { pageId } });
+      nodes.push({ type: 'pageMention', attrs: { pageId, alias: alias || null } });
     } else {
       nodes.push(textNode(match[0]));
     }
@@ -41,8 +42,8 @@ function heading(level: number, text: string, resolver?: MentionResolver): JsonN
   return { type: 'heading', attrs: { level }, content: inlineNodes(text, resolver).filter((n) => n.text !== '') };
 }
 
-function raw(text: string): JsonNode {
-  return { type: 'rawMarkdown', attrs: { text: text.replace(/\n+$/, '') } };
+function raw(text: string, attrs: Record<string, any> = {}): JsonNode {
+  return { type: 'rawMarkdown', attrs: { text: text.replace(/\n+$/, ''), ...attrs } };
 }
 
 function isRawLine(line: string) {
@@ -71,10 +72,20 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
       continue;
     }
 
+    if (/^\s*<!--/.test(line)) {
+      const block = [line];
+      i++;
+      while (i < lines.length && !/-->\s*$/.test(block[block.length - 1])) {
+        block.push(lines[i++]);
+      }
+      content.push(raw(block.join('\n'), { hidden: true }));
+      continue;
+    }
+
     if (isRawLine(line)) {
       const block = [line];
       i++;
-      while (i < lines.length && (isRawLine(lines[i]) || (!lines[i].trim() && block.some((l) => l.trim())))) {
+      while (i < lines.length && isRawLine(lines[i]) && !/^\s*<!--/.test(lines[i])) {
         block.push(lines[i++]);
       }
       content.push(raw(block.join('\n')));
@@ -145,7 +156,11 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
 
 function textFromInline(node: JsonNode, resolver?: MentionResolver): string {
   if (node.type === 'text') return node.text || '';
-  if (node.type === 'pageMention') return `[[${resolver?.labelForPageId(node.attrs?.pageId) || node.attrs?.pageId || 'page'}]]`;
+  if (node.type === 'pageMention') {
+    const label = resolver?.labelForPageId(node.attrs?.pageId) || node.attrs?.pageId || 'page';
+    const alias = String(node.attrs?.alias || '').trim();
+    return alias ? `[[${label}|${alias}]]` : `[[${label}]]`;
+  }
   return (node.content || []).map((child) => textFromInline(child, resolver)).join('');
 }
 

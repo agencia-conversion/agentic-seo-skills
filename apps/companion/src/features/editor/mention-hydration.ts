@@ -13,7 +13,7 @@ export interface MentionHydrationPage {
   trashed?: unknown;
 }
 
-export function resolveMentionHydration(pageId: string | null, pages: MentionHydrationPage[]): MentionHydrationState {
+export function resolveMentionHydration(pageId: string | null, pages: MentionHydrationPage[], alias?: string | null): MentionHydrationState {
   if (!pageId) {
     return {
       text: '@unknown',
@@ -34,7 +34,7 @@ export function resolveMentionHydration(pageId: string | null, pages: MentionHyd
   }
 
   return {
-    text: `${page.icon ? `${page.icon} ` : ''}@${page.title || 'Untitled'}`,
+    text: `${page.icon ? `${page.icon} ` : ''}@${alias || page.title || 'Untitled'}`,
     broken: false,
     title: page.title || 'Untitled',
     slug: page.slug,

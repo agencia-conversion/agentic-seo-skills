@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { basename, join, resolve, sep } from "node:path";
+import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 import { appendLogEntry, parseFrontmatter } from "./brain-page.mjs";
 
@@ -37,6 +37,20 @@ function normalizeProjectRoot(projectRoot) {
 
 function yamlString(value) {
   return JSON.stringify(String(value ?? ""));
+}
+
+function yamlValue(value) {
+  if (Array.isArray(value)) {
+    return value.length ? ["", ...value.map((item) => `  - ${yamlString(item)}`)] : ["[]"];
+  }
+  return [yamlString(value)];
+}
+
+function frontmatterLines(fields) {
+  return Object.entries(fields).flatMap(([key, value]) => {
+    const rendered = yamlValue(value);
+    return rendered.length === 1 ? [`${key}: ${rendered[0]}`] : [`${key}:`, ...rendered.slice(1)];
+  });
 }
 
 function slugFromTitle(title) {
@@ -77,6 +91,58 @@ function resolveAllowedFile(projectRoot, rel) {
   return { root, filePath };
 }
 
+function companionUiPath(root) {
+  return join(root, ".seo-brain", "companion-ui.json");
+}
+
+function readCompanionUi(root) {
+  const fallback = { schema_version: "1.0.0", project: {}, pages: {} };
+  const file = companionUiPath(root);
+  if (!existsSync(file)) return fallback;
+  try {
+    const data = JSON.parse(readFileSync(file, "utf8"));
+    return {
+      schema_version: "1.0.0",
+      project: data?.project && typeof data.project === "object" ? data.project : {},
+      pages: data?.pages && typeof data.pages === "object" ? data.pages : {},
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function writeCompanionUi(root, ui) {
+  mkdirSync(dirname(companionUiPath(root)), { recursive: true });
+  writeFileSync(companionUiPath(root), JSON.stringify(ui, null, 2) + "\n", "utf8");
+}
+
+function pageUi(ui, rel) {
+  const item = ui.pages?.[rel];
+  return item && typeof item === "object" ? item : {};
+}
+
+function applyPageUi(summary, ui) {
+  const item = pageUi(ui, summary.path);
+  if (Object.prototype.hasOwnProperty.call(item, "icon")) summary.icon = item.icon ?? null;
+  if (Object.prototype.hasOwnProperty.call(item, "cover")) summary.cover = item.cover ?? null;
+  return summary;
+}
+
+function savePageUi(root, rel, nextUi) {
+  const hasIcon = Object.prototype.hasOwnProperty.call(nextUi, "icon");
+  const hasCover = Object.prototype.hasOwnProperty.call(nextUi, "cover");
+  if (!hasIcon && !hasCover) return false;
+  const ui = readCompanionUi(root);
+  ui.pages[rel] = {
+    ...pageUi(ui, rel),
+    ...(hasIcon ? { icon: typeof nextUi.icon === "string" && nextUi.icon ? nextUi.icon : null } : {}),
+    ...(hasCover ? { cover: typeof nextUi.cover === "string" && nextUi.cover ? nextUi.cover : null } : {}),
+    updated_at: new Date().toISOString(),
+  };
+  writeCompanionUi(root, ui);
+  return true;
+}
+
 function titleFromFile(rel, frontmatter) {
   const title = String(frontmatter.title || "").trim().replace(/^["']|["']$/g, "");
   if (title) return title;
@@ -93,6 +159,7 @@ function projectDisplayName(projectRoot) {
     try {
       const data = JSON.parse(readFileSync(config, "utf8"));
       if (data?.name) return String(data.name);
+      if (data?.brand_name) return String(data.brand_name);
     } catch {}
   }
   const index = join(root, "brain", "index.md");
@@ -105,32 +172,32 @@ function projectDisplayName(projectRoot) {
   return "SEO Brain";
 }
 
-function readBrainPageSummary(projectRoot, rel) {
+function readBrainPageSummary(projectRoot, rel, ui) {
   const { filePath } = resolveAllowedFile(projectRoot, rel);
   if (!existsSync(filePath)) return null;
   const text = readFileSync(filePath, "utf8");
   const { data: frontmatter, body } = parseFrontmatter(text);
-  return {
+  return applyPageUi({
     path: rel,
     title: titleFromFile(rel, frontmatter),
-    updated: frontmatter.updated || null,
+    updated: frontmatter.updated || frontmatter.published_at || null,
     readOnly: rel === "brain/log.md",
     requiresApproval: AUTHORIAL_BRAIN_PAGES.has(rel),
     excerpt: body.replace(/\s+/g, " ").trim().slice(0, 180),
     hash: sha256(text),
-  };
+  }, ui);
 }
 
 function walkMarkdown(root, current = root) {
   if (!existsSync(current)) return [];
   const out = [];
   for (const name of readdirSync(current).sort((a, b) => a.localeCompare(b, "pt-BR"))) {
-    if (name.startsWith(".")) continue;
+    if (name.startsWith(".") || name.startsWith("_")) continue;
     const full = join(current, name);
     const st = statSync(full);
     if (st.isDirectory()) out.push(...walkMarkdown(root, full));
     if (st.isFile() && name.endsWith(".md")) {
-      out.push(full.slice(root.length + 1).split(sep).join("/"));
+      out.push(relative(root, full).split(sep).join("/"));
     }
   }
   return out;
@@ -138,6 +205,10 @@ function walkMarkdown(root, current = root) {
 
 export function buildProjectTree({ projectRoot }) {
   const root = normalizeProjectRoot(projectRoot);
+  const projectName = projectDisplayName(root);
+  const ui = readCompanionUi(root);
+  const hasProjectIcon = Object.prototype.hasOwnProperty.call(ui.project || {}, "icon");
+  const projectIcon = hasProjectIcon ? ui.project.icon || null : null;
   const brainRoot = join(root, "brain");
   const rels = new Set(BRAIN_PAGE_ORDER);
   if (existsSync(brainRoot)) {
@@ -156,19 +227,16 @@ export function buildProjectTree({ projectRoot }) {
     return a.localeCompare(b, "pt-BR");
   });
   const items = ordered
-    .map((rel) => readBrainPageSummary(root, rel))
+    .map((rel) => readBrainPageSummary(root, rel, ui))
     .filter(Boolean);
   const contentItems = [];
   for (const origem of CONTENT_ORIGINS) {
     const dir = join(root, "conteudos", origem);
     for (const child of walkMarkdown(dir)) {
-      const item = readBrainPageSummary(root, `conteudos/${origem}/${child}`);
+      const item = readBrainPageSummary(root, `conteudos/${origem}/${child}`, ui);
       if (item) contentItems.push(item);
     }
   }
-  const workbenchItems = walkMarkdown(join(root, "workbench"))
-    .map((child) => readBrainPageSummary(root, `workbench/${child}`))
-    .filter(Boolean);
   const sections = [
     {
       id: "brain",
@@ -177,12 +245,12 @@ export function buildProjectTree({ projectRoot }) {
     },
   ];
   if (contentItems.length) sections.push({ id: "conteudos", title: "Conteúdos", items: contentItems });
-  if (workbenchItems.length) sections.push({ id: "workbench", title: "Workbench", items: workbenchItems });
   return {
     ok: true,
     project: {
       root,
-      name: projectDisplayName(root),
+      name: projectName,
+      icon: projectIcon,
     },
     sections,
   };
@@ -195,6 +263,7 @@ export function readProjectFile({ projectRoot, fileRel }) {
   if (!existsSync(filePath)) return { ok: false, reason: "file-not-found" };
   const text = readFileSync(filePath, "utf8");
   const { data: frontmatter, body, raw } = parseFrontmatter(text);
+  const itemUi = pageUi(readCompanionUi(root), validation.rel);
   return {
     ok: true,
     projectRoot: root,
@@ -202,6 +271,8 @@ export function readProjectFile({ projectRoot, fileRel }) {
     title: titleFromFile(validation.rel, frontmatter),
     frontmatter,
     frontmatterRaw: raw,
+    icon: Object.prototype.hasOwnProperty.call(itemUi, "icon") ? itemUi.icon ?? null : undefined,
+    cover: Object.prototype.hasOwnProperty.call(itemUi, "cover") ? itemUi.cover ?? null : undefined,
     body,
     text,
     hash: sha256(text),
@@ -211,7 +282,7 @@ export function readProjectFile({ projectRoot, fileRel }) {
 }
 
 function setFrontmatterFields(text, fields) {
-  const linesForFields = Object.entries(fields).map(([key, value]) => `${key}: ${yamlString(value)}`);
+  const linesForFields = frontmatterLines(fields);
   if (!text.startsWith("---\n")) {
     return `---\n${linesForFields.join("\n")}\n---\n\n${text.replace(/^\n+/, "")}`;
   }
@@ -223,29 +294,66 @@ function setFrontmatterFields(text, fields) {
   const after = text.slice(end + 4);
   const lines = raw.split(/\r?\n/);
   const seen = new Set();
-  const nextLines = lines.map((line) => {
+  const nextLines = [];
+  for (const line of lines) {
+    let replaced = false;
     for (const [key, value] of Object.entries(fields)) {
       if (new RegExp(`^${key}\\s*:`).test(line)) {
         seen.add(key);
-        return `${key}: ${yamlString(value)}`;
+        nextLines.push(...frontmatterLines({ [key]: value }));
+        replaced = true;
+        break;
       }
     }
-    return line;
-  });
+    if (!replaced) nextLines.push(line);
+  }
   for (const [key, value] of Object.entries(fields)) {
-    if (!seen.has(key)) nextLines.push(`${key}: ${yamlString(value)}`);
+    if (!seen.has(key)) nextLines.push(...frontmatterLines({ [key]: value }));
   }
   return `---\n${nextLines.join("\n")}\n---${after}`;
 }
 
-export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, body, approver, notes }) {
-  const validation = validateProjectFileRel(fileRel, { write: true });
+function cleanFrontmatterRaw(raw) {
+  if (typeof raw !== "string") return null;
+  if (raw.includes("\0") || /^---\s*$/m.test(raw)) return null;
+  return raw.replace(/\r\n/g, "\n").replace(/\s+$/, "");
+}
+
+function frontmatterFieldsForPath(rel, incoming, existing, title) {
+  if (rel.startsWith("conteudos/")) {
+    return {
+      ...existing,
+      ...incoming,
+      title: String(incoming.title || title || existing.title || titleFromFile(rel, existing)).trim(),
+    };
+  }
+  const next = {
+    title: String(incoming.title || title || existing.title || titleFromFile(rel, existing)).trim(),
+  };
+  if (rel.startsWith("brain/")) next.updated = todayIso();
+  return next;
+}
+
+export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, body, frontmatter, frontmatterRaw, ui, approver, notes }) {
+  const hasBodyChange = typeof body === "string";
+  const validation = validateProjectFileRel(fileRel, { write: hasBodyChange });
   if (!validation.ok) return { ok: false, reason: validation.reason };
   const { root, filePath } = resolveAllowedFile(projectRoot, validation.rel);
   if (!existsSync(filePath)) return { ok: false, reason: "file-not-found" };
-  if (typeof body !== "string") return { ok: false, reason: "invalid-body" };
+  const hasUiChange = !!ui && (Object.prototype.hasOwnProperty.call(ui, "icon") || Object.prototype.hasOwnProperty.call(ui, "cover"));
+  if (!hasBodyChange && !hasUiChange) return { ok: false, reason: "invalid-body" };
   const current = readFileSync(filePath, "utf8");
   const currentHash = sha256(current);
+  if (!hasBodyChange) {
+    const uiSaved = hasUiChange ? savePageUi(root, validation.rel, ui || {}) : false;
+    return {
+      ok: true,
+      path: validation.rel,
+      hash: currentHash,
+      uiSaved,
+      logAppended: false,
+    };
+  }
   if (!expectedHash || expectedHash !== currentHash) {
     return { ok: false, reason: "file-modified", currentHash };
   }
@@ -253,16 +361,23 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
   const approverClean = String(approver || "").trim();
   if (requiresApproval && !approverClean) return { ok: false, reason: "missing-approver" };
   const { data: existingFrontmatter } = parseFrontmatter(current);
-  const finalTitle = String(title || existingFrontmatter.title || titleFromFile(validation.rel, existingFrontmatter)).trim();
+  const incomingFrontmatter = frontmatter && typeof frontmatter === "object" ? frontmatter : {};
+  const finalTitle = String(
+    incomingFrontmatter.title || title || existingFrontmatter.title || titleFromFile(validation.rel, existingFrontmatter)
+  ).trim();
   const today = todayIso();
-  const textWithFrontmatter = setFrontmatterFields(current, {
-    title: finalTitle || titleFromFile(validation.rel, existingFrontmatter),
-    updated: today,
-  });
-  const { raw } = parseFrontmatter(textWithFrontmatter);
-  const finalText = `---\n${raw}\n---\n\n${body.replace(/^\n+/, "").replace(/\s*$/, "\n")}`;
-  mkdirSync(resolve(filePath, ".."), { recursive: true });
+  const rawCandidate = validation.rel.startsWith("conteudos/") ? cleanFrontmatterRaw(frontmatterRaw) : null;
+  let rawFrontmatter;
+  if (rawCandidate !== null) {
+    rawFrontmatter = rawCandidate;
+  } else {
+    const fields = frontmatterFieldsForPath(validation.rel, incomingFrontmatter, existingFrontmatter, finalTitle);
+    rawFrontmatter = parseFrontmatter(setFrontmatterFields(current, fields)).raw;
+  }
+  const finalText = `---\n${rawFrontmatter}\n---\n\n${body.replace(/^\n+/, "").replace(/\s*$/, "\n")}`;
+  mkdirSync(dirname(filePath), { recursive: true });
   writeFileSync(filePath, finalText, "utf8");
+  const uiSaved = hasUiChange ? savePageUi(root, validation.rel, ui || {}) : false;
 
   if (validation.rel.startsWith("brain/")) {
     const logFile = join(root, "brain", "log.md");
@@ -287,6 +402,7 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
     updated: today,
     hash: sha256(next),
     requiresApproval,
+    uiSaved,
     logAppended: validation.rel.startsWith("brain/"),
   };
 }
@@ -311,7 +427,7 @@ export function createProjectFile({ projectRoot, kind = "workbench", title = "No
   const validation = validateProjectFileRel(rel, { write: true });
   if (!validation.ok) return { ok: false, reason: validation.reason };
   const { filePath } = resolveAllowedFile(root, validation.rel);
-  mkdirSync(resolve(filePath, ".."), { recursive: true });
+  mkdirSync(dirname(filePath), { recursive: true });
   const today = todayIso();
   const text = kind === "content"
     ? `---\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, ".md"))}\npublished_at: ""\nsource_url: ""\norigem: "outros"\narea: ""\n---\n\n`

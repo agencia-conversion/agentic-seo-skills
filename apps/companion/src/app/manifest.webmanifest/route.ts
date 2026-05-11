@@ -2,9 +2,9 @@ export const runtime = 'edge';
 
 export function GET() {
   return Response.json({
-    name: 'Noteblock',
-    short_name: 'Noteblock',
-    description: 'Local-first BYOK-AI workspace.',
+    name: 'SEO Brain',
+    short_name: 'SEO Brain',
+    description: 'Companion local do SEO Brain.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

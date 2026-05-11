@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FileText, Database, Search } from 'lucide-react';
-import { useWorkspace, Page } from '@/features/workspace/store';
+import type { Page } from '@/features/workspace/store';
+import { useWorkspace } from '@/features/workspace/store';
 import { cn } from '@/lib/utils';
 
 const MAX_RESULTS = 8;
@@ -22,9 +23,10 @@ interface PopupState {
   items: MentionItem[];
   query: string;
   index: number;
+  manual: boolean;
 }
 
-const initial: PopupState = { open: false, x: 0, y: 0, items: [], query: '', index: 0 };
+const initial: PopupState = { open: false, x: 0, y: 0, items: [], query: '', index: 0, manual: false };
 
 export function MentionPopup({
   onSelect,
@@ -40,8 +42,20 @@ export function MentionPopup({
   const index = useMemo(() => buildIndex(pages), [pages]);
 
   const [state, setState] = useState<PopupState>(initial);
+  const inputRef = useRef<HTMLInputElement>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  const selectPage = (pageId: string, manual = stateRef.current.manual) => {
+    const apply = (window as any).__noteblockMentionApply;
+    if (!manual && typeof apply === 'function') apply(pageId);
+    else onSelect(pageId);
+    setState(initial);
+  };
+
+  useEffect(() => {
+    if (state.open && state.manual) inputRef.current?.focus();
+  }, [state.open, state.manual]);
 
   useEffect(() => {
     (window as any).__noteblockMentionSearch = (query: string) =>
@@ -72,10 +86,7 @@ export function MentionPopup({
         const picked = st.items[st.index];
         if (picked) {
           e.preventDefault();
-          const apply = (window as any).__noteblockMentionApply;
-          if (typeof apply === 'function') apply(picked.pageId);
-          else onSelect(picked.pageId);
-          setState(initial);
+          selectPage(picked.pageId, st.manual);
         }
         return true;
       }
@@ -102,16 +113,33 @@ export function MentionPopup({
         items,
         query: query || '',
         index: 0,
+        manual: false,
+      }));
+    };
+    const openInternalLink = (e: any) => {
+      const { clientRect, query } = e.detail || {};
+      const nextQuery = query || '';
+      const items = search(index, nextQuery, activePageId).slice(0, MAX_RESULTS);
+      setState((prev) => ({
+        open: true,
+        x: clientRect?.left ?? prev.x,
+        y: (clientRect?.bottom ?? prev.y) + 4,
+        items,
+        query: nextQuery,
+        index: 0,
+        manual: true,
       }));
     };
     const exit = () => setState(initial);
     window.addEventListener('noteblock:mention-start', update);
     window.addEventListener('noteblock:mention-update', update);
     window.addEventListener('noteblock:mention-exit', exit);
+    window.addEventListener('noteblock:internal-link-open', openInternalLink);
     return () => {
       window.removeEventListener('noteblock:mention-start', update);
       window.removeEventListener('noteblock:mention-update', update);
       window.removeEventListener('noteblock:mention-exit', exit);
+      window.removeEventListener('noteblock:internal-link-open', openInternalLink);
     };
   }, [index, activePageId]);
 
@@ -124,15 +152,37 @@ export function MentionPopup({
     >
       <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-notion-border">
         <Search className="w-3.5 h-3.5 text-notion-text-muted shrink-0" />
-        <span className="text-[11px] text-notion-text-muted flex-1 truncate">
-          {state.query ? (
-            <>
-              Searching <span className="text-notion-text font-medium">"{state.query}"</span>
-            </>
-          ) : (
-            'Type to search pages…'
-          )}
-        </span>
+        {state.manual ? (
+          <input
+            ref={inputRef}
+            value={state.query}
+            onChange={(e) => {
+              const query = e.target.value;
+              setState((s) => ({
+                ...s,
+                query,
+                index: 0,
+                items: search(index, query, activePageId).slice(0, MAX_RESULTS),
+              }));
+            }}
+            onKeyDown={(e) => {
+              const handled = (window as any).__noteblockMentionKey?.(e.nativeEvent);
+              if (handled) e.preventDefault();
+            }}
+            placeholder="Link interno"
+            className="flex-1 bg-transparent outline-none text-xs text-notion-text placeholder:text-notion-text-muted"
+          />
+        ) : (
+          <span className="text-[11px] text-notion-text-muted flex-1 truncate">
+            {state.query ? (
+              <>
+                Searching <span className="text-notion-text font-medium">"{state.query}"</span>
+              </>
+            ) : (
+              'Type to search pages…'
+            )}
+          </span>
+        )}
       </div>
       <div className="py-1 max-h-72 overflow-y-auto">
         {state.items.length === 0 ? (
@@ -144,10 +194,7 @@ export function MentionPopup({
             <button
               key={item.pageId}
               onClick={() => {
-                const apply = (window as any).__noteblockMentionApply;
-                if (typeof apply === 'function') apply(item.pageId);
-                else onSelect(item.pageId);
-                setState(initial);
+                selectPage(item.pageId);
               }}
               onMouseEnter={() => setState((s) => ({ ...s, index: idx }))}
               className={cn(

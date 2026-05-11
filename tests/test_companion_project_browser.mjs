@@ -96,12 +96,49 @@ const vozSummary = tree.sections[0].items.find((item) => item.path === "brain/vo
 assert.equal(vozSummary.title, "Tom de Voz");
 assert.equal(vozSummary.requiresApproval, true);
 assert.ok(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path === "conteudos/blog/post-teste.md"));
-assert.ok(tree.sections.find((section) => section.id === "workbench").items.some((item) => item.path === "workbench/drafts/ideia.md"));
+assert.equal(tree.sections.some((section) => section.id === "workbench"), false);
+
+writeFileSync(join(projectRoot, ".seo-brain", "project.json"), JSON.stringify({ name: "Conversion" }), "utf8");
+const conversionTree = buildProjectTree({ projectRoot });
+assert.equal(conversionTree.project.icon, null);
 
 const file = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
 assert.equal(file.ok, true);
 assert.equal(file.title, "Tom de Voz");
 assert.match(file.body, /página, análise, aprovação/);
+
+const logBeforeUi = readFileSync(join(brain, "log.md"), "utf8");
+const uiSaved = saveProjectFile({
+  projectRoot,
+  fileRel: "brain/voz.md",
+  ui: { icon: "✨", cover: "https://example.com/capa.png" },
+});
+assert.equal(uiSaved.ok, true);
+assert.equal(uiSaved.uiSaved, true);
+assert.equal(readFileSync(join(brain, "log.md"), "utf8"), logBeforeUi);
+assert.doesNotMatch(readFileSync(join(brain, "voz.md"), "utf8"), /capa\.png/);
+const uiFile = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
+assert.equal(uiFile.icon, "✨");
+assert.equal(uiFile.cover, "https://example.com/capa.png");
+const uiTreeItem = buildProjectTree({ projectRoot }).sections[0].items.find((item) => item.path === "brain/voz.md");
+assert.equal(uiTreeItem.icon, "✨");
+assert.equal(uiTreeItem.cover, "https://example.com/capa.png");
+
+const contentFile = readProjectFile({ projectRoot, fileRel: "conteudos/blog/post-teste.md" });
+const contentSaved = saveProjectFile({
+  projectRoot,
+  fileRel: "conteudos/blog/post-teste.md",
+  expectedHash: contentFile.hash,
+  title: "Post Teste Revisado",
+  body: contentFile.body,
+  frontmatter: { ...contentFile.frontmatter, title: "Post Teste Revisado", area: "seo-tecnico" },
+  frontmatterRaw:
+    'title: "Post Teste Revisado"\nslug: "post-teste"\npublished_at: ""\nsource_url: ""\norigem: "blog"\narea: "seo-tecnico"',
+});
+assert.equal(contentSaved.ok, true);
+const contentText = readFileSync(join(projectRoot, "conteudos", "blog", "post-teste.md"), "utf8");
+assert.match(contentText, /title: "Post Teste Revisado"/);
+assert.match(contentText, /area: "seo-tecnico"/);
 
 writeFileSync(join(brain, "voz.md"), readFileSync(join(brain, "voz.md"), "utf8") + "\nMudança externa.\n", "utf8");
 const stale = saveProjectFile({

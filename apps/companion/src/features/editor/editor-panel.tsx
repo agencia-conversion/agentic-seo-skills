@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -51,6 +52,7 @@ import { getPageWidthOptions, resolvePageWidth, widthToClass } from '../workspac
 import { usePagePath } from '@/hooks/use-page-path';
 import { MentionPopup } from './mention-popup';
 import { MentionChipHydrator } from './mention-chip-hydrator';
+import { FrontmatterDrawer } from './frontmatter-drawer';
 import { useI18n } from '@/components/i18n-provider';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
@@ -72,10 +74,27 @@ interface EditorPanelProps {
   isModal?: boolean;
 }
 
+type InternalLinkContext =
+  | { mode: 'editor'; from: number; to: number; alias?: string }
+  | { mode: 'source'; from: number; to: number; alias?: string };
+
+function pageLinkLabel(path: string) {
+  return path.split('/').pop()?.replace(/\.md$/, '') || path;
+}
+
+function relativeMarkdownPath(fromPath: string, toPath: string) {
+  const fromParts = fromPath.split('/').slice(0, -1);
+  const toParts = toPath.split('/');
+  let common = 0;
+  while (common < fromParts.length && common < toParts.length && fromParts[common] === toParts[common]) common++;
+  return [...Array(fromParts.length - common).fill('..'), ...toParts.slice(common)].join('/') || pageLinkLabel(toPath);
+}
+
 export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const { t } = useI18n();
   const activePageId = useWorkspace((s) => s.activePageId);
   const effectivePageId = pageId || activePageId;
+  const pages = useWorkspace((s) => s.pages);
   const activePage = useWorkspace((s) => s.pages.find((p) => p.id === effectivePageId));
   const sidebarCollapsed = useWorkspace((s) => s.sidebarCollapsed);
   const toggleSidebar = useWorkspace((s) => s.toggleSidebar);
@@ -93,6 +112,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [showWidthSub, setShowWidthSub] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const [showFrontmatterDrawer, setShowFrontmatterDrawer] = useState(false);
   const [pendingPasteHtml, setPendingPasteHtml] = useState<{ html?: string; text?: string } | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
@@ -100,6 +120,8 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const lastPlusTimeRef = useRef(0);
   const editorInstanceRef = useRef<any>(null);
+  const sourceTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const linkContextRef = useRef<InternalLinkContext | null>(null);
   const router = useRouter();
 
   useClickOutside(emojiPickerRef, () => setShowEmojiPicker(false));
@@ -150,7 +172,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const handleSave = async () => {
     if (isReadOnly) return;
     let approver: string | undefined;
-    if (activePage.requiresApproval) {
+    if (activePage.requiresApproval && activePage.fileDirty) {
       approver = window.prompt('Nome do aprovador humano para registrar em brain/log.md') || undefined;
       if (!approver?.trim()) {
         showToast('Aprovação humana obrigatória para salvar esta página do Brain.', 'error');
@@ -175,6 +197,89 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
         : lastSavedAt
           ? `Salvo ${lastSavedAt}`
           : 'Salvo';
+
+  const openInternalLinkPicker = (clientRect: Pick<DOMRect, 'left' | 'bottom'> | { left: number; bottom: number }, query = '') => {
+    window.dispatchEvent(new CustomEvent('noteblock:internal-link-open', { detail: { clientRect, query } }));
+  };
+
+  const markdownLinkForPage = (targetPageId: string, alias?: string) => {
+    const target = pages.find((p) => p.id === targetPageId);
+    if (!target) return '';
+    const label = pageLinkLabel(target.path);
+    const aliasClean = alias?.trim();
+    if (activePage.path.startsWith('brain/') && target.path.startsWith('brain/')) {
+      return aliasClean ? `[[${label}|${aliasClean}]]` : `[[${label}]]`;
+    }
+    return `[${aliasClean || target.title || label}](${relativeMarkdownPath(activePage.path, target.path)})`;
+  };
+
+  const insertInternalLink = (mentionPageId: string) => {
+    if (isReadOnly) {
+      showToast('Esta página é somente leitura.', 'error');
+      return;
+    }
+    const context = linkContextRef.current;
+    const target = pages.find((p) => p.id === mentionPageId);
+    if (!target) return;
+    if (context?.mode === 'source') {
+      const text = markdownLinkForPage(mentionPageId, context.alias);
+      const current = activePage.sourceBody || '';
+      const next = `${current.slice(0, context.from)}${text}${current.slice(context.to)}`;
+      updatePage(activePage.id, { sourceBody: next });
+      requestAnimationFrame(() => {
+        const textarea = sourceTextareaRef.current;
+        textarea?.focus();
+        textarea?.setSelectionRange(context.from + text.length, context.from + text.length);
+      });
+      linkContextRef.current = null;
+      return;
+    }
+
+    const editor = editorInstanceRef.current;
+    if (!editor) return;
+    const shouldUseWikilinkChip = activePage.path.startsWith('brain/') && target.path.startsWith('brain/');
+    const insertContent = shouldUseWikilinkChip
+      ? [{ type: 'pageMention', attrs: { pageId: mentionPageId, alias: context?.alias || null } }, { type: 'text', text: ' ' }]
+      : `${markdownLinkForPage(mentionPageId, context?.alias)} `;
+    if (context?.mode === 'editor' && context.to >= context.from) {
+      editor.chain().focus().deleteRange({ from: context.from, to: context.to }).insertContent(insertContent).run();
+    } else {
+      editor.chain().focus().insertContent(insertContent).run();
+    }
+    linkContextRef.current = null;
+  };
+
+  const handleSourceKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    const mod = event.metaKey || event.ctrlKey;
+    const textarea = event.currentTarget;
+    if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
+      event.preventDefault();
+      if (isReadOnly) {
+        showToast('Esta página é somente leitura.', 'error');
+        return;
+      }
+      const alias = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+      linkContextRef.current = {
+        mode: 'source',
+        from: textarea.selectionStart,
+        to: textarea.selectionEnd,
+        alias: alias || undefined,
+      };
+      openInternalLinkPicker(textarea.getBoundingClientRect(), alias);
+      return;
+    }
+    if (event.key === '[' && !mod && textarea.selectionStart === textarea.selectionEnd && textarea.selectionStart > 0) {
+      const before = textarea.value.slice(textarea.selectionStart - 1, textarea.selectionStart);
+      if (before !== '[') return;
+      event.preventDefault();
+      linkContextRef.current = {
+        mode: 'source',
+        from: textarea.selectionStart - 1,
+        to: textarea.selectionStart,
+      };
+      openInternalLinkPicker(textarea.getBoundingClientRect());
+    }
+  };
 
   return (
     <div className={cn('flex-1 flex flex-col h-full bg-background overflow-hidden relative', isModal && 'rounded-lg overflow-y-auto')}>
@@ -236,6 +341,14 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                       label={activePage.sourceMode ? 'Editor visual' : 'Markdown source'}
                       onClick={() => {
                         setSourceMode(activePage.id, !activePage.sourceMode);
+                        setShowMenu(false);
+                      }}
+                    />
+                    <MenuAction
+                      icon={<FileText className="w-4 h-4" />}
+                      label="Frontmatter"
+                      onClick={() => {
+                        setShowFrontmatterDrawer(true);
                         setShowMenu(false);
                       }}
                     />
@@ -393,15 +506,23 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
             <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
               {activePage.requiresApproval && <span className="rounded bg-amber-500/10 text-amber-600 px-2 py-0.5">aprovação obrigatória</span>}
               {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">somente leitura</span>}
+              <button
+                onClick={() => setShowFrontmatterDrawer(true)}
+                className="rounded bg-notion-active hover:bg-notion-hover px-2 py-0.5 cursor-pointer text-notion-text-muted hover:text-notion-text"
+              >
+                Frontmatter · {activePage.path.startsWith('conteudos/') ? activePage.frontmatter?.origem || 'conteúdo' : activePage.path.startsWith('brain/') ? 'brain' : 'local'} · {Object.keys(activePage.frontmatter || {}).length} campos
+              </button>
               <span className="truncate">{activePage.path}</span>
             </div>
           </div>
 
           {activePage.sourceMode ? (
             <textarea
+              ref={sourceTextareaRef}
               value={activePage.sourceBody}
               readOnly={isReadOnly}
               onChange={(e) => updatePage(activePage.id, { sourceBody: e.target.value })}
+              onKeyDown={handleSourceKeyDown}
               className="w-full min-h-[520px] resize-y rounded-md border border-notion-border bg-background px-4 py-3 font-mono text-sm leading-6 text-notion-text outline-none focus:ring-2 focus:ring-notion-text/10"
               spellCheck={false}
             />
@@ -444,6 +565,39 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                       class: cn('prose prose-zinc dark:prose-invert max-w-none focus:outline-none', isModal ? 'min-h-[300px]' : 'min-h-[500px]'),
                     },
                     handleKeyDown: (view, event) => {
+                      const mod = event.metaKey || event.ctrlKey;
+                      if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
+                        event.preventDefault();
+                        if (isReadOnly) {
+                          showToast('Esta página é somente leitura.', 'error');
+                          return true;
+                        }
+                        const { selection } = view.state;
+                        const alias = selection.empty ? '' : view.state.doc.textBetween(selection.from, selection.to, ' ');
+                        linkContextRef.current = {
+                          mode: 'editor',
+                          from: selection.from,
+                          to: selection.to,
+                          alias: alias.trim() || undefined,
+                        };
+                        openInternalLinkPicker(view.coordsAtPos(selection.from), alias);
+                        return true;
+                      }
+                      if (event.key === '[' && !mod) {
+                        const { state } = view;
+                        const { selection } = state;
+                        if (selection.empty && selection.from > 1 && state.doc.textBetween(selection.from - 1, selection.from) === '[') {
+                          event.preventDefault();
+                          view.dispatch(state.tr.delete(selection.from - 1, selection.from));
+                          linkContextRef.current = {
+                            mode: 'editor',
+                            from: selection.from - 1,
+                            to: selection.from - 1,
+                          };
+                          openInternalLinkPicker(view.coordsAtPos(selection.from - 1));
+                          return true;
+                        }
+                      }
                       if (handleCommandNavigation(event)) return true;
                       if (event.key === '+') {
                         const now = Date.now();
@@ -521,11 +675,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
       </div>
 
       <MentionPopup
-        onSelect={(mentionPageId) => {
-          const editor = editorInstanceRef.current;
-          if (!editor) return;
-          editor.commands.insertContent([{ type: 'pageMention', attrs: { pageId: mentionPageId } }, { type: 'text', text: ' ' }]);
-        }}
+        onSelect={insertInternalLink}
       />
       {!isModal && !isReadOnly && !activePage.sourceMode && (
         <>
@@ -533,6 +683,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
           <BlockHandleMenu editorRef={editorInstanceRef} />
         </>
       )}
+      {!isModal && <FrontmatterDrawer page={activePage} open={showFrontmatterDrawer} onClose={() => setShowFrontmatterDrawer(false)} />}
     </div>
   );
 }

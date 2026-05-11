@@ -1,5 +1,5 @@
 ---
-title: "Log — <Nome do projeto>"
+title: "Log"
 updated: "<YYYY-MM-DD>"
 ---
 

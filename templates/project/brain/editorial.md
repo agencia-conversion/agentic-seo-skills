@@ -1,5 +1,5 @@
 ---
-title: "Editorial — <Nome do projeto>"
+title: "Editorial"
 updated: "<YYYY-MM-DD>"
 ---
 

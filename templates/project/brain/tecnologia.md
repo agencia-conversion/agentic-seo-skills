@@ -1,5 +1,5 @@
 ---
-title: "Tecnologia — <Nome do projeto>"
+title: "Tecnologia"
 updated: "<YYYY-MM-DD>"
 ---
 

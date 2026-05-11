@@ -43,7 +43,7 @@ const resolver = {
 
 const markdown = `# Título
 
-Conteúdo com acentuação: página, análise e aprovação. Veja [[voz]].
+Conteúdo com acentuação: página, análise e aprovação. Veja [[voz]] e [[voz|tom editorial]].
 
 | A | B |
 |---|---|
@@ -56,10 +56,12 @@ const doc = markdownToDoc(markdown, resolver);
 assert.equal(doc.type, "doc");
 assert.match(JSON.stringify(doc), /pageMention/);
 assert.match(JSON.stringify(doc), /rawMarkdown/);
+assert.match(JSON.stringify(doc), /"hidden":true/);
 
 const out = docToMarkdown(doc, resolver);
 assert.match(out, /página, análise e aprovação/);
 assert.match(out, /\[\[voz\]\]/);
+assert.match(out, /\[\[voz\|tom editorial\]\]/);
 assert.match(out, /\| A \| B \|/);
 assert.match(out, /<!-- comentário preservado -->/);
 

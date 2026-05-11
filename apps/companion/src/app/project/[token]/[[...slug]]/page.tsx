@@ -9,6 +9,7 @@ import { SearchModal } from '@/features/workspace/search-modal';
 import { ToastContainer } from '@/components/toast';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { usePagePath } from '@/hooks/use-page-path';
+import { projectSlugMatches } from '@/lib/project-slugs';
 
 const EditorPanel = dynamic(() => import('@/features/editor/editor-panel').then((mod) => mod.EditorPanel), {
   ssr: false,
@@ -41,7 +42,7 @@ export default function ProjectPage() {
 
   const pageForSlug = useMemo(() => {
     if (!slug) return null;
-    return pages.find((p) => p.slug === slug) || null;
+    return pages.find((p) => projectSlugMatches(slug, p.slug)) || null;
   }, [pages, slug]);
 
   useEffect(() => {

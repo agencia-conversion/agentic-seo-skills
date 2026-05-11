@@ -54,6 +54,7 @@ function SidebarItemImpl({
     () => [...childPages].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
     [childPages]
   );
+  const displayTitle = page.path === 'brain/index.md' ? 'Brain' : page.title || 'Untitled';
 
   const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -97,7 +98,7 @@ function SidebarItemImpl({
             {page.icon ? <span className="text-[0.95rem] leading-none">{page.icon}</span> : <FileText className="w-3.5 h-3.5 text-notion-text-muted" />}
           </span>
         )}
-        <span className="flex-1 truncate">{page.title || 'Untitled'}</span>
+        <span className="flex-1 truncate">{displayTitle}</span>
         {page.dirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title="Alterações não salvas" />}
         <div ref={menuRef} className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity relative">
           <button

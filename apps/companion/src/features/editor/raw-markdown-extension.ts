@@ -11,6 +11,9 @@ export const RawMarkdown = Node.create({
       text: {
         default: '',
       },
+      hidden: {
+        default: false,
+      },
     };
   },
 
@@ -19,6 +22,17 @@ export const RawMarkdown = Node.create({
   },
 
   renderHTML({ node, HTMLAttributes }) {
+    if (node.attrs.hidden) {
+      return [
+        'div',
+        mergeAttributes(HTMLAttributes, {
+          'data-raw-markdown': 'true',
+          'data-hidden-raw-markdown': 'true',
+          style: 'display: none;',
+        }),
+        node.attrs.text || '',
+      ];
+    }
     return [
       'pre',
       mergeAttributes(HTMLAttributes, {

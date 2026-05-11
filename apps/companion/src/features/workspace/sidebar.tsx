@@ -27,7 +27,6 @@ export function Sidebar() {
   const projectRoot = useWorkspace((s) => s.projectRoot);
 
   const [isResizing, setIsResizing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const resizeStartRef = useRef<{ x: number; w: number } | null>(null);
   const router = useRouter();
@@ -70,22 +69,27 @@ export function Sidebar() {
     return () => window.removeEventListener('noteblock:open-settings', openHandler);
   }, []);
 
-  const { favoritePages, pagesBySection } = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
+  const { favoritePages, pagesBySection, childrenByParent } = useMemo(() => {
     const live = pages.filter((p) => !p.trashed && !p.inline);
-    const filter = (p: typeof live[number]) =>
-      !q || p.title.toLowerCase().includes(q) || p.path.toLowerCase().includes(q);
+    const childMap: Record<string, typeof pages> = {};
+    for (const page of live) {
+      if (!page.parentId) continue;
+      if (!childMap[page.parentId]) childMap[page.parentId] = [];
+      childMap[page.parentId].push(page);
+    }
+    for (const childPages of Object.values(childMap)) {
+      childPages.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    }
     const bySection: Record<string, typeof pages> = {};
     for (const section of sections) {
       bySection[section.id] = section.pageIds
         .map((id) => live.find((p) => p.id === id))
         .filter((p): p is typeof live[number] => Boolean(p))
-        .filter(filter)
         .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) as typeof pages;
     }
-    const favs = live.filter((p) => p.favorite && filter(p));
-    return { favoritePages: favs, pagesBySection: bySection };
-  }, [pages, searchQuery, sections]);
+    const favs = live.filter((p) => p.favorite);
+    return { favoritePages: favs, pagesBySection: bySection, childrenByParent: childMap };
+  }, [pages, sections]);
 
   if (!hasHydrated) {
     return (
@@ -130,25 +134,17 @@ export function Sidebar() {
           <button
             className="flex items-center gap-2.5 px-3 py-1.5 text-sm rounded-md hover:bg-notion-hover transition-colors text-notion-text/80 cursor-pointer"
             onClick={() => {
-              const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true });
+              const event = new KeyboardEvent('keydown', { key: 'p', metaKey: true, bubbles: true });
               document.dispatchEvent(event);
             }}
           >
             <Search className="w-4 h-4 text-notion-text-muted" />
             <span>{t('common.search')}</span>
-            <span className="ml-auto text-[10px] text-notion-text-muted">⌘K</span>
+            <span className="ml-auto text-[10px] text-notion-text-muted">⌘P</span>
           </button>
           <NewPageButton />
         </div>
 
-        <div className="px-2 pt-2">
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filtrar arquivos..."
-            className="w-full bg-background/70 border border-notion-border rounded-md px-2 py-1 text-xs text-notion-text outline-none focus:ring-2 focus:ring-notion-text/10"
-          />
-        </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto pt-4 pb-10 scrollbar-hide">
@@ -165,7 +161,7 @@ export function Sidebar() {
                 pages={favoritePages}
                 parentId="__favorites__"
                 activePageId={activePageId}
-                childrenByParent={{}}
+                childrenByParent={childrenByParent}
                 keyPrefix="fav-"
               />
             </div>
@@ -176,11 +172,13 @@ export function Sidebar() {
           const sectionPages = pagesBySection[section.id] || [];
           return (
             <div key={section.id} className="mb-4">
-              <div className="px-3 mb-2 flex items-center justify-between group">
-                <span className="text-[11px] font-semibold text-notion-text-muted uppercase tracking-wider px-1">
-                  {section.title}
-                </span>
-              </div>
+              {section.id !== 'brain' && (
+                <div className="px-3 mb-2 flex items-center justify-between group">
+                  <span className="text-[11px] font-semibold text-notion-text-muted uppercase tracking-wider px-1">
+                    {section.title}
+                  </span>
+                </div>
+              )}
               <div className="space-y-[1px] px-1">
                 {sectionPages.length === 0 ? (
                   <p className="px-4 py-2 text-xs text-notion-text-muted italic">{t('sidebar.noPages')}</p>
@@ -189,7 +187,7 @@ export function Sidebar() {
                     pages={sectionPages}
                     parentId={section.id}
                     activePageId={activePageId}
-                    childrenByParent={{}}
+                    childrenByParent={childrenByParent}
                   />
                 )}
               </div>
