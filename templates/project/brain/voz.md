@@ -1,5 +1,5 @@
 ---
-title: "Voz — <Nome do projeto>"
+title: "Voz"
 updated: "<YYYY-MM-DD>"
 ---
 

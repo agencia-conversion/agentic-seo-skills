@@ -26,6 +26,20 @@ assert.equal(config.single_project_root, "project");
 const brainIndex = readFileSync(join(project, "brain", "index.md"), "utf8");
 assert.ok(brainIndex.includes('title: "Context test"'));
 
+const expectedBrainTitles = {
+  "identidade.md": "Identidade",
+  "voz.md": "Voz",
+  "tecnologia.md": "Tecnologia",
+  "editorial.md": "Editorial",
+  "topic-clusters.md": "Topic clusters",
+  "log.md": "Log",
+};
+for (const [page, title] of Object.entries(expectedBrainTitles)) {
+  const text = readFileSync(join(project, "brain", page), "utf8");
+  assert.ok(text.includes(`title: "${title}"`), `brain/${page} should use canonical title`);
+  assert.doesNotMatch(text, /title:\s*".+ — Context test"/, `brain/${page} should not include project suffix`);
+}
+
 for (const page of ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md", "topic-clusters.md", "log.md"]) {
   assert.ok(existsSync(join(project, "brain", page)), `missing brain/${page}`);
 }

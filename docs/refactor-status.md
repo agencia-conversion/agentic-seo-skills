@@ -33,6 +33,7 @@ project/
 `bin/seo-brain` exposes:
 
 - `project-init` (creates the brain structure and seeds blank templates)
+- `project-browser` (opens the local web companion project browser)
 - `brain-lint`, `brain-approve`, `brain-ingest` (replaced the former `wiki-*` commands)
 - `data-setup`, `serp-extract`, `keyword-research`, `kw-volume`, `backlink-analysis`, `seo-analysis`, `topic-cluster`, `eeat`, `content-seo`, `technical-seo`, `next-website-creator`, `payload-cms`, `audit-skills`
 
@@ -59,6 +60,7 @@ The browser-based approval/preview flow runs on the brain model:
 - Helper module: `scripts/lib/brain-page.mjs` (renamed from `wiki-page.mjs`).
 - Approval target paths are `brain/<page>.md`; the only authorial pages are `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`.
 - Missing sources detected during page review are registered as `tipo: ingestao` entries in `brain/log.md` (no separate sources catalog).
+- Project browser mode: `scripts/companion.mjs project-browser` starts the Noteon-based Next companion on `127.0.0.1` with a tokenized URL. It maps local Markdown files from `project/brain/`, `project/conteudos/`, and `project/workbench/` into the Noteon UI, keeps `brain/log.md` read-only, and writes authorial brain edits only with a matching `tipo: aprovacao` log entry.
 - `eeat` engine accepts `--mode brain` or `--mode url`.
 
 ## Tools
@@ -75,3 +77,4 @@ DataForSEO CLI lives in `tools/clis/dataforseo.js`. Other providers (GSC, Ahrefs
 - Brain-keeper protocol: `skills/brain-keeper/SKILL.md`
 - Project-init seeding: `skills/project-init/SKILL.md`
 - Companion approve-page contract: `scripts/lib/companion-types/approve-page.mjs`
+- Companion project browser contract: `scripts/lib/project-browser-files.mjs`
