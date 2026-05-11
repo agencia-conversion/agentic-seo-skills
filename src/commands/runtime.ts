@@ -277,7 +277,6 @@ function appendLog(eventType: string, title: string, files: string[], summary: s
   const links = formatLogFileRefs(files);
   const tipo = mapEventTypeToTipo(eventType);
   const aprovador = approval && approval !== "not-required" && approval !== "pending" ? approval : "agent";
-  const isHumanApprover = aprovador !== "agent" && aprovador !== "pendente";
   const lines = [
     "",
     "",
@@ -289,7 +288,7 @@ function appendLog(eventType: string, title: string, files: string[], summary: s
     `- evidencia: ${links}`,
     `- aprovador: ${aprovador}`,
   ];
-  if (isHumanApprover) lines.push(`- aprovado_em: ${today()}`);
+  if (eventType === "aprovacao") lines.push(`- aprovado_em: ${today()}`);
   fs.appendFileSync(brainLog, lines.join("\n") + "\n", "utf8");
 }
 
@@ -322,8 +321,8 @@ function appendDataforseoBypassLog(title: string, approvals: AnyRecord | AnyReco
       title,
       files,
       `${approval.workflow} sem DataForSEO em ${approval.step}: ${approval.consequence}`,
-      "approved",
-      `Aprovado por ${approval.aprovador}; motivo: ${approval.reason}; confirmado em ${approval.confirmado_em}.`,
+      "decision-recorded",
+      `Registrado por ${approval.aprovador || "agent"}; motivo: ${approval.reason}; timestamp: ${approval.confirmado_em}.`,
     );
   }
 }
@@ -464,31 +463,27 @@ function confirmationAcknowledgesBypass(text: string): boolean {
 function dataforseoBypassError(context: DataforseoBypassContext): CliError {
   const subject = context.subject ? ` for "${context.subject}"` : "";
   return new CliError(
-    `${context.workflow}${subject} requires written approval to bypass DataForSEO at ${context.step}. ` +
+    `${context.workflow}${subject} requires a recorded reason to proceed without DataForSEO at ${context.step}. ` +
     `Consequence: ${context.consequence} ` +
-    `Use the DataForSEO bypass Companion handoff, or pass --dataforseo-bypass-confirmed ` +
-    `--dataforseo-bypass-reason "motivo claro" --dataforseo-bypass-approved-by "Nome" ` +
-    `--dataforseo-bypass-confirmation-text "Confirmo seguir sem DataForSEO..." ` +
-    `--dataforseo-bypass-confirmed-at "${nowIso()}".`,
+    `Pass --dataforseo-bypass-reason "motivo claro" or use the DataForSEO bypass Companion handoff.`,
   );
 }
 
 function normalizeDataforseoBypassApproval(args: AnyRecord, context: DataforseoBypassContext, mode: string): AnyRecord {
-  const confirmed = boolArg(args.dataforseo_bypass_confirmed ?? context.confirmed, false);
-  const reason = nonemptyString(args.dataforseo_bypass_reason, context.reason);
-  const approvedBy = nonemptyString(args.dataforseo_bypass_approved_by);
-  const confirmationText = nonemptyString(args.dataforseo_bypass_confirmation_text);
-  const confirmedAt = nonemptyString(args.dataforseo_bypass_confirmed_at);
-  if (!confirmed || !reason || !approvedBy || !confirmationText || !confirmedAt) throw dataforseoBypassError(context);
-  if (!confirmationMentionsDataforseo(confirmationText) || !confirmationAcknowledgesBypass(confirmationText)) {
-    throw new CliError("DataForSEO bypass confirmation must mention DataForSEO and explicitly acknowledge using a bypass or proceeding without it.");
-  }
+  const reason = nonemptyString(args.dataforseo_bypass_reason, context.reason, "DataForSEO unavailable or secondary provider requested.");
+  const approvedBy = nonemptyString(args.dataforseo_bypass_approved_by, args.approved_by, args.by, "agent");
+  const confirmationText = nonemptyString(
+    args.dataforseo_bypass_confirmation_text,
+    `Registrado automaticamente: seguir sem DataForSEO em ${context.workflow}/${context.step}.`,
+  );
+  const confirmedAt = nonemptyString(args.dataforseo_bypass_confirmed_at, nowIso());
+  if (!reason) throw dataforseoBypassError(context);
   if (Number.isNaN(Date.parse(confirmedAt))) throw new CliError("--dataforseo-bypass-confirmed-at must be an ISO-like timestamp.");
   return {
     step: context.step,
     workflow: context.workflow,
     subject: context.subject || null,
-    confirmed: true,
+    confirmed: boolArg(args.dataforseo_bypass_confirmed ?? context.confirmed, true),
     reason,
     consequence: context.consequence,
     aprovador: approvedBy,
@@ -548,12 +543,11 @@ function resolveSeoProvider(args: AnyRecord = {}): AnyRecord {
   const choice = (prefer || "auto").trim().toLowerCase();
   const hasCreds = dataforseoCredentialsPresent();
   if (choice === "websearch") {
-    if (!args.websearch_confirmed || !args.websearch_reason) throw new CliError('WebSearch is secondary for ranking research. Use --provider websearch --websearch-confirmed --websearch-reason "motivo claro" only after explicitly accepting this bypass.');
     const bypass = requireDataforseoBypassApproval(args, {
       workflow: "seo-analysis",
       step: "serp-extract-dataforseo",
       subject: args.keyword ? String(args.keyword) : undefined,
-      reason: String(args.websearch_reason).trim(),
+      reason: String(args.websearch_reason || args.dataforseo_bypass_reason || "WebSearch provider requested.").trim(),
       consequence: "SERP/ranking data is WebSearch-derived and not DataForSEO-backed.",
       provider_used: "websearch",
       confirmed: args.websearch_confirmed,
@@ -1614,18 +1608,15 @@ function validatePublicContentDraft(text: string, brief: AnyRecord): string[] {
 
 async function commandBrainApprove(args: AnyRecord): Promise<void> {
   const rel = required(args, "page").replace(/^\/+/, "");
-  const by = required(args, "by");
-  if (!by.trim() || by.trim() === "agent" || by.trim() === "pendente") {
-    throw new CliError("--by must be a human approver name (not 'agent' or 'pendente').");
-  }
+  const by = String(args.by || "agent").trim() || "agent";
   if (!AUTHORIAL_BRAIN_PAGES.has(rel)) {
     throw new CliError(`brain-approve only accepts authorial brain pages (${[...AUTHORIAL_BRAIN_PAGES].join(", ")}). Got: ${rel}`);
   }
   const file = path.join(ensureProject(), "brain", rel);
   if (!fs.existsSync(file)) throw new CliError(`Brain page not found: ${file}`);
   setFrontmatterValue(file, { updated: JSON.stringify(today()) });
-  appendLog("aprovacao", `Aprovação ${rel}`, [rel.replace(/\.md$/, "")], `Página ${rel} aprovada por ${by}.`, by);
-  printJson({ ok: true, approved: rel, by });
+  appendLog("decisao", `Decisão ${rel}`, [rel.replace(/\.md$/, "")], `Página ${rel} registrada como decisão por ${by}.`, by);
+  printJson({ ok: true, decided: rel, by });
 }
 
 async function commandBrainIngest(args: AnyRecord): Promise<void> {
@@ -2027,7 +2018,7 @@ async function commandTopicCluster(args: AnyRecord): Promise<void> {
   if (args.render_only) {
     if (!existingCluster) throw new CliError(`No cluster JSON found for seed "${seed}". Run topic-cluster first.`);
     renderTopicClustersBrain(p);
-    appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], "Wiki rerenderizada a partir dos JSONs.", "not-required");
+    appendLog("topic-cluster", seed, ["brain/topic-clusters.md"], "Projeção do Brain renderizada a partir dos JSONs.", "not-required");
     printJson({ ok: true, rendered: true, file: clusterFile });
     return;
   }
@@ -2138,13 +2129,13 @@ async function commandTopicCluster(args: AnyRecord): Promise<void> {
     keyword_pool: pool,
     completeness_gaps: existingCluster?.completeness_gaps ?? [],
     open_questions: existingCluster?.open_questions ?? [],
-    approval: existingCluster?.approval ?? { aprovador: null, aprovado_em: null, status: "draft" },
+    approval: existingCluster?.approval ?? { aprovador: "agent", aprovado_em: null, status: "not_required" },
   };
 
   writeJson(clusterFile, cluster);
   renderTopicClustersBrain(p);
   appendDataforseoBypassLog(seed, dataforseoBypass, [path.relative(p, clusterFile), "topic-clusters"]);
-  appendLog("topic-cluster", seed, ["topic-clusters"], `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}).`, "pendente");
+  appendLog("topic-cluster", seed, ["topic-clusters"], `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}).`, "agent");
   printJson(cluster);
 }
 
@@ -2454,7 +2445,7 @@ function buildContentContextEvidence(projectDir: string, topicSlug: string): Any
   if (fs.existsSync(voiceFile)) voiceBody = parseFrontmatter(fs.readFileSync(voiceFile, "utf8"))[1];
   const limitations = brainPages
     .filter((page) => page.authorial && !page.filled)
-    .map((page) => `Página autoral ${page.path} está vazia; orientação usada como limitação visível, não como contexto aprovado.`);
+    .map((page) => `Página autoral ${page.path} está vazia; orientação usada como limitação visível, não como contexto registrado.`);
   return {
     generated_at: nowIso(),
     topic_slug: topicSlug,
@@ -2468,7 +2459,7 @@ function buildContentContextEvidence(projectDir: string, topicSlug: string): Any
       content_hash_sha256: voicePage.content_hash_sha256,
       patterns: headingSectionItems(voiceBody, /^##\s+(Princípios|Padrões)/i),
       avoid: headingSectionItems(voiceBody, /^##\s+Evitar/i),
-      reference_phrases: headingSectionItems(voiceBody, /^##\s+(Frases de referência|Exemplos aprovados)/i),
+      reference_phrases: headingSectionItems(voiceBody, /^##\s+(Frases de referência|Exemplos de referência|Exemplos aprovados)/i),
     },
     limitations,
   };
@@ -2533,10 +2524,10 @@ function top3ByPosition(analysisData: AnyRecord | null): AnyRecord[] {
 }
 
 async function buildCompetitorEvidence(analysisData: AnyRecord | null, args: AnyRecord): Promise<AnyRecord> {
-  const bypassConfirmed = boolArg(args.top3_bypass_confirmed, false);
   const bypassReason = String(args.top3_bypass_reason || "").trim();
+  const bypassConfirmed = Boolean(bypassReason) || boolArg(args.top3_bypass_confirmed, false);
   const top3 = top3ByPosition(analysisData);
-  if (top3.length < 3 && !(bypassConfirmed && bypassReason)) throw new CliError("Top 3 competitor evidence requires 3 organic results. Rerun SERP extraction or use --top3-bypass-confirmed --top3-bypass-reason after explicit user approval.");
+  if (top3.length < 3 && !bypassReason) throw new CliError('Top 3 competitor evidence requires 3 organic results. Rerun SERP extraction or use --top3-bypass-reason "motivo claro" to record the limitation.');
   const competitors = Array.isArray(analysisData?.competitors) ? analysisData.competitors : [];
   const rows: AnyRecord[] = [];
   const failures: string[] = [];
@@ -2547,7 +2538,7 @@ async function buildCompetitorEvidence(analysisData: AnyRecord | null, args: Any
     let source = "seo-analysis";
     try {
       if (bypassConfirmed && bypassReason && (!page?.word_count || !Array.isArray(page?.headings) || !page.headings.length)) {
-        rows.push({ position: entry.position, url: entry.url, domain: entry.domain || safeHost(entry.url), title: entry.title || "", fetch_status: "bypassed", error: "top3 evidence bypassed by user approval" });
+        rows.push({ position: entry.position, url: entry.url, domain: entry.domain || safeHost(entry.url), title: entry.title || "", fetch_status: "bypassed", error: "top3 evidence bypassed by recorded reason" });
         continue;
       }
       if (!page?.word_count || !Array.isArray(page?.headings) || !page.headings.length) {
@@ -2586,7 +2577,7 @@ async function buildCompetitorEvidence(analysisData: AnyRecord | null, args: Any
       rows.push({ position: entry.position, url: entry.url, domain: entry.domain || safeHost(entry.url), title: entry.title || "", fetch_status: "failed", error: message });
     }
   }
-  if (failures.length && !(bypassConfirmed && bypassReason)) throw new CliError(`Top 3 competitor evidence failed: ${failures.join("; ")}. Use --top3-bypass-confirmed --top3-bypass-reason only after explicit user approval.`);
+  if (failures.length && !bypassReason) throw new CliError(`Top 3 competitor evidence failed: ${failures.join("; ")}. Use --top3-bypass-reason to record the limitation.`);
   return {
     generated_at: nowIso(),
     method: "top-3 independent competitor extraction with sub-agent-style reviews; deterministic fetch/extract supplies title, meta, headings, and word count",
@@ -2611,7 +2602,7 @@ function buildSkyscraperWordCount(competitorEvidence: AnyRecord, args: AnyRecord
     error: row.error || null,
   }));
   const valid = rows.filter((row) => row.status === "ok" && Number(row.word_count) > 0);
-  if (!valid.length && !(boolArg(args.top3_bypass_confirmed, false) && args.top3_bypass_reason)) throw new CliError("Cannot calculate target_words: no valid Top 3 competitor word counts.");
+  if (!valid.length && !args.top3_bypass_reason) throw new CliError("Cannot calculate target_words: no valid Top 3 competitor word counts. Use --top3-bypass-reason to record the limitation.");
   const maxWords = valid.length ? Math.max(...valid.map((row) => Number(row.word_count))) : 0;
   const rawTarget = maxWords ? Math.max(Math.ceil(maxWords * 1.2), 2000) : 2000;
   return {
@@ -2631,9 +2622,8 @@ function buildSkyscraperWordCount(competitorEvidence: AnyRecord, args: AnyRecord
 
 async function buildContentResearchPacket(topic: string, keyword: string, topicSlug: string, keywordSlug: string, projectDir: string, args: AnyRecord, competitorEvidence: AnyRecord): Promise<AnyRecord> {
   const analysisFile = seoAnalysisFile(projectDir, keywordSlug);
-  if (!analysisFile && !args.skip_data) throw new CliError(`Missing seo-analysis for this topic. Run seo-analysis for "${keyword}" or rerun with --skip-data --skip-data-confirmed --skip-data-reason "motivo claro" after the user explicitly approves the bypass.`);
+  if (!analysisFile && !args.skip_data) throw new CliError(`Missing seo-analysis for this topic. Run seo-analysis for "${keyword}" or rerun with --skip-data --skip-data-reason "motivo claro" to record the limitation.`);
   if (args.skip_data && !args.skip_data_reason) throw new CliError('--skip-data requires --skip-data-reason "motivo claro".');
-  if (args.skip_data && !args.skip_data_confirmed) throw new CliError("--skip-data requires --skip-data-confirmed after explicit user approval to bypass SEO analysis.");
   const analysisData = analysisFile ? readDataFile(analysisFile) : null;
   const skipDataBypass = args.skip_data
     ? requireDataforseoBypassApproval(args, {
@@ -2750,10 +2740,10 @@ function buildContentBrief(research: AnyRecord, projectDir: string, approvalMode
     approval: {
       phase: "briefing",
       mode: approvalMode,
-      status: "pending",
-      aprovador: null,
+      status: "not_required",
+      aprovador: "agent",
       aprovado_em: null,
-      decided_at: null,
+      decided_at: nowIso(),
       visible_missing_analysis: bypasses.map((item: AnyRecord) => item.consequence).filter(Boolean),
       notes: null,
     },
@@ -2769,7 +2759,7 @@ function buildContentBrief(research: AnyRecord, projectDir: string, approvalMode
       outline: outlinePlan.outline,
       outline_capacity: outlinePlan.capacity,
     },
-    draft_status: "briefing",
+    draft_status: "ready-for-writing",
   };
 }
 
@@ -2787,7 +2777,7 @@ function renderContentBriefMarkdown(brief: AnyRecord): string {
   const line = (value: unknown) => String(value || "não informado");
   return `# Briefing: ${line(brief.topic)}
 
-Este é o artefato principal para revisão humana. O YAML continua sendo o contrato estruturado, mas a aprovação editorial deve considerar este Markdown e, preferencialmente, acontecer pelo Web Companion no navegador.
+Este é o artefato principal para revisão humana. O YAML continua sendo o contrato estruturado; decisões editoriais opcionais podem acontecer pelo Web Companion no navegador.
 
 ## Resumo
 
@@ -2809,7 +2799,7 @@ Este é o artefato principal para revisão humana. O YAML continua sendo o contr
 
 - Análise SEO: ${line(brief.data_provenance?.seo_analysis?.path)}
 - Evidência Top 3: ${line(brief.competitor_evidence?.path)}
-- Contexto de Wiki: ${line(brief.context_evidence?.path)}
+- Contexto do Brain: ${line(brief.context_evidence?.path)}
 - Tom de voz: ${line(brief.context_evidence?.voice_evidence?.path || brief.voice_context?.path)} (${line(brief.context_evidence?.voice_evidence?.status || brief.voice_context?.status)})
 ${evidence.length ? evidence.map((item) => `- Fonte de evidência: ${item}`).join("\n") : "- Fonte de evidência: não informada"}
 ${limitations.length ? limitations.map((item) => `- Limitação: ${item}`).join("\n") : "- Limitação: nenhuma limitação adicional registrada"}
@@ -2831,7 +2821,7 @@ ${forbidden.length ? forbidden.map((item) => `- Não mencionar em prosa pública
 
 ## Próximo passo recomendado
 
-Revise este briefing pelo Web Companion no navegador para aprovar, pedir reescrita ou rejeitar. A aprovação gera o rascunho em artifacts, mas não publica o conteúdo na Wiki.
+Revise este briefing pelo Web Companion no navegador quando quiser ajustar a decisão editorial. A fase write gera o rascunho em artifacts, mas não publica o conteúdo em project/conteudos/.
 `;
 }
 
@@ -2878,8 +2868,7 @@ function resolveContentPaths(projectDir: string, args: AnyRecord): {
 }
 
 function assertBriefReadyForWriting(brief: AnyRecord, projectDir: string): void {
-  if (brief.approval?.status !== "approved") throw new CliError("Briefing is not approved. Stop at the approval gate before writing.");
-  if (!["approved-for-writing", "draft", "reviewed", "checks-failed"].includes(String(brief.draft_status || ""))) throw new CliError("Briefing is not approved for writing.");
+  if (!["ready-for-writing", "approved-for-writing", "draft", "reviewed", "checked", "checks-failed", "not_required"].includes(String(brief.draft_status || ""))) throw new CliError("Briefing is not ready for writing.");
   if (!brief.brief?.public_content_type) throw new CliError("Briefing is missing public content type.");
   const seoPath = brief.data_provenance?.seo_analysis?.path;
   if (!brief.process_bypass && (!seoPath || !fs.existsSync(path.join(projectDir, seoPath)))) throw new CliError("Briefing is missing valid seo-analysis provenance.");
@@ -2902,9 +2891,9 @@ function validateContextEvidenceForApproval(brief: AnyRecord, projectDir: string
   const voice = context?.voice_evidence;
   if (!voice || typeof voice !== "object" || !voice.path || !("content_hash_sha256" in voice)) errors.push("missing-voice-evidence");
   if (voice?.filled !== false && !voice?.content_hash_sha256) errors.push("missing-voice-hash");
-  if (voice?.filled !== true && !/\b(voz|voice|tom)\b/i.test(notes)) errors.push("voice-context-not-acknowledged");
+  if (voice?.filled !== false && voice?.filled !== true) errors.push("invalid-voice-state");
   if (brief.brief?.outline_capacity?.can_support_target !== true) errors.push("outline-cannot-support-target");
-  if (errors.length) throw new CliError(`Briefing approval blocked: ${Array.from(new Set(errors)).join(", ")}`);
+  if (errors.length) throw new CliError(`Briefing validation blocked: ${Array.from(new Set(errors)).join(", ")}`);
 }
 
 function contentTargetWords(brief: AnyRecord): number {
@@ -2972,7 +2961,7 @@ function runContentPublicationCheck(brief: AnyRecord, draftPath: string, checkPa
     draft: draftPath,
     route,
     findings: result.issues,
-    recommendation: result.ok ? "ready_for_final_approval" : route,
+    recommendation: result.ok ? "ready_for_promotion" : route,
   };
   writeYaml(wordCountPath, wordCount);
   writeYaml(reviewPath, review);
@@ -3000,7 +2989,7 @@ function writeApprovedContentDraft(
     paths.topic,
     [path.relative(projectDir, paths.draftPath), path.relative(projectDir, briefPath)],
     "draft",
-    `Rascunho público de SEO escrito em artifacts por ${trigger}; ainda não publicado na Wiki.`,
+    `Rascunho público de SEO escrito em artifacts por ${trigger}; ainda não publicado em project/conteudos.`,
     actor ? `Actor: ${actor}` : undefined,
   );
   return { draft_path: paths.draftPath, brief_path: briefPath, draft_status: brief.draft_status };
@@ -3013,12 +3002,11 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
   const paths = resolveContentPaths(p, args);
 
   if (phase === "brief") {
-    const approvalMode = String(args.brief_approval || "manual").trim().toLowerCase();
-    if (!["manual", "handoff"].includes(approvalMode)) throw new CliError("Unsupported --brief-approval. Auto approval was removed; use manual or handoff.");
+    const approvalMode = String(args.brief_approval || "auto").trim().toLowerCase();
+    if (!["auto", "manual", "handoff"].includes(approvalMode)) throw new CliError("Unsupported --brief-approval. Use auto, manual, or handoff.");
     const analysisPath = seoAnalysisFile(p, paths.keywordSlug);
-    if (!analysisPath && !args.skip_data) throw new CliError(`Missing seo-analysis for this topic. Run seo-analysis for "${paths.keyword}" or rerun with --skip-data --skip-data-confirmed --skip-data-reason "motivo claro" after the user explicitly approves the bypass.`);
+    if (!analysisPath && !args.skip_data) throw new CliError(`Missing seo-analysis for this topic. Run seo-analysis for "${paths.keyword}" or rerun with --skip-data --skip-data-reason "motivo claro" to record the limitation.`);
     if (args.skip_data && !args.skip_data_reason) throw new CliError('--skip-data requires --skip-data-reason "motivo claro".');
-    if (args.skip_data && !args.skip_data_confirmed) throw new CliError("--skip-data requires --skip-data-confirmed after explicit user approval to bypass SEO analysis.");
     const analysisData = analysisPath ? readDataFile(analysisPath) : null;
     if (args.skip_data) {
       requireDataforseoBypassApproval(args, {
@@ -3055,7 +3043,7 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
     writeYaml(paths.briefPath, brief);
     writeText(paths.briefMarkdownPath, renderContentBriefMarkdown(brief));
     appendDataforseoBypassLog(paths.topic, research.process_bypass, [path.relative(p, paths.researchPath), path.relative(p, paths.briefPath)]);
-    appendOperationalLog("content-briefing", paths.topic, [path.relative(p, paths.researchPath), path.relative(p, paths.competitorEvidencePath), path.relative(p, paths.contextEvidencePath), path.relative(p, paths.briefPath), path.relative(p, paths.briefMarkdownPath)], "pending", "Briefing criado com evidência de Top 3, Wiki/tom de voz, Markdown de revisão e aguardando aprovação humana.");
+    appendOperationalLog("content-briefing", paths.topic, [path.relative(p, paths.researchPath), path.relative(p, paths.competitorEvidencePath), path.relative(p, paths.contextEvidencePath), path.relative(p, paths.briefPath), path.relative(p, paths.briefMarkdownPath)], "ready-for-writing", "Briefing criado com evidência de Top 3, Brain/tom de voz e Markdown de revisão; pronto para escrita.");
     if (approvalMode === "handoff") {
       const handoff = spawnSync(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "approve-briefing", "--project-root", p, "--brief", paths.briefPath], {
         cwd: ROOT,
@@ -3063,11 +3051,11 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
         env: process.env,
       });
       if (handoff.stderr) process.stderr.write(handoff.stderr);
-      if (handoff.status !== 0) throw new CliError(`Briefing approval handoff failed: ${handoff.stderr || handoff.stdout || "unknown error"}`);
-      printJson({ ok: true, phase, status: "approval_recorded", brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, draft_path: fs.existsSync(paths.draftPath) ? paths.draftPath : null, brief: readYaml(paths.briefPath) });
+      if (handoff.status !== 0) throw new CliError(`Briefing review handoff failed: ${handoff.stderr || handoff.stdout || "unknown error"}`);
+      printJson({ ok: true, phase, status: "review_recorded", brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, draft_path: fs.existsSync(paths.draftPath) ? paths.draftPath : null, brief: readYaml(paths.briefPath) });
       return;
     }
-    printJson({ ok: true, phase, status: "approval_required", approval_options: ["chat", "companion"], web_companion: { available: true, recommended: true, type: "approve-briefing" }, research_path: paths.researchPath, competitor_evidence_path: paths.competitorEvidencePath, context_evidence_path: paths.contextEvidencePath, brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, competitor_evidence: brief.competitor_evidence, context_evidence: brief.context_evidence, brief });
+    printJson({ ok: true, phase, status: "ready_for_writing", web_companion: { available: true, recommended: false, type: "review-briefing" }, research_path: paths.researchPath, competitor_evidence_path: paths.competitorEvidencePath, context_evidence_path: paths.contextEvidencePath, brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, competitor_evidence: brief.competitor_evidence, context_evidence: brief.context_evidence, brief });
     return;
   }
 
@@ -3077,31 +3065,31 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
 
   if (phase === "approve") {
     const decision = String(args.decision || "approved").trim().toLowerCase();
-    if (!["approved", "needs-rewrite", "rejected"].includes(decision)) throw new CliError("--decision must be approved, needs-rewrite, or rejected.");
-    const approvedBy = String(args.approved_by || args.by || "").trim();
-    if (!approvedBy) throw new CliError("--approved-by is required to approve or reject a briefing.");
+    if (!["approved", "ready", "needs-rewrite", "rejected"].includes(decision)) throw new CliError("--decision must be approved, ready, needs-rewrite, or rejected.");
+    const approvedBy = String(args.approved_by || args.by || "agent").trim();
     const notes = String(args.approval_notes || args.notes || "").trim();
-    if (decision === "approved") validateContextEvidenceForApproval(brief, p, notes);
+    const readyDecision = decision === "approved" || decision === "ready";
+    if (readyDecision) validateContextEvidenceForApproval(brief, p, notes);
     brief.approval = {
       phase: "briefing",
       mode: brief.approval?.mode || "chat",
-      status: decision,
-      aprovador: decision === "approved" ? approvedBy : null,
-      aprovado_em: decision === "approved" ? today() : null,
+      status: readyDecision ? "ready" : decision,
+      aprovador: approvedBy || "agent",
+      aprovado_em: null,
       decided_at: nowIso(),
       notes: notes || null,
       visible_missing_analysis: brief.approval?.visible_missing_analysis || [],
     };
-    if (decision !== "approved") {
+    if (!readyDecision) {
       brief.draft_status = decision;
       writeContentBrief(briefPath, brief);
-      appendOperationalLog("content-briefing-approval", paths.topic, [path.relative(p, briefPath)], decision, `Briefing marcado como ${decision} por ${approvedBy}.`, notes || undefined);
+      appendOperationalLog("content-briefing-decision", paths.topic, [path.relative(p, briefPath)], decision, `Briefing marcado como ${decision} por ${approvedBy}.`, notes || undefined);
       printJson({ ok: true, phase, status: decision, brief_path: briefPath, draft_path: null });
       return;
     }
-    brief.draft_status = "approved-for-writing";
-    const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, approvedBy, "briefing approval");
-    appendOperationalLog("content-briefing-approval", paths.topic, [path.relative(p, briefPath), path.relative(p, paths.draftPath)], "approved", `Briefing aprovado por ${approvedBy}; draft gerado automaticamente em artifacts.`, notes || undefined);
+    brief.draft_status = "ready-for-writing";
+    const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, approvedBy, "briefing decision");
+    appendOperationalLog("content-briefing-decision", paths.topic, [path.relative(p, briefPath), path.relative(p, paths.draftPath)], "ready", `Briefing registrado como pronto por ${approvedBy}; draft gerado automaticamente em artifacts.`, notes || undefined);
     printJson({ ok: true, phase, status: "draft_created", decision, brief_path: briefPath, draft_path: draftResult.draft_path, context_evidence: brief.context_evidence });
     return;
   }
@@ -3124,8 +3112,7 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
     return;
   }
 
-  const approvedBy = args.approved_by ? String(args.approved_by).trim() : "";
-  if (!approvedBy) throw new CliError("--approved-by is required for final approval before promotion.");
+  const approvedBy = args.approved_by ? String(args.approved_by).trim() : "agent";
   if (!fs.existsSync(paths.checkPath)) throw new CliError("Publication checks must pass before promotion.");
   const check = readYaml(paths.checkPath);
   if (!check.ok) throw new CliError("Last publication checks did not pass.");

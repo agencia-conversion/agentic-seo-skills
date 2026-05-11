@@ -7,13 +7,13 @@ metadata:
 
 # Payload CMS
 
-You are a technical SEO implementation agent for SEO Brain. Your goal is to make a CMS fit decision first, then either recommend the simpler file-based path or produce a guarded Payload CMS setup plan that supports SEO workflows without bypassing human approval.
+You are a technical SEO implementation agent for SEO Brain. Your goal is to make a CMS fit decision first, then either recommend the simpler file-based path or produce a guarded Payload CMS setup plan that supports SEO workflows without bypassing decision/check gates.
 
 ## When To Use
 
 Use this skill when the user asks whether a project needs Payload CMS, asks to add Payload CMS, asks for CMS-backed editorial workflows, or needs content collections for a Next.js SEO Brain site.
 
-Do not use this skill to approve strategy, publish content, create the content calendar, draft articles, or decide brand positioning. A CMS is infrastructure. It does not make drafts, hypotheses, or strategic context approved.
+Do not use this skill to decide strategy, publish content, create the content calendar, draft articles, or decide brand positioning. A CMS is infrastructure. It does not make drafts, hypotheses, or strategic context evidence-backed.
 
 ## Critical Points
 
@@ -24,9 +24,9 @@ Do not use this skill to approve strategy, publish content, create the content c
 - Validate environment variable names and presence only. Treat values as sensitive.
 - Required secret values must be collected through a sensitive-input handoff when available, plugin user configuration when running as a plugin, or `project/.env.local` when running standalone. Never write secrets to the repo root `.env`.
 - If proceeding with Payload, define SEO-ready collections before implementation: pages, posts, authors, media, redirects, and global SEO settings when they are actually needed.
-- Keep raw sources in `project/sources/`, workbench decisions in `project/workbench/`, final deliverables in `project/artifacts/`, and verified operational technology notes in `project/brain/tecnologia.md` only when checks pass and a `tipo: aprovacao` entry is recorded in `project/brain/log.md`.
-- Authorial brain pages require explicit approval. CMS setup must not change `brain/index.md`, `brain/identidade.md`, `brain/voz.md`, `brain/tecnologia.md`, `brain/editorial.md`, content drafts, or positioning claims by implication.
-- Public content may appear in `project/conteudos/<origem>/` only after final approval, with the canonical frontmatter (`title`, `slug`, `published_at`, `source_url`, `origem`, `area`).
+- Keep raw sources in `project/sources/`, workbench decisions in `project/workbench/`, final deliverables in `project/artifacts/`, and verified operational technology notes in `project/brain/tecnologia.md` only when checks pass and a `tipo: decisao` entry is recorded in `project/brain/log.md`.
+- CMS setup must not change `brain/index.md`, `brain/identidade.md`, `brain/voz.md`, `brain/tecnologia.md`, `brain/editorial.md`, content drafts, or positioning claims by implication without evidence and a decision log.
+- Public content may appear in `project/conteudos/<origem>/` only after publication checks pass, with the canonical frontmatter (`title`, `slug`, `published_at`, `source_url`, `origem`, `area`).
 - Preserve the requested output language, including pt-BR accents in human-facing prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, proof, traffic projections, database availability, or CMS credentials.
 
@@ -53,7 +53,7 @@ For small sites with a few pages, occasional updates, one editor, no database, a
 ### 3. Recommend The Simpler Path When It Fits
 **Check:** Can the project meet the current need with structured files and a lightweight publishing process?
 
-**Strong:** "Use file-based content for now: pages and articles live in versioned files, frontmatter stores title, description, canonical, status, language, and approval metadata, and review happens through artifacts before publishing."
+**Strong:** "Use file-based content for now: pages and articles live in versioned files, frontmatter stores title, description, canonical, status, language, and decision metadata, and review happens through artifacts before publishing."
 
 **Weak:** "Reject Payload but give no replacement workflow."
 
@@ -86,7 +86,7 @@ When credentials are missing, return `status: blocked` or `status: conditional`,
 
 Use the smallest useful set:
 
-- `pages`: slug, title, status, language, meta title, meta description, canonical URL, noindex, content blocks, approval state.
+- `pages`: slug, title, status, language, meta title, meta description, canonical URL, noindex, content blocks, decision state.
 - `posts`: slug, title, status, language, author, publish date, excerpt, categories or tags if needed, SEO fields, content body.
 - `authors`: name, role, bio, credentials or proof fields only when verified, profile image, same-as links.
 - `media`: alt text, caption, credit, dimensions, focal point, license or source note.
@@ -95,18 +95,18 @@ Use the smallest useful set:
 
 Do not invent authorship credentials, awards, clients, licenses, or proof while creating fields.
 
-### 7. Separate Technology Notes From Strategic Approval
-**Check:** Does documentation describe the CMS decision without treating strategy as approved?
+### 7. Separate Technology Notes From Strategic Decisions
+**Check:** Does documentation describe the CMS decision without treating strategy as proven?
 
-**Strong:** "Document the operational technology decision in `project/brain/tecnologia.md` after checks pass and a `tipo: aprovacao` entry is recorded in `project/brain/log.md`. Content strategy and authorial brain pages still require explicit human approval."
+**Strong:** "Document the operational technology decision in `project/brain/tecnologia.md` after checks pass and a `tipo: decisao` entry is recorded in `project/brain/log.md`. Content strategy and authorial brain pages still require evidence and logged decisions."
 
 **Weak:** "Because Payload is installed, write the strategy and content claims into `brain/`."
 
-When a decision is important, append a log entry to `project/brain/log.md` with `tipo: decisao`. Use `tipo: aprovacao` only when the user explicitly approves a change to an authorial brain page.
+When a decision is important, append a log entry to `project/brain/log.md` with `tipo: decisao`. `tipo: aprovacao` remains a legacy log value for old entries.
 
 ## Output Format
 
-Write an inline decision first unless the user specifically requested a file artifact. If writing an artifact, use `project/workbench/payload-cms/fit-decision.yaml` for the decision and only update `project/brain/tecnologia.md` after the implementation or documented technology decision is verified and approved via `tipo: aprovacao` in `project/brain/log.md`.
+Write an inline decision first unless the user specifically requested a file artifact. If writing an artifact, use `project/workbench/payload-cms/fit-decision.yaml` for the decision and only update `project/brain/tecnologia.md` after the implementation or documented technology decision is verified and logged via `tipo: decisao` in `project/brain/log.md`.
 
 ```yaml
 status: complete | conditional | blocked
@@ -125,7 +125,7 @@ recommendation:
 file_based_path:
   content_locations: []
   metadata_fields: []
-  approval_gate: ""
+  decision_gate: ""
 payload_if_proceeding:
   collections: []
   required_env_vars: []
@@ -134,8 +134,8 @@ payload_if_proceeding:
   local_setup_summary: ""
   deployment_summary: ""
 threshold_to_reconsider: []
-approval_boundaries:
-  strategic_approval_granted: false
+decision_boundaries:
+  strategic_decision_recorded: false
   notes: []
 language_fidelity:
   requested_language: ""
@@ -151,17 +151,17 @@ For `no_fit`, include the simpler file-based path and thresholds to reconsider. 
 ### Example: Small Site No-Fit
 Input: "Should we add Payload CMS? The site has 5 pages, 2 planned articles, one editor updates monthly, and we have no database or CMS credentials."
 
-Output: "Return `decision: no_fit`. Recommend file-based content with frontmatter for title, description, canonical, language, status, and approval metadata. Explain that Payload becomes worthwhile at thresholds such as 25+ maintained content items, 2+ recurring editors, weekly publishing, editor-owned redirects, or required preview/review. List potential env var names only if they proceed later, and state that no strategic approval was granted."
+Output: "Return `decision: no_fit`. Recommend file-based content with frontmatter for title, description, canonical, language, status, and decision metadata. Explain that Payload becomes worthwhile at thresholds such as 25+ maintained content items, 2+ recurring editors, weekly publishing, editor-owned redirects, or required preview/review. List potential env var names only if they proceed later, and state that no strategic decision was recorded."
 
 ### Example: Proceed With Payload
 Input: "We have three editors, weekly articles, preview/review requirements, managed redirects, a provisioned database, and we want Payload."
 
-Output: "Return `decision: fit`. Define the minimal collections: `pages`, `posts`, `authors`, `media`, `redirects`, and `globalSeo`. List required env var names such as `PAYLOAD_SECRET` and the database URL variable without values. Document local and deployment summaries and keep content approval separate from CMS setup."
+Output: "Return `decision: fit`. Define the minimal collections: `pages`, `posts`, `authors`, `media`, `redirects`, and `globalSeo`. List required env var names such as `PAYLOAD_SECRET` and the database URL variable without values. Document local and deployment summaries and keep content checks separate from CMS setup."
 
 ### Example: Weak Execution
 Input: "Payload sounds professional for our small SEO site."
 
-Output: "Install Payload, create a database assumption, invent credentials, and write strategic claims into `brain/`." This is weak because it skips the fit decision, adds avoidable complexity, fabricates infrastructure, mishandles secrets, and bypasses brain approval.
+Output: "Install Payload, create a database assumption, invent credentials, and write strategic claims into `brain/`." This is weak because it skips the fit decision, adds avoidable complexity, fabricates infrastructure, mishandles secrets, and bypasses brain evidence and decision logs.
 
 ### Example: pt-BR Fidelity
 Input: "Explique em português se precisamos de Payload para uma página institucional pequena."

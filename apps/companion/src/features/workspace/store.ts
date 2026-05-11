@@ -97,7 +97,7 @@ interface WorkspaceState {
 
   initializeProject: (token: string) => Promise<void>;
   loadPage: (id: string) => Promise<void>;
-  savePage: (id: string, options?: { approver?: string; notes?: string }) => Promise<boolean>;
+  savePage: (id: string, options?: { notes?: string; silent?: boolean }) => Promise<boolean>;
   setHasHydrated: (state: boolean) => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -195,7 +195,7 @@ function pageFromSummary(item: any, sectionId: string, sortOrder: number, parent
     saving: false,
     saveError: null,
     readOnly: !!item.readOnly,
-    requiresApproval: !!item.requiresApproval,
+    requiresApproval: false,
     sourceMode: false,
   };
 }
@@ -358,7 +358,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
               icon: Object.prototype.hasOwnProperty.call(file, 'icon') ? file.icon ?? null : p.icon,
               cover: Object.prototype.hasOwnProperty.call(file, 'cover') ? file.cover ?? null : p.cover,
               readOnly: !!file.readOnly,
-              requiresApproval: !!file.requiresApproval,
+              requiresApproval: false,
               loaded: true,
               dirty: false,
               fileDirty: false,
@@ -386,7 +386,6 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       payload.body = body;
       payload.frontmatter = page.frontmatter || {};
       payload.frontmatterRaw = page.frontmatterText;
-      payload.approver = options.approver;
       payload.notes = options.notes;
     }
     if (page.uiDirty) {
@@ -396,31 +395,43 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    set((state) => ({
-      pages: state.pages.map((p) =>
-        p.id === id
-          ? result.ok
-            ? {
-                ...p,
-                hash: result.hash,
-                bodyMarkdown: body,
-                sourceBody: body,
-                dirty: false,
-                fileDirty: false,
-                uiDirty: false,
-                saving: false,
-                saveError: null,
-                updatedAt: Date.now(),
-              }
-            : {
-                ...p,
-                saving: false,
-                saveError: result.reason || 'save failed',
-                hash: result.currentHash || p.hash,
-              }
-          : p
-      ),
-    }));
+    set((state) => {
+      const resolverAfterSave = mentionResolver(state.pages);
+      return {
+        pages: state.pages.map((p) => {
+          if (p.id !== id) return p;
+          if (!result.ok) {
+            return {
+              ...p,
+              saving: false,
+              saveError: result.reason || 'save failed',
+              hash: result.currentHash || p.hash,
+            };
+          }
+
+          const currentBody = p.fileDirty ? (p.sourceMode ? p.sourceBody : docToMarkdown(p.content, resolverAfterSave)) : p.bodyMarkdown;
+          const fileChangedDuringSave =
+            p.fileDirty &&
+            (currentBody !== body || p.title !== page.title || p.frontmatterText !== page.frontmatterText);
+          const uiChangedDuringSave =
+            p.uiDirty &&
+            (p.icon !== page.icon || p.cover !== page.cover);
+
+          return {
+            ...p,
+            hash: result.hash,
+            bodyMarkdown: fileChangedDuringSave ? p.bodyMarkdown : body,
+            sourceBody: fileChangedDuringSave ? p.sourceBody : body,
+            dirty: fileChangedDuringSave || uiChangedDuringSave,
+            fileDirty: fileChangedDuringSave,
+            uiDirty: uiChangedDuringSave,
+            saving: false,
+            saveError: null,
+            updatedAt: Date.now(),
+          };
+        }),
+      };
+    });
     return !!result.ok;
   },
 

@@ -9,7 +9,7 @@
 - Added 14 SEO Brain skills with progressive-discovery contracts.
 - Added one Claude Code sub-agent per skill plus an Autoresearch sub-agent.
 - Added `bin/seo-brain` CLI with deterministic commands for v0.1 workflows.
-- Added project Wiki templates with approval-aware frontmatter.
+- Added project Brain templates with decision-aware frontmatter.
 - Added offline smoke test, technical SEO fixtures, skill validation, and Autoresearch contract evaluator.
 - Completed DataForSEO mode support for `live`, `standard`, `async`, and `offline`.
 - Set DataForSEO `standard` as the default mode for SERP and keyword workflows.

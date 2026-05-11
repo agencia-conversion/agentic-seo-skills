@@ -20,4 +20,4 @@ Constraints:
 
 - Do not add CMS complexity by default.
 - Do not commit secrets.
-- Keep technology decisions separate from strategic approval.
+- Keep technology decisions separate from strategic evidence and decisions.

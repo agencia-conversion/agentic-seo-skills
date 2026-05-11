@@ -12,7 +12,7 @@ Use the `brain-keeper` skill contract. The brain has 7 authorial files: `index`,
 
 Brain-first protocol:
 
-- A change to any authorial brain page (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) requires a `tipo: aprovacao` entry in `project/brain/log.md` with `aprovador: <human name>` and `aprovado_em: <date>`. Until approval, drafts live in `project/workbench/brain-keeper/`.
+- A change to any authorial brain page (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) requires source-backed evidence and a `tipo: decisao` entry in `project/brain/log.md` with `aprovador: agent` or a human name. Optional notes can live in `project/workbench/brain-keeper/`.
 - Operational events (source ingestion, lint result, content publication, errata, technical decision without strategic impact, evidence cataloging) go directly to `log.md` with `aprovador: agent` (or the human's name when triggered by a human).
 
 Keep raw evidence under `project/sources/` and reference it from log entries with normal Markdown links. Use Obsidian wikilinks `[[...]]` only for arquivos reais inside `project/brain/`.

@@ -104,7 +104,6 @@ export function buildContext({ projectRoot, proposalPath }) {
 
 export async function handleSubmit(body, ctx, projectRoot) {
   const { files: submitted, approver, notes } = body || {};
-  if (!approver || !approver.trim()) return { ok: false, reason: "missing-approver" };
   if (!submitted || typeof submitted !== "object") return { ok: false, reason: "missing-files" };
 
   for (const f of ctx.files) {
@@ -129,7 +128,7 @@ export async function handleSubmit(body, ctx, projectRoot) {
     return { ok: false, reason: "invalid-frontmatter", details: invalidFrontmatter };
   }
 
-  const approverClean = approver.trim();
+  const approverClean = String(approver || "agent").trim() || "agent";
   writeIdentity(approverClean);
 
   const classification = { "unchanged-from-v1": [], "accepted-v2": [], "edited": [] };
@@ -159,13 +158,13 @@ export async function handleSubmit(body, ctx, projectRoot) {
   const accepted = classification["unchanged-from-v1"].length !== ctx.files.length;
   appendLogEntry(logFile, {
     date: today,
-    tipo: accepted ? "aprovacao" : "decisao",
+    tipo: "decisao",
     titulo: `Review revisado em ${ctx.files.length} arquivo(s)`,
     escopo: ctx.files.map((f) => f.path.replace(/^brain\//, "").replace(/\.md$/, "")).join(", "),
     decisao: summaryParts.join("; ") + " | " + detailLines.join(" / "),
     evidencia: ctx.files.map((f) => f.path).join(", "),
     aprovador: approverClean,
-    aprovado_em: accepted ? today : null,
+    aprovado_em: null,
     notas: notes ? notes.trim() : null,
   });
 

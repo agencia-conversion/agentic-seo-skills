@@ -15,7 +15,7 @@ arquivo é arquivo, não rascunho. Errata vai como nota no final + entrada
 `tipo: errata` em [[../../brain/log]].
 
 `area:` deve corresponder exatamente ao slug de uma seção em
-../../brain/editorial.md. Se a área não existe, crie-a antes (com aprovação).
+../../brain/editorial.md. Se a área não existe, crie-a antes com evidência e `tipo: decisao` no log.
 -->
 
 <conteúdo do artigo>

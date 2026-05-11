@@ -4,7 +4,7 @@ import YAML from "yaml";
 import { runHandoff } from "../companion-server.mjs";
 import { newHandoffId, readIdentity, writeIdentity, sha256 } from "../companion-state.mjs";
 import { appendLogEntry } from "../brain-page.mjs";
-const VALID_DECISIONS = new Set(["approved", "needs-rewrite", "rejected"]);
+const VALID_DECISIONS = new Set(["approved", "ready", "needs-rewrite", "rejected"]);
 
 function parseArgs(argv) {
   const out = {};
@@ -105,8 +105,8 @@ function validateBriefForApproval(brief, projectRoot) {
   if (!brief.keyword) errors.push("missing-keyword");
   if (!brief.brief || typeof brief.brief !== "object") errors.push("missing-brief-object");
   if (!brief.brief?.public_content_type) errors.push("missing-public-content-type");
-  if (!brief.approval || typeof brief.approval !== "object") errors.push("missing-approval");
-  if (brief.approval?.status && !["pending", "needs-rewrite"].includes(brief.approval.status)) errors.push("approval-not-pending");
+  if (!brief.approval || typeof brief.approval !== "object") brief.approval = { status: "not_required" };
+  if (brief.approval?.status && !["pending", "needs-rewrite", "not_required", "approved-for-writing", "ready-for-writing", "ready"].includes(brief.approval.status)) errors.push("review-not-open");
   const seo = brief.data_provenance?.seo_analysis;
   if (!seo || typeof seo !== "object") errors.push("missing-seo-provenance");
   if (!brief.process_bypass && (!seo?.path || !existsSync(resolve(projectRoot, seo.path)))) errors.push("missing-seo-analysis-file");
@@ -161,7 +161,6 @@ export function buildContext({ projectRoot, briefPath }) {
 export async function handleSubmit(body, ctx) {
   const { decision, approver, notes } = body || {};
   if (!VALID_DECISIONS.has(decision)) return { ok: false, reason: "invalid-decision" };
-  if (!approver || !approver.trim()) return { ok: false, reason: "missing-approver" };
   const fresh = readFileSync(ctx.briefPath, "utf8");
   const freshMarkdown = ctx.briefMarkdownPath && existsSync(ctx.briefMarkdownPath) ? readFileSync(ctx.briefMarkdownPath, "utf8") : "";
   if (sha256(`${fresh}\n---brief-markdown---\n${freshMarkdown}`) !== ctx.hash) return { ok: false, reason: "brief-modified" };
@@ -174,24 +173,21 @@ export async function handleSubmit(body, ctx) {
   const errors = validateBriefForApproval(brief, ctx.projectRoot);
   if (errors.length) return { ok: false, reason: `invalid-content-brief:${errors.join(",")}` };
 
-  const approverClean = approver.trim();
-  const status = decision === "approved" ? "approved" : decision === "rejected" ? "rejected" : "needs-rewrite";
-  const voiceFilled = brief.context_evidence?.voice_evidence?.filled === true || brief.voice_context?.filled === true;
-  if (status === "approved" && !voiceFilled && !/\b(voz|voice|tom)\b/i.test(notes || "")) {
-    return { ok: false, reason: "voice-context-not-acknowledged" };
-  }
+  const approverClean = String(approver || "agent").trim() || "agent";
+  const readyDecision = decision === "approved" || decision === "ready";
+  const status = readyDecision ? "ready" : decision === "rejected" ? "rejected" : "needs-rewrite";
   writeIdentity(approverClean);
   const today = todayIso();
   brief.approval = {
     mode: brief.approval?.mode || "handoff",
     status,
-    aprovador: status === "approved" ? approverClean : null,
-    aprovado_em: status === "approved" ? today : null,
+    aprovador: approverClean,
+    aprovado_em: null,
     decided_at: new Date().toISOString(),
     notes: notes?.trim() || null,
   };
   let draftPath = null;
-  if (status === "approved") {
+  if (status === "ready") {
     draftPath = writeDraft(ctx.projectRoot, brief);
     brief.draft_status = "draft";
     brief.draft_path = relative(ctx.projectRoot, draftPath);
@@ -205,10 +201,10 @@ export async function handleSubmit(body, ctx) {
     tipo: "decisao",
     titulo: `${brief.topic} · ${status}`,
     escopo: [ctx.briefRel, ...(draftPath ? [relative(ctx.projectRoot, draftPath)] : [])],
-    decisao: status === "approved" ? `Briefing ${ctx.briefRel} aprovado e draft gerado em artifacts.` : `Briefing ${ctx.briefRel} marcado como ${status}.`,
+    decisao: status === "ready" ? `Briefing ${ctx.briefRel} registrado como pronto e draft gerado em artifacts.` : `Briefing ${ctx.briefRel} marcado como ${status}.`,
     evidencia: ctx.briefRel,
     aprovador: approverClean,
-    aprovado_em: status === "approved" ? today : null,
+    aprovado_em: null,
     notas: notes?.trim() || null,
   });
   return { ok: true, status, approver: approverClean, brief: ctx.briefPath, draft: draftPath };

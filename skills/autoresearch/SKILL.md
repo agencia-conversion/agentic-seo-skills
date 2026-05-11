@@ -13,16 +13,16 @@ You are an experiment lead for SEO Brain. Your goal is to improve one editable s
 
 Use this skill when the user asks to iterate, benchmark, evaluate, tune, or improve an artifact through repeated attempts with measurable criteria. Use `skill-eval` mode when the editable surface is one `skills/<name>/SKILL.md` file.
 
-Do not use this skill for open-ended SEO analysis, writing authorial brain pages, content drafting without an experiment question, or bypassing a required approval gate. Autoresearch can recommend a winner; it cannot approve strategic context for the human.
+Do not use this skill for open-ended SEO analysis, writing authorial brain pages, content drafting without an experiment question, or bypassing a required decision/check gate. Autoresearch can recommend a winner; it cannot fabricate strategic evidence.
 
 ## Critical Points
 
-- One run has one editable surface. Everything else is immutable context: fixtures, rubrics, source packets, approved brain pages, and prior run notes may be read, but not changed as part of the variation.
+- One run has one editable surface. Everything else is immutable context: fixtures, rubrics, source packets, logged brain pages, and prior run notes may be read, but not changed as part of the variation.
 - Always score a baseline before proposing improvements. Existing drafts do not waive the baseline step.
 - Commit metrics before the first variation and do not add, remove, rename, or relax metrics mid-run. If the metrics are wrong, stop and start a new run.
-- Never lower approval gates, quality thresholds, source requirements, or human-review requirements to make a candidate pass. A blocked gate is a result, not a reason to weaken the gate.
+- Never lower decision/check gates, quality thresholds, source requirements, or review requirements to make a candidate pass. A blocked gate is a result, not a reason to weaken the gate.
 - Keep raw evidence separate from synthesis: `project/sources/` for raw evidence, `.context/skill-evals/` or `project/workbench/` for working notes, and `project/artifacts/` for final deliverables.
-- Do not write drafts, hypotheses, or unapproved strategy into `project/brain/`. Authorial brain pages require explicit human approval via `tipo: aprovacao` in `project/brain/log.md`.
+- Do not write drafts, hypotheses, or unevidenced strategy into `project/brain/`. Authorial brain pages require a `tipo: decisao` entry in `project/brain/log.md` with evidence, limitations, and actor.
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, or proof. Unknown values stay `unknown` or `null`.
 - Preserve the requested output language in human-facing prose, including pt-BR accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Save reviewable run notes for skill-development runs under `.context/skill-evals/<skill-name>/<run-id>/`.
@@ -31,7 +31,7 @@ Do not use this skill for open-ended SEO analysis, writing authorial brain pages
 
 ### 1. Define The Run
 **Check:** What single question is the run trying to answer, and what exact surface may be edited?
-**Strong:** "Improve only `skills/content-seo/SKILL.md` against the fixture and approval rubric. Fixtures, rubric, manifests, and other skills are immutable."
+**Strong:** "Improve only `skills/content-seo/SKILL.md` against the fixture and review rubric. Fixtures, rubric, manifests, and other skills are immutable."
 **Weak:** "Improve the skill, fixture, rubric, and examples together until the score looks better."
 
 Create a run id using a stable timestamp or short slug. Record:
@@ -53,16 +53,16 @@ Use `.context/skill-evals/` for skill-development and meta-skill runs. Use `proj
 
 ### 2. Frame And Approve Metrics
 **Check:** Do the metrics directly test the run question without weakening existing gates?
-**Strong:** "Metrics include self-sufficiency, fixture execution, source separation, approval gates, and language fidelity. Threshold remains 90 because the existing rubric requires it."
-**Weak:** "Remove approval-gate scoring because the candidate keeps failing there."
+**Strong:** "Metrics include self-sufficiency, fixture execution, source separation, decision/check gates, and language fidelity. Threshold remains 90 because the existing rubric requires it."
+**Weak:** "Remove gate scoring because the candidate keeps failing there."
 
 Propose at least three metrics before any variation. Mix deterministic checks and judgment checks when possible:
 
 - `executable`: line count, required headings, required output fields, forbidden path writes, fixture files present.
 - `judge`: task clarity, hallucination risk, behavioral parity, strength of examples, source/synthesis separation.
-- `gate`: human approval required, provider bypass required, brain promotion blocked, minimum rubric threshold.
+- `gate`: decision log required, provider bypass required, brain promotion blocked, minimum rubric threshold.
 
-Present the metrics and stop for explicit approval when the user has not already approved the metric set. The approval must include threshold, maximum iterations, and plateau rule. If approval is skipped by explicit user instruction, record the bypass and consequence in the run notes before continuing.
+Present the metrics and record the metric decision before continuing. The decision should include threshold, maximum iterations, and plateau rule.
 
 Committed metrics are immutable for that run. Record them as:
 
@@ -146,7 +146,7 @@ Stop when one of these is true:
 - `stop:plateau`: the best score has not improved across the committed plateau window.
 - `stop:max_iter`: the run reached the committed maximum iteration count.
 - `manual`: the user explicitly ends the run.
-- `blocked`: a required source, approval, fixture, or tool is missing and cannot be bypassed without lowering a gate.
+- `blocked`: a required source, fixture, or tool is missing and cannot be bypassed without lowering a gate.
 
 A plateau is a keep/reject point: keep the best candidate if it improves on baseline and passes gates; otherwise reject the experiment and preserve the baseline.
 
@@ -183,7 +183,7 @@ residual_risks: []
 next_action: ""
 ```
 
-Ask for explicit approval before promoting a winner outside the run directory. Strategic-page approval must be human and explicit; the run result alone is not approval.
+Record a separate decision before promoting a winner outside the run directory. The run result alone is not evidence for strategic claims.
 
 ## Skill-Eval Mode
 
@@ -195,11 +195,11 @@ Minimum skill-eval metrics:
 - `self_sufficiency`: normal execution does not require `_shared/` or another skill.
 - `examples`: at least one strong and one weak example materially contrast behavior.
 - `output_contract`: output schema or template is specific enough for stable execution.
-- `critical_gates`: anti-fabrication, source/synthesis separation, approval gates, and language fidelity are explicit.
-- `behavioral_parity`: the new skill preserves required files, gates, JSON/YAML surfaces, and user-facing behavior from the approved contract.
+- `critical_gates`: anti-fabrication, source/synthesis separation, decision/check gates, and language fidelity are explicit.
+- `behavioral_parity`: the new skill preserves required files, gates, JSON/YAML surfaces, and user-facing behavior from the existing contract.
 - `length_budget`: the main `SKILL.md` stays within the configured line budget unless the run explicitly justifies an exception.
 
-Executor simulation must use only the candidate skill and the fixture. Reviewer scoring must use the committed rubric. Sub-agent or simulated output is evidence, not approval; the main agent still owns integration and the human still owns strategic approval.
+Executor simulation must use only the candidate skill and the fixture. Reviewer scoring must use the committed rubric. Sub-agent or simulated output is evidence, not final decision; the main agent still owns integration.
 
 ## Output Format
 
@@ -227,13 +227,13 @@ autoresearch_result:
 
 Input: "Improve `skills/seo-analysis/SKILL.md` with an autoresearch loop."
 
-Output: "Run `skill-eval` with `skills/seo-analysis/SKILL.md` as the only editable surface, save notes under `.context/skill-evals/seo-analysis/<run-id>/`, score the baseline, commit metrics at threshold 90, test one candidate at a time, and keep only a candidate that improves the score without lowering DataForSEO, source separation, brain approval, or pt-BR language gates."
+Output: "Run `skill-eval` with `skills/seo-analysis/SKILL.md` as the only editable surface, save notes under `.context/skill-evals/seo-analysis/<run-id>/`, score the baseline, commit metrics at threshold 90, test one candidate at a time, and keep only a candidate that improves the score without lowering DataForSEO, source separation, brain decision, or pt-BR language gates."
 
 ### Example: Weak Experiment
 
 Input: "Make this skill pass faster."
 
-Output: "Lower the threshold from 90 to 75, remove the approval-gate metric, edit the fixture to match the draft, and publish the draft to `project/brain/`." This is weak because it changes the evaluation surface, lowers gates, and treats an unapproved draft as approved context.
+Output: "Lower the threshold from 90 to 75, remove the gate metric, edit the fixture to match the draft, and publish the draft to `project/brain/`." This is weak because it changes the evaluation surface, lowers gates, and treats an unevidenced draft as context.
 
 ## Done Criteria
 
@@ -243,4 +243,4 @@ Output: "Lower the threshold from 90 to 75, remove the approval-gate metric, edi
 - The stop reason is one of the declared stop reasons.
 - The final summary records whether gates were lowered; a valid keep decision has `gates.lowered: false`.
 - Skill-development run notes are saved under `.context/skill-evals/<skill-name>/<run-id>/`.
-- The user has seen the winner or the blocked reason, and any promotion outside the run directory is handled as a separate approval step.
+- The user has seen the winner or the blocked reason, and any promotion outside the run directory is handled as a separate decision step.

@@ -94,7 +94,7 @@ assert.equal(tree.ok, true);
 assert.equal(tree.project.name, "Projeto Teste");
 const vozSummary = tree.sections[0].items.find((item) => item.path === "brain/voz.md");
 assert.equal(vozSummary.title, "Tom de Voz");
-assert.equal(vozSummary.requiresApproval, true);
+assert.equal(vozSummary.requiresApproval, false);
 assert.ok(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path === "conteudos/blog/post-teste.md"));
 assert.equal(tree.sections.some((section) => section.id === "workbench"), false);
 
@@ -154,34 +154,36 @@ assert.equal(stale.reason, "file-modified");
 assert.match(readFileSync(join(brain, "voz.md"), "utf8"), /Mudança externa/);
 
 const fresh = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
-const missingApprover = saveProjectFile({
+const savedWithoutApprover = saveProjectFile({
   projectRoot,
   fileRel: "brain/voz.md",
   expectedHash: fresh.hash,
   title: "Tom de Voz",
   body: "# Voz\n\nTexto novo com conteúdo e evidência.",
 });
-assert.deepEqual({ ok: missingApprover.ok, reason: missingApprover.reason }, { ok: false, reason: "missing-approver" });
+assert.equal(savedWithoutApprover.ok, true);
 
+const freshAfterAgentSave = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
 const saved = saveProjectFile({
   projectRoot,
   fileRel: "brain/voz.md",
-  expectedHash: fresh.hash,
+  expectedHash: freshAfterAgentSave.hash,
   title: "Tom de Voz Revisado",
   body: "# Voz\n\nTexto novo com conteúdo e evidência.",
   approver: "Diego Ivo",
   notes: "aprovado no companion",
 });
 assert.equal(saved.ok, true);
-assert.equal(saved.requiresApproval, true);
+assert.equal(saved.requiresApproval, false);
 const savedText = readFileSync(join(brain, "voz.md"), "utf8");
 assert.match(savedText, /title: "Tom de Voz Revisado"/);
 assert.match(savedText, /updated: "\d{4}-\d{2}-\d{2}"/);
 assert.match(savedText, /Texto novo com conteúdo e evidência/);
 
 const logText = readFileSync(join(brain, "log.md"), "utf8");
-assert.match(logText, /- tipo: aprovacao/);
+assert.match(logText, /- tipo: decisao/);
 assert.match(logText, /- escopo: brain\/voz\.md/);
+assert.match(logText, /- aprovador: agent/);
 assert.match(logText, /- aprovador: Diego Ivo/);
 assert.match(logText, /- notas: aprovado no companion/);
 

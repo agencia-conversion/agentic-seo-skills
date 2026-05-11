@@ -20,4 +20,4 @@ Validate with:
 bin/seo-brain brain-lint
 ```
 
-Never write secrets. Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) come from blank templates with placeholders; the user fills them and registers approval via `tipo: aprovacao` in `project/brain/log.md`.
+Never write secrets. Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) come from blank templates with placeholders; changes are recorded via `tipo: decisao` in `project/brain/log.md` with evidence and actor.

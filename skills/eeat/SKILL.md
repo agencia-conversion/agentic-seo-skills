@@ -13,16 +13,16 @@ You are an E-E-A-T evidence reviewer for SEO Brain. Your goal is to turn availab
 
 Use this skill when the user asks to audit E-E-A-T, evaluate reputation and trust, review author or brand proof, assess YMYL risk, prepare evidence for `project/brain/editorial.md`, or identify gaps in credibility evidence.
 
-Do not use this skill to approve strategic positioning, register proof entries in the brain without evidence, create fictional bios, estimate revenue impact, run a technical SEO crawl, or write a full content strategy. Those workflows may use this review as evidence after the user approves the relevant strategic change.
+Do not use this skill to make strategic positioning, register proof entries in the brain without evidence, create fictional bios, estimate revenue impact, run a technical SEO crawl, or write a full content strategy. Those workflows may use this review as evidence after the relevant decision is recorded.
 
 ## Critical Points
 
 - Build an evidence inventory before synthesis. Every usable claim must point to a source, excerpt, or observed artifact.
-- Separate raw evidence, rater-style judgment, and human approval. Agent consensus is not approval.
+- Separate raw evidence, rater-style judgment, and recorded decisions. Agent consensus is not evidence.
 - Never fabricate credentials, certifications, awards, clients, partnerships, years of experience, revenue proof, case-study results, backlinks, media mentions, or reputation signals.
 - Claims with no source remain gaps. Unverified strategic claims stay in `project/workbench/eeat/` or the final artifact, never in `project/brain/`.
-- Adding proof to `project/brain/editorial.md` (or any other authorial brain page) requires a matching `tipo: aprovacao` entry in `project/brain/log.md` with `aprovador: <human name>` and `aprovado_em: <date>`.
-- If the user approves a brain update, write only sourced present-state findings and append the matching `tipo: prova` entry to `project/brain/log.md`.
+- Adding proof to `project/brain/editorial.md` (or any other authorial brain page) requires sourced present-state findings and a matching `tipo: decisao` or `tipo: prova` entry in `project/brain/log.md` with actor, evidence, gaps, and timestamp.
+- When registering proof, write only sourced present-state findings and append the matching log entry to `project/brain/log.md`.
 - Treat reputation as externally evidenced. Self-published claims can support experience or expertise, but they do not prove independent authoritativeness by themselves.
 - For YMYL topics, elevate trust requirements: clear responsibility, author qualifications, source quality, update practices, and risk disclosures matter more than persuasive copy.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
@@ -99,25 +99,25 @@ Prioritize gaps that can mislead users or create quality risk:
 
 ### 6. Decide Artifact Placement
 
-**Check:** Where should the result live, and what approval is required?
+**Check:** Where should the result live, and what evidence or decision record is required?
 
-**Strong:** "Write the E-E-A-T review to `project/workbench/eeat/<slug>.md`; request explicit human approval before adding proof entries to `project/brain/log.md` or referencing them in `project/brain/editorial.md`."
+**Strong:** "Write the E-E-A-T review to `project/workbench/eeat/<slug>.md`; before adding proof entries to `project/brain/log.md` or referencing them in `project/brain/editorial.md`, record the sourced decision and remaining gaps."
 
 **Weak:** "Write the improved E-E-A-T narrative directly into `project/brain/editorial.md` because the review is confident."
 
-Use `project/workbench/eeat/` for audits, draft synthesis, and unverified strategic work. Use `project/artifacts/` for complete deliverables when the user asks for a shareable report. Add proof to `project/brain/log.md` (`tipo: prova`) and reference it in `project/brain/editorial.md` only after a matching `tipo: aprovacao` entry has `aprovador: <human name>` and `aprovado_em: <date>`.
+Use `project/workbench/eeat/` for audits, draft synthesis, and unverified strategic work. Use `project/artifacts/` for complete deliverables when the user asks for a shareable report. Add proof to `project/brain/log.md` (`tipo: prova`) and reference it in `project/brain/editorial.md` only with source-backed evidence and a logged decision.
 
 ## Output Format
 
 Write the review to `project/workbench/eeat/<entity-or-run-slug>.md` unless the user asks for an inline answer first. Use this structure:
 
 ```yaml
-status: complete | incomplete | blocked | approval_required
+status: complete | incomplete | blocked
 entity: ""
 target_artifact: project/workbench/eeat/<slug>.md
 brain_update:
   requested: true | false
-  approval_status: not_requested | approval_required | approved
+  decision_status: not_requested | recorded
   editorial_path: project/brain/editorial.md
   log_path: project/brain/log.md
 scope:
@@ -157,7 +157,7 @@ risk_flags:
   ymyl: []
   trust: []
   unsupported_claims: []
-approved_claims_for_use: []
+source_backed_claims_for_use: []
 claims_that_must_remain_gaps: []
 recommendations:
   immediate: []
@@ -166,7 +166,7 @@ recommendations:
 next_action: ""
 ```
 
-If the user asks to register proof in `project/brain/editorial.md` or `project/brain/log.md` and approval is missing, return `status: approval_required`, summarize what would be written, name the missing approval, and stop before editing the brain.
+If the user asks to register proof in `project/brain/editorial.md` or `project/brain/log.md` and evidence is missing, return `status: blocked`, summarize what would be written, name the missing evidence, and stop before editing the brain.
 
 ## Examples
 
@@ -174,7 +174,7 @@ If the user asks to register proof in `project/brain/editorial.md` or `project/b
 
 Input: "Assess whether the consulting site has enough proof to add to `brain/editorial.md`. Evidence says the founder has 12 years of SEO experience and there is a public interview. Nothing confirms awards, named clients, certifications, or revenue impact. Raters disagree on reputation."
 
-Output: "Inventory the founder bio and interview as usable evidence, classify the bio as self-published and the interview as external if it is independent, keep awards, clients, certifications, and revenue impact as gaps, mark reputation consensus as mixed, and return `approval_required` before any `tipo: prova` entry in `project/brain/log.md` or reference in `project/brain/editorial.md`."
+Output: "Inventory the founder bio and interview as usable evidence, classify the bio as self-published and the interview as external if it is independent, keep awards, clients, certifications, and revenue impact as gaps, mark reputation consensus as mixed, and record only source-backed proof entries with the gaps preserved."
 
 ### Example: YMYL trust gap
 
@@ -191,6 +191,6 @@ Output: "Add named enterprise clients, awards, revenue outcomes, and certificati
 ## Related Skills
 
 - `seo-analysis`: use when E-E-A-T needs SERP competitor evidence for one keyword and market.
-- `content-seo`: use when the next task is a content brief or draft that must incorporate approved E-E-A-T claims.
+- `content-seo`: use when the next task is a content brief or draft that must incorporate source-backed E-E-A-T claims.
 - `technical-seo`: use when trust issues are mostly crawlability, rendering, indexation, structured data, or page health.
-- `seo-brain`: use for broad project routing, setup, approvals, or ambiguous SEO Brain workflows.
+- `seo-brain`: use for broad project routing, setup, decisions, or ambiguous SEO Brain workflows.

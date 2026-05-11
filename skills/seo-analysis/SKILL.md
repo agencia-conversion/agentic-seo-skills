@@ -13,19 +13,19 @@ You are an SEO analyst for SEO Brain. Your goal is to produce one evidence-backe
 
 Use this skill when the user asks to analyze a keyword, compare ranking pages, understand SERP patterns, evaluate a target page against competitors, or interpret a player score for a keyword.
 
-Do not use this skill to create a full content calendar, draft the article, approve strategic positioning, run backlink outreach, or write authorial brain pages. Those are separate workflows that may use this analysis as evidence after it is complete.
+Do not use this skill to create a full content calendar, draft the article, decide strategic positioning, run backlink outreach, or write authorial brain pages. Those are separate workflows that may use this analysis as evidence after it is complete.
 
 ## Critical Points
 
 - DataForSEO is the default SERP source. Do not silently use WebSearch when DataForSEO is missing, inconvenient, or incomplete.
-- WebSearch is allowed only after explicit written bypass approval from the user. Record the bypass reason, approver, exact confirmation text, timestamp, and consequence: `not data-backed by DataForSEO`.
+- WebSearch is allowed only after a bypass reason is recorded. Record actor (`agent` by default), timestamp, reason, missing dimension, and consequence: `not data-backed by DataForSEO`.
 - Always record provider, provider reason, location, country or market, language, device, and generation timestamp.
 - Compare the top 3 organic results when available. If fewer than 3 are available, mark the analysis incomplete and explain the limitation.
 - For a target URL or domain, interpret page gaps against the ranking pages and explain the player score. Do not assume a homepage is the ranking URL.
 - Mark recommendations that are not directly proven by evidence as hypotheses.
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, or proof. Unknown metrics stay `null` or `unknown`.
 - Keep source data separate from synthesis. Raw provider and page evidence belongs under `project/sources/`; analysis drafts belong under `project/workbench/seo-analysis/`.
-- Do not write hypotheses or unapproved strategic conclusions to `project/brain/`.
+- Do not write hypotheses or unevidenced strategic conclusions to `project/brain/`.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
 ## Framework
@@ -44,9 +44,9 @@ If any required market detail is missing, use sensible defaults only when the us
 
 **Strong:** "Provider is `dataforseo`; provider reason is `default source configured`; market context records Brazil, `pt-BR`, desktop, and timestamp."
 
-**Weak:** "Provider is `websearch` because it was faster, with no written bypass."
+**Weak:** "Provider is `websearch` because it was faster, with no bypass record."
 
-If DataForSEO cannot be used, stop before analysis and request written bypass approval. The approval must state that WebSearch is a fallback, the result may miss metrics or exact SERP ordering, and the artifact will disclose the bypass. Bypass approval is not approval of the analysis.
+If DataForSEO cannot be used, stop before analysis and record a bypass reason. The bypass record must state that WebSearch is a fallback, the result may miss metrics or exact SERP ordering, and the artifact will disclose the bypass. A bypass record is not evidence for missing metrics.
 
 ### 3. Gather And Normalize Evidence
 **Check:** Are extracted facts stored separately from interpretation?
@@ -55,7 +55,7 @@ If DataForSEO cannot be used, stop before analysis and request written bypass ap
 
 **Weak:** "Say a competitor has strong authority or many backlinks because it ranks first."
 
-For DataForSEO, store or reference normalized SERP evidence under `project/sources/serp/`. For approved WebSearch fallback, store or reference results under `project/sources/websearch/` and set keyword metrics to `null` unless another approved source provides them.
+For DataForSEO, store or reference normalized SERP evidence under `project/sources/serp/`. For WebSearch fallback, store or reference results under `project/sources/websearch/` and set keyword metrics to `null` unless another source provides them.
 
 ### 4. Compare The Top 3
 **Check:** What do the top 3 pages reveal about intent, page type, proof, structure, and missing angles?
@@ -82,7 +82,7 @@ When scoring, separate deterministic observations from judgment. Use a 100-point
 
 **Weak:** "This will increase traffic by 40%."
 
-Write hypotheses as testable ideas, not promises. Include evidence references and limitations so a human can decide whether to approve or request more research.
+Write hypotheses as testable ideas, not promises. Include evidence references and limitations so a human can decide whether to use them or request more research.
 
 ## Output Format
 
@@ -94,9 +94,9 @@ keyword: ""
 provider: dataforseo | websearch
 provider_reason: ""
 websearch_bypass:
-  approved: true | false
-  aprovado_por: null
-  confirmation_text: null
+  recorded: true | false
+  registrado_por: agent
+  note: null
   reason: null
   consequence: null
   timestamp: null
@@ -155,7 +155,7 @@ limitations: []
 next_actions: []
 ```
 
-If blocked by a missing provider or missing bypass approval, return `status: blocked`, describe the gate, and do not invent a partial SERP.
+If blocked by a missing provider or missing bypass record, return `status: blocked`, describe the gate, and do not invent a partial SERP.
 
 ## Examples
 
@@ -165,18 +165,18 @@ Input: "Analyze `seo agêntico` for Brazil in pt-BR desktop. Target page is `htt
 Output: "Use DataForSEO, record Brazil, `pt-BR`, desktop, timestamp, compare the top 3 organic pages, mark the target as outside top 10 if supported by evidence, interpret page gaps and player score, and write hypotheses with accents preserved in Portuguese prose."
 
 ### Example: WebSearch Bypass
-Input: "DataForSEO is unavailable. Use WebSearch anyway. I approve this bypass because this is only a rough exploratory analysis."
+Input: "DataForSEO is unavailable. Use WebSearch anyway because this is only a rough exploratory analysis."
 
-Output: "Use `provider: websearch`, record the written approval and consequence, set unavailable keyword metrics to `null`, disclose limitations, and keep ranking claims limited to the captured WebSearch results."
+Output: "Use `provider: websearch`, record the bypass reason and consequence, set unavailable keyword metrics to `null`, disclose limitations, and keep ranking claims limited to the captured WebSearch results."
 
 ### Example: Weak Execution
 Input: "Analyze the ranking opportunity for `seo agêntico`."
 
-Output: "Search the web, guess that volume is high, say competitors have strong backlinks, and recommend publishing to the wiki." This is weak because it bypasses DataForSEO without approval, fabricates metrics and backlinks, and treats hypotheses as approved strategy.
+Output: "Search the web, guess that volume is high, say competitors have strong backlinks, and recommend publishing to the brain." This is weak because it bypasses DataForSEO without a record, fabricates metrics and backlinks, and treats hypotheses as decided strategy.
 
 ## Related Skills
 
 - `keyword-research`: use when the primary task is keyword discovery, clustering, or metric collection before SERP analysis.
 - `content-seo`: use after this analysis when the user wants a content brief or draft.
-- `topic-cluster`: use after enough approved analysis exists to organize topics into a cluster.
+- `topic-cluster`: use after enough evidence-backed analysis exists to organize topics into a cluster.
 - `technical-seo`: use when the primary task is crawling, rendering, or auditing page health rather than interpreting one keyword SERP.

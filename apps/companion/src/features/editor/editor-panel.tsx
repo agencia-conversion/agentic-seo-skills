@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
@@ -126,6 +126,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     resolvePageWidth(effectivePageId || null, s.pages, s.settings.defaultPageWidth)
   );
   const pagePath = usePagePath();
+  const isReadOnly = activePage?.readOnly ?? true;
 
   const [mounted, setMounted] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -200,6 +201,34 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     }
   }, [pendingPasteHtml]);
 
+  const handleSave = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
+    if (!activePage || isReadOnly) return;
+    const ok = await savePage(activePage.id, { notes: silent ? 'autosave no companion Noteon local' : 'salvo no companion Noteon local', silent });
+    if (ok) {
+      setLastSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      if (!silent) showToast('Arquivo salvo.', 'success');
+    } else if (!silent) {
+      showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || 'Falha ao salvar.', 'error');
+    }
+  }, [activePage, isReadOnly, savePage]);
+
+  useEffect(() => {
+    if (!activePage || isReadOnly || !activePage.loaded || !activePage.dirty || activePage.saving || activePage.saveError) return;
+    const timer = window.setTimeout(() => {
+      void handleSave({ silent: true });
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [
+    activePage?.id,
+    activePage?.dirty,
+    activePage?.saving,
+    activePage?.saveError,
+    activePage?.updatedAt,
+    activePage?.loaded,
+    handleSave,
+    isReadOnly,
+  ]);
+
   if (!mounted) return <div className="flex-1 bg-background" />;
   if (!activePage) {
     return (
@@ -216,26 +245,6 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
       ? (activePage.content as JSONContent)
       : (INITIAL_DOC as JSONContent);
   const suggestionItems: SuggestionItem[] = buildSuggestionItems();
-  const isReadOnly = activePage.readOnly;
-
-  const handleSave = async () => {
-    if (isReadOnly) return;
-    let approver: string | undefined;
-    if (activePage.requiresApproval && activePage.fileDirty) {
-      approver = window.prompt('Nome do aprovador humano para registrar em brain/log.md') || undefined;
-      if (!approver?.trim()) {
-        showToast('Aprovação humana obrigatória para salvar esta página do Brain.', 'error');
-        return;
-      }
-    }
-    const ok = await savePage(activePage.id, { approver, notes: 'salvo no companion Noteon local' });
-    if (ok) {
-      setLastSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-      showToast('Arquivo salvo.', 'success');
-    } else {
-      showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || 'Falha ao salvar.', 'error');
-    }
-  };
 
   const statusLabel = activePage.saving
     ? 'Salvando...'
@@ -366,7 +375,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
             {!isReadOnly && (
               <HeaderButton
                 icon={activePage.saving ? <div className="w-3.5 h-3.5 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-                onClick={handleSave}
+                onClick={() => void handleSave()}
                 ariaLabel="Salvar"
               />
             )}
@@ -553,7 +562,6 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               onPasteMultiline={(p) => setPendingPasteHtml(p)}
             />
             <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
-              {activePage.requiresApproval && <span className="rounded bg-amber-500/10 text-amber-600 px-2 py-0.5">aprovação obrigatória</span>}
               {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">somente leitura</span>}
               <button
                 onClick={() => setShowFrontmatterDrawer(true)}

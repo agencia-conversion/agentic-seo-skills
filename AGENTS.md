@@ -13,7 +13,7 @@ SEO Brain implements Agentic SEO through six pillars:
 5. Content
 6. Data and Analysis
 
-Humans own judgment. Agents execute intelligence. A draft created by an agent is not approved strategic context until the user explicitly approves it through a `tipo: aprovacao` entry in `project/brain/log.md`.
+Humans own judgment. Agents execute intelligence. Agent decisions may update project files directly when evidence and checks are recorded in `project/brain/log.md`; `tipo: aprovacao` remains valid only for legacy log history.
 
 ## Repository Shape
 
@@ -34,18 +34,18 @@ This repository root is the plugin root.
 - Keep cross-tool behavior in `AGENTS.md`, not only in Claude-specific files.
 - Keep user-facing runtime behavior in the canonical `seo-brain` skill; `AGENTS.md` and `CLAUDE.md` are development guidance.
 - Do not rely on terminal output as the primary UX for nontechnical users.
-- Prefer local web UI artifacts for previews, approvals, and reports.
+- Prefer local web UI artifacts for previews, decisions, and reports.
 - Do not commit secrets, raw user project data, generated runs, or provider responses from real clients.
 
 ## Process Integrity
 
-The default is to follow the full documented process. Do not skip analysis, approval, review, lint, source separation, or other gates because the user gave a narrow request, because an old artifact exists, or because a shortcut seems sufficient.
+The default is to follow the full documented process. Do not skip analysis, decision recording, review, lint, source separation, or other gates because the user gave a narrow request, because an old artifact exists, or because a shortcut seems sufficient.
 
 - A process step may be skipped only when the current user explicitly asks to skip that specific step or confirms the bypass after the agent names the missing step and consequence.
 - Existing drafts, previous briefings, homepage-only context, or agent confidence do not waive preconditions.
 - When a bypass is explicit, record it in the artifact and append a `tipo: decisao` entry to `project/brain/log.md` before presenting the result. State clearly that the artifact is not data-backed for the skipped dimension.
-- Approval of an artifact is not approval of an undisclosed bypass. Approval requests must show missing analysis, missing sources, and skipped checks before the user decides.
-- If a required process cannot run, stop at the gate, run the local browser handoff as the agent when possible, and present only a friendly user instruction. Do not hand bash commands to the user as the UX for approvals or gates.
+- A decision on an artifact is not acceptance of an undisclosed bypass. Decision requests must show missing analysis, missing sources, and skipped checks before the user decides.
+- If a required process cannot run, stop at the gate, run the local browser handoff as the agent when possible, and present only a friendly user instruction. Do not hand bash commands to the user as the UX for decisions or gates.
 
 ## Language Fidelity
 
@@ -90,7 +90,7 @@ Public content (`conteudos/<origem>/<slug>.md`): `title`, `slug`, `published_at`
 
 ### Brain-first protocol
 
-- Mudança em arquivo autoral do brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) requer entrada `tipo: aprovacao` em `brain/log.md` com `aprovador: <nome humano>` e `aprovado_em: <YYYY-MM-DD>`. Sem aprovação, mudança fica em `workbench/`.
+- Mudança em arquivo autoral do brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) pode ser aplicada diretamente quando a evidência e a decisão forem registradas em `brain/log.md` como `tipo: decisao` com `aprovador: agent` ou nome humano.
 - Mudança operacional (catalogar fonte, registrar lint, registrar publicação, anotar errata) vai direto pro `log.md` com `aprovador: agent` ou nome humano.
 - O log é append-only. Erratas são novas entradas referenciando a entrada anterior, não reescrita.
 
@@ -121,16 +121,16 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 | Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml`, optional `report.md` |
 | Topic cluster | `project/clusters/<seed-slug>/` | `sources/`, `cluster.json`, optional projection |
 | EEAT | `project/eeat/<entity-or-run-slug>/` | `sources/`, `report.md` |
-| Brain (authorial) | `project/brain/` | only via brain-first protocol with `tipo: aprovacao` in `brain/log.md` |
+| Brain (authorial) | `project/brain/` | direct edits allowed when recorded as `tipo: decisao` in `brain/log.md` |
 
-Skills read the brain for context (identidade, voz, tecnologia, editorial) but write only to their own dimension folder unless an approved `tipo: aprovacao` log entry permits a brain edit.
+Skills read the brain for context (identidade, voz, tecnologia, editorial) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`.
 
 ## Browser Handoff
 
-For previews, approvals, sensitive input, and option selection, prefer a local browser handoff over terminal interaction.
+For previews, decisions, sensitive input, and option selection, prefer a local browser handoff over terminal interaction.
 
 - Implementation lives in `scripts/companion.mjs` and templates under `templates/companion/`.
-- Do not show users raw `node scripts/companion.mjs ...` commands as the primary handoff UX. Ask whether you may open a local browser window for the approval, preview, or sensitive input flow, then run the companion yourself when the user agrees.
+- Do not show users raw `node scripts/companion.mjs ...` commands as the primary handoff UX. Ask whether you may open a local browser window for the decision, preview, or sensitive input flow, then run the companion yourself when the user agrees.
 - Each handoff binds to `127.0.0.1` on an ephemeral port, requires a one-time token, validates `Origin`/`Host`, and shuts down on submit, cancel, or TTL expiry.
 - Sensitive values (credentials, API keys) are never echoed to agent stdout, never logged in full, and never written to the repo root `.env`. They are stored via Claude Code `userConfig` when running as a plugin, or in `project/.env.local` when running standalone.
 - Handoff state lives outside `project/` (in `.companion/handoffs/`, gitignored) so skill `Writes only` contracts remain intact.
@@ -146,8 +146,8 @@ Use these rules when changing manifests, skills, templates, scripts, or agent in
 - Keep agent files short; put durable workflow detail in `skills/<skill>/SKILL.md`, local skill references, scripts, fixtures, or templates.
 - Treat every skill change as a verifiable workflow change. Before implementation is complete, define the skill contract, inputs, outputs, fixture strategy, and pass/fail criteria.
 - Prefer Autoresearch-style loops: one skill or subsystem per run, baseline first, fixed fixtures or budget, explicit metric or rubric, and a keep/reject decision. For deeper context, see `karpathy/autoresearch`. The runtime engine is `scripts/autoresearch.mjs`; doctrine lives in `program.md`.
-- Validate meaningful skill changes with sub-agents that run or simulate the target skill against fixtures. Use one executor-style sub-agent and, for nontrivial changes, one reviewer-style sub-agent focused on contract drift, hallucination risk, source separation, and approval gates.
-- Sub-agent output is evidence, not approval. The main agent remains responsible for integration, and humans still approve strategic context.
+- Validate meaningful skill changes with sub-agents that run or simulate the target skill against fixtures. Use one executor-style sub-agent and, for nontrivial changes, one reviewer-style sub-agent focused on contract drift, hallucination risk, source separation, and decision/check gates.
+- Sub-agent output is evidence, not a final decision. The main agent remains responsible for integration and log entries.
 - Keep eval artifacts reviewable. Save development run notes in `.context/skill-evals/`; commit only reusable fixtures, scripts, templates, and concise docs.
 - Keep an implementation only when it passes the agreed checks or preserves behavior while simplifying the workflow. Log rejected experiments with the reason.
 - Separate extracted data, LLM synthesis, and human judgment in every artifact.

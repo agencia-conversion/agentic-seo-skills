@@ -102,10 +102,9 @@ export function processSubmission(supportingInput, proposal) {
 
 export async function handleSubmit(body, ctx) {
   const { approver, notes, supporting, pillar: pillarEdit } = body || {};
-  if (!approver || !approver.trim()) return { ok: false, reason: "missing-approver" };
   if (!Array.isArray(supporting)) return { ok: false, reason: "invalid-supporting" };
 
-  const approverClean = approver.trim();
+  const approverClean = String(approver || "agent").trim() || "agent";
   const finalPillar = applyPillarOverrides(ctx.proposal.pillar, pillarEdit);
   const { kept, dropped } = processSubmission(supporting, ctx.proposal);
   const { status, writeBrain } = classifyDecision(ctx.proposal.mode, kept.length);
@@ -125,7 +124,7 @@ export async function handleSubmit(body, ctx) {
     mode: ctx.proposal.mode,
     status,
     aprovador: approverClean,
-    aprovado_em: status === "draft" ? today : null,
+    aprovado_em: null,
     decided_at: new Date().toISOString(),
     data_provenance: ctx.proposal.data_provenance ?? null,
     pillar: finalPillar,
@@ -144,13 +143,13 @@ export async function handleSubmit(body, ctx) {
 
   appendLogEntry(join(ctx.projectRoot, "brain", "log.md"), {
     date: today,
-    tipo: writeBrain ? "aprovacao" : "decisao",
+    tipo: "decisao",
     titulo: `Cluster ${ctx.proposal.seed} · ${status}`,
     escopo: writeBrain ? "topic-clusters" : ctx.proposal.seed,
     decisao: `${kept.length}/${ctx.proposal.supporting.length} suportes mantidos · modo ${ctx.proposal.mode}`,
     evidencia: reportPath,
     aprovador: approverClean,
-    aprovado_em: status === "draft" ? today : null,
+    aprovado_em: null,
     notas: notes?.trim() || null,
   });
 

@@ -119,14 +119,15 @@ const supportingInput = (proposal, decisions) =>
   assert.equal(existsSync(join(projectRoot, "brain", "topic-clusters.md")), false);
 }
 
-// missing approver
+// default actor
 {
   const proposal = proposalFor("production");
   const result = await handleSubmit(
     { approver: " ", supporting: supportingInput(proposal, []) },
     { projectRoot, proposal },
   );
-  assert.deepEqual({ ok: result.ok, reason: result.reason }, { ok: false, reason: "missing-approver" });
+  assert.equal(result.ok, true);
+  assert.equal(result.approver, "agent");
 }
 
 // markdown structure

@@ -17,14 +17,13 @@ Formato de cada entrada:
 - escopo: <arquivo(s) afetado(s) | área editorial | cluster | fonte>
 - decisao: <o que mudou ou foi decidido>
 - evidencia: <wikilinks, ../sources/..., urls>
-- aprovador: <nome humano | agent | pendente>
-- aprovado_em: <YYYY-MM-DD ou ausente quando pendente>
+- aprovador: <nome humano | agent>
+- aprovado_em: <YYYY-MM-DD opcional para entradas legadas de aprovação>
 - notas: <opcional>
 
 Tipos:
-- aprovacao: mudança em arquivo autoral do brain (identidade, voz, tecnologia,
-  editorial, topic-clusters, index). Sempre exige aprovação humana
-  (`aprovador: pendente` até nome humano + `aprovado_em` preenchidos).
+- aprovacao: valor legado para aprovações antigas; novas mudanças autorais
+  devem usar `tipo: decisao` com evidência e ator registrados.
 - decisao: mudança operacional registrada (escolha de stack, configuração,
   processo, mudança de rota não-estratégica).
 - errata: correção de uma entrada anterior. Referencia entrada original.

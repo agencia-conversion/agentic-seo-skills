@@ -19,7 +19,7 @@ const { buildContext, handleSubmit } = await import("../scripts/lib/companion-ty
 const contextEvidence = {
   path: "workbench/content/context-evidence.yaml",
   brain_pages_read: [
-    { path: "brain/identidade.md", title: "Identidade", filled: true, updated: "2026-05-05", content_hash_sha256: "abc123", excerpts_used: ["Contexto aprovado"] },
+    { path: "brain/identidade.md", title: "Identidade", filled: true, updated: "2026-05-05", content_hash_sha256: "abc123", excerpts_used: ["Contexto registrado"] },
   ],
   voice_evidence: {
     path: "brain/voz.md",
@@ -104,13 +104,13 @@ function writeJsonBrief(name, override = {}) {
   const ctx = buildContext({ projectRoot, briefPath: file });
   assert.match(ctx.briefMarkdown, /Outline publicável/);
   assert.ok(ctx.briefMarkdownRel.endsWith("approve.brief.md"));
-  const result = await handleSubmit({ decision: "approved", approver: "Diego Ivo", notes: "pauta ok" }, ctx);
+  const result = await handleSubmit({ decision: "ready", approver: "Diego Ivo", notes: "pauta ok" }, ctx);
   assert.equal(result.ok, true);
-  assert.equal(result.status, "approved");
+  assert.equal(result.status, "ready");
   assert.ok(result.draft.endsWith("artifacts/contents/o-que-e-seo-agentico/draft.md"));
   assert.equal(existsSync(result.draft), true);
   const updated = YAML.parse(readFileSync(file, "utf8"));
-  assert.equal(updated.approval.status, "approved");
+  assert.equal(updated.approval.status, "ready");
   assert.equal(updated.approval.aprovador, "Diego Ivo");
   assert.equal(updated.draft_status, "draft");
   assert.equal(updated.draft_path, "artifacts/contents/o-que-e-seo-agentico/draft.md");
@@ -127,9 +127,7 @@ function writeJsonBrief(name, override = {}) {
   const draftVoice = { ...contextEvidence, voice_evidence: { ...contextEvidence.voice_evidence, filled: false } };
   const file = writeBrief("voice-draft.brief.yaml", { context_evidence: draftVoice, voice_context: { path: "brain/voz.md", filled: false, title: "Voz" } });
   const ctx = buildContext({ projectRoot, briefPath: file });
-  const blocked = await handleSubmit({ decision: "approved", approver: "Diego", notes: "" }, ctx);
-  assert.deepEqual(blocked, { ok: false, reason: "voice-context-not-acknowledged" });
-  const accepted = await handleSubmit({ decision: "approved", approver: "Diego", notes: "Voz em draft reconhecida." }, ctx);
+  const accepted = await handleSubmit({ decision: "ready", approver: "Diego", notes: "" }, ctx);
   assert.equal(accepted.ok, true);
   assert.equal(existsSync(accepted.draft), true);
 }
@@ -141,7 +139,7 @@ function writeJsonBrief(name, override = {}) {
   assert.equal(result.ok, true);
   const updated = YAML.parse(readFileSync(file, "utf8"));
   assert.equal(updated.approval.status, "needs-rewrite");
-  assert.equal(updated.approval.aprovador, null);
+  assert.equal(updated.approval.aprovador, "Diego");
   assert.equal(updated.draft_status, "needs-rewrite");
 }
 
@@ -151,17 +149,18 @@ function writeJsonBrief(name, override = {}) {
 }
 
 {
-  const file = writeBrief("missing-approver.brief.yaml");
+  const file = writeBrief("default-actor.brief.yaml");
   const ctx = buildContext({ projectRoot, briefPath: file });
-  const result = await handleSubmit({ decision: "approved", approver: " " }, ctx);
-  assert.deepEqual(result, { ok: false, reason: "missing-approver" });
+  const result = await handleSubmit({ decision: "ready", approver: " " }, ctx);
+  assert.equal(result.ok, true);
+  assert.equal(result.approver, "agent");
 }
 
 {
   const file = writeBrief("stale.brief.yaml");
   const ctx = buildContext({ projectRoot, briefPath: file });
   writeFileSync(file, YAML.stringify({ ...baseBrief, topic: "editado" }, { lineWidth: 0 }));
-  const result = await handleSubmit({ decision: "approved", approver: "Diego" }, ctx);
+  const result = await handleSubmit({ decision: "ready", approver: "Diego" }, ctx);
   assert.deepEqual(result, { ok: false, reason: "brief-modified" });
 }
 
@@ -169,7 +168,7 @@ function writeJsonBrief(name, override = {}) {
   const file = writeBrief("stale-md.brief.yaml");
   const ctx = buildContext({ projectRoot, briefPath: file });
   writeFileSync(file.replace(/\.yaml$/, ".md"), "# Briefing alterado\n", "utf8");
-  const result = await handleSubmit({ decision: "approved", approver: "Diego" }, ctx);
+  const result = await handleSubmit({ decision: "ready", approver: "Diego" }, ctx);
   assert.deepEqual(result, { ok: false, reason: "brief-modified" });
 }
 
@@ -191,10 +190,10 @@ function writeJsonBrief(name, override = {}) {
 {
   const file = writeJsonBrief("legacy.brief.json");
   const ctx = buildContext({ projectRoot, briefPath: file });
-  const result = await handleSubmit({ decision: "approved", approver: "Diego" }, ctx);
+  const result = await handleSubmit({ decision: "ready", approver: "Diego" }, ctx);
   assert.equal(result.ok, true);
   const updated = JSON.parse(readFileSync(file, "utf8"));
-  assert.equal(updated.approval.status, "approved");
+  assert.equal(updated.approval.status, "ready");
   assert.equal(updated.draft_status, "draft");
   assert.equal(existsSync(result.draft), true);
 }

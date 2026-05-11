@@ -69,7 +69,7 @@
     <form id="form" autocomplete="off">
       <div class="field">
         <label for="approver">Seu nome</label>
-        <input id="approver" name="approver" type="text" required placeholder="Ex: Diego Ivo" />
+        <input id="approver" name="approver" type="text" placeholder="agent" />
         <div class="help">Aparece nos logs do projeto. Salvo localmente; pode trocar depois.</div>
       </div>
 
@@ -117,7 +117,7 @@
 
     if (ctx.identity && ctx.identity.name) {
       document.getElementById("approver").value = ctx.identity.name;
-      document.getElementById("approver-display").textContent = "aprovando como " + ctx.identity.name;
+      document.getElementById("approver-display").textContent = "registrando como " + ctx.identity.name;
     }
     if (ctx.target_display) {
       document.getElementById("target").textContent = ctx.target_display;

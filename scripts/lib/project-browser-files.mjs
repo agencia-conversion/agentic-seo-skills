@@ -182,7 +182,7 @@ function readBrainPageSummary(projectRoot, rel, ui) {
     title: titleFromFile(rel, frontmatter),
     updated: frontmatter.updated || frontmatter.published_at || null,
     readOnly: rel === "brain/log.md",
-    requiresApproval: AUTHORIAL_BRAIN_PAGES.has(rel),
+    requiresApproval: false,
     excerpt: body.replace(/\s+/g, " ").trim().slice(0, 180),
     hash: sha256(text),
   }, ui);
@@ -277,7 +277,7 @@ export function readProjectFile({ projectRoot, fileRel }) {
     text,
     hash: sha256(text),
     readOnly: validation.rel === "brain/log.md",
-    requiresApproval: AUTHORIAL_BRAIN_PAGES.has(validation.rel),
+    requiresApproval: false,
   };
 }
 
@@ -357,9 +357,7 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
   if (!expectedHash || expectedHash !== currentHash) {
     return { ok: false, reason: "file-modified", currentHash };
   }
-  const requiresApproval = AUTHORIAL_BRAIN_PAGES.has(validation.rel);
   const approverClean = String(approver || "").trim();
-  if (requiresApproval && !approverClean) return { ok: false, reason: "missing-approver" };
   const { data: existingFrontmatter } = parseFrontmatter(current);
   const incomingFrontmatter = frontmatter && typeof frontmatter === "object" ? frontmatter : {};
   const finalTitle = String(
@@ -383,13 +381,13 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
     const logFile = join(root, "brain", "log.md");
     appendLogEntry(logFile, {
       date: today,
-      tipo: requiresApproval ? "aprovacao" : "decisao",
+      tipo: "decisao",
       titulo: `${basename(validation.rel, ".md")} editado no Companion`,
       escopo: validation.rel,
       decisao: `${validation.rel} editado no Companion Web${approverClean ? ` por ${approverClean}` : ""}.`,
       evidencia: validation.rel,
       aprovador: approverClean || "agent",
-      aprovado_em: requiresApproval ? today : null,
+      aprovado_em: null,
       notas: notes ? String(notes).trim() : null,
     });
   }
@@ -401,7 +399,7 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
     title: finalTitle,
     updated: today,
     hash: sha256(next),
-    requiresApproval,
+    requiresApproval: false,
     uiSaved,
     logAppended: validation.rel.startsWith("brain/"),
   };

@@ -67,7 +67,7 @@ export function FrontmatterDrawer({
         {isBrainRestricted && (
           <div className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 flex gap-2">
             <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-            <span>Brain autoral: apenas o título é editável; updated é automático no save aprovado.</span>
+            <span>Brain autoral: apenas o título é editável; updated é automático ao salvar.</span>
           </div>
         )}
 

@@ -1,6 +1,6 @@
 # Example Skill Outline: seo-analysis
 
-This is a style example, not an approved final skill.
+This is a style example, not a final skill.
 
 Strong traits:
 

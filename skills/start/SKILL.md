@@ -18,7 +18,7 @@ Do not use this skill for ongoing SEO work after the project already has a defin
 
 ## Critical Points
 
-- Do not create approved strategic context from a first-run greeting.
+- Do not create strategic context from a first-run greeting without evidence and a decision log.
 - Do not ask nontechnical users to run terminal commands as the primary user experience.
 - Do not duplicate a full SEO Brain workflow here. Route to `seo-brain` for classification and `project-init` for project setup.
 - Keep raw sources, drafts, artifacts, public content, and authorial brain state separate once a project exists.
@@ -43,11 +43,11 @@ For a new project, collect only the context needed to initialize safely:
 - Preferred language.
 - Whether the user wants to provide existing sources now.
 
-If the user is nontechnical, offer a local browser handoff for setup and approvals when available. Do not make terminal commands the main handoff.
+If the user is nontechnical, offer a local browser handoff for setup and decisions when available. Do not make terminal commands the main handoff.
 
-### 3. Preserve Approval Boundaries
+### 3. Preserve Decision Boundaries
 
-First-run setup may create blank brain templates and operational log entries, but it must not mark authorial brain pages as approved. The user fills these manually and approves through `tipo: aprovacao` entries in `project/brain/log.md`:
+First-run setup may create blank brain templates and operational log entries, but it must not treat authorial brain pages as evidence-backed. Changes are recorded through `tipo: decisao` entries in `project/brain/log.md`:
 
 - `project/brain/index.md`
 - `project/brain/identidade.md`
@@ -77,7 +77,7 @@ Status: ready | needs-input | blocked
 Route: project-init | seo-brain | <downstream-skill>
 Reason: <why this is the next step>
 Needed input: <only the minimum missing context, or "none">
-Approval boundary: <what will not be treated as approved yet>
+Decision boundary: <what will not be treated as evidence-backed yet>
 Next action: <friendly instruction or handoff offer>
 ```
 
@@ -87,17 +87,16 @@ Next action: <friendly instruction or handoff offer>
 
 Input: "Acabei de instalar o SEO Brain. Por onde começo?"
 
-Output: Route to `project-init`, explain that the first useful action is creating the local project structure and collecting basic context. Ask for website or brand, market, and language. State that strategic pages will be drafts until explicit approval.
+Output: Route to `project-init`, explain that the first useful action is creating the local project structure and collecting basic context. Ask for website or brand, market, and language. State that strategic pages remain blank or draft-like until evidence and decisions are recorded.
 
 ### Existing Project, Broad Request
 
 Input: "Quero melhorar SEO do site inteiro."
 
-Output: Route to `seo-brain` because the request spans multiple pillars. Name likely gates such as DataForSEO credentials, approved strategy, source capture, and technical audit.
+Output: Route to `seo-brain` because the request spans multiple pillars. Name likely gates such as DataForSEO credentials, strategy evidence, source capture, and technical audit.
 
 ### Weak Output
 
 Output: "I created a strategy, filled the brain, and started keyword research."
 
 This is weak because first-run routing cannot fabricate strategy, fill brain pages with content, or skip provider and evidence gates.
-

@@ -32,8 +32,9 @@ assert.deepEqual(badAuth, { validated: false, reason: "http-401" });
 const missing = await handleSubmit({ mode: "standard", approver: "Diego" });
 assert.deepEqual(missing, { ok: false, reason: "missing-credentials" });
 
-const noApprover = await handleSubmit({ login: "a", password: "b", mode: "standard", approver: "" });
-assert.deepEqual(noApprover, { ok: false, reason: "missing-approver" });
+const defaultActor = await handleSubmit({ login: "a", password: "b", mode: "offline", approver: "" });
+assert.equal(defaultActor.ok, true);
+assert.equal(defaultActor.approver, "agent");
 
 const badMode = await handleSubmit({ login: "a", password: "b", mode: "weird", approver: "Diego" });
 assert.deepEqual(badMode, { ok: false, reason: "invalid-mode" });

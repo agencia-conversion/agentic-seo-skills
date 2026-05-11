@@ -47,7 +47,6 @@ export function buildExistingSummary() {
 export async function handleSubmit(body, { fetchImpl = fetch } = {}) {
   const { login, password, mode, approver } = body || {};
   if (!login || !password) return { ok: false, reason: "missing-credentials" };
-  if (!approver || !approver.trim()) return { ok: false, reason: "missing-approver" };
   if (!VALID_MODES.has(mode)) return { ok: false, reason: "invalid-mode" };
 
   const validation = await validateDataForSeo(login, password, mode, fetchImpl);
@@ -55,7 +54,8 @@ export async function handleSubmit(body, { fetchImpl = fetch } = {}) {
     return { ok: false, reason: "validation-failed", details: validation.reason };
   }
 
-  writeIdentity(approver.trim());
+  const approverClean = String(approver || "agent").trim() || "agent";
+  writeIdentity(approverClean);
   const target = writeHomeCredentials({
     dataforseo_login: login,
     dataforseo_password: password,
@@ -67,7 +67,7 @@ export async function handleSubmit(body, { fetchImpl = fetch } = {}) {
     ok: true,
     masked_login: maskSecret(login),
     mode,
-    approver: approver.trim(),
+    approver: approverClean,
     target,
     target_display: homeRelativePath(target),
     validated: validation.validated,

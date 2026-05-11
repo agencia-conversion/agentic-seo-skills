@@ -19,4 +19,4 @@ Constraints:
 
 - Do not create strategic context without user input.
 - Do not ask the user to run terminal commands as the primary UX.
-- Preserve this as an alias only if Phase 1 approves keeping `start`.
+- Preserve this as an alias only if Phase 1 decides to keep `start`.
