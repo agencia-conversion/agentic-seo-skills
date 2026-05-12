@@ -7,26 +7,39 @@ interface NoteblockBrandProps {
   className?: string;
 }
 
-export function NoteblockBrand({ size = 20, textSize = 'sm', className }: NoteblockBrandProps) {
+export function NoteblockBrand({ size = 25, textSize = 'base', className }: NoteblockBrandProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-2 flex-nowrap whitespace-nowrap shrink-0',
+        'flex w-[232px] max-w-full min-w-0 shrink-0 flex-col items-start overflow-hidden whitespace-nowrap font-display text-notion-text',
         className
       )}
     >
-      <NoteblockLogo size={size} className="text-agentic-blue shrink-0" />
-      <span className="flex items-center gap-1.5 min-w-0 font-display">
+      <span className="flex min-w-0 items-center gap-2 leading-none">
+        <NoteblockLogo size={size} className="text-agentic-blue shrink-0" />
         <span
           className={cn(
-            'font-semibold text-notion-text',
+            'font-semibold lowercase leading-none',
             textSize === 'sm' && 'text-sm',
-            textSize === 'base' && 'text-base',
+            textSize === 'base' && 'text-[18px]',
             textSize === 'lg' && 'text-lg'
           )}
         >
-          Agentic SEO Skills
+          agentic seo
         </span>
+      </span>
+      <span className="mt-0 flex h-[14px] items-center gap-1.5 leading-none">
+        <span className="text-[13px] font-medium leading-none text-notion-text-muted">by</span>
+        <span
+          role="img"
+          aria-label="Conversion"
+          title="Conversion"
+          className="h-[14px] w-[92px] shrink-0 bg-notion-text"
+          style={{
+            WebkitMask: "url('/brand/conversion-logo-sidebar.svg') center / contain no-repeat",
+            mask: "url('/brand/conversion-logo-sidebar.svg') center / contain no-repeat",
+          }}
+        />
       </span>
     </div>
   );

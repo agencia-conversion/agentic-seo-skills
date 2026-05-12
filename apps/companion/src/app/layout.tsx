@@ -25,13 +25,13 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agentic SEO Skills Companion",
-  description: "Local Agentic SEO Skills companion powered by project files.",
+  title: "agentic seo companion",
+  description: "Local agentic seo companion powered by project files.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Agentic SEO Skills Companion",
+    title: "agentic seo companion",
   },
 };
 

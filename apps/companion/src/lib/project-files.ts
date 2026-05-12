@@ -277,7 +277,7 @@ function projectDisplayName(projectRoot?: string) {
       if (data?.brand_name) return String(data.brand_name);
     } catch {}
   }
-  return 'Agentic SEO';
+  return 'agentic seo';
 }
 
 function readSummary(projectRoot: string, rel: string, ui: Record<string, any>): ProjectTreeItem | null {

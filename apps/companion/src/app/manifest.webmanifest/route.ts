@@ -2,9 +2,9 @@ export const runtime = 'edge';
 
 export function GET() {
   return Response.json({
-    name: 'Agentic SEO Skills',
-    short_name: 'Agentic SEO',
-    description: 'Companion local do Agentic SEO Skills.',
+    name: 'agentic seo',
+    short_name: 'agentic seo',
+    description: 'Companion local do agentic seo.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
