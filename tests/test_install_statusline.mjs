@@ -5,15 +5,15 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-install-statusline-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-install-statusline-"));
 const settings = join(tmp, "settings.json");
 const wrapperDir = join(tmp, "wrappers");
 const data = join(tmp, "data");
   const env = {
   ...process.env,
-  SEO_BRAIN_CLAUDE_SETTINGS: settings,
-  SEO_BRAIN_STATUSLINE_DIR: wrapperDir,
-  SEO_BRAIN_PLUGIN_DATA: data,
+  AGENTIC_SEO_CLAUDE_SETTINGS: settings,
+  AGENTIC_SEO_STATUSLINE_DIR: wrapperDir,
+  AGENTIC_SEO_PLUGIN_DATA: data,
   CLAUDE_PLUGIN_DATA: data,
 };
 
@@ -45,7 +45,7 @@ try {
     input: JSON.stringify({ workspace: { project_dir: "/tmp/projeto" } }),
     encoding: "utf8",
   });
-  assert.equal(line, "OLD LINE | SEO Brain: carregado | projeto\n");
+  assert.equal(line, "OLD LINE | Agentic SEO: carregado | projeto\n");
 
   const repeat = install("--apply");
   assert.equal(repeat.already_installed, true);
@@ -54,7 +54,7 @@ try {
     input: JSON.stringify({ workspace: { project_dir: "/tmp/projeto" } }),
     encoding: "utf8",
   });
-  assert.equal(repeatedLine, "OLD LINE | SEO Brain: carregado | projeto\n");
+  assert.equal(repeatedLine, "OLD LINE | Agentic SEO: carregado | projeto\n");
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }

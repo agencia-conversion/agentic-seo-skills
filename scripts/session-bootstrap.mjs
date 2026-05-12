@@ -22,7 +22,7 @@ function parseJson(text) {
 }
 
 function dataDir() {
-  return process.env.CLAUDE_PLUGIN_DATA || join(homedir(), ".claude", "plugins", "data", "seo-brain");
+  return process.env.CLAUDE_PLUGIN_DATA || join(homedir(), ".claude", "plugins", "data", "agentic-seo");
 }
 
 function markerPath() {
@@ -42,8 +42,8 @@ function safeStatus(input) {
 function additionalContext(input) {
   const source = input.source || "startup";
   return [
-    "SEO Brain carregado para esta sessão.",
-    "Use `/seo-brain:seo-brain` como skill operacional canônica antes de escolher workflows específicos.",
+    "Agentic SEO carregado para esta sessão.",
+    "Use `/agentic-seo:agentic-seo` como skill operacional canônica antes de escolher workflows específicos.",
     "`AGENTS.md` e `CLAUDE.md` são orientações de desenvolvimento do plugin, não a experiência do usuário final.",
     "Mantenha fontes, síntese e julgamento separados; contexto estratégico exige evidência e decisão registrada no log.",
     "Preserve diacríticos em texto humano, incluindo pt-BR: página, conteúdo, análise, evidência, aprovação, técnico, não, até.",

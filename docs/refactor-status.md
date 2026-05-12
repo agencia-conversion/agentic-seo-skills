@@ -1,8 +1,8 @@
-# SEO Brain - Refactor Status
+# Agentic SEO - Refactor Status
 
 ## Current state
 
-Brain-only model is fully shipped. The skill layer, runtime CLI, helper scripts, companion server, agents, templates, and tests no longer reference the legacy wiki model. `project/brain/` (7 short authorial files) is the only authorial knowledge layer; EEAT proofs live as `tipo: prova` entries in `brain/log.md` and references inside `brain/editorial.md`.
+Brain-only model is fully shipped. The skill layer, runtime CLI, helper scripts, companion server, agents, templates, and tests now use `project/brain/` as the only authorial knowledge layer. EEAT proofs live as `tipo: prova` entries in `brain/log.md` and references inside `brain/editorial.md`.
 
 Public content lives in `project/conteudos/<origem>/<slug>.md`. Raw evidence stays in `project/sources/`. Drafts and analysis stay in `project/workbench/`. Complete deliverables stay in `project/artifacts/`.
 
@@ -30,11 +30,11 @@ project/
 
 ## CLI commands
 
-`bin/seo-brain` exposes:
+`bin/agentic-seo` exposes:
 
 - `project-init` (creates the brain structure and seeds blank templates)
 - `project-browser` (opens the local web companion project browser)
-- `brain-lint`, `brain-approve`, `brain-ingest` (replaced the former `wiki-*` commands)
+- `brain-lint`, `brain-approve`, `brain-ingest`
 - `data-setup`, `serp-extract`, `keyword-research`, `kw-volume`, `backlink-analysis`, `seo-analysis`, `topic-cluster`, `eeat`, `content-seo`, `technical-seo`, `next-website-creator`, `payload-cms`, `audit-skills`
 
 ## Log format
@@ -57,7 +57,7 @@ project/
 
 The browser-based decision/preview flow runs on the brain model:
 
-- Helper module: `scripts/lib/brain-page.mjs` (renamed from `wiki-page.mjs`).
+- Helper module: `scripts/lib/brain-page.mjs`.
 - Review target paths are `brain/<page>.md`; the only authorial pages are `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`.
 - Missing sources detected during page review are registered as `tipo: ingestao` entries in `brain/log.md` (no separate sources catalog).
 - Project browser mode: `scripts/companion.mjs project-browser` starts the Noteon-based Next companion on `127.0.0.1` with a tokenized URL. It maps local Markdown files from `project/brain/`, `project/conteudos/`, and `project/workbench/` into the Noteon UI, keeps `brain/log.md` read-only, and autosaves editable files while logging authorial brain edits as `tipo: decisao`.

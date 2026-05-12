@@ -81,7 +81,7 @@ export async function handleSubmit(body, ctx, deps = {}) {
     return { ok: false, reason: "file-modified", details: "page changed during review" };
   }
 
-  const setFrontmatterValue = deps.setFrontmatterValue ?? (await import("../../../dist/seo-brain.js")).setFrontmatterValue;
+  const setFrontmatterValue = deps.setFrontmatterValue ?? (await import("../../../dist/agentic-seo.js")).setFrontmatterValue;
 
   const approverClean = String(approver || "agent").trim() || "agent";
   writeIdentity(approverClean);
@@ -133,8 +133,8 @@ export async function handleSubmit(body, ctx, deps = {}) {
 
 export async function runApprovePage(argv = []) {
   const args = parseArgs(argv);
-  if (args.project) throw new Error("--project is no longer supported; SEO Brain uses the single project at project/.");
-  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.SEO_BRAIN_PROJECT_DIR ?? "project";
+  if (args.project) throw new Error("--project is no longer supported; Agentic SEO uses the single project at project/.");
+  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.AGENTIC_SEO_PROJECT_DIR ?? "project";
   if (!args.file) throw new Error("missing --file");
   const projectRoot = resolve(projectRootArg);
   const ctxBase = buildContext({ projectRoot, fileRel: args.file });

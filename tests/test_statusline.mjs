@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-statusline-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-statusline-"));
 const env = { ...process.env, CLAUDE_PLUGIN_DATA: tmp };
 const input = JSON.stringify({ workspace: { project_dir: "/tmp/projeto-seo" } });
 
@@ -19,10 +19,10 @@ function run() {
 }
 
 try {
-  assert.equal(run(), "SEO Brain: não carregado | projeto-seo\n");
+  assert.equal(run(), "Agentic SEO: não carregado | projeto-seo\n");
   mkdirSync(tmp, { recursive: true });
   writeFileSync(join(tmp, "session-status.json"), JSON.stringify({ loaded: true }), "utf8");
-  assert.equal(run(), "SEO Brain: carregado | projeto-seo\n");
+  assert.equal(run(), "Agentic SEO: carregado | projeto-seo\n");
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }

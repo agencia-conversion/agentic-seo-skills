@@ -29,13 +29,13 @@ Skill bodies should still use progressive discovery. The point of the 250-line t
 
 Running plain `claude` inside this repository does not enable the plugin. It loads this folder as a normal project only.
 
-When the plugin is loaded, the `SessionStart` hook injects SEO Brain runtime context. The canonical user-facing context skill is:
+When the plugin is loaded, the `SessionStart` hook injects Agentic SEO runtime context. The canonical user-facing context skill is:
 
 ```text
-/seo-brain:seo-brain
+/agentic-seo:agentic-seo
 ```
 
-`AGENTS.md` and `CLAUDE.md` remain development guidance. Use `/seo-brain:seo-brain` to orient user-facing SEO work before selecting a specific workflow skill.
+`AGENTS.md` and `CLAUDE.md` remain development guidance. Use `/agentic-seo:agentic-seo` to orient user-facing SEO work before selecting a specific workflow skill.
 
 For development, start Claude Code with:
 
@@ -58,15 +58,15 @@ claude plugin validate .claude-plugin/marketplace.json
 After loading, invoke plugin skills with the namespace:
 
 ```text
-/seo-brain:project-init
-/seo-brain:seo-brain
-/seo-brain:seo-analysis
-/seo-brain:technical-seo
-/seo-brain:autoresearch
-/seo-brain:brain-keeper
+/agentic-seo:project-init
+/agentic-seo:agentic-seo
+/agentic-seo:seo-analysis
+/agentic-seo:technical-seo
+/agentic-seo:autoresearch
+/agentic-seo:brain-keeper
 ```
 
-`/seo-brain:autoresearch` runs a Karpathy-style autonomous research loop on any artifact. Engine: `node scripts/autoresearch.mjs <subcommand>`. Doctrine: `program.md`.
+`/agentic-seo:autoresearch` runs a Karpathy-style autonomous research loop on any artifact. Engine: `node scripts/autoresearch.mjs <subcommand>`. Doctrine: `program.md`.
 
 The optional Claude Code statusline is not shipped through plugin settings because plugin default settings do not own the main `statusLine`. Install it explicitly:
 
@@ -75,7 +75,7 @@ node scripts/install-statusline.mjs --dry-run
 node scripts/install-statusline.mjs --apply
 ```
 
-The installer preserves any existing statusline by wrapping it and appending `SEO Brain: carregado` when the `SessionStart` marker exists.
+The installer preserves any existing statusline by wrapping it and appending `Agentic SEO: carregado` when the `SessionStart` marker exists.
 
 After changing skills or agents during an interactive session, run:
 
@@ -86,6 +86,6 @@ After changing skills or agents during an interactive session, run:
 For a persistent local install, add this repository as a local marketplace and install the plugin:
 
 ```text
-/plugin marketplace add /path/to/seo-brain
-/plugin install seo-brain@seo-brain-marketplace
+/plugin marketplace add /path/to/agentic-seo-skills
+/plugin install agentic-seo@agentic-seo-skills-marketplace
 ```

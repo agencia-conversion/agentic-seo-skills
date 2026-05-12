@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, statSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.HOME = mkdtempSync(join(tmpdir(), "seo-brain-companion-"));
+process.env.HOME = mkdtempSync(join(tmpdir(), "agentic-seo-companion-"));
 
 const { maskSecret } = await import("../scripts/lib/companion-state.mjs");
 const { validateDataForSeo, handleSubmit, buildExistingSummary } = await import(

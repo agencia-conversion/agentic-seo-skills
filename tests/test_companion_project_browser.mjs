@@ -13,7 +13,7 @@ import {
   validateProjectFileRel,
 } from "../scripts/lib/project-browser-files.mjs";
 
-const emptyTmp = mkdtempSync(join(tmpdir(), "seo-brain-browser-empty-"));
+const emptyTmp = mkdtempSync(join(tmpdir(), "agentic-seo-browser-empty-"));
 const emptyProjectRoot = join(emptyTmp, "project");
 mkdirSync(emptyProjectRoot, { recursive: true });
 const emptyTree = buildProjectTree({ projectRoot: emptyProjectRoot });
@@ -26,7 +26,7 @@ const bootstrapped = bootstrapBrainFiles({ projectRoot: emptyProjectRoot });
 assert.equal(bootstrapped.ok, true);
 assert.equal(bootstrapped.created.length, 7);
 assert.ok(existsSync(join(emptyProjectRoot, "brain", "index.md")));
-assert.ok(readFileSync(join(emptyProjectRoot, "brain", "index.md"), "utf8").includes('title: "SEO Brain"'));
+assert.ok(readFileSync(join(emptyProjectRoot, "brain", "index.md"), "utf8").includes('title: "Agentic SEO"'));
 assert.match(readFileSync(join(emptyProjectRoot, "brain", "log.md"), "utf8"), /Brain criado no Companion/);
 const bootstrappedTree = buildProjectTree({ projectRoot: emptyProjectRoot });
 assert.equal(bootstrappedTree.hasFiles, true);
@@ -35,14 +35,14 @@ assert.equal(bootstrappedTree.canBootstrapBrain, false);
 assert.deepEqual(bootstrapBrainFiles({ projectRoot: emptyProjectRoot }), { ok: false, reason: "brain-already-exists" });
 rmSync(emptyTmp, { recursive: true, force: true });
 
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-browser-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-browser-"));
 const projectRoot = join(tmp, "project");
 const brain = join(projectRoot, "brain");
 mkdirSync(brain, { recursive: true });
 mkdirSync(join(projectRoot, "conteudos", "blog"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "drafts"), { recursive: true });
-mkdirSync(join(projectRoot, ".seo-brain"), { recursive: true });
-writeFileSync(join(projectRoot, ".seo-brain", "project.json"), JSON.stringify({ name: "Projeto Teste" }), "utf8");
+mkdirSync(join(projectRoot, ".agentic-seo"), { recursive: true });
+writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Projeto Teste" }), "utf8");
 
 writeFileSync(
   join(brain, "voz.md"),
@@ -125,7 +125,7 @@ assert.equal(vozSummary.requiresApproval, false);
 assert.ok(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path === "conteudos/blog/post-teste.md"));
 assert.ok(tree.sections.find((section) => section.id === "workbench").items.some((item) => item.path === "workbench/drafts/ideia.md"));
 
-writeFileSync(join(projectRoot, ".seo-brain", "project.json"), JSON.stringify({ name: "Conversion" }), "utf8");
+writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Conversion" }), "utf8");
 const conversionTree = buildProjectTree({ projectRoot });
 assert.equal(conversionTree.project.icon, null);
 
@@ -263,7 +263,7 @@ const deletedContent = deleteProjectFile({
   expectedHash: contentDeleteTarget.hash,
 });
 assert.equal(deletedContent.ok, true);
-assert.match(deletedContent.trashPath, /^\.seo-brain\/trash\/.+\/conteudos\/blog\/post-teste\.md$/);
+assert.match(deletedContent.trashPath, /^\.agentic-seo\/trash\/.+\/conteudos\/blog\/post-teste\.md$/);
 assert.equal(existsSync(join(projectRoot, "conteudos", "blog", "post-teste.md")), false);
 assert.equal(existsSync(join(projectRoot, deletedContent.trashPath)), true);
 

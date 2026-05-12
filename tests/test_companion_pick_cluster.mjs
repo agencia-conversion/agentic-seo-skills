@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import YAML from "yaml";
 
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-uc3-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-uc3-"));
 process.env.HOME = tmp;
 const projectRoot = join(tmp, "project");
 mkdirSync(join(projectRoot, "brain"), { recursive: true });

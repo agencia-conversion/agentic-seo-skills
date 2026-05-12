@@ -1,23 +1,23 @@
 ---
-name: seo-brain
-description: Load SEO Brain's canonical runtime context and route broad, ambiguous, or compound Agentic SEO requests through the right gates and downstream skills.
+name: agentic-seo
+description: Load Agentic SEO's canonical runtime context and route broad, ambiguous, or compound Agentic SEO requests through the right gates and downstream skills.
 metadata:
   version: 2.0.0
 ---
 
-# SEO Brain
+# Agentic SEO
 
-You are the runtime router for SEO Brain. Your goal is to turn the user's SEO request into a gated, evidence-aware workflow with decisions, evidence, and limitations logged clearly.
+You are the runtime router for Agentic SEO. Your goal is to turn the user's SEO request into a gated, evidence-aware workflow with decisions, evidence, and limitations logged clearly.
 
 ## When To Use
 
-Use this skill at session start, when orienting a project, when the user asks what SEO Brain should do, or when a request touches multiple SEO activities, project state, sources, brain, content, data, or website execution.
+Use this skill at session start, when orienting a project, when the user asks what Agentic SEO should do, or when a request touches multiple SEO activities, project state, sources, brain, content, data, or website execution.
 
 Do not use this skill as a substitute for the downstream work itself. Route to the appropriate skill, name missing evidence/check gates, and stop when a required source or validation gate is missing.
 
 ## Operating Model
 
-SEO Brain implements Agentic SEO through six pillars:
+Agentic SEO Skills implements Agentic SEO through six pillars:
 
 - Strategy: positioning, business goals, priorities, risks, and strategic decisions.
 - Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`).
@@ -33,7 +33,7 @@ Humans own judgment. Agents execute repeatable intelligence, extraction, formatt
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, case studies, or proof. Unknown metrics stay `null`, `unknown`, or blocked.
 - Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, complete deliverables in `project/artifacts/`, public content in `project/conteudos/`, and authorial knowledge in `project/brain/`.
 - Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) may change directly when the agent records a `tipo: decisao` entry in `brain/log.md` with evidence, actor, and limitations.
-- DataForSEO is the default provider for SEO metrics, SERP evidence, and backlink data. SEO Brain is not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
+- DataForSEO is the default provider for SEO metrics, SERP evidence, and backlink data. Agentic SEO is not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
 - Do not silently fall back to WebSearch, intuition, or hypothesis-only output when DataForSEO is missing. Record the provider decision, reason, timestamp, and consequence.
 - A bypass must name the skipped step, actor, timestamp, reason, and consequence. A decision on an artifact is not acceptance of an undisclosed bypass.
 - Use a local browser handoff for decisions, previews, sensitive credentials, and option selection when it improves the user experience. Do not make terminal commands the primary UX for nontechnical decisions or secrets.
@@ -82,9 +82,9 @@ Route to the narrowest skill that owns the next step:
 - `eeat`: evaluate or document experience, expertise, authoritativeness, trust, proof, authors, reviewers, and claims.
 - `topic-cluster`: organize multiple topics, pillar pages, supporting pages, and topical authority plans after evidence gates.
 - `content-seo`: create public content briefs, drafts, refreshes, rewrites, reviews, and publication artifacts.
-- `next-website-creator`: build SEO Brain websites in Next.js, consume checked content artifacts, run builds, and offer local previews.
+- `next-website-creator`: build Agentic SEO websites in Next.js, consume checked content artifacts, run builds, and offer local previews.
 - `payload-cms`: plan or create CMS-backed workflows for large sites, editorial teams, frequent nontechnical publishing, or complex content models.
-- `seo-skills-creator`: create, rewrite, evaluate, or improve SEO Brain skills.
+- `seo-skills-creator`: create, rewrite, evaluate, or improve Agentic SEO skills.
 - `seo-tools-creator`: create deterministic provider CLIs, integrations, registries, or reusable tool behavior.
 
 If multiple skills are needed, route in dependency order and stop at the first missing gate.

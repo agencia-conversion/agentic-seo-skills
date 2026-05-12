@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// CLI for the /seo-brain:eeat skill engine.
+// CLI for the /agentic-seo:eeat skill engine.
 // Subcommands: init, validate, consensus.
 
 import * as fs from "node:fs";
@@ -46,7 +46,7 @@ function writeText(p, text) {
 }
 
 function projectDir(cwd) {
-  const env = process.env.SEO_BRAIN_PROJECT_DIR;
+  const env = process.env.AGENTIC_SEO_PROJECT_DIR;
   if (env) return path.resolve(env);
   return path.resolve(cwd, "project");
 }

@@ -1,6 +1,6 @@
 # Fixture: CMS fit decision
 
-Advise whether to add Payload CMS to a small SEO Brain site.
+Advise whether to add Payload CMS to a small Agentic SEO site.
 
 Situation:
 

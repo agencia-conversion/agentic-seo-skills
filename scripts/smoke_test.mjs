@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Offline smoke test for SEO Brain v0.1.
+// Offline smoke test for Agentic SEO v0.1.
 
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -10,16 +10,16 @@ import * as path from "node:path";
 import YAML from "yaml";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const BIN = path.join(ROOT, "bin", "seo-brain");
-const TMP = mkdtempSync(path.join(tmpdir(), "seo-brain-smoke-"));
+const BIN = path.join(ROOT, "bin", "agentic-seo");
+const TMP = mkdtempSync(path.join(tmpdir(), "agentic-seo-smoke-"));
 const PROJECT_DIR = path.join(TMP, "project");
 
 function run(...args) {
-  const result = spawnSync(BIN, args, { cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR, DATAFORSEO_LOGIN: "smoke-login", DATAFORSEO_PASSWORD: "smoke-password" } });
+  const result = spawnSync(BIN, args, { cwd: ROOT, encoding: "utf8", env: { ...process.env, AGENTIC_SEO_PROJECT_DIR: PROJECT_DIR, DATAFORSEO_LOGIN: "smoke-login", DATAFORSEO_PASSWORD: "smoke-password" } });
   if (result.status !== 0) {
     process.stdout.write(result.stdout ?? "");
     process.stderr.write(result.stderr ?? "");
-    throw new Error(`Command failed: seo-brain ${args.join(" ")}`);
+    throw new Error(`Command failed: agentic-seo ${args.join(" ")}`);
   }
   try {
     return JSON.parse(result.stdout);
@@ -69,7 +69,7 @@ function main() {
   run("seo-analysis", "--keyword", "seo agêntico");
   run("topic-cluster", "--seed", "seo agêntico", "--hypothesis-only", ...dataforseoBypassArgs("smoke test hypothesis-only sem DataForSEO"));
   const eeatInit = spawnSync("node", [path.join(ROOT, "scripts", "eeat.mjs"), "init", "--mode", "brain", "--slug", "smoke"], {
-    cwd: ROOT, encoding: "utf8", env: { ...process.env, SEO_BRAIN_PROJECT_DIR: PROJECT_DIR },
+    cwd: ROOT, encoding: "utf8", env: { ...process.env, AGENTIC_SEO_PROJECT_DIR: PROJECT_DIR },
   });
   if (eeatInit.status !== 0) throw new Error(`eeat init failed: ${eeatInit.stderr}`);
   const eeatRun = JSON.parse(eeatInit.stdout);

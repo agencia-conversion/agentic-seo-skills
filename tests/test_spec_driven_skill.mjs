@@ -16,7 +16,7 @@ for (const section of ["## When To Use", "## Critical Points", "## Framework", "
 for (const required of [
   "two or more distinct deliverables",
   "downstream skills",
-  "cross SEO Brain pillars",
+  "cross Agentic SEO pillars",
   "decision/evidence/check gates",
   "content drafts plus Next.js website generation",
   "Do not use this skill for a single clear task",

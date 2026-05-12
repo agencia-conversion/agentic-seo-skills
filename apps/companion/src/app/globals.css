@@ -12,6 +12,7 @@ html {
   --notion-border: rgba(55, 53, 47, 0.09);
   --notion-hover: rgba(55, 53, 47, 0.04);
   --notion-active: rgba(55, 53, 47, 0.08);
+  --agentic-blue: #3a5bd9;
 
   --background: var(--notion-bg);
   --foreground: var(--notion-text);
@@ -20,8 +21,9 @@ html {
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
 
   --color-notion-sidebar: var(--notion-sidebar);
   --color-notion-text: var(--notion-text);
@@ -29,6 +31,7 @@ html {
   --color-notion-border: var(--notion-border);
   --color-notion-hover: var(--notion-hover);
   --color-notion-active: var(--notion-active);
+  --color-agentic-blue: var(--agentic-blue);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -82,24 +85,27 @@ body {
 }
 
 .prose h1 {
+  font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-size: 1.875rem;
   margin-top: 2rem;
   margin-bottom: 0.5rem;
   line-height: 1.2;
 }
 .prose h2 {
+  font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   font-size: 1.5rem;
   margin-top: 1.5rem;
   margin-bottom: 0.25rem;
   line-height: 1.25;
 }
 .prose h3 {
+  font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   font-size: 1.25rem;
   margin-top: 1rem;
   margin-bottom: 0.25rem;

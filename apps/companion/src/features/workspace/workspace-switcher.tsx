@@ -20,14 +20,15 @@ export function WorkspaceSwitcher() {
   }, [open]);
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative mt-[38px]" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-notion-hover text-[11px] text-notion-text-muted w-full text-left"
+        className="flex w-full items-center gap-2 rounded-md border border-notion-border/70 bg-background/60 px-2 py-1.5 text-left text-xs text-notion-text shadow-sm hover:bg-notion-hover"
         title={projectRoot}
       >
+        <Folder className="h-3.5 w-3.5 shrink-0 text-notion-text-muted" />
         <span className="truncate flex-1 whitespace-nowrap">{projectName || 'Projeto local'}</span>
-        <ChevronDown className="w-3 h-3 shrink-0" />
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-notion-text-muted" />
       </button>
 
       {open && (

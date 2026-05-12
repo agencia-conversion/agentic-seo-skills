@@ -1,6 +1,6 @@
 # Fixture: secure provider setup
 
-Guide a nontechnical user through DataForSEO setup for a standalone SEO Brain project.
+Guide a nontechnical user through DataForSEO setup for a standalone Agentic SEO project.
 
 Situation:
 

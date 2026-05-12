@@ -9,8 +9,6 @@ const ALL_ITEMS = {
 };
 
 export function buildRater({ raterId, mode = "brain", value = "brain/identidade.md", pageType = "homepage", states = {}, applicability = {}, ymyl = false, reputation = [], remediation = [], issues = [] } = {}) {
-  // Legacy "wiki" mode callers in older tests are remapped to "brain".
-  if (mode === "wiki") mode = "brain";
   const ratings = {};
   for (const [pillar, ids] of Object.entries(ALL_ITEMS)) {
     const items = ids.map((id) => {

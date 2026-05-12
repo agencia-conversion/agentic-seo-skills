@@ -95,7 +95,7 @@ function resolveAllowedFile(projectRoot, rel) {
 }
 
 function companionUiPath(root) {
-  return join(root, ".seo-brain", "companion-ui.json");
+  return join(root, ".agentic-seo", "companion-ui.json");
 }
 
 function readCompanionUi(root) {
@@ -165,7 +165,7 @@ function titleFromFile(rel, frontmatter) {
 
 function projectDisplayName(projectRoot) {
   const root = normalizeProjectRoot(projectRoot);
-  const config = join(root, ".seo-brain", "project.json");
+  const config = join(root, ".agentic-seo", "project.json");
   if (existsSync(config)) {
     try {
       const data = JSON.parse(readFileSync(config, "utf8"));
@@ -180,7 +180,7 @@ function projectDisplayName(projectRoot) {
       if (data.title) return String(data.title).replace(/^["']|["']$/g, "");
     } catch {}
   }
-  return "SEO Brain";
+  return "Agentic SEO";
 }
 
 function readBrainPageSummary(projectRoot, rel, ui) {
@@ -284,7 +284,7 @@ function renderBrainTemplate(rel, text, projectName) {
   const today = todayIso();
   let out = text.replaceAll("<YYYY-MM-DD>", today);
   if (rel === "brain/index.md") {
-    out = out.replaceAll("<Nome do projeto>", projectName || "SEO Brain");
+    out = out.replaceAll("<Nome do projeto>", projectName || "Agentic SEO");
   }
   return out;
 }
@@ -496,10 +496,10 @@ export function createProjectFile({ projectRoot, kind = "workbench", title = "No
 
 function uniqueTrashPath(root, rel) {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  let trashRel = `.seo-brain/trash/${stamp}/${rel}`;
+  let trashRel = `.agentic-seo/trash/${stamp}/${rel}`;
   let i = 2;
   while (existsSync(join(root, trashRel))) {
-    trashRel = `.seo-brain/trash/${stamp}-${i}/${rel}`;
+    trashRel = `.agentic-seo/trash/${stamp}-${i}/${rel}`;
     i++;
   }
   return trashRel;

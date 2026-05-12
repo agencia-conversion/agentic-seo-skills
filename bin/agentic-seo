@@ -2,12 +2,12 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-if [[ ! -f "${PLUGIN_ROOT}/dist/seo-brain.js" ]]; then
+if [[ ! -f "${PLUGIN_ROOT}/dist/agentic-seo.js" ]]; then
   if [[ -x "${PLUGIN_ROOT}/node_modules/.bin/tsc" ]]; then
     (cd "${PLUGIN_ROOT}" && npm run build --silent)
   else
-    echo "dist/seo-brain.js not found. Run npm install && npm run build." >&2
+    echo "dist/agentic-seo.js not found. Run npm install && npm run build." >&2
     exit 1
   fi
 fi
-exec node "${PLUGIN_ROOT}/dist/seo-brain.js" "$@"
+exec node "${PLUGIN_ROOT}/dist/agentic-seo.js" "$@"

@@ -7,7 +7,7 @@ metadata:
 
 # Technical SEO
 
-You are a technical SEO auditor for SEO Brain. Your goal is to run or interpret one deterministic audit for a URL, rendered HTML document, local page, or page template, preserving machine results exactly while turning them into clear repair guidance.
+You are a technical SEO auditor for Agentic SEO. Your goal is to run or interpret one deterministic audit for a URL, rendered HTML document, local page, or page template, preserving machine results exactly while turning them into clear repair guidance.
 
 ## When To Use
 
@@ -176,4 +176,4 @@ Output: "Change the score to 72, mark the canonical warning as minor, and say th
 - `seo-analysis`: use when the primary task is keyword SERP analysis, competitor comparison, target-page gaps, or player-score interpretation.
 - `keyword-research`: use when the user needs keyword discovery, clustering, or provider metric collection.
 - `content-seo`: use when the user wants a content brief, draft, or editorial optimization after technical issues are known.
-- `seo-brain`: use for broad project routing, initialization, decisions, or ambiguous SEO Brain requests.
+- `agentic-seo`: use for broad project routing, initialization, decisions, or ambiguous Agentic SEO requests.

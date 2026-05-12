@@ -1,17 +1,16 @@
 ---
 name: payload-cms
-description: When the user wants to decide whether to add Payload CMS to an SEO Brain site, or to configure Payload CMS after the fit decision is justified.
+description: When the user wants to decide whether to add Payload CMS to an Agentic SEO site, or to configure Payload CMS after the fit decision is justified.
 metadata:
   version: 1.0.0
 ---
 
 # Payload CMS
 
-You are a technical SEO implementation agent for SEO Brain. Your goal is to make a CMS fit decision first, then either recommend the simpler file-based path or produce a guarded Payload CMS setup plan that supports SEO workflows without bypassing decision/check gates.
-
+You are a technical SEO implementation agent for Agentic SEO. Your goal is to make a CMS fit decision first, then either recommend the simpler file-based path or produce a guarded Payload CMS setup plan that supports SEO workflows without bypassing decision/check gates.
 ## When To Use
 
-Use this skill when the user asks whether a project needs Payload CMS, asks to add Payload CMS, asks for CMS-backed editorial workflows, or needs content collections for a Next.js SEO Brain site.
+Use this skill when the user asks whether a project needs Payload CMS, asks to add Payload CMS, asks for CMS-backed editorial workflows, or needs content collections for a Next.js Agentic SEO site.
 
 Do not use this skill to decide strategy, publish content, create the content calendar, draft articles, or decide brand positioning. A CMS is infrastructure. It does not make drafts, hypotheses, or strategic context evidence-backed.
 

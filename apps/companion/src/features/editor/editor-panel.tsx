@@ -29,9 +29,10 @@ import {
   Italic,
   Link2,
   Maximize2,
+  Menu,
   MoreHorizontal,
-  PanelLeftOpen,
   Save,
+  Settings,
   Smile,
   Star,
   Strikethrough,
@@ -363,16 +364,14 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
       {!isModal && (
         <header className="h-12 px-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-20 select-none">
           <div className="flex items-center gap-2 overflow-hidden mr-4 text-sm text-notion-text-muted">
-            {sidebarCollapsed && (
-              <button
-                onClick={toggleSidebar}
-                className="p-1.5 hover:bg-notion-hover rounded text-notion-text-muted hover:text-notion-text transition-colors shrink-0"
-                aria-label={t('editor.expandSidebar')}
-                title={t('editor.expandSidebar')}
-              >
-                <PanelLeftOpen className="w-4 h-4" />
-              </button>
-            )}
+            <button
+              onClick={toggleSidebar}
+              className="p-1.5 hover:bg-notion-hover rounded text-notion-text-muted hover:text-notion-text transition-colors shrink-0"
+              aria-label={sidebarCollapsed ? t('editor.expandSidebar') : t('sidebar.collapse')}
+              title={sidebarCollapsed ? t('editor.expandSidebar') : t('sidebar.collapse')}
+            >
+              <Menu className="w-4 h-4" />
+            </button>
             {breadcrumbs.map((crumb) => (
               <div key={crumb.id} className="flex items-center gap-1">
                 <div
@@ -582,6 +581,18 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               pageId={activePage.id}
               initialTitle={activePage.title}
               placeholder={t('common.untitled')}
+              endAction={
+                !isModal
+                  ? {
+                      icon: <Settings />,
+                      label: 'Editar metadados',
+                      onClick: (e) => {
+                        e.stopPropagation();
+                        setShowFrontmatterDrawer((open) => !open);
+                      },
+                    }
+                  : undefined
+              }
               isModal={isModal}
               autoFocus={!activePage.title && !activePage.readOnly}
               readOnly={activePage.readOnly}

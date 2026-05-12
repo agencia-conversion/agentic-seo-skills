@@ -2,7 +2,7 @@
 
 The user says:
 
-> Acabei de instalar o SEO Brain. Por onde começo?
+> Acabei de instalar o Agentic SEO. Por onde começo?
 
 Project state:
 
@@ -11,7 +11,7 @@ Project state:
 
 Expected output:
 
-- Route to `seo-brain` or `project-init`.
+- Route to `agentic-seo` or `project-init`.
 - Explain the first meaningful action in friendly language.
 - Avoid duplicating a full separate workflow.
 

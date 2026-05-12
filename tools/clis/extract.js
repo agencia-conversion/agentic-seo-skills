@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* SPDX-License-Identifier: MIT
- * SEO Brain extract CLI.
+ * Agentic SEO extract CLI.
  * Tries a plain fetch with a Chrome-like user agent first; if the response
  * looks blocked (anti-bot, 403/429/503, Cloudflare interstitial), escalates
  * to a real Chromium via Playwright (lazy-installed on first run). Parses

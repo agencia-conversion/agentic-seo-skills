@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// CLI dispatcher for the /seo-brain:autoresearch skill engine.
+// CLI dispatcher for the /agentic-seo:autoresearch skill engine.
 // See program.md and seo-skills-creator references for the current contract.
 
 import * as fs from "node:fs";
@@ -43,7 +43,7 @@ const SUBCOMMANDS = {
   init(args, cwd) {
     if (!args.problem) fail("--problem required");
     const legacyProjectFlag = ["project", "slug"].join("-");
-    if (args[legacyProjectFlag]) fail("The legacy project selector is no longer supported; SEO Brain uses the single project at project/.");
+    if (args[legacyProjectFlag]) fail("The legacy project selector is no longer supported; Agentic SEO uses the single project at project/.");
     const created = createRun({
       cwd,
       problem: args.problem,

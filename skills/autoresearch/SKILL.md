@@ -1,13 +1,13 @@
 ---
 name: autoresearch
-description: When the user wants a rigorous iteration loop for an artifact, prompt, briefing, content structure, or SEO Brain skill. Also use for Karpathy-style experiment runs that need baseline scoring, explicit metrics, stop rules, and keep/reject decisions.
+description: When the user wants a rigorous iteration loop for an artifact, prompt, briefing, content structure, or Agentic SEO skill. Also use for Karpathy-style experiment runs that need baseline scoring, explicit metrics, stop rules, and keep/reject decisions.
 metadata:
   version: 1.0.0
 ---
 
 # Autoresearch
 
-You are an experiment lead for SEO Brain. Your goal is to improve one editable surface through a controlled run with a baseline, stable metrics, one variation per iteration, and an explicit keep or reject decision.
+You are an experiment lead for Agentic SEO. Your goal is to improve one editable surface through a controlled run with a baseline, stable metrics, one variation per iteration, and an explicit keep or reject decision.
 
 ## When To Use
 
@@ -187,7 +187,7 @@ Record a separate decision before promoting a winner outside the run directory. 
 
 ## Skill-Eval Mode
 
-Use `skill-eval` mode when improving an SEO Brain skill. The editable surface is exactly one `skills/<name>/SKILL.md` file unless the user explicitly names another file; save notes under `.context/skill-evals/<name>/<run-id>/`.
+Use `skill-eval` mode when improving an Agentic SEO skill. The editable surface is exactly one `skills/<name>/SKILL.md` file unless the user explicitly names another file; save notes under `.context/skill-evals/<name>/<run-id>/`.
 
 Minimum skill-eval metrics:
 

@@ -5,7 +5,7 @@ import { resolve, join } from "node:path";
 import { PATHS, newToken, readSessionPort, writeSessionPort } from "./companion-state.mjs";
 
 function openBrowser(url) {
-  if (process.env.SEO_BRAIN_NO_BROWSER === "1") return;
+  if (process.env.AGENTIC_SEO_NO_BROWSER === "1") return;
   const cmd =
     process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   spawn(cmd, [url], { stdio: "ignore", detached: true }).unref();
@@ -78,7 +78,7 @@ export async function startProjectBrowser({ projectRoot = "project", open = true
   const port = await pickPort(desired);
   const root = resolve(projectRoot);
   const url = `http://127.0.0.1:${port}/project/${token}/`;
-  const ttlMs = Number(process.env.SEO_BRAIN_COMPANION_TTL_MS || 4 * 60 * 60 * 1000);
+  const ttlMs = Number(process.env.AGENTIC_SEO_COMPANION_TTL_MS || 4 * 60 * 60 * 1000);
 
   const useDevServer = dev || !hasProductionBuild();
   const child = spawn(
@@ -88,6 +88,9 @@ export async function startProjectBrowser({ projectRoot = "project", open = true
       cwd: companionDir(),
       env: {
         ...process.env,
+        AGENTIC_SEO_PLUGIN_ROOT: PATHS.root,
+        AGENTIC_SEO_PROJECT_ROOT: root,
+        AGENTIC_SEO_COMPANION_TOKEN: token,
         SEO_BRAIN_PLUGIN_ROOT: PATHS.root,
         SEO_BRAIN_PROJECT_ROOT: root,
         SEO_BRAIN_COMPANION_TOKEN: token,
@@ -135,11 +138,11 @@ export async function startProjectBrowser({ projectRoot = "project", open = true
 
 export async function runProjectBrowser(argv = []) {
   const args = parseArgs(argv);
-  if (args.project) throw new Error("--project is no longer supported; SEO Brain uses the single project at project/.");
+  if (args.project) throw new Error("--project is no longer supported; Agentic SEO uses the single project at project/.");
   const projectRoot =
     args["project-root"] ??
     process.env.CLAUDE_PLUGIN_OPTION_project_dir ??
-    process.env.SEO_BRAIN_PROJECT_DIR ??
+    process.env.AGENTIC_SEO_PROJECT_DIR ??
     "project";
   const open = !args["no-open"];
   return startProjectBrowser({ projectRoot, open, dev: !!args.dev });

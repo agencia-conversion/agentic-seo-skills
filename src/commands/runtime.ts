@@ -73,13 +73,13 @@ function slugify(value: string): string {
 }
 
 function resolveProjectDir(): string {
-  const configured = process.env.CLAUDE_PLUGIN_OPTION_project_dir || process.env.SEO_BRAIN_PROJECT_DIR;
+  const configured = process.env.CLAUDE_PLUGIN_OPTION_project_dir || process.env.AGENTIC_SEO_PROJECT_DIR;
   if (!configured) return path.join(ROOT, "project");
   return path.isAbsolute(configured) ? configured : path.resolve(ROOT, configured);
 }
 
 function ensureProject(): string {
-  if (!fs.existsSync(PROJECT_DIR)) throw new CliError(`Project not found: ${PROJECT_DIR}. Initialize the SEO Brain project first.`);
+  if (!fs.existsSync(PROJECT_DIR)) throw new CliError(`Project not found: ${PROJECT_DIR}. Initialize the Agentic SEO project first.`);
   return PROJECT_DIR;
 }
 
@@ -135,7 +135,7 @@ function writeContentBrief(file: string, data: AnyRecord): void {
 }
 
 const WORD_COUNT_METHOD = {
-  name: "seo-brain-visible-unicode-words",
+  name: "agentic-seo-visible-unicode-words",
   version: "1.0.0",
   excludes: ["frontmatter", "code fences", "inline code", "script/style blocks", "HTML tags"],
 };
@@ -384,7 +384,7 @@ function readEnvFile(file = path.join(ROOT, ".env")): Record<string, string> {
 }
 
 function readHomeCredentials(): AnyRecord {
-  const file = path.join(homedir(), ".seo-brain", "credentials.json");
+  const file = path.join(homedir(), ".agentic-seo", "credentials.json");
   if (!fs.existsSync(file)) return {};
   try {
     return readJson(file);
@@ -396,7 +396,7 @@ function readHomeCredentials(): AnyRecord {
 const HOME_CREDENTIAL_KEYS: Record<string, string> = {
   DATAFORSEO_LOGIN: "dataforseo_login",
   DATAFORSEO_PASSWORD: "dataforseo_password",
-  SEO_BRAIN_DATAFORSEO_MODE: "dataforseo_mode",
+  AGENTIC_SEO_DATAFORSEO_MODE: "dataforseo_mode",
 };
 
 function getSecret(name: string): string {
@@ -555,12 +555,12 @@ function resolveSeoProvider(args: AnyRecord = {}): AnyRecord {
     return { provider: "websearch", reason: `Explicit WebSearch bypass: ${bypass.reason}`, bypass };
   }
   if (choice === "dataforseo") {
-    if (!hasCreds) throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+    if (!hasCreds) throw new CliError("DataForSEO credentials missing. Run: bin/agentic-seo data-setup --handoff");
     return { provider: "dataforseo", reason: "Forced by --provider dataforseo." };
   }
   if (choice !== "auto") throw new CliError(`Unsupported provider preference: ${choice}. Use dataforseo, websearch, or auto.`);
   if (hasCreds) return { provider: "dataforseo", reason: "DataForSEO credentials present in environment." };
-  throw new CliError("DataForSEO credentials missing. SEO analysis no longer falls back to WebSearch automatically. Run: bin/seo-brain data-setup --handoff");
+  throw new CliError("DataForSEO credentials missing. SEO analysis no longer falls back to WebSearch automatically. Run: bin/agentic-seo data-setup --handoff");
 }
 
 async function dataforseoRequest(method: string, endpoint: string, payload?: unknown, sandbox = false): Promise<AnyRecord> {
@@ -586,9 +586,9 @@ function resolveDataforseoMode(args: AnyRecord): string {
   const configured =
     args.mode ||
     process.env.CLAUDE_PLUGIN_OPTION_dataforseo_mode ||
-    process.env.SEO_BRAIN_DATAFORSEO_MODE ||
-    readEnvFile().SEO_BRAIN_DATAFORSEO_MODE ||
-    getSecret("SEO_BRAIN_DATAFORSEO_MODE") ||
+    process.env.AGENTIC_SEO_DATAFORSEO_MODE ||
+    readEnvFile().AGENTIC_SEO_DATAFORSEO_MODE ||
+    getSecret("AGENTIC_SEO_DATAFORSEO_MODE") ||
     "standard";
   const mode = String(configured).trim().toLowerCase();
   if (!DATAFORSEO_MODES.has(mode)) throw new CliError(`Unsupported DataForSEO mode: ${mode}. Use one of: ${Array.from(DATAFORSEO_MODES).sort().join(", ")}.`);
@@ -828,7 +828,7 @@ function isInternalHref(href: string, sourceHost: string): boolean {
 }
 
 async function fetchUrl(url: string): Promise<{ status: number; html: string; finalUrl: string; headers: Record<string, string> }> {
-  const response = await fetch(url, { headers: { "User-Agent": "SEO-Brain/0.2" }, signal: AbortSignal.timeout(30000) });
+  const response = await fetch(url, { headers: { "User-Agent": "AgenticSEO-Skills/0.2" }, signal: AbortSignal.timeout(30000) });
   const html = await response.text();
   return { status: response.status, html, finalUrl: response.url, headers: Object.fromEntries(response.headers.entries()) };
 }
@@ -1316,7 +1316,7 @@ function loadKeywordMetrics(projectDir: string, keyword: string): AnyRecord | nu
 }
 
 function projectSettings(projectDir: string): AnyRecord {
-  const config = path.join(projectDir, ".seo-brain", "project.json");
+  const config = path.join(projectDir, ".agentic-seo", "project.json");
   const brainIndex = path.join(projectDir, "brain", "index.md");
   let data: AnyRecord = {};
   if (fs.existsSync(config)) {
@@ -1347,12 +1347,12 @@ function projectSettings(projectDir: string): AnyRecord {
 }
 
 function projectDisplayName(projectDir: string): string {
-  const config = path.join(projectDir, ".seo-brain", "project.json");
-  if (!fs.existsSync(config)) return "SEO Brain";
+  const config = path.join(projectDir, ".agentic-seo", "project.json");
+  if (!fs.existsSync(config)) return "Agentic SEO";
   try {
-    return String(readJson(config).name || "SEO Brain");
+    return String(readJson(config).name || "Agentic SEO");
   } catch {
-    return "SEO Brain";
+    return "Agentic SEO";
   }
 }
 
@@ -1394,16 +1394,16 @@ async function commandProjectBrowser(args: AnyRecord): Promise<void> {
 }
 
 async function commandProjectInit(args: AnyRecord): Promise<void> {
-  const name = args._[0] || "SEO Brain Project";
+  const name = args._[0] || "Agentic SEO Project";
   const p = PROJECT_DIR;
   const language = args.language || "pt-BR";
   const market = args.market || "Brasil";
   const country = args.country || market;
-  for (const dir of ["brain", "conteudos", "web", "sources", "workbench", "artifacts", ".seo-brain"]) mkdirp(path.join(p, dir));
+  for (const dir of ["brain", "conteudos", "web", "sources", "workbench", "artifacts", ".agentic-seo"]) mkdirp(path.join(p, dir));
   for (const origem of PUBLIC_CONTENT_ORIGENS) mkdirp(path.join(p, "conteudos", origem));
   copyDir(path.join(TEMPLATES_DIR, "brain"), path.join(p, "brain"));
   copyDir(path.join(TEMPLATES_DIR, "conteudos"), path.join(p, "conteudos"));
-  writeJson(path.join(p, ".seo-brain", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
+  writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
   const brainIndex = path.join(p, "brain", "index.md");
   if (fs.existsSync(brainIndex)) {
     setFrontmatterValue(brainIndex, { title: JSON.stringify(name), updated: JSON.stringify(today()) });
@@ -1652,7 +1652,7 @@ async function commandDataSetup(args: AnyRecord): Promise<void> {
     provider_default_reason: decision.reason,
     modes: {
       live: "ultrarrápido: usa endpoints /live; retorna em segundos e costuma custar mais.",
-      standard: "médio: usa task_post + polling task_get; padrão do SEO Brain.",
+      standard: "médio: usa task_post + polling task_get; padrão do Agentic SEO.",
       async: "assíncrono: usa task_post com pingback_url/postback_url quando informado.",
       offline: "teste local: não chama a DataForSEO.",
     },
@@ -1688,7 +1688,7 @@ async function commandSerpExtract(args: AnyRecord): Promise<void> {
       const handoff = runDataSetupHandoff();
       if (!handoff.ok) throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
     }
-    if (!dataforseoCredentialsPresent()) throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+    if (!dataforseoCredentialsPresent()) throw new CliError("DataForSEO credentials missing. Run: bin/agentic-seo data-setup --handoff");
   }
   const location = args.location || settings.dataforseo_location;
   const language = args.language || settings.dataforseo_language;
@@ -1858,7 +1858,7 @@ async function commandSeoAnalysis(args: AnyRecord): Promise<void> {
   const decision = resolveSeoProvider(args);
   const serpSourceFile = decision.provider === "dataforseo" ? dataforseoSerpFile(p, keyword, args.serp_file) : websearchSourceFile(p, keyword, args.websearch_file);
   const organic = decision.provider === "dataforseo" ? loadDataforseoSerpResults(p, keyword, args.serp_file) : loadWebsearchResults(p, keyword, args.websearch_file);
-  if (decision.provider === "dataforseo" && !organic.length) throw new CliError(`Missing DataForSEO SERP for "${keyword}". Run: bin/seo-brain serp-extract --keyword "${keyword}"`);
+  if (decision.provider === "dataforseo" && !organic.length) throw new CliError(`Missing DataForSEO SERP for "${keyword}". Run: bin/agentic-seo serp-extract --keyword "${keyword}"`);
   const keywordMetrics = decision.provider === "dataforseo" ? loadKeywordMetrics(p, keyword) : null;
   const topResults = organic.map((item, idx) => ({ position: item.rank_absolute || item.rank_group || item.position || idx + 1, title: item.title || "", url: item.url || "", snippet: item.snippet || item.description || "", domain: item.domain || "" }));
   const competitors = [];
@@ -2159,7 +2159,7 @@ export function renderTopicClustersMarkdown(clusters: AnyRecord[]): string {
   lines.push("");
   lines.push("# Topic clusters");
   lines.push("");
-  lines.push("Auto-gerado a partir de `workbench/topic-cluster/*.json`. Os campos de julgamento (title, entity, keywords_secondary, funnel_stage, serp_intent, judgment) são editados nos JSONs; rode `bin/seo-brain topic-cluster --seed <seed> --render-only` para regenerar esta página.");
+  lines.push("Auto-gerado a partir de `workbench/topic-cluster/*.json`. Os campos de julgamento (title, entity, keywords_secondary, funnel_stage, serp_intent, judgment) são editados nos JSONs; rode `bin/agentic-seo topic-cluster --seed <seed> --render-only` para regenerar esta página.");
   lines.push("");
   if (!clusters.length) {
     lines.push("Nenhum cluster registrado.");
@@ -2236,7 +2236,7 @@ function escapeCell(value: string): string {
 }
 
 async function commandEeat(_args: AnyRecord): Promise<void> {
-  const message = "The eeat command is now driven by the /seo-brain:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. See skills/eeat/SKILL.md for the contract.";
+  const message = "The eeat command is now driven by the /agentic-seo:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. See skills/eeat/SKILL.md for the contract.";
   printJson({ ok: false, error: message });
   throw new CliError(message);
 }
@@ -2387,7 +2387,7 @@ function firstMarkdownTitle(body: string, fallback: string): string {
   return match ? match[1].trim() : fallback;
 }
 
-function wikiExcerpts(body: string, max = 3): string[] {
+function brainExcerpts(body: string, max = 3): string[] {
   return body
     .split(/\r?\n/)
     .map((line) => line.replace(/^[-*]\s+/, "").trim())
@@ -2431,7 +2431,7 @@ function readBrainEvidencePage(projectDir: string, rel: string): AnyRecord {
     updated: cleanFrontmatterValue(fm.updated),
     filled,
     content_hash_sha256: sha256Text(text),
-    excerpts_used: wikiExcerpts(body),
+    excerpts_used: brainExcerpts(body),
     authorial: AUTHORIAL_BRAIN_PAGES.has(rel),
   };
 }
@@ -2821,8 +2821,7 @@ ${forbidden.length ? forbidden.map((item) => `- Não mencionar em prosa pública
 
 ## Próximo passo recomendado
 
-Revise este briefing pelo Web Companion no navegador quando quiser ajustar a decisão editorial. A fase write gera o rascunho em artifacts, mas não publica o conteúdo em project/conteudos/.
-`;
+Revise este briefing pelo Web Companion no navegador quando quiser ajustar a decisão editorial. A fase write gera o rascunho em artifacts, mas não publica o conteúdo em project/conteudos/.`;
 }
 
 function resolveContentPaths(projectDir: string, args: AnyRecord): {
@@ -3043,8 +3042,7 @@ async function commandContentSeo(args: AnyRecord): Promise<void> {
     writeYaml(paths.briefPath, brief);
     writeText(paths.briefMarkdownPath, renderContentBriefMarkdown(brief));
     appendDataforseoBypassLog(paths.topic, research.process_bypass, [path.relative(p, paths.researchPath), path.relative(p, paths.briefPath)]);
-    appendOperationalLog("content-briefing", paths.topic, [path.relative(p, paths.researchPath), path.relative(p, paths.competitorEvidencePath), path.relative(p, paths.contextEvidencePath), path.relative(p, paths.briefPath), path.relative(p, paths.briefMarkdownPath)], "ready-for-writing", "Briefing criado com evidência de Top 3, Brain/tom de voz e Markdown de revisão; pronto para escrita.");
-    if (approvalMode === "handoff") {
+    appendOperationalLog("content-briefing", paths.topic, [path.relative(p, paths.researchPath), path.relative(p, paths.competitorEvidencePath), path.relative(p, paths.contextEvidencePath), path.relative(p, paths.briefPath), path.relative(p, paths.briefMarkdownPath)], "ready-for-writing", "Briefing criado com evidência de Top 3, Brain/tom de voz e Markdown de revisão; pronto para escrita.");    if (approvalMode === "handoff") {
       const handoff = spawnSync(process.execPath, [path.join(ROOT, "scripts", "companion.mjs"), "approve-briefing", "--project-root", p, "--brief", paths.briefPath], {
         cwd: ROOT,
         encoding: "utf8",
@@ -3168,7 +3166,7 @@ async function commandNextWebsiteCreator(args: AnyRecord): Promise<void> {
   mkdirp(path.join(web, "app", "servicos"));
   writeJson(path.join(web, "package.json"), { scripts: { dev: "next dev", build: "next build", start: "next start" }, dependencies: { next: "latest", react: "latest", "react-dom": "latest" }, devDependencies: { typescript: "latest", "@types/react": "latest", "@types/node": "latest" } });
   writeText(path.join(web, "app", "layout.tsx"), 'export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang="pt-BR"><body>{children}</body></html>; }\n');
-  writeText(path.join(web, "app", "page.tsx"), `export default function Page() { return <main><h1>${projectName}</h1><p>Site SEO Brain em rascunho.</p></main>; }\n`);
+  writeText(path.join(web, "app", "page.tsx"), `export default function Page() { return <main><h1>${projectName}</h1><p>Site Agentic SEO em rascunho.</p></main>; }\n`);
   writeText(path.join(web, "app", "servicos", "page.tsx"), "export default function Page() { return <main><h1>Serviços</h1></main>; }\n");
   writeText(path.join(web, "app", "contato", "page.tsx"), "export default function Page() { return <main><h1>Contato</h1></main>; }\n");
   writeText(path.join(web, "app", "blog", "page.tsx"), "export default function Page() { return <main><h1>Blog</h1></main>; }\n");
@@ -3280,7 +3278,7 @@ class CliError extends Error {}
 export async function runCli(argv = process.argv.slice(2)): Promise<number> {
   try {
     const { command, args } = parseArgs(argv);
-    if ("project" in args) throw new CliError("--project is no longer supported; SEO Brain uses the single project at project/.");
+    if ("project" in args) throw new CliError("--project is no longer supported; Agentic SEO uses the single project at project/.");
     await COMMANDS[command](args);
     return 0;
   } catch (error) {

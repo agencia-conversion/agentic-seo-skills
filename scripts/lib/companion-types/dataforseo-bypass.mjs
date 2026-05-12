@@ -31,7 +31,7 @@ export function confirmationAcknowledgesBypass(text) {
 export function buildContext(args) {
   return {
     handoff: "dataforseo-bypass",
-    workflow: String(args.workflow || "seo-brain"),
+    workflow: String(args.workflow || "agentic-seo"),
     step: String(args.step || "dataforseo"),
     subject: args.subject ? String(args.subject) : null,
     reason: args.reason ? String(args.reason) : "",
@@ -75,8 +75,8 @@ export async function handleSubmit(body, ctx, projectRoot) {
 
 export async function runDataforseoBypass(argv = []) {
   const args = parseArgs(argv);
-  if (args.project) throw new Error("--project is no longer supported; SEO Brain uses the single project at project/.");
-  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.SEO_BRAIN_PROJECT_DIR ?? "project";
+  if (args.project) throw new Error("--project is no longer supported; Agentic SEO uses the single project at project/.");
+  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.AGENTIC_SEO_PROJECT_DIR ?? "project";
   const projectRoot = resolve(projectRootArg);
   const ctx = buildContext(args);
   const id = newHandoffId();

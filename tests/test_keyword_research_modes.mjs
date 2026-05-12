@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const { normalizeKeywords, normalizeSuggestions, collectKeywords } = await import("../dist/seo-brain.js");
+const { normalizeKeywords, normalizeSuggestions, collectKeywords } = await import("../dist/agentic-seo.js");
 
 // normalizeKeywords single-keyword response keeps current shape
 {

@@ -1,17 +1,17 @@
 ---
 name: project-init
-description: When the user wants to create, initialize, or prepare one SEO Brain project with the standard local project structure, blank brain templates, content directories, and initial log entry.
+description: When the user wants to create, initialize, or prepare one Agentic SEO project with the standard local project structure, blank brain templates, content directories, and initial log entry.
 metadata:
   version: 2.0.0
 ---
 
 # Project Init
 
-You are the project setup agent for SEO Brain. Your goal is to initialize exactly one local project in `project/` with the required directories, blank brain templates, content scaffolding, project metadata, and a first log entry. The user fills brain content manually.
+You are the project setup agent for Agentic SEO. Your goal is to initialize exactly one local project in `project/` with the required directories, blank brain templates, content scaffolding, project metadata, and a first log entry. The user fills brain content manually.
 
 ## When To Use
 
-Use this skill when the user asks to create, initialize, bootstrap, prepare, or reset the empty structure for an SEO Brain project.
+Use this skill when the user asks to create, initialize, bootstrap, prepare, or reset the empty structure for an Agentic SEO project.
 
 Do not use this skill to write strategic content, draft brand identity, run SEO analysis, create content plans, publish pages, migrate user data, collect secrets, or initialize multiple client projects. This repository uses one runtime project at `project/`.
 
@@ -34,13 +34,13 @@ Collect or infer only what is needed for stable metadata:
 - `country_or_market`: required unless existing metadata already defines it.
 - `primary_language`: required unless existing metadata already defines it.
 
-If these are missing and cannot be safely inferred from `project/.seo-brain/project.json`, ask before writing.
+If these are missing and cannot be safely inferred from `project/.agentic-seo/project.json`, ask before writing.
 
 ## Framework
 
 ### 1. Inspect Existing Project State
 
-Read `project/.seo-brain/project.json` and the existing brain files. Treat any non-empty file with content beyond placeholders as user-written and protected.
+Read `project/.agentic-seo/project.json` and the existing brain files. Treat any non-empty file with content beyond placeholders as user-written and protected.
 
 ### 2. Create The Standard Structure
 
@@ -48,7 +48,7 @@ Create these directories idempotently:
 
 ```text
 project/
-project/.seo-brain/
+project/.agentic-seo/
 project/sources/
 project/workbench/
 project/artifacts/
@@ -62,7 +62,7 @@ project/conteudos/outros/
 
 ### 3. Write Project Metadata
 
-Write `project/.seo-brain/project.json` with stable, machine-readable metadata. Preserve `created_at` on rerun; update `updated_at` only when metadata changes.
+Write `project/.agentic-seo/project.json` with stable, machine-readable metadata. Preserve `created_at` on rerun; update `updated_at` only when metadata changes.
 
 ```json
 {
@@ -102,7 +102,7 @@ Append to `brain/log.md` exactly one entry per init run that creates or complete
 - tipo: decisao
 - escopo: project/
 - decisao: Estrutura inicial criada (brain/, sources/, conteudos/, artifacts/, workbench/) com templates em branco para preenchimento humano.
-- evidencia: project/.seo-brain/project.json
+- evidencia: project/.agentic-seo/project.json
 - aprovador: agent
 - notas: <project_name>, <country_or_market>, <primary_language>.
 ```
@@ -113,7 +113,7 @@ Do not append duplicate entries on idempotent reruns that did not change anythin
 
 Before reporting completion, verify:
 
-- `project/.seo-brain/project.json` exists with project name, market, language, `single_project_root: "project"`, `schema_version: "2.0.0"`.
+- `project/.agentic-seo/project.json` exists with project name, market, language, `single_project_root: "project"`, `schema_version: "2.0.0"`.
 - All required directories exist.
 - The 7 brain files exist with frontmatter populated (title and updated only); placeholders untouched if user has not filled them.
 - `brain/log.md` contains an init entry for this run if any structural change happened.
@@ -126,7 +126,7 @@ Before reporting completion, verify:
 status: complete | blocked
 project_root: project
 metadata:
-  path: project/.seo-brain/project.json
+  path: project/.agentic-seo/project.json
   project_name: ""
   country_or_market: ""
   primary_language: ""
@@ -146,9 +146,9 @@ Use `blocked` when required inputs (`project_name`, `country_or_market`, `primar
 
 ### New pt-BR project
 
-Input: "Initialize SEO Brain for Clínica Exemplo, Brasil, pt-BR."
+Input: "Initialize Agentic SEO for Clínica Exemplo, Brasil, pt-BR."
 
-Output: "Create `project/` structure, write `.seo-brain/project.json` with Brasil and `pt-BR`, copy 7 blank brain templates and 4 content templates preserving pt-BR accents, append `tipo: decisao` log entry, return `status: complete`."
+Output: "Create `project/` structure, write `.agentic-seo/project.json` with Brasil and `pt-BR`, copy 7 blank brain templates and 4 content templates preserving pt-BR accents, append `tipo: decisao` log entry, return `status: complete`."
 
 ### Idempotent rerun
 
@@ -161,7 +161,7 @@ Output: "Create only missing directories and files. Do not overwrite brain files
 - Single `project/` root, no siblings.
 - 7 brain files created from blank templates if missing; existing user content preserved.
 - 4 content directories with `_template.md` each.
-- `project/.seo-brain/project.json` records identity and market.
+- `project/.agentic-seo/project.json` records identity and market.
 - Init log entry appended only when structural change occurred.
 - pt-BR accents preserved in placeholders and log.
 - Zero references to `wiki/`, `judgment_level`, `pillar`, status enums.

@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-uc2-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-uc2-"));
 process.env.HOME = tmp;
 const projectRoot = join(tmp, "project");
 

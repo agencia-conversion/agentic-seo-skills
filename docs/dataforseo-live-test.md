@@ -9,7 +9,7 @@ Project used: `project/`
 Command:
 
 ```bash
-bin/seo-brain data-setup --check
+bin/agentic-seo data-setup --check
 ```
 
 Result:
@@ -23,7 +23,7 @@ Result:
 Command:
 
 ```bash
-bin/seo-brain keyword-research --keyword "seo agentico" --mode standard --timeout 180 --poll-interval 10
+bin/agentic-seo keyword-research --keyword "seo agentico" --mode standard --timeout 180 --poll-interval 10
 ```
 
 Result:
@@ -31,7 +31,7 @@ Result:
 - mode: `standard`
 - task created and collected through `task_get`
 - task id was stored in project sources
-- DataForSEO returned no volume/CPC metrics for this keyword, which SEO Brain records as `null` instead of fabricating data
+- DataForSEO returned no volume/CPC metrics for this keyword, which Agentic SEO records as `null` instead of fabricating data
 
 The first live attempt exposed a polling bug: `40602 Task In Queue` was incorrectly treated as terminal. This was fixed and covered by `tests/test_dataforseo_modes.mjs`.
 
@@ -40,13 +40,13 @@ The first live attempt exposed a polling bug: `40602 Task In Queue` was incorrec
 Standard command:
 
 ```bash
-bin/seo-brain serp-extract --keyword "seo agentico" --mode standard --timeout 180 --poll-interval 10 --depth 10
+bin/agentic-seo serp-extract --keyword "seo agentico" --mode standard --timeout 180 --poll-interval 10 --depth 10
 ```
 
 Live command:
 
 ```bash
-bin/seo-brain serp-extract --keyword "seo agentico" --mode live --depth 10
+bin/agentic-seo serp-extract --keyword "seo agentico" --mode live --depth 10
 ```
 
 Result:
@@ -60,7 +60,7 @@ Result:
 Command:
 
 ```bash
-bin/seo-brain serp-extract --keyword "seo agentico" --mode async --sandbox --pingback-url 'https://example.com/ping?id=$id&tag=$tag' --depth 10
+bin/agentic-seo serp-extract --keyword "seo agentico" --mode async --sandbox --pingback-url 'https://example.com/ping?id=$id&tag=$tag' --depth 10
 ```
 
 Result:
@@ -74,7 +74,7 @@ Result:
 Command:
 
 ```bash
-bin/seo-brain backlink-analysis --target conversion.com.br --mode standard
+bin/agentic-seo backlink-analysis --target conversion.com.br --mode standard
 ```
 
 Result:
@@ -86,4 +86,4 @@ Result:
 - rank: `326`
 - spam score: `16`
 
-Note: DataForSEO Backlinks API v3 supports live retrieval, so SEO Brain maps `standard` to live for backlink analysis and records that limitation.
+Note: DataForSEO Backlinks API v3 supports live retrieval, so Agentic SEO maps `standard` to live for backlink analysis and records that limitation.

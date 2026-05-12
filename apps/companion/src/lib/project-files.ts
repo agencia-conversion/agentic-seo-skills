@@ -22,7 +22,7 @@ const BRAIN_PAGE_ORDER = [
 ];
 
 const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'outros']);
-const ROOT = process.env.SEO_BRAIN_PLUGIN_ROOT || join(/*turbopackIgnore: true*/ process.cwd(), '..', '..');
+const ROOT = process.env.AGENTIC_SEO_PLUGIN_ROOT || process.env.SEO_BRAIN_PLUGIN_ROOT || join(/*turbopackIgnore: true*/ process.cwd(), '..', '..');
 const BRAIN_TEMPLATE_DIR = join(ROOT, 'templates', 'project', 'brain');
 
 export interface ProjectTreeItem {
@@ -52,7 +52,7 @@ function todayIso() {
 }
 
 function normalizeProjectRoot(projectRoot?: string | null) {
-  return resolve(/*turbopackIgnore: true*/ projectRoot || process.env.SEO_BRAIN_PROJECT_ROOT || 'project');
+  return resolve(/*turbopackIgnore: true*/ projectRoot || process.env.AGENTIC_SEO_PROJECT_ROOT || 'project');
 }
 
 function yamlString(value: unknown) {
@@ -109,7 +109,7 @@ function resolveAllowedFile(projectRoot: string | undefined, rel: string) {
 }
 
 function companionUiPath(root: string) {
-  return join(root, '.seo-brain', 'companion-ui.json');
+  return join(root, '.agentic-seo', 'companion-ui.json');
 }
 
 function readCompanionUi(root: string) {
@@ -279,7 +279,7 @@ function titleFromFile(rel: string, frontmatter: Record<string, any>) {
 
 function projectDisplayName(projectRoot?: string) {
   const root = normalizeProjectRoot(projectRoot);
-  const config = join(root, '.seo-brain', 'project.json');
+  const config = join(root, '.agentic-seo', 'project.json');
   if (existsSync(config)) {
     try {
       const data = JSON.parse(readFileSync(config, 'utf8'));
@@ -287,7 +287,14 @@ function projectDisplayName(projectRoot?: string) {
       if (data?.brand_name) return String(data.brand_name);
     } catch {}
   }
-  return 'SEO Brain';
+  const index = join(root, 'brain', 'index.md');
+  if (existsSync(index)) {
+    try {
+      const { data } = parseFrontmatter(readFileSync(index, 'utf8'));
+      if (data.title) return String(data.title).replace(/^["']|["']$/g, '');
+    } catch {}
+  }
+  return 'Agentic SEO';
 }
 
 function readSummary(projectRoot: string, rel: string, ui: Record<string, any>): ProjectTreeItem | null {
@@ -383,7 +390,7 @@ function renderBrainTemplate(rel: string, text: string, projectName: string) {
   const today = todayIso();
   let out = text.replaceAll('<YYYY-MM-DD>', today);
   if (rel === 'brain/index.md') {
-    out = out.replaceAll('<Nome do projeto>', projectName || 'SEO Brain');
+    out = out.replaceAll('<Nome do projeto>', projectName || 'Agentic SEO');
   }
   return out;
 }
@@ -588,10 +595,10 @@ export function createProjectFile({
 
 function uniqueTrashPath(root: string, rel: string) {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  let trashRel = `.seo-brain/trash/${stamp}/${rel}`;
+  let trashRel = `.agentic-seo/trash/${stamp}/${rel}`;
   let i = 2;
   while (existsSync(join(root, trashRel))) {
-    trashRel = `.seo-brain/trash/${stamp}-${i}/${rel}`;
+    trashRel = `.agentic-seo/trash/${stamp}-${i}/${rel}`;
     i++;
   }
   return trashRel;

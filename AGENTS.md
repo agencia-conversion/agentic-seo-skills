@@ -1,10 +1,10 @@
-# SEO Brain Agent Instructions
+# Agentic SEO Agent Instructions
 
-SEO Brain is a Claude Code-first plugin that should remain portable to Codex, Antigravity, and other agents that read `AGENTS.md`.
+Agentic SEO is a Claude Code-first plugin that should remain portable to Codex, Antigravity, and other agents that read `AGENTS.md`.
 
 ## Product Direction
 
-SEO Brain implements Agentic SEO through six pillars:
+Agentic SEO implements Agentic SEO through six pillars:
 
 1. Strategy
 2. Brain
@@ -32,7 +32,7 @@ This repository root is the plugin root.
 
 - Keep skill bodies in standard `SKILL.md` directories so Claude Code and Codex can discover them.
 - Keep cross-tool behavior in `AGENTS.md`, not only in Claude-specific files.
-- Keep user-facing runtime behavior in the canonical `seo-brain` skill; `AGENTS.md` and `CLAUDE.md` are development guidance.
+- Keep user-facing runtime behavior in the canonical `agentic-seo` skill; `AGENTS.md` and `CLAUDE.md` are development guidance.
 - Do not rely on terminal output as the primary UX for nontechnical users.
 - Prefer local web UI artifacts for previews, decisions, and reports.
 - Do not commit secrets, raw user project data, generated runs, or provider responses from real clients.
@@ -49,7 +49,7 @@ The default is to follow the full documented process. Do not skip analysis, deci
 
 ## Language Fidelity
 
-SEO Brain is English-first and supports Brazilian Portuguese as an official second language, but generated natural-language output should work in any requested language.
+Agentic SEO is English-first and supports Brazilian Portuguese as an official second language, but generated natural-language output should work in any requested language.
 
 - Preserve the spelling, accents, and diacritics of the output language in all human-facing prose, headings, UI text, Markdown, logs, reports, prompts, and review notes.
 - For pt-BR, write correct Portuguese with accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
@@ -58,7 +58,7 @@ SEO Brain is English-first and supports Brazilian Portuguese as an official seco
 
 ## Brain Rules
 
-Every SEO Brain project keeps authorial knowledge in one place: `project/brain/`. Open it as the Obsidian vault. Public content, evidence, and intermediate artifacts live outside `brain/` so the brain stays small and editable.
+Every Agentic SEO project keeps authorial knowledge in one place: `project/brain/`. Open it as the Obsidian vault. Public content, evidence, and intermediate artifacts live outside `brain/` so the brain stays small and editable.
 
 ### Layout
 
@@ -174,4 +174,4 @@ Skill bodies should still use progressive discovery. The point of the 250-line t
 
 ### Known debt
 
-- `src/seo-brain.ts` is a slim dispatcher; behavior is split into `src/commands/`.
+- `src/agentic-seo.ts` is a slim dispatcher; behavior is split into `src/commands/`.

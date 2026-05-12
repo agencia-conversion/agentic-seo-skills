@@ -22,16 +22,16 @@ function parseJson(text) {
 }
 
 function dataDir() {
-  return process.env.SEO_BRAIN_PLUGIN_DATA || process.env.CLAUDE_PLUGIN_DATA || "";
+  return process.env.AGENTIC_SEO_PLUGIN_DATA || process.env.CLAUDE_PLUGIN_DATA || "";
 }
 
 function candidateMarkers() {
   const explicit = dataDir();
   if (explicit) return [join(explicit, "session-status.json")];
   const dataRoot = join(homedir(), ".claude", "plugins", "data");
-  if (!existsSync(dataRoot)) return [join(dataRoot, "seo-brain", "session-status.json")];
+  if (!existsSync(dataRoot)) return [join(dataRoot, "agentic-seo", "session-status.json")];
   return readdirSync(dataRoot)
-    .filter((name) => name.startsWith("seo-brain"))
+    .filter((name) => name.startsWith("agentic-seo"))
     .map((name) => join(dataRoot, name, "session-status.json"))
     .filter((file) => existsSync(file))
     .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
@@ -55,4 +55,4 @@ function loaded() {
 
 const input = parseJson(await readStdin());
 const state = loaded() ? "carregado" : "não carregado";
-process.stdout.write(`SEO Brain: ${state} | ${projectName(input)}\n`);
+process.stdout.write(`Agentic SEO: ${state} | ${projectName(input)}\n`);

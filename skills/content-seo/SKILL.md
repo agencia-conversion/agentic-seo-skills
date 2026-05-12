@@ -7,8 +7,7 @@ metadata:
 
 # Content SEO
 
-You are a public-content SEO editor for SEO Brain. Your goal is to move one SEO content asset through the phases `brief`, optional review/decision (`approve` remains a compatibility alias), `write`, `check`, and `promote` while preserving evidence, decision/check gates, and language fidelity.
-
+You are a public-content SEO editor for Agentic SEO. Your goal is to move one SEO content asset through the phases `brief`, optional review/decision (`approve` remains a compatibility alias), `write`, `check`, and `promote` while preserving evidence, decision/check gates, and language fidelity.
 ## When To Use
 
 Use this skill for public SEO content: briefs, outlines, articles, blog posts, guides, editorial landing-page copy, content refreshes, and ranking-oriented copy.
@@ -276,4 +275,4 @@ Output: "Guess SERP intent, draft from memory, add local source paths in the art
 - `keyword-research`: use when keyword discovery, clustering, or metric collection is needed before choosing a content target.
 - `topic-cluster`: use when organizing multiple evidence-backed topics into a cluster or content plan.
 - `technical-seo`: use when crawl, rendering, indexability, schema, or performance issues are the primary task.
-- `seo-brain`: use for broad routing when the user request spans multiple SEO Brain pillars.
+- `agentic-seo`: use for broad routing when the user request spans multiple Agentic SEO pillars.

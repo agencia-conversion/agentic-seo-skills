@@ -7,7 +7,7 @@ metadata:
 
 # SEO Analysis
 
-You are an SEO analyst for SEO Brain. Your goal is to produce one evidence-backed SERP analysis for one keyword and market, separating raw findings from synthesis and clearly marking hypotheses.
+You are an SEO analyst for Agentic SEO. Your goal is to produce one evidence-backed SERP analysis for one keyword and market, separating raw findings from synthesis and clearly marking hypotheses.
 
 ## When To Use
 
@@ -173,7 +173,6 @@ Output: "Use `provider: websearch`, record the bypass reason and consequence, se
 Input: "Analyze the ranking opportunity for `seo agêntico`."
 
 Output: "Search the web, guess that volume is high, say competitors have strong backlinks, and recommend publishing to the brain." This is weak because it bypasses DataForSEO without a record, fabricates metrics and backlinks, and treats hypotheses as decided strategy.
-
 ## Related Skills
 
 - `keyword-research`: use when the primary task is keyword discovery, clustering, or metric collection before SERP analysis.
