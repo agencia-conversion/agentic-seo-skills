@@ -17,8 +17,8 @@ Use this skill for creating or refactoring `skills/<name>/SKILL.md`. Do not use 
 
 - One skill teaches one task. Router skills may route, but they must not hide gates.
 - Never require `_shared/` or another skill as mandatory execution context.
-- Repeat universal Agentic SEO invariants inside the skill that needs them: no fabricated volume/backlinks/proof, source/synthesis separation, approval gates, language fidelity.
-- Human judgment owns strategic approval. Agent output is not approved strategic context until explicitly approved.
+- Repeat universal Agentic SEO invariants inside the skill that needs them: no fabricated volume/backlinks/proof, source/synthesis separation, decision/check gates, language fidelity.
+- Human judgment owns strategy. Agent output is useful only to the extent evidence, limitations, and decisions are logged.
 - Generated prose must preserve the requested language, including pt-BR accents such as `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
 - Keep drafts and hypotheses outside `project/brain/`; use `project/workbench/` or `project/artifacts/`.
 
@@ -31,7 +31,8 @@ Use this skill for creating or refactoring `skills/<name>/SKILL.md`. Do not use 
 
 ### 2. Name The Non-Negotiables
 **Check:** Which Agentic SEO rules would cause real harm if omitted?
-**Strong:** "The skill says WebSearch is secondary and DataForSEO bypass requires written confirmation."
+**Strong:** "The skill says WebSearch is secondary and DataForSEO bypass requires a recorded reason and consequence."
+
 **Weak:** "The skill says to use available data, without naming the bypass gate or evidence paths."
 
 ### 3. Write The Narrative Framework
@@ -46,13 +47,13 @@ Use this skill for creating or refactoring `skills/<name>/SKILL.md`. Do not use 
 
 ### 5. Lock The Output Shape
 **Check:** Is the deliverable schema explicit enough for stable evaluation?
-**Strong:** "The skill includes YAML keys for `status`, `sources`, `synthesis`, `approval`, and `next_action`."
+**Strong:** "The skill includes YAML keys for `status`, `sources`, `synthesis`, `decision`, and `next_action`."
 **Weak:** "The skill says to provide a concise report."
 
 ### 6. Run The Tri-Agent Loop
-**Check:** Did developer, executor, and approver see only the context intended for their role?
-**Strong:** "Executor receives only `SKILL.md` and `evals/fixture.md`; approver grades with the rubric."
-**Weak:** "Executor reads old legacy skill bodies or approver feedback from earlier iterations."
+**Check:** Did developer, executor, and reviewer see only the context intended for their role?
+**Strong:** "Executor receives only `SKILL.md` and `evals/fixture.md`; reviewer grades with the rubric."
+**Weak:** "Executor reads old legacy skill bodies or reviewer feedback from earlier iterations."
 
 ## Loop Protocol
 
@@ -60,15 +61,15 @@ Use `scripts/skill-loop.mjs init <skill-name>` to create the run package under `
 
 Roles:
 
-- Developer: writes `skills/<skill>/SKILL.md` from the template, fixture, and prior approver feedback.
+- Developer: writes `skills/<skill>/SKILL.md` from the template, fixture, and prior reviewer feedback.
 - Executor: uses only that `SKILL.md` and `skills/<skill>/evals/fixture.md` to produce the real deliverable.
-- Approver: uses `references/approval-rubric.md` to grade the skill and executor output.
+- Reviewer: uses `references/approval-rubric.md` to grade the skill and executor output. The filename is legacy; the role is review, not approval.
 
 Stop rules:
 
 - Score >= 90: keep and finalize.
 - Five iterations without 90: escalate to the human with the trace.
-- Sub-agent output is evidence, not approval; the main agent still integrates.
+- Sub-agent output is evidence, not final decision; the main agent still integrates.
 
 Bootstrap:
 
@@ -98,7 +99,7 @@ evaluation:
   fixture: skills/<skill>/evals/fixture.md
   rubric: skills/seo-skills-creator/references/approval-rubric.md
   threshold: 90
-status: draft | approved | escalated
+status: draft | kept | escalated
 ```
 
 ## Examples

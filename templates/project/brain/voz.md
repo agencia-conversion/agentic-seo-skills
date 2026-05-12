@@ -41,7 +41,7 @@ referências de estilo.
 
 <como o projeto trata erros publicados: edita, marca, mantém, anota data e motivo. Decisão editorial registrada em [[log]].>
 
-## Exemplos aprovados
+## Exemplos de referência
 
 <!-- Trechos curtos que exemplificam a voz. Adicionar conforme o projeto evoluir. -->
 

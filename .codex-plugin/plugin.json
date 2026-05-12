@@ -20,7 +20,7 @@
   "interface": {
     "displayName": "Agentic SEO Skills",
     "shortDescription": "Agentic SEO skills for strategy, brain, content, data, and technical SEO.",
-    "longDescription": "Agentic SEO Skills helps teams run an Agentic SEO project with a persistent authorial brain (identity, voice, technology, editorial, topic clusters, append-only log), human approval gates for strategy, DataForSEO-powered analysis, Brazilian Portuguese content standards, technical SEO checks, and local project dashboards.",
+    "longDescription": "Agentic SEO Skills helps teams run an Agentic SEO project with a persistent authorial brain (identity, voice, technology, editorial, topic clusters, append-only log), decision logs for strategy, DataForSEO-powered analysis, Brazilian Portuguese content standards, technical SEO checks, and local project dashboards.",
     "developerName": "Agentic SEO",
     "category": "Productivity",
     "capabilities": [

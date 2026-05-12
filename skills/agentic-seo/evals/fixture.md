@@ -7,7 +7,7 @@ The user says:
 Project state:
 
 - No DataForSEO credentials.
-- `brain/identidade.md` has approved content (matching `tipo: aprovacao` entry in `brain/log.md`).
+- `brain/identidade.md` has logged content (matching `tipo: decisao` entry in `brain/log.md`).
 - `brain/voz.md` is empty (placeholders untouched).
 
 Expected output:
@@ -15,7 +15,7 @@ Expected output:
 - Route the request through the right skills.
 - Identify that this is compound work and needs a spec.
 - Name the missing gates and consequences (DataForSEO + voice).
-- Offer browser handoff for DataForSEO setup or written bypass.
+- Offer browser handoff for DataForSEO setup or bypass decision capture.
 
 Constraints:
 

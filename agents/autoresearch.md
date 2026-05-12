@@ -21,4 +21,4 @@ bin/agentic-seo audit-skills
 claude plugin validate .
 ```
 
-Evaluate one skill or subsystem at a time. Keep changes only when deterministic checks pass and quality improves without weakening approval gates or provenance.
+Evaluate one skill or subsystem at a time. Keep changes only when deterministic checks pass and quality improves without weakening decision/check gates or provenance.

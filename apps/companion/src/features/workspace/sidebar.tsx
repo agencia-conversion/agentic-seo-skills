@@ -170,12 +170,14 @@ export function Sidebar() {
 
         {sections.map((section) => {
           const sectionPages = pagesBySection[section.id] || [];
+          const sectionTitle =
+            section.id === 'conteudos' ? t('project.contents') : section.id === 'workbench' ? t('project.workbench') : section.title;
           return (
             <div key={section.id} className="mb-4">
               {section.id !== 'brain' && (
                 <div className="px-3 mb-2 flex items-center justify-between group">
                   <span className="text-[11px] font-semibold text-notion-text-muted uppercase tracking-wider px-1">
-                    {section.title}
+                    {sectionTitle}
                   </span>
                 </div>
               )}

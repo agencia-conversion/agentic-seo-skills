@@ -13,7 +13,7 @@ You are a secure setup guide for Agentic SEO. Your goal is to help a user config
 
 Use this skill when the user asks to set up DataForSEO, validate provider credentials, fix missing credentials, change provider mode, or prepare data access before keyword research, SERP extraction, SEO analysis, or technical SEO workflows.
 
-Do not use this skill to perform keyword research, create a SERP analysis, write content, approve strategy, or write authorial brain pages. This skill only establishes and verifies provider access.
+Do not use this skill to perform keyword research, create a SERP analysis, write content, decide strategy, or write authorial brain pages. This skill only establishes and verifies provider access.
 
 ## Critical Points
 
@@ -21,7 +21,7 @@ Do not use this skill to perform keyword research, create a SERP analysis, write
 - Never fabricate credentials, balances, quotas, keyword volume, rankings, backlinks, awards, clients, or proof.
 - Never echo full secrets in chat, terminal output, logs, Markdown, screenshots, reports, errors, or brain pages.
 - For nontechnical users and all sensitive input, browser handoff is the primary UX. Ask whether you may open a local browser window, then run the handoff yourself after consent.
-- Do not present raw terminal commands as the primary setup, approval, or sensitive-input flow.
+- Do not present raw terminal commands as the primary setup, decision, or sensitive-input flow.
 - Do not write secrets to the repository root `.env`, committed files, `project/sources/`, `project/workbench/`, `project/artifacts/`, `project/conteudos/`, or `project/brain/`.
 - In Claude Code plugin mode, store secrets in sensitive `userConfig` fields when available.
 - In standalone project mode, store secrets in `project/.env.local`, which must stay local and ignored by git.
@@ -29,7 +29,7 @@ Do not use this skill to perform keyword research, create a SERP analysis, write
 - Mask validation output. Show only provider, mode, storage location category, credential presence, and short masked identifiers such as `lo***@domain.com`.
 - Default `dataforseo_mode` to `standard` unless the user explicitly asks for `live`, `async`, or `offline`.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
-- Provider setup is operational context, not strategic approval. Do not use this skill to approve strategy or write authorial brain pages.
+- Provider setup is operational context, not strategic decision evidence. Do not use this skill to decide strategy or write authorial brain pages.
 
 ## Framework
 
@@ -77,7 +77,7 @@ The browser handoff must bind locally, use a one-time token, avoid printing secr
 
 **Check:** Can the credentials authenticate with a minimal safe provider request?
 
-For DataForSEO, perform the smallest harmless validation available: authenticate and call a lightweight account, status, or metadata endpoint. Do not run keyword, SERP, or paid data jobs just to validate credentials unless the user explicitly approves that cost or quota impact.
+For DataForSEO, perform the smallest harmless validation available: authenticate and call a lightweight account, status, or metadata endpoint. Do not run keyword, SERP, or paid data jobs just to validate credentials unless the user explicitly accepts that cost or quota impact.
 
 Validation output must be masked:
 
@@ -137,7 +137,7 @@ storage: plugin_user_config | project_env_local | user_config | none
 browser_handoff:
   used: true | false
   reason: ""
-  bypass_approved: true | false
+  bypass_recorded: true | false
 credential_status:
   login: present | missing
   password: present | missing

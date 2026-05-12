@@ -121,21 +121,21 @@
     <div>
       <h2>Decisão</h2>
       <div class="decision-options" id="decision-opts" style="margin-top:8px;">
-        <label><input type="radio" name="decision" value="approved" required /><span><strong>Aprovar</strong><small>registra entrada de aprovação no brain/log.md</small></span></label>
-        <label><input type="radio" name="decision" value="needs-evidence" /><span><strong>Falta evidência</strong><small>marcar para coletar fontes antes de aprovar</small></span></label>
+        <label><input type="radio" name="decision" value="approved" required /><span><strong>Registrar decisão</strong><small>registra entrada de decisão no brain/log.md</small></span></label>
+        <label><input type="radio" name="decision" value="needs-evidence" /><span><strong>Falta evidência</strong><small>marcar para coletar fontes antes de avançar</small></span></label>
         <label><input type="radio" name="decision" value="rejected" /><span><strong>Rejeitar</strong><small>agente deve reescrever</small></span></label>
       </div>
     </div>
     <div>
-      <label for="approver">Aprovando como</label>
-      <input id="approver" name="approver" type="text" required placeholder="Seu nome" />
+      <label for="approver">Registrando como</label>
+      <input id="approver" name="approver" type="text" placeholder="agent" />
     </div>
     <div>
       <label for="notes">Observação (opcional)</label>
       <textarea id="notes" name="notes" placeholder="Motivo da decisão, evidências faltando, próximos passos..."></textarea>
     </div>
     <div class="row" id="register-row" style="display:none;">
-      <label><input type="checkbox" id="register_missing" name="register_missing" /> Registrar fontes faltando como entradas <code>tipo: ingestao</code> em <code>brain/log.md</code> ao aprovar</label>
+      <label><input type="checkbox" id="register_missing" name="register_missing" /> Registrar fontes faltando como entradas <code>tipo: ingestao</code> em <code>brain/log.md</code> ao avançar</label>
     </div>
     <div id="error" class="alert-box" style="display:none;"></div>
     <div id="success" class="ok-box" style="display:none;">Decisão registrada. Pode fechar esta aba.</div>
@@ -161,7 +161,7 @@
   document.getElementById("page-name").textContent = ctx.file || "(arquivo)";
   if (ctx.identity?.name) {
     document.getElementById("approver").value = ctx.identity.name;
-    document.getElementById("approver-display").textContent = "aprovando como " + ctx.identity.name;
+    document.getElementById("approver-display").textContent = "registrando como " + ctx.identity.name;
   }
 
   const fmEl = document.getElementById("fm-content");
@@ -232,9 +232,9 @@
   // Diff render
   const diffPane = document.getElementById("pane-diff");
   if (!ctx.diff?.hasPrevious) {
-    diffPane.innerHTML = '<div class="empty">Primeira aprovação — não há versão anterior para comparar.</div>';
+    diffPane.innerHTML = '<div class="empty">Primeira decisão — não há versão anterior para comparar.</div>';
   } else if (!ctx.diff.unified.trim()) {
-    diffPane.innerHTML = '<div class="empty">Sem mudanças no corpo desde o último snapshot aprovado.</div>';
+    diffPane.innerHTML = '<div class="empty">Sem mudanças no corpo desde o último snapshot registrado.</div>';
   } else {
     const lines = ctx.diff.unified.split("\n").map((line) => {
       if (/^\+/.test(line) && !/^\+\+\+/.test(line)) return '<span class="diff-add">' + escape(line) + "</span>";

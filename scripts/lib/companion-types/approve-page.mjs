@@ -75,7 +75,6 @@ export function buildContext({ projectRoot, fileRel }) {
 export async function handleSubmit(body, ctx, deps = {}) {
   const { decision, notes, register_missing, approver } = body || {};
   if (!VALID_DECISIONS.has(decision)) return { ok: false, reason: "invalid-decision" };
-  if (!approver || !approver.trim()) return { ok: false, reason: "missing-approver" };
 
   const fresh = readFileSync(ctx.filePath, "utf8");
   if (sha256(fresh) !== ctx.hash) {
@@ -84,7 +83,7 @@ export async function handleSubmit(body, ctx, deps = {}) {
 
   const setFrontmatterValue = deps.setFrontmatterValue ?? (await import("../../../dist/agentic-seo.js")).setFrontmatterValue;
 
-  const approverClean = approver.trim();
+  const approverClean = String(approver || "agent").trim() || "agent";
   writeIdentity(approverClean);
   const today = todayIso();
 
@@ -106,17 +105,18 @@ export async function handleSubmit(body, ctx, deps = {}) {
     sourcesAdded = [...ctx.missingSources];
   }
 
-  const tipo = decision === "approved" ? (ctx.isAuthorial ? "aprovacao" : "decisao") : "decisao";
-  const decisao = `${ctx.fileRel} marcado como ${decision} por ${approverClean}.`;
+  const tipo = "decisao";
+  const decisionLabel = decision === "approved" ? "registrado" : decision;
+  const decisao = `${ctx.fileRel} marcado como ${decisionLabel} por ${approverClean}.`;
   appendLogEntry(logFile, {
     date: today,
     tipo,
-    titulo: `${ctx.pageBaseName} ${decision}`,
+    titulo: `${ctx.pageBaseName} ${decisionLabel}`,
     escopo: ctx.fileRel,
     decisao,
     evidencia: ctx.fileRel,
     aprovador: approverClean,
-    aprovado_em: decision === "approved" ? today : null,
+    aprovado_em: null,
     notas: notes ? notes.trim() : null,
   });
 

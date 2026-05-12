@@ -13,5 +13,5 @@ Expected output:
 Constraints:
 
 - Do not modify unrelated skills.
-- Do not lower approval gates.
+- Do not lower decision/check gates.
 - Keep generated run notes under `.context/skill-evals/`.

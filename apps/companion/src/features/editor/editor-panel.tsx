@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
@@ -36,6 +36,7 @@ import {
   Smile,
   Star,
   Strikethrough,
+  Trash2,
   Underline,
   X,
 } from 'lucide-react';
@@ -55,6 +56,7 @@ import { MentionPopup } from './mention-popup';
 import { MentionChipHydrator } from './mention-chip-hydrator';
 import { FrontmatterDrawer } from './frontmatter-drawer';
 import { useI18n } from '@/components/i18n-provider';
+import { ConfirmModal } from '@/components/confirm-modal';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
   ssr: false,
@@ -121,12 +123,14 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const toggleSidebar = useWorkspace((s) => s.toggleSidebar);
   const updatePage = useWorkspace((s) => s.updatePage);
   const savePage = useWorkspace((s) => s.savePage);
+  const deleteFile = useWorkspace((s) => s.deleteFile);
   const setSourceMode = useWorkspace((s) => s.setSourceMode);
   const toggleFavorite = useWorkspace((s) => s.toggleFavorite);
   const effectiveWidth = useWorkspace((s) =>
     resolvePageWidth(effectivePageId || null, s.pages, s.settings.defaultPageWidth)
   );
   const pagePath = usePagePath();
+  const isReadOnly = activePage?.readOnly ?? true;
 
   const [mounted, setMounted] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -134,6 +138,8 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const [showWidthSub, setShowWidthSub] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [showFrontmatterDrawer, setShowFrontmatterDrawer] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [pendingPasteHtml, setPendingPasteHtml] = useState<{ html?: string; text?: string } | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
@@ -201,6 +207,48 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     }
   }, [pendingPasteHtml]);
 
+  const handleSave = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
+    if (!activePage || isReadOnly) return;
+    const ok = await savePage(activePage.id, { notes: silent ? 'autosave no companion Noteon local' : 'salvo no companion Noteon local', silent });
+    if (ok) {
+      setLastSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      if (!silent) showToast('Arquivo salvo.', 'success');
+    } else if (!silent) {
+      showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || 'Falha ao salvar.', 'error');
+    }
+  }, [activePage, isReadOnly, savePage]);
+
+  const handleDelete = useCallback(async () => {
+    if (!activePage || activePage.path === 'brain/log.md') return;
+    if (activePage.dirty) {
+      showToast(t('deleteFile.unsavedError'), 'error');
+      setShowDeleteConfirm(false);
+      return;
+    }
+    setDeleting(true);
+    const ok = await deleteFile(activePage.id);
+    setDeleting(false);
+    setShowDeleteConfirm(false);
+    showToast(ok ? t('deleteFile.movedToTrash') : t('deleteFile.failed'), ok ? 'success' : 'error');
+  }, [activePage, deleteFile, t]);
+
+  useEffect(() => {
+    if (!activePage || isReadOnly || !activePage.loaded || !activePage.dirty || activePage.saving || activePage.saveError) return;
+    const timer = window.setTimeout(() => {
+      void handleSave({ silent: true });
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [
+    activePage?.id,
+    activePage?.dirty,
+    activePage?.saving,
+    activePage?.saveError,
+    activePage?.updatedAt,
+    activePage?.loaded,
+    handleSave,
+    isReadOnly,
+  ]);
+
   if (!mounted) return <div className="flex-1 bg-background" />;
   if (!activePage) {
     return (
@@ -217,36 +265,16 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
       ? (activePage.content as JSONContent)
       : (INITIAL_DOC as JSONContent);
   const suggestionItems: SuggestionItem[] = buildSuggestionItems();
-  const isReadOnly = activePage.readOnly;
-
-  const handleSave = async () => {
-    if (isReadOnly) return;
-    let approver: string | undefined;
-    if (activePage.requiresApproval && activePage.fileDirty) {
-      approver = window.prompt('Nome do aprovador humano para registrar em brain/log.md') || undefined;
-      if (!approver?.trim()) {
-        showToast('Aprovação humana obrigatória para salvar esta página do Brain.', 'error');
-        return;
-      }
-    }
-    const ok = await savePage(activePage.id, { approver, notes: 'salvo no companion Noteon local' });
-    if (ok) {
-      setLastSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-      showToast('Arquivo salvo.', 'success');
-    } else {
-      showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || 'Falha ao salvar.', 'error');
-    }
-  };
 
   const statusLabel = activePage.saving
-    ? 'Salvando...'
+    ? t('editor.saving')
     : activePage.saveError
       ? activePage.saveError
       : activePage.dirty
-        ? 'Não salvo'
+        ? t('editor.unsaved')
         : lastSavedAt
-          ? `Salvo ${lastSavedAt}`
-          : 'Salvo';
+          ? t('editor.savedAt', { time: lastSavedAt })
+          : t('editor.saved');
 
   const openInternalLinkPicker = (clientRect: Pick<DOMRect, 'left' | 'bottom'> | { left: number; bottom: number }, query = '') => {
     window.dispatchEvent(new CustomEvent('noteblock:internal-link-open', { detail: { clientRect, query } }));
@@ -365,14 +393,14 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
             {!isReadOnly && (
               <HeaderButton
                 icon={activePage.saving ? <div className="w-3.5 h-3.5 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-                onClick={handleSave}
-                ariaLabel="Salvar"
+                onClick={() => void handleSave()}
+                ariaLabel={t('common.save')}
               />
             )}
             <HeaderButton
               icon={<Star className={cn('w-4 h-4', activePage.favorite && 'fill-amber-400 text-amber-400')} />}
               onClick={() => toggleFavorite(activePage.id)}
-              ariaLabel="Toggle favorite"
+              ariaLabel={activePage.favorite ? t('sidebar.removeFavorite') : t('sidebar.addFavorite')}
             />
             <div className="relative">
               <HeaderButton icon={<MoreHorizontal className="w-4 h-4" />} onClick={() => setShowMenu(!showMenu)} ariaLabel={t('editor.more')} />
@@ -386,20 +414,31 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                   >
                     <MenuAction
                       icon={<Check className="w-4 h-4" />}
-                      label={activePage.sourceMode ? 'Editor visual' : 'Markdown source'}
+                      label={activePage.sourceMode ? t('editor.visualEditor') : t('editor.markdownSource')}
                       onClick={() => {
                         setSourceMode(activePage.id, !activePage.sourceMode);
                         setShowMenu(false);
                       }}
                     />
                     <MenuAction
-                      icon={<Settings className="w-4 h-4" />}
-                      label="Metadados"
+                      icon={<FileText className="w-4 h-4" />}
+                      label={t('editor.frontmatter')}
                       onClick={() => {
                         setShowFrontmatterDrawer(true);
                         setShowMenu(false);
                       }}
                     />
+                    {activePage.path !== 'brain/log.md' && (
+                      <MenuAction
+                        icon={<Trash2 className="w-4 h-4" />}
+                        label={t('common.delete')}
+                        destructive
+                        onClick={() => {
+                          setShowDeleteConfirm(true);
+                          setShowMenu(false);
+                        }}
+                      />
+                    )}
                     <div className="relative">
                       <button
                         onClick={() => setShowWidthSub((v) => !v)}
@@ -472,7 +511,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                   }}
                   className="hover:bg-notion-hover px-2 py-1 rounded flex items-center gap-1 cursor-pointer"
                 >
-                  <Smile className="w-4 h-4" /> Add icon
+                  <Smile className="w-4 h-4" /> {t('editor.addIcon')}
                 </button>
               )}
               {!activePage.readOnly && !activePage.cover && (
@@ -483,7 +522,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                   }}
                   className="hover:bg-notion-hover px-2 py-1 rounded flex items-center gap-1 cursor-pointer"
                 >
-                  <ImageIcon className="w-4 h-4" /> Add cover
+                  <ImageIcon className="w-4 h-4" /> {t('editor.addCover')}
                 </button>
               )}
               <CoverPicker
@@ -563,12 +602,16 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               }}
               onPasteMultiline={(p) => setPendingPasteHtml(p)}
             />
-            {(activePage.requiresApproval || activePage.readOnly) && (
-              <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
-                {activePage.requiresApproval && <span className="rounded bg-amber-500/10 text-amber-600 px-2 py-0.5">aprovação obrigatória</span>}
-                {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">somente leitura</span>}
-              </div>
-            )}
+            <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
+              {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">{t('shared.readOnly')}</span>}
+              <button
+                onClick={() => setShowFrontmatterDrawer(true)}
+                className="rounded bg-notion-active hover:bg-notion-hover px-2 py-0.5 cursor-pointer text-notion-text-muted hover:text-notion-text"
+              >
+                {t('editor.frontmatter')} · {activePage.path.startsWith('conteudos/') ? activePage.frontmatter?.origem || t('project.content') : activePage.path.startsWith('brain/') ? 'brain' : 'local'} · {t('project.fieldCount', { count: Object.keys(activePage.frontmatter || {}).length })}
+              </button>
+              <span className="truncate">{activePage.path}</span>
+            </div>
           </div>
 
           {activePage.sourceMode ? (
@@ -739,6 +782,18 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
         </>
       )}
       {!isModal && <FrontmatterDrawer page={activePage} open={showFrontmatterDrawer} onClose={() => setShowFrontmatterDrawer(false)} />}
+      {!isModal && (
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => !deleting && setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          title={t('deleteFile.title')}
+          description={t('deleteFile.description', { title: activePage.title || t('common.untitled') })}
+          confirmLabel={deleting ? t('common.loading') : t('common.delete')}
+          cancelLabel={t('common.cancel')}
+          destructive
+        />
+      )}
     </div>
   );
 }
@@ -785,17 +840,23 @@ function MenuAction({
   icon,
   label,
   onClick,
+  destructive,
   className,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  destructive?: boolean;
   className?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className={cn('w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-notion-text', className)}
+      className={cn(
+        'w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer',
+        destructive ? 'text-red-500' : 'text-notion-text',
+        className
+      )}
     >
       {icon}
       <span>{label}</span>

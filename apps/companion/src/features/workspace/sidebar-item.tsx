@@ -2,11 +2,14 @@
 
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronRight, Copy, FileText, MoreHorizontal, Star, StarOff } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy, FileText, MoreHorizontal, Star, StarOff, Trash2 } from 'lucide-react';
 import { Page, useWorkspace } from './store';
 import { cn } from '@/lib/utils';
 import { usePagePath } from '@/hooks/use-page-path';
 import { SortablePageList } from './sortable-page-list';
+import { ConfirmModal } from '@/components/confirm-modal';
+import { showToast } from '@/components/toast';
+import { useI18n } from '@/components/i18n-provider';
 
 interface SidebarItemProps {
   page: Page;
@@ -25,10 +28,14 @@ function SidebarItemImpl({
   childrenByParent,
   activePageId,
 }: SidebarItemProps) {
+  const { t } = useI18n();
   const isExpanded = useWorkspace((s) => s.expandedPageIds.includes(page.id));
   const toggleExpand = useWorkspace((s) => s.toggleExpandPage);
   const toggleFavorite = useWorkspace((s) => s.toggleFavorite);
+  const deleteFile = useWorkspace((s) => s.deleteFile);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pagePath = usePagePath();
@@ -54,7 +61,8 @@ function SidebarItemImpl({
     () => [...childPages].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
     [childPages]
   );
-  const displayTitle = page.path === 'brain/index.md' ? 'Brain' : page.title || 'Untitled';
+  const displayTitle = page.path === 'brain/index.md' ? 'Brain' : page.title || t('common.untitled');
+  const canDelete = page.path !== 'brain/log.md';
 
   const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -64,6 +72,19 @@ function SidebarItemImpl({
   const handleCopyLink = () => {
     setMenuOpen(false);
     navigator.clipboard?.writeText(`${window.location.origin}${pagePath(page.slug)}`).catch(() => {});
+  };
+
+  const handleDelete = async () => {
+    if (page.dirty) {
+      showToast(t('deleteFile.unsavedError'), 'error');
+      setConfirmDeleteOpen(false);
+      return;
+    }
+    setDeleting(true);
+    const ok = await deleteFile(page.id);
+    setDeleting(false);
+    setConfirmDeleteOpen(false);
+    showToast(ok ? t('deleteFile.movedToTrash') : t('deleteFile.failed'), ok ? 'success' : 'error');
   };
 
   return (
@@ -84,7 +105,7 @@ function SidebarItemImpl({
               toggleExpand(page.id);
             }}
             className="relative w-4 h-4 flex items-center justify-center shrink-0 rounded transition-colors hover:bg-notion-active"
-            aria-label={isExpanded ? 'Collapse item' : 'Expand item'}
+            aria-label={isExpanded ? t('sidebar.collapseItem') : t('sidebar.expandItem')}
           >
             <span className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity">
               {page.icon ? <span className="text-[0.95rem] leading-none">{page.icon}</span> : <FileText className="w-3.5 h-3.5 text-notion-text-muted" />}
@@ -99,7 +120,7 @@ function SidebarItemImpl({
           </span>
         )}
         <span className="flex-1 truncate">{displayTitle}</span>
-        {page.dirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title="Alterações não salvas" />}
+        {page.dirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title={t('deleteFile.unsavedChanges')} />}
         <div ref={menuRef} className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity relative">
           <button
             onClick={(e) => {
@@ -107,7 +128,7 @@ function SidebarItemImpl({
               setMenuOpen((v) => !v);
             }}
             className="p-1 hover:bg-notion-active rounded transition-colors"
-            aria-label="Page actions"
+            aria-label={t('sidebar.pageActions')}
           >
             <MoreHorizontal className="w-3.5 h-3.5 text-notion-text-muted" />
           </button>
@@ -115,18 +136,42 @@ function SidebarItemImpl({
             <div className="absolute z-[80] top-full right-0 mt-1 min-w-[200px] bg-background border border-notion-border rounded-md shadow-xl py-1">
               <MenuBtn
                 icon={page.favorite ? <StarOff className="w-3.5 h-3.5" /> : <Star className="w-3.5 h-3.5" />}
-                label={page.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                label={page.favorite ? t('sidebar.removeFavorite') : t('sidebar.addFavorite')}
                 onClick={() => {
                   setMenuOpen(false);
                   toggleFavorite(page.id);
                 }}
               />
-              <MenuBtn icon={<Copy className="w-3.5 h-3.5" />} label="Copy local link" onClick={handleCopyLink} />
+              <MenuBtn icon={<Copy className="w-3.5 h-3.5" />} label={t('sidebar.copyLocalLink')} onClick={handleCopyLink} />
+              {canDelete && (
+                <>
+                  <div className="h-px bg-notion-border my-1" />
+                  <MenuBtn
+                    icon={<Trash2 className="w-3.5 h-3.5" />}
+                    label={t('common.delete')}
+                    destructive
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setConfirmDeleteOpen(true);
+                    }}
+                  />
+                </>
+              )}
               <div className="px-3 py-1.5 text-[10px] text-notion-text-muted truncate">{page.path}</div>
             </div>
           )}
         </div>
       </div>
+      <ConfirmModal
+        isOpen={confirmDeleteOpen}
+        onClose={() => !deleting && setConfirmDeleteOpen(false)}
+        onConfirm={handleDelete}
+        title={t('deleteFile.title')}
+        description={t('deleteFile.description', { title: displayTitle })}
+        confirmLabel={deleting ? t('common.loading') : t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        destructive
+      />
       {isExpanded && childPages.length > 0 && (
         <SortablePageList
           pages={sortedChildren}
@@ -140,14 +185,27 @@ function SidebarItemImpl({
   );
 }
 
-function MenuBtn({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+function MenuBtn({
+  icon,
+  label,
+  onClick,
+  destructive,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  destructive?: boolean;
+}) {
   return (
     <button
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover text-left cursor-pointer text-notion-text"
+      className={cn(
+        'w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover text-left cursor-pointer',
+        destructive ? 'text-red-500' : 'text-notion-text'
+      )}
     >
       {icon}
       <span>{label}</span>

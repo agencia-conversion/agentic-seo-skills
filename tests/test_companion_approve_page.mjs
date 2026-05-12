@@ -53,12 +53,14 @@ const fmStub = (file, updates) => {
 const bad = await handleSubmit({ decision: "weird", approver: "Diego" }, ctx, { setFrontmatterValue: fmStub });
 assert.deepEqual(bad, { ok: false, reason: "invalid-decision" });
 
-const noApprover = await handleSubmit({ decision: "approved", approver: " " }, ctx, { setFrontmatterValue: fmStub });
-assert.deepEqual(noApprover, { ok: false, reason: "missing-approver" });
+const defaultActor = await handleSubmit({ decision: "needs-evidence", approver: " " }, ctx, { setFrontmatterValue: fmStub });
+assert.equal(defaultActor.ok, true);
+assert.equal(defaultActor.approver, "agent");
+const ctxAfterDefault = { ...buildContext({ projectRoot, fileRel: "brain/identidade.md" }), projectRoot };
 
 const ok = await handleSubmit(
   { decision: "approved", approver: "Diego Ivo", notes: "evidências consolidadas", register_missing: true },
-  ctx,
+  ctxAfterDefault,
   { setFrontmatterValue: fmStub },
 );
 assert.equal(ok.ok, true);
@@ -68,18 +70,17 @@ assert.deepEqual(ok.sources_registered, ["../sources/manual/briefing.md"]);
 assert.ok(existsSync(ok.snapshot), "snapshot must exist");
 
 const log = readFileSync(join(brain, "log.md"), "utf8");
-assert.match(log, /## \d{4}-\d{2}-\d{2} - identidade approved/);
-assert.match(log, /- tipo: aprovacao/);
+assert.match(log, /## \d{4}-\d{2}-\d{2} - identidade registrado/);
+assert.match(log, /- tipo: decisao/);
 assert.match(log, /- aprovador: Diego Ivo/);
-assert.match(log, /- aprovado_em: \d{4}-\d{2}-\d{2}/);
-assert.match(log, /- decisao: brain\/identidade\.md marcado como approved por Diego Ivo\./);
+assert.match(log, /- decisao: brain\/identidade\.md marcado como registrado por Diego Ivo\./);
 assert.match(log, /- notas: evidências consolidadas/);
 assert.match(log, /## \d{4}-\d{2}-\d{2} - Ingestao de fonte: briefing\.md/, "missing source registered as tipo: ingestao");
 
 writeFileSync(ctx.filePath, readFileSync(ctx.filePath, "utf8") + "\n<!-- modified -->\n");
 const stale = await handleSubmit(
   { decision: "approved", approver: "Diego Ivo" },
-  ctx,
+  ctxAfterDefault,
   { setFrontmatterValue: fmStub },
 );
 assert.deepEqual({ ok: stale.ok, reason: stale.reason }, { ok: false, reason: "file-modified" });

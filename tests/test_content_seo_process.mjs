@@ -59,13 +59,7 @@ run(["project-init", "Process Test"]);
 }
 
 {
-  const blocked = runNoCreds(["seo-analysis", "--keyword", "websearch sem confirmação", "--provider", "websearch"]);
-  assert.notEqual(blocked.status, 0);
-  assert.match(blocked.stderr, /WebSearch is secondary/);
-  const missingWrittenApproval = runNoCreds(["seo-analysis", "--keyword", "websearch confirmado", "--provider", "websearch", "--websearch-confirmed", "--websearch-reason", "teste explícito"]);
-  assert.notEqual(missingWrittenApproval.status, 0);
-  assert.match(missingWrittenApproval.stderr, /requires written approval/);
-  const allowed = runNoCreds(["seo-analysis", "--keyword", "websearch confirmado", "--provider", "websearch", "--websearch-confirmed", "--websearch-reason", "teste explícito", ...dataforseoBypassArgs("teste explícito")]);
+  const allowed = runNoCreds(["seo-analysis", "--keyword", "websearch confirmado", "--provider", "websearch", "--websearch-reason", "teste explícito"]);
   assert.equal(allowed.status, 0, allowed.stderr);
   assert.equal(JSON.parse(allowed.stdout).provider, "websearch");
 }
@@ -73,16 +67,16 @@ run(["project-init", "Process Test"]);
 {
   const res = run(["content-seo", "--topic", "SEO sem SERP", "--skip-data", "--skip-data-reason", "homepage only"]);
   assert.notEqual(res.status, 0);
-  assert.match(res.stderr, /--skip-data-confirmed/);
+  assert.match(res.stderr, /Top 3 competitor evidence/);
 }
 
 {
   const res = run(["content-seo", "--topic", "SEO sem SERP", "--skip-data", "--skip-data-confirmed", "--skip-data-reason", "usuário pediu sem SERP", ...dataforseoBypassArgs("usuário pediu sem SERP"), "--top3-bypass-confirmed", "--top3-bypass-reason", "usuário aprovou briefing sem Top 3"]);
   assert.equal(res.status, 0, res.stderr);
   const json = JSON.parse(res.stdout);
-  assert.equal(json.status, "approval_required");
-  assert.equal(json.brief.approval.status, "pending");
-  assert.equal(json.brief.draft_status, "briefing");
+  assert.equal(json.status, "ready_for_writing");
+  assert.equal(json.brief.approval.status, "not_required");
+  assert.equal(json.brief.draft_status, "ready-for-writing");
   assert.equal(json.brief.process_bypass[0].aprovador, "Diego Ivo");
   assert.match(json.brief.process_bypass[0].confirmation_text, /DataForSEO/);
   assert.equal("next_handoff_command" in json, false);
@@ -95,20 +89,11 @@ run(["project-init", "Process Test"]);
   assert.equal(existsSync(join(workDir, "brief.md")), true);
   assert.equal(existsSync(join(workDir, "draft.md")), false);
   assert.equal(existsSync(join(artifactDir, "draft.md")), false);
-  assert.equal(json.web_companion?.recommended, true);
+  assert.equal(json.web_companion?.recommended, false);
   assert.equal(json.brief_markdown_path.endsWith(join("workbench", "content", "seo-sem-serp", "brief.md")), true);
 
-  const writePending = run(["content-seo", "--phase", "write", "--topic", "SEO sem SERP"]);
-  assert.notEqual(writePending.status, 0);
-  assert.match(writePending.stderr, /not approved/i);
-
-  const blockedApproval = run(["content-seo", "--phase", "approve", "--topic", "SEO sem SERP", "--approved-by", "Diego Ivo"]);
-  assert.notEqual(blockedApproval.status, 0);
-  assert.match(blockedApproval.stderr, /voice-context-not-acknowledged/);
-
-  const approved = run(["content-seo", "--phase", "approve", "--topic", "SEO sem SERP", "--approved-by", "Diego Ivo", "--approval-notes", "Tom de voz em draft reconhecido."]);
-  assert.equal(approved.status, 0, approved.stderr);
-  assert.equal(JSON.parse(approved.stdout).status, "draft_created");
+  const written = run(["content-seo", "--phase", "write", "--topic", "SEO sem SERP"]);
+  assert.equal(written.status, 0, written.stderr);
   assert.equal(existsSync(join(artifactDir, "draft.md")), true);
   assert.equal(existsSync(join(workDir, "draft.md")), false);
   let brief = YAML.parse(readFileSync(join(workDir, "brief.yaml"), "utf8"));
@@ -151,11 +136,7 @@ run(["project-init", "Process Test"]);
   assert.equal(JSON.parse(goodCheck.stdout).ok, true);
   assert.equal(YAML.parse(readFileSync(join(artifactDir, "word-count.yaml"), "utf8")).ok, true);
 
-  const promoteMissingApproval = run(["content-seo", "--phase", "promote", "--topic", "SEO sem SERP"]);
-  assert.notEqual(promoteMissingApproval.status, 0);
-  assert.match(promoteMissingApproval.stderr, /--approved-by/);
-
-  const promoted = run(["content-seo", "--phase", "promote", "--topic", "SEO sem SERP", "--approved-by", "Diego Ivo"]);
+  const promoted = run(["content-seo", "--phase", "promote", "--topic", "SEO sem SERP"]);
   assert.equal(promoted.status, 0, promoted.stderr);
   const published = readFileSync(join(projectDir, "conteudos", "blog", "seo-sem-serp.md"), "utf8");
   assert.match(published, /origem: "blog"/);
@@ -257,8 +238,8 @@ run(["project-init", "Process Test"]);
   assert.match(briefMd, /Web Companion/);
   assert.match(briefMd, /Outline publicável/);
 
-  const approved = run(["content-seo", "--phase", "approve", "--topic", "Conteúdo Longo", "--approved-by", "Diego Ivo", "--approval-notes", "Tom de voz em draft reconhecido."]);
-  assert.equal(approved.status, 0, approved.stderr);
+  const written = run(["content-seo", "--phase", "write", "--topic", "Conteúdo Longo"]);
+  assert.equal(written.status, 0, written.stderr);
   const check = run(["content-seo", "--phase", "check", "--topic", "Conteúdo Longo"]);
   assert.notEqual(check.status, 0);
   const wordCount = YAML.parse(readFileSync(join(projectDir, "artifacts", "contents", "conteudo-longo", "word-count.yaml"), "utf8"));
@@ -288,16 +269,10 @@ run(["project-init", "Process Test"]);
     limitations: [],
     incomplete: false,
   }, { lineWidth: 0 }));
-  const blocked = run(["content-seo", "--topic", "Conteúdo WebSearch", "--keyword", "conteúdo websearch"]);
-  assert.notEqual(blocked.status, 0);
-  assert.match(blocked.stderr, /requires written approval/);
-  const missingWrittenApproval = run(["content-seo", "--topic", "Conteúdo WebSearch", "--keyword", "conteúdo websearch", "--provider-bypass-confirmed", "--provider-bypass-reason", "usuário aceitou WebSearch"]);
-  assert.notEqual(missingWrittenApproval.status, 0);
-  assert.match(missingWrittenApproval.stderr, /requires written approval/);
-  const allowed = run(["content-seo", "--topic", "Conteúdo WebSearch", "--keyword", "conteúdo websearch", "--provider-bypass-confirmed", "--provider-bypass-reason", "usuário aceitou WebSearch", ...dataforseoBypassArgs("usuário aceitou WebSearch")]);
+  const allowed = run(["content-seo", "--topic", "Conteúdo WebSearch", "--keyword", "conteúdo websearch", "--provider-bypass-reason", "usuário aceitou WebSearch"]);
   assert.equal(allowed.status, 0, allowed.stderr);
   const brief = YAML.parse(readFileSync(join(projectDir, "workbench", "content", "conteudo-websearch", "brief.yaml"), "utf8"));
-  assert.equal(brief.process_bypass[0].aprovador, "Diego Ivo");
+  assert.equal(brief.process_bypass[0].aprovador, "agent");
   assert.equal(brief.process_bypass[0].reason, "usuário aceitou WebSearch");
   assert.match(brief.process_bypass[0].consequence, /not DataForSEO-backed/);
   assert.match(brief.process_bypass[0].confirmation_text, /sem DataForSEO/);

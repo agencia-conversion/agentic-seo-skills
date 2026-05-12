@@ -45,22 +45,22 @@
     </section>
 
     <form id="form">
-      <label for="approver">Seu nome</label>
-      <input id="approver" name="approver" autocomplete="name" required>
+      <label for="approver">Registrando como</label>
+      <input id="approver" name="approver" autocomplete="name" placeholder="agent">
 
       <label for="reason">Motivo do bypass</label>
       <input id="reason" name="reason" required>
 
-      <label for="confirmation">Confirmação escrita</label>
-      <textarea id="confirmation" name="confirmation_text" required></textarea>
-      <div class="hint">Escreva uma frase que mencione DataForSEO e confirme que você quer seguir sem ele, por exemplo: <code>Confirmo seguir sem DataForSEO neste briefing.</code></div>
+      <label for="confirmation">Nota opcional</label>
+      <textarea id="confirmation" name="confirmation_text"></textarea>
+      <div class="hint">Registre qualquer limitação útil. Se ficar em branco, o plugin grava uma nota automática.</div>
 
       <div class="actions">
         <button class="primary" type="submit">Aprovar bypass</button>
         <button class="secondary" type="button" id="cancel">Cancelar</button>
       </div>
       <div class="error" id="error"></div>
-      <div class="done" id="done">Bypass aprovado. Esta janela pode ser fechada.</div>
+      <div class="done" id="done">Bypass registrado. Esta janela pode ser fechada.</div>
     </form>
   </main>
   <script>
@@ -86,7 +86,7 @@
       });
       const data = await res.json();
       if (!data.ok) {
-        document.getElementById("error").textContent = data.reason || "Não foi possível aprovar.";
+        document.getElementById("error").textContent = data.reason || "Não foi possível registrar.";
         document.getElementById("error").style.display = "block";
         return;
       }

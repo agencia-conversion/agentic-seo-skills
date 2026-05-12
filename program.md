@@ -14,7 +14,7 @@ Improve Agentic SEO by iterating on one measurable skill or subsystem at a time.
 
 ## Operating Principle
 
-Humans provide direction and judgment. Agents execute bounded experiments, evaluate against fixtures, and keep only changes that improve measured quality without weakening safety, provenance, or approval gates.
+Humans provide direction and judgment. Agents execute bounded experiments, evaluate against fixtures, and keep only changes that improve measured quality without weakening safety, provenance, or decision/check gates.
 
 ## Editable Surface
 
@@ -34,7 +34,7 @@ During a run, do not modify:
 - real `.env` files;
 - raw source fixtures used by tests;
 - evaluator pass/fail thresholds unless the explicit task is evaluator design;
-- approved brain fixtures;
+- logged Brain fixtures;
 - unrelated skill directories.
 
 ## Experiment Loop
@@ -57,7 +57,7 @@ A change can be kept when all are true:
 - deterministic tests pass;
 - no secrets are printed or committed;
 - write scope stays within the selected subsystem;
-- strategic approval gates remain intact;
+- strategic decision/check gates remain intact;
 - score improves or a critical defect is fixed;
 - user-facing output becomes clearer, more accurate, or more useful.
 
@@ -66,7 +66,7 @@ A change can be kept when all are true:
 Reject or quarantine a change when any are true:
 
 - it fabricates data;
-- it weakens approval gates;
+- it weakens decision/check gates;
 - it makes the UX more terminal-dependent;
 - it edits raw sources;
 - it broadens scope without need;
@@ -81,8 +81,8 @@ Every skill run should report:
 - fixture pass rate;
 - deterministic test status;
 - data provenance quality;
-- brain update correctness;
-- human approval correctness;
+- Brain update correctness;
+- decision-log correctness;
 - user-facing clarity;
 - final 0-100 score.
 
@@ -92,8 +92,8 @@ The v0.1 golden path is:
 
 1. configure provider status without exposing secrets;
 2. create one project;
-3. create initial brain;
-4. approve required strategic pages;
+3. create initial Brain;
+4. record decisions for required strategic pages;
 5. run keyword and SERP analysis;
 6. create topic cluster;
 7. create content brief;

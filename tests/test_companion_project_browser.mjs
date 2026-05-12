@@ -1,15 +1,39 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+  bootstrapBrainFiles,
   buildProjectTree,
   createProjectFile,
+  deleteProjectFile,
   readProjectFile,
   readProjectLog,
   saveProjectFile,
   validateProjectFileRel,
 } from "../scripts/lib/project-browser-files.mjs";
+
+const emptyTmp = mkdtempSync(join(tmpdir(), "agentic-seo-browser-empty-"));
+const emptyProjectRoot = join(emptyTmp, "project");
+mkdirSync(emptyProjectRoot, { recursive: true });
+const emptyTree = buildProjectTree({ projectRoot: emptyProjectRoot });
+assert.equal(emptyTree.ok, true);
+assert.equal(emptyTree.hasFiles, false);
+assert.equal(emptyTree.hasBrain, false);
+assert.equal(emptyTree.canBootstrapBrain, true);
+
+const bootstrapped = bootstrapBrainFiles({ projectRoot: emptyProjectRoot });
+assert.equal(bootstrapped.ok, true);
+assert.equal(bootstrapped.created.length, 7);
+assert.ok(existsSync(join(emptyProjectRoot, "brain", "index.md")));
+assert.ok(readFileSync(join(emptyProjectRoot, "brain", "index.md"), "utf8").includes('title: "Agentic SEO"'));
+assert.match(readFileSync(join(emptyProjectRoot, "brain", "log.md"), "utf8"), /Brain criado no Companion/);
+const bootstrappedTree = buildProjectTree({ projectRoot: emptyProjectRoot });
+assert.equal(bootstrappedTree.hasFiles, true);
+assert.equal(bootstrappedTree.hasBrain, true);
+assert.equal(bootstrappedTree.canBootstrapBrain, false);
+assert.deepEqual(bootstrapBrainFiles({ projectRoot: emptyProjectRoot }), { ok: false, reason: "brain-already-exists" });
+rmSync(emptyTmp, { recursive: true, force: true });
 
 const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-browser-"));
 const projectRoot = join(tmp, "project");
@@ -92,11 +116,14 @@ assert.deepEqual(validateProjectFileRel("brain/log.md", { write: true }), { ok: 
 const tree = buildProjectTree({ projectRoot });
 assert.equal(tree.ok, true);
 assert.equal(tree.project.name, "Projeto Teste");
+assert.equal(tree.hasFiles, true);
+assert.equal(tree.hasBrain, true);
+assert.equal(tree.canBootstrapBrain, false);
 const vozSummary = tree.sections[0].items.find((item) => item.path === "brain/voz.md");
 assert.equal(vozSummary.title, "Tom de Voz");
-assert.equal(vozSummary.requiresApproval, true);
+assert.equal(vozSummary.requiresApproval, false);
 assert.ok(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path === "conteudos/blog/post-teste.md"));
-assert.equal(tree.sections.some((section) => section.id === "workbench"), false);
+assert.ok(tree.sections.find((section) => section.id === "workbench").items.some((item) => item.path === "workbench/drafts/ideia.md"));
 
 writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Conversion" }), "utf8");
 const conversionTree = buildProjectTree({ projectRoot });
@@ -154,34 +181,36 @@ assert.equal(stale.reason, "file-modified");
 assert.match(readFileSync(join(brain, "voz.md"), "utf8"), /Mudança externa/);
 
 const fresh = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
-const missingApprover = saveProjectFile({
+const savedWithoutApprover = saveProjectFile({
   projectRoot,
   fileRel: "brain/voz.md",
   expectedHash: fresh.hash,
   title: "Tom de Voz",
   body: "# Voz\n\nTexto novo com conteúdo e evidência.",
 });
-assert.deepEqual({ ok: missingApprover.ok, reason: missingApprover.reason }, { ok: false, reason: "missing-approver" });
+assert.equal(savedWithoutApprover.ok, true);
 
+const freshAfterAgentSave = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
 const saved = saveProjectFile({
   projectRoot,
   fileRel: "brain/voz.md",
-  expectedHash: fresh.hash,
+  expectedHash: freshAfterAgentSave.hash,
   title: "Tom de Voz Revisado",
   body: "# Voz\n\nTexto novo com conteúdo e evidência.",
   approver: "Diego Ivo",
   notes: "aprovado no companion",
 });
 assert.equal(saved.ok, true);
-assert.equal(saved.requiresApproval, true);
+assert.equal(saved.requiresApproval, false);
 const savedText = readFileSync(join(brain, "voz.md"), "utf8");
 assert.match(savedText, /title: "Tom de Voz Revisado"/);
 assert.match(savedText, /updated: "\d{4}-\d{2}-\d{2}"/);
 assert.match(savedText, /Texto novo com conteúdo e evidência/);
 
 const logText = readFileSync(join(brain, "log.md"), "utf8");
-assert.match(logText, /- tipo: aprovacao/);
+assert.match(logText, /- tipo: decisao/);
 assert.match(logText, /- escopo: brain\/voz\.md/);
+assert.match(logText, /- aprovador: agent/);
 assert.match(logText, /- aprovador: Diego Ivo/);
 assert.match(logText, /- notas: aprovado no companion/);
 
@@ -195,6 +224,13 @@ const logSave = saveProjectFile({
 });
 assert.deepEqual({ ok: logSave.ok, reason: logSave.reason }, { ok: false, reason: "read-only-log" });
 
+const deleteLog = deleteProjectFile({
+  projectRoot,
+  fileRel: "brain/log.md",
+  expectedHash: readProjectFile({ projectRoot, fileRel: "brain/log.md" }).hash,
+});
+assert.deepEqual({ ok: deleteLog.ok, reason: deleteLog.reason }, { ok: false, reason: "read-only-log" });
+
 const log = readProjectLog({ projectRoot });
 assert.equal(log.ok, true);
 assert.ok(log.readOnly);
@@ -204,6 +240,42 @@ const created = createProjectFile({ projectRoot, kind: "workbench", title: "Pág
 assert.equal(created.ok, true);
 assert.match(created.path, /^workbench\/companion\/pagina-de-trabalho.*\.md$/);
 assert.match(readFileSync(join(projectRoot, created.path), "utf8"), /Página de trabalho/);
+
+const staleDelete = deleteProjectFile({
+  projectRoot,
+  fileRel: "conteudos/blog/post-teste.md",
+  expectedHash: "stale",
+});
+assert.equal(staleDelete.ok, false);
+assert.equal(staleDelete.reason, "file-modified");
+const dirtyDelete = deleteProjectFile({
+  projectRoot,
+  fileRel: "conteudos/blog/post-teste.md",
+  expectedHash: readProjectFile({ projectRoot, fileRel: "conteudos/blog/post-teste.md" }).hash,
+  dirty: true,
+});
+assert.equal(dirtyDelete.ok, false);
+assert.equal(dirtyDelete.reason, "dirty-file");
+const contentDeleteTarget = readProjectFile({ projectRoot, fileRel: "conteudos/blog/post-teste.md" });
+const deletedContent = deleteProjectFile({
+  projectRoot,
+  fileRel: "conteudos/blog/post-teste.md",
+  expectedHash: contentDeleteTarget.hash,
+});
+assert.equal(deletedContent.ok, true);
+assert.match(deletedContent.trashPath, /^\.agentic-seo\/trash\/.+\/conteudos\/blog\/post-teste\.md$/);
+assert.equal(existsSync(join(projectRoot, "conteudos", "blog", "post-teste.md")), false);
+assert.equal(existsSync(join(projectRoot, deletedContent.trashPath)), true);
+
+const brainDeleteTarget = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
+const deletedBrain = deleteProjectFile({
+  projectRoot,
+  fileRel: "brain/voz.md",
+  expectedHash: brainDeleteTarget.hash,
+});
+assert.equal(deletedBrain.ok, true);
+assert.equal(existsSync(join(projectRoot, "brain", "voz.md")), false);
+assert.match(readFileSync(join(projectRoot, "brain", "log.md"), "utf8"), /brain\/voz\.md movido para a lixeira do Companion Web/);
 
 rmSync(tmp, { recursive: true, force: true });
 console.log("companion project-browser ok");

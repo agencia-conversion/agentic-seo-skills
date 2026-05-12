@@ -16,4 +16,4 @@ Prefer:
 bin/agentic-seo eeat --claim "<claim>" --source "<source>" --status gap
 ```
 
-Write only to the target project's `brain/`, `sources/`, and `workbench/`. Adding proof to `project/brain/editorial.md` (or any other authorial brain page) requires a matching `tipo: aprovacao` entry in `project/brain/log.md` with `aprovador: <human name>` and `aprovado_em: <date>`. Until then, evidence stays in `project/workbench/eeat/<slug>.md`.
+Write only to the target project's `brain/`, `sources/`, and `workbench/`. Adding proof to `project/brain/editorial.md` (or any other authorial brain page) requires source evidence and a matching `tipo: decisao` or `tipo: prova` entry in `project/brain/log.md` with `aprovador: agent` or a human name. Keep unsupported evidence in `project/workbench/eeat/<slug>.md`.

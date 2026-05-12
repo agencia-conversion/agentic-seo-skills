@@ -13,7 +13,7 @@ You are a SERP evidence extractor for Agentic SEO. Your goal is to capture and n
 
 Use this skill when the user asks for SERP extraction, ranking snapshots, competitor URLs from a search results page, organic result capture, or SERP feature evidence.
 
-Do not use this skill to infer search intent, recommend content strategy, compare a target page against competitors, approve strategic context, write authorial brain pages, or write content. Those workflows may consume this evidence later, but this skill only captures the SERP.
+Do not use this skill to infer search intent, recommend content strategy, compare a target page against competitors, decide strategic context, write authorial brain pages, or write content. Those workflows may consume this evidence later, but this skill only captures the SERP.
 
 ## Critical Points
 
@@ -24,7 +24,7 @@ Do not use this skill to infer search intent, recommend content strategy, compar
 - Raw provider responses belong under `project/audits/<slug>/sources/dataforseo/` as `.raw.json`. Treat raw files as immutable evidence once written. Callers (`content-seo`, `seo-analysis`, `topic-cluster`) may override the default `<slug>` root via a parameter so the SERP evidence lands in `project/contents/<slug>/sources/dataforseo/` or `project/clusters/<seed>/sources/dataforseo/` respectively.
 - Normalized extraction outputs belong under `project/audits/<slug>/` as `report.yaml`. Keep normalized data separate from raw provider payloads.
 - Record provider, provider mode, location, language, device, depth, timestamp, and source paths for every keyword.
-- Default location, language, and device may come from the user request or approved project context. If they are missing and cannot be determined, block instead of silently using global English results.
+- Default location, language, and device may come from the user request or logged project context. If they are missing and cannot be determined, block instead of silently using global English results.
 - Normalize organic results and SERP features exactly as observed. Deduplicate identical URLs inside a keyword result while preserving the first observed position.
 - Empty or missing provider results are valid evidence. Output an empty result set with a limitation instead of inventing rankings.
 - Do not write SERP extracts, hypotheses, or strategic conclusions to `project/brain/`. If an event should be logged, include a `log_entry_plan` with `tipo: decisao`.
@@ -97,7 +97,7 @@ Offline fixture data is evidence of the fixture only. Set `is_offline_fixture: t
 
 **Weak:** "Return a prose summary that says the extraction is done."
 
-The artifact is operational evidence, not approved strategy. Do not write it into authorial brain pages and do not ask for strategic approval as part of this skill.
+The artifact is operational evidence, not decided strategy. Do not write it into authorial brain pages or ask for a strategic decision as part of this skill.
 
 ## Output Format
 
@@ -183,11 +183,10 @@ Output: "Set `provider_mode: offline`, `is_offline_fixture: true`, and `live_con
 
 Input: "Extract competitor URLs for `seo agêntico`."
 
-Output: "Search manually, summarize the top pages as informational intent, estimate demand, and write conclusions to the brain." This is weak because it bypasses the default provider, mixes evidence with analysis, fabricates unavailable metrics, and promotes unapproved conclusions.
-
+Output: "Search manually, summarize the top pages as informational intent, estimate demand, and write conclusions to the brain." This is weak because it bypasses the default provider, mixes evidence with analysis, fabricates unavailable metrics, and promotes unevidenced conclusions.
 ## Related Skills
 
 - `seo-analysis`: use after SERP evidence exists and the user wants intent patterns, competitor comparison, target-page gaps, or player-score interpretation.
 - `keyword-research`: use when the primary task is keyword discovery, clustering, or keyword metric collection.
-- `content-seo`: use when the user wants a content brief or draft based on approved evidence.
+- `content-seo`: use when the user wants a content brief or draft based on source evidence.
 - `technical-seo`: use when the primary task is crawl, rendering, indexability, or page health rather than SERP capture.

@@ -27,7 +27,7 @@ node tools/clis/dataforseo.js backlinks summary --target example.com --dry-run
 
 - `status`, `help`, `--offline`, and `--dry-run` must never require credentials or consume credits.
 - Live calls must return provider responses as JSON without storing raw client data in the repository.
-- Skills interpret tool output; the CLI does not write brain pages or approve strategic context.
+- Skills interpret tool output; the CLI does not write brain pages or decide strategic context.
 - Missing metrics remain `null`; agents must not infer keyword volume, backlink counts, or rankings.
 
 ## Endpoint Coverage

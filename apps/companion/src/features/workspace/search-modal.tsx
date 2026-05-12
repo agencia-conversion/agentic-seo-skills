@@ -13,7 +13,7 @@ import { useI18n } from '@/components/i18n-provider';
 export function SearchModal() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
-  const { pages, createContentPage } = useWorkspace();
+  const { pages, createWorkbenchFile } = useWorkspace();
   const router = useRouter();
   const pagePath = usePagePath();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -39,7 +39,7 @@ export function SearchModal() {
   };
 
   const handleCreate = async () => {
-    const id = await createContentPage('Nova página');
+    const id = await createWorkbenchFile(t('emptyWorkspace.defaultFileTitle'));
     const created = useWorkspace.getState().pages.find((p) => p.id === id);
     if (created) router.push(pagePath(created.slug));
     setOpen(false);

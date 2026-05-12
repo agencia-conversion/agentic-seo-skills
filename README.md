@@ -2,7 +2,7 @@
 
 Agentic SEO Skills is officially available as a Claude Code plugin.
 
-It is an Agentic SEO framework for building strategy with human judgment and agent scale. Humans approve strategic context; agents execute research, analysis, content workflows, technical checks, and brain maintenance.
+It is an Agentic SEO framework for building strategy with human judgment and agent scale. Agents execute research, analysis, content workflows, technical checks, and brain maintenance while recording decisions, evidence, and limitations.
 
 ## Install in Claude Code
 
@@ -68,7 +68,7 @@ Other IDEs and agents can test the portable parts of the framework, but not the 
 - reading `skills/<skill-name>/SKILL.md` files as portable skill instructions;
 - running the local CLI commands after cloning the repository;
 - using `templates/` and `docs/` as reference material;
-- validating source separation, brain layout, and approval-aware workflows manually.
+- validating source separation, Brain layout, and decision-aware workflows manually.
 
 What is Claude Code-specific and should not be expected to work in other IDEs:
 
@@ -94,11 +94,11 @@ Agentic SEO Skills organizes Agentic SEO around six pillars:
 
 The operating model is simple:
 
-- humans own strategy, judgment, positioning, and approvals;
+- humans own strategy, judgment, and positioning;
 - agents execute repeatable intelligence with explicit criteria;
 - project knowledge compounds in an Obsidian-compatible brain;
 - raw sources stay separate from synthesized knowledge;
-- strategic pages require explicit human approval before they become canonical context.
+- strategic pages require logged evidence and decisions before they become durable context.
 
 Agentic SEO is English-first and officially supports Brazilian Portuguese. Generated prose preserves spelling, accents, and diacritics in the requested language.
 

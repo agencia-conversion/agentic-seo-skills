@@ -48,19 +48,19 @@ project/
 - escopo: <arquivo(s) | área | cluster | fonte>
 - decisao: <o que mudou>
 - evidencia: <wikilinks, ../sources/..., urls>
-- aprovador: <nome humano | agent | pendente>
-- aprovado_em: <YYYY-MM-DD ou ausente>
+- aprovador: <nome humano | agent>
+- aprovado_em: <YYYY-MM-DD opcional para entradas legadas de aprovação>
 - notas: <opcional>
 ```
 
 ## Companion server
 
-The browser-based approval/preview flow runs on the brain model:
+The browser-based decision/preview flow runs on the brain model:
 
 - Helper module: `scripts/lib/brain-page.mjs`.
-- Approval target paths are `brain/<page>.md`; the only authorial pages are `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`.
+- Review target paths are `brain/<page>.md`; the only authorial pages are `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`.
 - Missing sources detected during page review are registered as `tipo: ingestao` entries in `brain/log.md` (no separate sources catalog).
-- Project browser mode: `scripts/companion.mjs project-browser` starts the Noteon-based Next companion on `127.0.0.1` with a tokenized URL. It maps local Markdown files from `project/brain/`, `project/conteudos/`, and `project/workbench/` into the Noteon UI, keeps `brain/log.md` read-only, and writes authorial brain edits only with a matching `tipo: aprovacao` log entry.
+- Project browser mode: `scripts/companion.mjs project-browser` starts the Noteon-based Next companion on `127.0.0.1` with a tokenized URL. It maps local Markdown files from `project/brain/`, `project/conteudos/`, and `project/workbench/` into the Noteon UI, keeps `brain/log.md` read-only, and autosaves editable files while logging authorial brain edits as `tipo: decisao`.
 - `eeat` engine accepts `--mode brain` or `--mode url`.
 
 ## Tools

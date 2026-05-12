@@ -3,7 +3,7 @@ import { docToMarkdown, markdownToDoc } from '@/lib/markdown';
 import { LocalePreference } from '@/lib/i18n';
 import { projectPageSlug } from '@/lib/project-slugs';
 
-const SIDEBAR_STORAGE_KEY = 'seo-brain:companion:sidebar';
+const SIDEBAR_STORAGE_KEY = 'agentic-seo:companion:sidebar';
 const DEFAULT_SIDEBAR_WIDTH = 300;
 const MIN_SIDEBAR_WIDTH = 240;
 const MAX_SIDEBAR_WIDTH = 480;
@@ -93,6 +93,9 @@ interface WorkspaceState {
   activePageId: string | null;
   projectName: string;
   projectRoot: string;
+  hasFiles: boolean;
+  hasBrain: boolean;
+  canBootstrapBrain: boolean;
   token: string | null;
   sidebarCollapsed: boolean;
   sidebarWidth: number;
@@ -107,7 +110,8 @@ interface WorkspaceState {
 
   initializeProject: (token: string) => Promise<void>;
   loadPage: (id: string) => Promise<void>;
-  savePage: (id: string, options?: { approver?: string; notes?: string }) => Promise<boolean>;
+  savePage: (id: string, options?: { notes?: string; silent?: boolean }) => Promise<boolean>;
+  bootstrapBrain: () => Promise<string | null>;
   setHasHydrated: (state: boolean) => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -115,9 +119,11 @@ interface WorkspaceState {
   toggleExpandPage: (id: string) => void;
   reorderPages: (parentId: string | null, orderedIds: string[]) => void;
   addPage: (parentId?: string | null, type?: 'doc' | 'database', options?: { setActive?: boolean; initialTitle?: string }) => string;
+  createWorkbenchFile: (title?: string) => Promise<string | null>;
   createContentPage: (title?: string) => Promise<string | null>;
   updatePage: (id: string, updates: Partial<Page>) => void;
   toggleFavorite: (id: string) => void;
+  deleteFile: (id: string) => Promise<boolean>;
   deletePage: (id: string) => void;
   trashPage: (id: string) => void;
   restorePage: (id: string) => void;
@@ -151,6 +157,30 @@ const DEFAULT_SETTINGS: WorkspaceState['settings'] = {
   defaultPageWidth: 'md',
   language: 'system',
 };
+const SETTINGS_STORAGE_KEY = 'agentic-seo-companion-settings';
+
+function readInitialSettings(): WorkspaceState['settings'] {
+  if (typeof window === 'undefined') return { ...DEFAULT_SETTINGS };
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return {
+      ...DEFAULT_SETTINGS,
+      ...(parsed && typeof parsed === 'object' ? parsed : {}),
+      language: ['system', 'en', 'pt-BR'].includes(parsed?.language) ? parsed.language : DEFAULT_SETTINGS.language,
+      defaultPageWidth: ['sm', 'md', 'lg', 'full'].includes(parsed?.defaultPageWidth)
+        ? parsed.defaultPageWidth
+        : DEFAULT_SETTINGS.defaultPageWidth,
+    };
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+function writeSettings(settings: WorkspaceState['settings']) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+}
 
 function clampSidebarWidth(width: number) {
   return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
@@ -233,7 +263,7 @@ function pageFromSummary(item: any, sectionId: string, sortOrder: number, parent
     saving: false,
     saveError: null,
     readOnly: !!item.readOnly,
-    requiresApproval: !!item.requiresApproval,
+    requiresApproval: false,
     sourceMode: false,
   };
 }
@@ -329,12 +359,15 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   activePageId: null,
   projectName: 'agentic seo',
   projectRoot: '',
+  hasFiles: false,
+  hasBrain: false,
+  canBootstrapBrain: true,
   token: null,
   sidebarCollapsed: readSidebarPreference().collapsed ?? false,
   sidebarWidth: readSidebarPreference().width ?? DEFAULT_SIDEBAR_WIDTH,
   expandedPageIds: [],
   templates: [],
-  settings: { ...DEFAULT_SETTINGS },
+  settings: readInitialSettings(),
   _hasHydrated: false,
 
   initializeProject: async (token) => {
@@ -363,6 +396,9 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       activePageId: firstPageId,
       projectName: tree.project?.name || 'agentic seo',
       projectRoot: tree.project?.root || '',
+      hasFiles: !!tree.hasFiles,
+      hasBrain: !!tree.hasBrain,
+      canBootstrapBrain: !!tree.canBootstrapBrain,
       expandedPageIds: pages.filter((p) => p.path === 'brain/index.md' || (p.sectionId === 'brain' && !p.parentId)).map((p) => p.id),
       _hasHydrated: true,
     });
@@ -396,7 +432,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
               icon: Object.prototype.hasOwnProperty.call(file, 'icon') ? file.icon ?? null : p.icon,
               cover: Object.prototype.hasOwnProperty.call(file, 'cover') ? file.cover ?? null : p.cover,
               readOnly: !!file.readOnly,
-              requiresApproval: !!file.requiresApproval,
+              requiresApproval: false,
               loaded: true,
               dirty: false,
               fileDirty: false,
@@ -424,7 +460,6 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       payload.body = body;
       payload.frontmatter = page.frontmatter || {};
       payload.frontmatterRaw = page.frontmatterText;
-      payload.approver = options.approver;
       payload.notes = options.notes;
     }
     if (page.uiDirty) {
@@ -434,32 +469,59 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    set((state) => ({
-      pages: state.pages.map((p) =>
-        p.id === id
-          ? result.ok
-            ? {
-                ...p,
-                hash: result.hash,
-                bodyMarkdown: body,
-                sourceBody: body,
-                dirty: false,
-                fileDirty: false,
-                uiDirty: false,
-                saving: false,
-                saveError: null,
-                updatedAt: Date.now(),
-              }
-            : {
-                ...p,
-                saving: false,
-                saveError: result.reason || 'save failed',
-                hash: result.currentHash || p.hash,
-              }
-          : p
-      ),
-    }));
+    set((state) => {
+      const resolverAfterSave = mentionResolver(state.pages);
+      return {
+        pages: state.pages.map((p) => {
+          if (p.id !== id) return p;
+          if (!result.ok) {
+            return {
+              ...p,
+              saving: false,
+              saveError: result.reason || 'save failed',
+              hash: result.currentHash || p.hash,
+            };
+          }
+
+          const currentBody = p.fileDirty ? (p.sourceMode ? p.sourceBody : docToMarkdown(p.content, resolverAfterSave)) : p.bodyMarkdown;
+          const fileChangedDuringSave =
+            p.fileDirty &&
+            (currentBody !== body || p.title !== page.title || p.frontmatterText !== page.frontmatterText);
+          const uiChangedDuringSave =
+            p.uiDirty &&
+            (p.icon !== page.icon || p.cover !== page.cover);
+
+          return {
+            ...p,
+            hash: result.hash,
+            bodyMarkdown: fileChangedDuringSave ? p.bodyMarkdown : body,
+            sourceBody: fileChangedDuringSave ? p.sourceBody : body,
+            dirty: fileChangedDuringSave || uiChangedDuringSave,
+            fileDirty: fileChangedDuringSave,
+            uiDirty: uiChangedDuringSave,
+            saving: false,
+            saveError: null,
+            updatedAt: Date.now(),
+          };
+        }),
+      };
+    });
     return !!result.ok;
+  },
+
+  bootstrapBrain: async () => {
+    const result = await apiFetch(get().token, '/api/project/brain/bootstrap', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+    if (!result.ok) return null;
+    await get().initializeProject(get().token!);
+    const brainIndex = get().pages.find((p) => p.path === 'brain/index.md') || get().pages[0];
+    if (brainIndex) {
+      set({ activePageId: brainIndex.id });
+      void get().loadPage(brainIndex.id);
+    }
+    return brainIndex?.id || null;
   },
 
   setHasHydrated: (_hasHydrated) => set({ _hasHydrated }),
@@ -493,8 +555,19 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     })),
   addPage: (_parentId, _type, options) => {
     const id = `pending-${Date.now()}`;
-    void get().createContentPage(options?.initialTitle || 'Nova página');
+    void get().createWorkbenchFile(options?.initialTitle || 'Nova página');
     return id;
+  },
+  createWorkbenchFile: async (title = 'Nova página') => {
+    const result = await apiFetch(get().token, '/api/project/file/create', {
+      method: 'POST',
+      body: JSON.stringify({ kind: 'workbench', title }),
+    });
+    if (!result.ok) return null;
+    await get().initializeProject(get().token!);
+    const created = get().pages.find((p) => p.path === result.path);
+    if (created) set({ activePageId: created.id });
+    return created?.id || null;
   },
   createContentPage: async (title = 'Nova página') => {
     const result = await apiFetch(get().token, '/api/project/file/create', {
@@ -551,7 +624,41 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     set((s) => ({
       pages: s.pages.map((p) => (p.id === id ? { ...p, favorite: !p.favorite } : p)),
     })),
-  deletePage: () => {},
+  deleteFile: async (id) => {
+    const page = get().pages.find((p) => p.id === id);
+    if (!page || page.saving) return false;
+    if (page.dirty) {
+      set((state) => ({
+        pages: state.pages.map((p) => (p.id === id ? { ...p, saveError: 'dirty-file' } : p)),
+      }));
+      return false;
+    }
+    const previousActive = get().activePageId;
+    const result = await apiFetch(get().token, '/api/project/file/delete', {
+      method: 'POST',
+      body: JSON.stringify({ path: page.path, hash: page.hash, dirty: page.dirty }),
+    });
+    if (!result.ok) {
+      set((state) => ({
+        pages: state.pages.map((p) =>
+          p.id === id ? { ...p, saveError: result.reason || 'delete failed', hash: result.currentHash || p.hash } : p
+        ),
+      }));
+      return false;
+    }
+    await get().initializeProject(get().token!);
+    if (previousActive && previousActive !== id) {
+      const stillActive = get().pages.find((p) => p.id === previousActive);
+      if (stillActive) {
+        set({ activePageId: stillActive.id });
+        void get().loadPage(stillActive.id);
+      }
+    }
+    return true;
+  },
+  deletePage: (id) => {
+    void get().deleteFile(id);
+  },
   trashPage: () => {},
   restorePage: () => {},
   purgePage: () => {},
@@ -564,7 +671,12 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   createFromTemplate: () => null,
   computeRollup: () => null,
   setActivePage: (activePageId) => set({ activePageId }),
-  setSettings: (updates) => set((s) => ({ settings: { ...s.settings, ...updates } })),
+  setSettings: (updates) =>
+    set((s) => {
+      const settings = { ...s.settings, ...updates };
+      writeSettings(settings);
+      return { settings };
+    }),
   turnIntoDatabase: () => {},
   turnIntoPage: () => {},
   addDatabaseView: () => '',

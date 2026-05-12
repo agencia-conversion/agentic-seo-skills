@@ -62,7 +62,7 @@
 <body>
 <div class="wrap">
   <div class="top">
-    <span>Agentic SEO · Web Companion · aprovação de briefing</span>
+    <span>Agentic SEO · Web Companion · revisão de briefing</span>
     <span id="approver-display"></span>
   </div>
   <h1>Briefing <code id="brief-name">brief</code></h1>
@@ -100,22 +100,21 @@
   </div>
 
   <div class="panel" style="margin: 0 0 18px;">
-    <h2>Evidência de brain consumida</h2>
-    <div id="context-evidence"></div>
+    <h2>Evidência do Brain consumida</h2>    <div id="context-evidence"></div>
   </div>
 
   <form class="bottom" id="form" autocomplete="off">
     <div>
       <h2>Decisão</h2>
       <div class="decision-options" style="margin-top:8px;">
-        <label><input type="radio" name="decision" value="approved" required /><span><strong>Aprovar briefing</strong><small>gera automaticamente o draft em artifacts</small></span></label>
-        <label><input type="radio" name="decision" value="needs-rewrite" /><span><strong>Pedir reescrita</strong><small>mantém o conteúdo bloqueado</small></span></label>
+        <label><input type="radio" name="decision" value="ready" required /><span><strong>Registrar como pronto</strong><small>gera automaticamente o draft em artifacts</small></span></label>
+        <label><input type="radio" name="decision" value="needs-rewrite" /><span><strong>Pedir reescrita</strong><small>mantém o conteúdo em revisão</small></span></label>
         <label><input type="radio" name="decision" value="rejected" /><span><strong>Rejeitar</strong><small>encerra este briefing sem draft</small></span></label>
       </div>
     </div>
     <div>
-      <label for="approver">Aprovando como</label>
-      <input id="approver" name="approver" type="text" required placeholder="Seu nome" />
+      <label for="approver">Registrando como</label>
+      <input id="approver" name="approver" type="text" placeholder="agent" />
     </div>
     <div>
       <label for="notes">Observação (opcional)</label>
@@ -129,7 +128,7 @@
     </div>
   </form>
 
-  <div class="footer">Janela local · 127.0.0.1 efêmero · aprovação operacional de briefing</div>
+  <div class="footer">Janela local · 127.0.0.1 efêmero · decisão operacional de briefing</div>
 </div>
 
 <script>
@@ -167,7 +166,7 @@
     : "<p>Briefing Markdown não encontrado. Use os painéis estruturados abaixo.</p>";
   if (ctx.identity?.name) {
     document.getElementById("approver").value = ctx.identity.name;
-    document.getElementById("approver-display").textContent = "aprovando como " + ctx.identity.name;
+    document.getElementById("approver-display").textContent = "registrando como " + ctx.identity.name;
   }
 
   const prov = brief.data_provenance?.seo_analysis || {};
@@ -190,7 +189,7 @@
 
   const contextEvidence = brief.context_evidence || {};
   const voice = contextEvidence.voice_evidence || brief.voice_context || {};
-  const voiceClass = voice.status === "approved" ? "badge" : "badge warn";
+  const voiceClass = voice.status === "ready" || voice.filled === true ? "badge" : "badge warn";
   document.getElementById("voice").innerHTML = [
     row("path", voice.path),
     row("status", voice.status, voiceClass),
@@ -213,7 +212,7 @@
 
   document.getElementById("direction").innerHTML = [
     row("draft status", brief.draft_status),
-    row("aprovação", brief.approval?.status),
+    row("decisão", brief.approval?.status),
     row("meta Skyscraper", brief.skyscraper?.word_count?.target_words),
     row("audience", brief.voice_check?.audience),
     row("link test", brief.voice_check?.link_test),

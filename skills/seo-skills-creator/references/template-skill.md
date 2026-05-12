@@ -17,30 +17,30 @@ Use this skill for one task. Do not use it for nearby work that belongs to anoth
 
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, or proof.
 - Keep raw evidence in `project/sources/`, working drafts in `project/workbench/`, and final deliverables in `project/artifacts/`.
-- Authorial brain pages require an approved `tipo: aprovacao` entry in `project/brain/log.md`.
+- Authorial brain pages require a `tipo: decisao` entry in `project/brain/log.md` with evidence, limitations, and actor.
 - Preserve the requested output language, including pt-BR accents.
 
 ## Framework
 
 ### 1. Understand The Request
 **Check:** What is the user trying to accomplish, and what is outside this skill?
-**Strong:** "This is a content brief request, so use `content-seo` and stop before drafting until approved."
+**Strong:** "This is a content brief request, so use `content-seo` and draft only after the brief is ready and limitations are recorded."
 **Weak:** "I can also initialize the project, build the site, and publish the article from this skill."
 
 ### 2. Gather Evidence
-**Check:** Which source files, tool outputs, approvals, or project brain pages are required?
+**Check:** Which source files, tool outputs, decision records, or project brain pages are required?
 **Strong:** "Use DataForSEO output from `project/sources/serp/`; mark missing volume as unavailable."
 **Weak:** "Assume the search volume is high because the keyword looks strategic."
 
 ### 3. Produce The Artifact
 **Check:** Does the output match the schema and keep sources separate from synthesis?
 **Strong:** "Write the brief to `project/workbench/content/<slug>/brief.md` and leave the brain untouched."
-**Weak:** "Write a hypothesis directly into `project/brain/` as if it were approved."
+**Weak:** "Write a hypothesis directly into `project/brain/` as if it were evidenced."
 
 ## Output Format
 
 ```yaml
-status: complete | blocked | approval_required
+status: complete | blocked | incomplete
 artifact:
   path: project/workbench/...
 sources:
@@ -59,7 +59,7 @@ Output: "Use `keyword-research` or `seo-analysis`, preserve pt-BR accents, inclu
 
 ### Example: Missing gate
 Input: "Publish this strategic positioning page."
-Output: "Return `approval_required`; authorial brain pages require an approved `tipo: aprovacao` entry in `project/brain/log.md` before promotion."
+Output: "Return `blocked`; authorial brain pages require evidence and a logged `tipo: decisao` entry before promotion."
 
 ## Related Skills
 

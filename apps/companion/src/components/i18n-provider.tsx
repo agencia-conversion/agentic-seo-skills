@@ -8,6 +8,7 @@ import {
   SupportedLocale,
   TranslationKey,
   formatDateForLocale,
+  resolveLocale,
   resolvePreferredLocale,
   translate,
 } from '@/lib/i18n';
@@ -30,7 +31,18 @@ export function I18nProvider({
   initialLocale: SupportedLocale;
 }) {
   const preference = useWorkspace((s) => s.settings.language ?? 'system');
+  const setSettings = useWorkspace((s) => s.setSettings);
   const [browserLocale, setBrowserLocale] = useState<SupportedLocale>(initialLocale);
+
+  useEffect(() => {
+    if (preference !== 'system' || typeof document === 'undefined') return;
+    const cookie = document.cookie
+      .split(';')
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(`${LOCALE_COOKIE}=`));
+    const explicit = resolveLocale(cookie?.split('=').slice(1).join('='));
+    if (explicit) setSettings({ language: explicit });
+  }, [preference, setSettings]);
 
   useEffect(() => {
     const update = () => {

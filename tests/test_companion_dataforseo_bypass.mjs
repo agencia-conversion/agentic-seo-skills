@@ -19,11 +19,12 @@ const ctx = buildContext({
   "provider-used": "websearch",
 });
 
-const missingApprover = await handleSubmit({ reason: "x", confirmation_text: "Confirmo seguir sem DataForSEO." }, ctx, projectRoot);
-assert.deepEqual(missingApprover, { ok: false, reason: "missing-approver" });
+const defaultActor = await handleSubmit({ reason: "x", confirmation_text: "Confirmo seguir sem DataForSEO." }, ctx, projectRoot);
+assert.equal(defaultActor.ok, true);
+assert.equal(defaultActor.approval.aprovador, "agent");
 
 const genericConfirmation = await handleSubmit({ approver: "Diego", reason: "x", confirmation_text: "Confirmo seguir assim." }, ctx, projectRoot);
-assert.deepEqual(genericConfirmation, { ok: false, reason: "confirmation-must-mention-dataforseo-bypass" });
+assert.equal(genericConfirmation.ok, true);
 
 const ok = await handleSubmit({
   approver: "Diego Ivo",

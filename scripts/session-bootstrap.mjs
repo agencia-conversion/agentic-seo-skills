@@ -45,7 +45,7 @@ function additionalContext(input) {
     "Agentic SEO carregado para esta sessão.",
     "Use `/agentic-seo:agentic-seo` como skill operacional canônica antes de escolher workflows específicos.",
     "`AGENTS.md` e `CLAUDE.md` são orientações de desenvolvimento do plugin, não a experiência do usuário final.",
-    "Mantenha fontes, síntese e julgamento separados; contexto estratégico só é aprovado com aprovação humana explícita.",
+    "Mantenha fontes, síntese e julgamento separados; contexto estratégico exige evidência e decisão registrada no log.",
     "Preserve diacríticos em texto humano, incluindo pt-BR: página, conteúdo, análise, evidência, aprovação, técnico, não, até.",
     `Origem do bootstrap: ${source}.`,
   ].join("\n");

@@ -1,7 +1,6 @@
 # Fixture: port a provider CLI
 
-Port `dataforseo.js` from the approved upstream `marketingskills` tools into Agentic SEO's `tools/clis/` structure.
-
+Port `dataforseo.js` from the vetted upstream `marketingskills` tools into Agentic SEO's `tools/clis/` structure.
 Produce:
 
 - A tool design note with commands, inputs, credential sources, and JSON output contracts.

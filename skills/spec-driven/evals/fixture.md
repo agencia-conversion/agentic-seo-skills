@@ -6,7 +6,7 @@ The user asks:
 
 Known state:
 
-- The project has no approved authorial brain pages (no `tipo: aprovacao` entries in `project/brain/log.md`).
+- The project has no logged authorial brain decisions (no `tipo: decisao` entries in `project/brain/log.md`).
 - No DataForSEO credentials are configured.
 - The website output depends on content that does not exist.
 
@@ -15,10 +15,10 @@ Expected output:
 - `project/workbench/specs/<slug>/spec.md` content outline.
 - `plan.md` with steps, gates, and artifacts.
 - `result-check.md` criteria.
-- Blockers and required approvals before downstream work.
+- Blockers and required decisions/checks before downstream work.
 
 Constraints:
 
 - Do not write the spec into `project/brain/`.
-- Do not bypass missing brain approval.
+- Do not bypass missing brain decision evidence.
 - Do not promise final website delivery before upstream gates.
