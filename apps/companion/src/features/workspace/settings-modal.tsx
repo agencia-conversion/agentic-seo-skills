@@ -12,6 +12,7 @@ import { getPageWidthOptions } from './page-width';
 import { useWorkspace } from './store';
 
 export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { t } = useI18n();
   const modalRef = useRef<HTMLDivElement>(null);
   const projectName = useWorkspace((s) => s.projectName);
   const projectRoot = useWorkspace((s) => s.projectRoot);
@@ -45,34 +46,34 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           >
             <nav className="w-56 shrink-0 bg-notion-sidebar border-r border-notion-border py-4 px-2">
               <div className="px-3 pb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-notion-text">Preferências</h2>
+                <h2 className="text-sm font-semibold text-notion-text">{t('common.settings')}</h2>
                 <button
                   onClick={onClose}
                   className="p-1 hover:bg-notion-hover rounded transition-colors cursor-pointer"
-                  aria-label="Fechar"
+                  aria-label={t('common.close')}
                 >
                   <X className="w-4 h-4 text-notion-text-muted" />
                 </button>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md bg-notion-active text-notion-text">
                 <Folder className="w-4 h-4" />
-                Local
+                {t('project.local')}
               </div>
             </nav>
 
             <div className="flex-1 overflow-y-auto">
               <div className="px-8 py-6 max-w-xl space-y-8">
                 <div>
-                  <h3 className="text-base font-semibold text-notion-text mb-1">Projeto local</h3>
+                  <h3 className="text-base font-semibold text-notion-text mb-1">{t('project.localProject')}</h3>
                   <p className="text-xs text-notion-text-muted">
-                    O companion lê e grava arquivos Markdown diretamente no projeto SEO Brain.
+                    {t('project.localDescription')}
                   </p>
                 </div>
 
                 <section className="space-y-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-notion-text">
                     <HardDrive className="w-4 h-4" />
-                    Filesystem
+                    {t('project.filesystem')}
                   </div>
                   <div className="rounded-md border border-notion-border bg-notion-sidebar/60 px-3 py-2">
                     <div className="text-sm text-notion-text truncate">{projectName}</div>
@@ -104,7 +105,7 @@ function GeneralSettings() {
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-notion-text">
           <Globe className="w-4 h-4" />
-          Idioma
+          {t('common.language')}
         </div>
         <div className="border border-notion-border rounded-md px-1 py-0.5 inline-flex min-w-[220px]">
           <Select
@@ -114,13 +115,13 @@ function GeneralSettings() {
             className="w-full"
           />
         </div>
-        <p className="text-[11px] text-notion-text-muted">Navegador: {activeBrowserLocaleLabel}</p>
+        <p className="text-[11px] text-notion-text-muted">{t('settings.languageBrowserHint', { locale: activeBrowserLocaleLabel })}</p>
       </section>
 
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-notion-text">
           <Maximize2 className="w-4 h-4" />
-          Largura padrão da página
+          {t('settings.defaultPageWidth')}
         </div>
         <div className="grid grid-cols-2 gap-2">
           {pageWidthOptions.map((opt) => (

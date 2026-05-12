@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from './use-page-path';
+import { useI18n } from '@/components/i18n-provider';
 
 function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -13,6 +14,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 export function useKeyboardShortcuts() {
+  const { t } = useI18n();
   const router = useRouter();
   const pagePath = usePagePath();
 
@@ -25,7 +27,7 @@ export function useKeyboardShortcuts() {
       if (e.key.toLowerCase() === 'n' && !e.shiftKey && !e.altKey) {
         if (isEditableTarget(e.target)) return;
         e.preventDefault();
-        void useWorkspace.getState().createContentPage('Nova página').then((id) => {
+        void useWorkspace.getState().createWorkbenchFile(t('emptyWorkspace.defaultFileTitle')).then((id) => {
           const created = useWorkspace.getState().pages.find((p) => p.id === id);
           if (created) router.push(pagePath(created.slug));
         });
@@ -57,5 +59,5 @@ export function useKeyboardShortcuts() {
 
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [router, pagePath]);
+  }, [router, pagePath, t]);
 }

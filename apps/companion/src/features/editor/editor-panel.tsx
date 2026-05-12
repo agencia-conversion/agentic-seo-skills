@@ -35,6 +35,7 @@ import {
   Smile,
   Star,
   Strikethrough,
+  Trash2,
   Underline,
   X,
 } from 'lucide-react';
@@ -54,6 +55,7 @@ import { MentionPopup } from './mention-popup';
 import { MentionChipHydrator } from './mention-chip-hydrator';
 import { FrontmatterDrawer } from './frontmatter-drawer';
 import { useI18n } from '@/components/i18n-provider';
+import { ConfirmModal } from '@/components/confirm-modal';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
   ssr: false,
@@ -120,6 +122,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const toggleSidebar = useWorkspace((s) => s.toggleSidebar);
   const updatePage = useWorkspace((s) => s.updatePage);
   const savePage = useWorkspace((s) => s.savePage);
+  const deleteFile = useWorkspace((s) => s.deleteFile);
   const setSourceMode = useWorkspace((s) => s.setSourceMode);
   const toggleFavorite = useWorkspace((s) => s.toggleFavorite);
   const effectiveWidth = useWorkspace((s) =>
@@ -134,6 +137,8 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const [showWidthSub, setShowWidthSub] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [showFrontmatterDrawer, setShowFrontmatterDrawer] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [pendingPasteHtml, setPendingPasteHtml] = useState<{ html?: string; text?: string } | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
@@ -212,6 +217,20 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     }
   }, [activePage, isReadOnly, savePage]);
 
+  const handleDelete = useCallback(async () => {
+    if (!activePage || activePage.path === 'brain/log.md') return;
+    if (activePage.dirty) {
+      showToast(t('deleteFile.unsavedError'), 'error');
+      setShowDeleteConfirm(false);
+      return;
+    }
+    setDeleting(true);
+    const ok = await deleteFile(activePage.id);
+    setDeleting(false);
+    setShowDeleteConfirm(false);
+    showToast(ok ? t('deleteFile.movedToTrash') : t('deleteFile.failed'), ok ? 'success' : 'error');
+  }, [activePage, deleteFile, t]);
+
   useEffect(() => {
     if (!activePage || isReadOnly || !activePage.loaded || !activePage.dirty || activePage.saving || activePage.saveError) return;
     const timer = window.setTimeout(() => {
@@ -247,14 +266,14 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const suggestionItems: SuggestionItem[] = buildSuggestionItems();
 
   const statusLabel = activePage.saving
-    ? 'Salvando...'
+    ? t('editor.saving')
     : activePage.saveError
       ? activePage.saveError
       : activePage.dirty
-        ? 'Não salvo'
+        ? t('editor.unsaved')
         : lastSavedAt
-          ? `Salvo ${lastSavedAt}`
-          : 'Salvo';
+          ? t('editor.savedAt', { time: lastSavedAt })
+          : t('editor.saved');
 
   const openInternalLinkPicker = (clientRect: Pick<DOMRect, 'left' | 'bottom'> | { left: number; bottom: number }, query = '') => {
     window.dispatchEvent(new CustomEvent('noteblock:internal-link-open', { detail: { clientRect, query } }));
@@ -376,13 +395,13 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               <HeaderButton
                 icon={activePage.saving ? <div className="w-3.5 h-3.5 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
                 onClick={() => void handleSave()}
-                ariaLabel="Salvar"
+                ariaLabel={t('common.save')}
               />
             )}
             <HeaderButton
               icon={<Star className={cn('w-4 h-4', activePage.favorite && 'fill-amber-400 text-amber-400')} />}
               onClick={() => toggleFavorite(activePage.id)}
-              ariaLabel="Toggle favorite"
+              ariaLabel={activePage.favorite ? t('sidebar.removeFavorite') : t('sidebar.addFavorite')}
             />
             <div className="relative">
               <HeaderButton icon={<MoreHorizontal className="w-4 h-4" />} onClick={() => setShowMenu(!showMenu)} ariaLabel={t('editor.more')} />
@@ -396,7 +415,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                   >
                     <MenuAction
                       icon={<Check className="w-4 h-4" />}
-                      label={activePage.sourceMode ? 'Editor visual' : 'Markdown source'}
+                      label={activePage.sourceMode ? t('editor.visualEditor') : t('editor.markdownSource')}
                       onClick={() => {
                         setSourceMode(activePage.id, !activePage.sourceMode);
                         setShowMenu(false);
@@ -404,12 +423,23 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                     />
                     <MenuAction
                       icon={<FileText className="w-4 h-4" />}
-                      label="Frontmatter"
+                      label={t('editor.frontmatter')}
                       onClick={() => {
                         setShowFrontmatterDrawer(true);
                         setShowMenu(false);
                       }}
                     />
+                    {activePage.path !== 'brain/log.md' && (
+                      <MenuAction
+                        icon={<Trash2 className="w-4 h-4" />}
+                        label={t('common.delete')}
+                        destructive
+                        onClick={() => {
+                          setShowDeleteConfirm(true);
+                          setShowMenu(false);
+                        }}
+                      />
+                    )}
                     <div className="relative">
                       <button
                         onClick={() => setShowWidthSub((v) => !v)}
@@ -482,7 +512,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                   }}
                   className="hover:bg-notion-hover px-2 py-1 rounded flex items-center gap-1 cursor-pointer"
                 >
-                  <Smile className="w-4 h-4" /> Add icon
+                  <Smile className="w-4 h-4" /> {t('editor.addIcon')}
                 </button>
               )}
               {!activePage.readOnly && !activePage.cover && (
@@ -493,7 +523,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                   }}
                   className="hover:bg-notion-hover px-2 py-1 rounded flex items-center gap-1 cursor-pointer"
                 >
-                  <ImageIcon className="w-4 h-4" /> Add cover
+                  <ImageIcon className="w-4 h-4" /> {t('editor.addCover')}
                 </button>
               )}
               <CoverPicker
@@ -562,12 +592,12 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               onPasteMultiline={(p) => setPendingPasteHtml(p)}
             />
             <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
-              {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">somente leitura</span>}
+              {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">{t('shared.readOnly')}</span>}
               <button
                 onClick={() => setShowFrontmatterDrawer(true)}
                 className="rounded bg-notion-active hover:bg-notion-hover px-2 py-0.5 cursor-pointer text-notion-text-muted hover:text-notion-text"
               >
-                Frontmatter · {activePage.path.startsWith('conteudos/') ? activePage.frontmatter?.origem || 'conteúdo' : activePage.path.startsWith('brain/') ? 'brain' : 'local'} · {Object.keys(activePage.frontmatter || {}).length} campos
+                {t('editor.frontmatter')} · {activePage.path.startsWith('conteudos/') ? activePage.frontmatter?.origem || t('project.content') : activePage.path.startsWith('brain/') ? 'brain' : 'local'} · {t('project.fieldCount', { count: Object.keys(activePage.frontmatter || {}).length })}
               </button>
               <span className="truncate">{activePage.path}</span>
             </div>
@@ -741,6 +771,18 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
         </>
       )}
       {!isModal && <FrontmatterDrawer page={activePage} open={showFrontmatterDrawer} onClose={() => setShowFrontmatterDrawer(false)} />}
+      {!isModal && (
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => !deleting && setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          title={t('deleteFile.title')}
+          description={t('deleteFile.description', { title: activePage.title || t('common.untitled') })}
+          confirmLabel={deleting ? t('common.loading') : t('common.delete')}
+          cancelLabel={t('common.cancel')}
+          destructive
+        />
+      )}
     </div>
   );
 }
@@ -787,17 +829,23 @@ function MenuAction({
   icon,
   label,
   onClick,
+  destructive,
   className,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  destructive?: boolean;
   className?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className={cn('w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-notion-text', className)}
+      className={cn(
+        'w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer',
+        destructive ? 'text-red-500' : 'text-notion-text',
+        className
+      )}
     >
       {icon}
       <span>{label}</span>

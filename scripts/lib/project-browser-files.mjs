@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import { appendLogEntry, parseFrontmatter } from "./brain-page.mjs";
 
 export const AUTHORIAL_BRAIN_PAGES = new Set([
@@ -22,6 +23,8 @@ const BRAIN_PAGE_ORDER = [
   "brain/log.md",
 ];
 const CONTENT_ORIGINS = new Set(["blog", "linkedin", "podcast", "outros"]);
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const BRAIN_TEMPLATE_DIR = join(ROOT, "templates", "project", "brain");
 
 function sha256(content) {
   return createHash("sha256").update(content, "utf8").digest("hex");
@@ -143,6 +146,14 @@ function savePageUi(root, rel, nextUi) {
   return true;
 }
 
+function deletePageUi(root, rel) {
+  const ui = readCompanionUi(root);
+  if (!Object.prototype.hasOwnProperty.call(ui.pages || {}, rel)) return false;
+  delete ui.pages[rel];
+  writeCompanionUi(root, ui);
+  return true;
+}
+
 function titleFromFile(rel, frontmatter) {
   const title = String(frontmatter.title || "").trim().replace(/^["']|["']$/g, "");
   if (title) return title;
@@ -203,6 +214,10 @@ function walkMarkdown(root, current = root) {
   return out;
 }
 
+function canonicalBrainExists(root) {
+  return BRAIN_PAGE_ORDER.some((rel) => existsSync(join(root, rel)));
+}
+
 export function buildProjectTree({ projectRoot }) {
   const root = normalizeProjectRoot(projectRoot);
   const projectName = projectDisplayName(root);
@@ -237,6 +252,11 @@ export function buildProjectTree({ projectRoot }) {
       if (item) contentItems.push(item);
     }
   }
+  const workbenchItems = walkMarkdown(join(root, "workbench"))
+    .map((child) => readBrainPageSummary(root, `workbench/${child}`, ui))
+    .filter(Boolean);
+  const hasFiles = items.length + contentItems.length + workbenchItems.length > 0;
+  const hasBrain = canonicalBrainExists(root);
   const sections = [
     {
       id: "brain",
@@ -245,8 +265,12 @@ export function buildProjectTree({ projectRoot }) {
     },
   ];
   if (contentItems.length) sections.push({ id: "conteudos", title: "Conteúdos", items: contentItems });
+  if (workbenchItems.length) sections.push({ id: "workbench", title: "Workbench", items: workbenchItems });
   return {
     ok: true,
+    hasFiles,
+    hasBrain,
+    canBootstrapBrain: !hasBrain,
     project: {
       root,
       name: projectName,
@@ -254,6 +278,42 @@ export function buildProjectTree({ projectRoot }) {
     },
     sections,
   };
+}
+
+function renderBrainTemplate(rel, text, projectName) {
+  const today = todayIso();
+  let out = text.replaceAll("<YYYY-MM-DD>", today);
+  if (rel === "brain/index.md") {
+    out = out.replaceAll("<Nome do projeto>", projectName || "SEO Brain");
+  }
+  return out;
+}
+
+export function bootstrapBrainFiles({ projectRoot }) {
+  const root = normalizeProjectRoot(projectRoot);
+  if (canonicalBrainExists(root)) return { ok: false, reason: "brain-already-exists" };
+  const projectName = projectDisplayName(root);
+  const created = [];
+  for (const rel of BRAIN_PAGE_ORDER) {
+    const source = join(BRAIN_TEMPLATE_DIR, basename(rel));
+    if (!existsSync(source)) return { ok: false, reason: "template-not-found", path: rel };
+    const validation = validateProjectFileRel(rel, { write: rel !== "brain/log.md" });
+    if (!validation.ok && rel !== "brain/log.md") return { ok: false, reason: validation.reason, path: rel };
+    const { filePath } = resolveAllowedFile(root, rel);
+    mkdirSync(dirname(filePath), { recursive: true });
+    writeFileSync(filePath, renderBrainTemplate(rel, readFileSync(source, "utf8"), projectName), "utf8");
+    created.push(rel);
+  }
+  appendLogEntry(join(root, "brain", "log.md"), {
+    date: todayIso(),
+    tipo: "decisao",
+    titulo: "Brain criado no Companion",
+    escopo: created.join(", "),
+    decisao: "Arquivos canônicos do Brain criados no Companion Web.",
+    evidencia: created.join(", "),
+    aprovador: "agent",
+  });
+  return { ok: true, created, tree: buildProjectTree({ projectRoot: root }) };
 }
 
 export function readProjectFile({ projectRoot, fileRel }) {
@@ -432,6 +492,49 @@ export function createProjectFile({ projectRoot, kind = "workbench", title = "No
     : `---\ntitle: ${yamlString(title)}\nupdated: ${yamlString(today)}\n---\n\n`;
   writeFileSync(filePath, text, "utf8");
   return { ...readProjectFile({ projectRoot: root, fileRel: rel }), created: true };
+}
+
+function uniqueTrashPath(root, rel) {
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  let trashRel = `.seo-brain/trash/${stamp}/${rel}`;
+  let i = 2;
+  while (existsSync(join(root, trashRel))) {
+    trashRel = `.seo-brain/trash/${stamp}-${i}/${rel}`;
+    i++;
+  }
+  return trashRel;
+}
+
+export function deleteProjectFile({ projectRoot, fileRel, expectedHash, dirty = false }) {
+  if (dirty) return { ok: false, reason: "dirty-file" };
+  const validation = validateProjectFileRel(fileRel, { write: true });
+  if (!validation.ok) return { ok: false, reason: validation.reason };
+  const { root, filePath } = resolveAllowedFile(projectRoot, validation.rel);
+  if (!existsSync(filePath)) return { ok: false, reason: "file-not-found" };
+  const current = readFileSync(filePath, "utf8");
+  const currentHash = sha256(current);
+  if (!expectedHash || expectedHash !== currentHash) {
+    return { ok: false, reason: "file-modified", currentHash };
+  }
+  const trashPath = uniqueTrashPath(root, validation.rel);
+  const absoluteTrash = join(root, trashPath);
+  mkdirSync(dirname(absoluteTrash), { recursive: true });
+  renameSync(filePath, absoluteTrash);
+  deletePageUi(root, validation.rel);
+
+  if (validation.rel.startsWith("brain/")) {
+    appendLogEntry(join(root, "brain", "log.md"), {
+      date: todayIso(),
+      tipo: "decisao",
+      titulo: `${basename(validation.rel, ".md")} movido para lixeira`,
+      escopo: validation.rel,
+      decisao: `${validation.rel} movido para a lixeira do Companion Web.`,
+      evidencia: trashPath,
+      aprovador: "agent",
+    });
+  }
+
+  return { ok: true, path: validation.rel, trashPath };
 }
 
 export function readProjectLog({ projectRoot }) {

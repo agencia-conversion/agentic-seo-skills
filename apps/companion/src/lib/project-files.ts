@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 
@@ -22,6 +22,8 @@ const BRAIN_PAGE_ORDER = [
 ];
 
 const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'outros']);
+const ROOT = process.env.SEO_BRAIN_PLUGIN_ROOT || join(/*turbopackIgnore: true*/ process.cwd(), '..', '..');
+const BRAIN_TEMPLATE_DIR = join(ROOT, 'templates', 'project', 'brain');
 
 export interface ProjectTreeItem {
   path: string;
@@ -154,6 +156,14 @@ function savePageUi(root: string, rel: string, nextUi: { icon?: unknown; cover?:
     ...(hasCover ? { cover: typeof nextUi.cover === 'string' && nextUi.cover ? nextUi.cover : null } : {}),
     updated_at: new Date().toISOString(),
   };
+  writeCompanionUi(root, ui);
+  return true;
+}
+
+function deletePageUi(root: string, rel: string) {
+  const ui = readCompanionUi(root);
+  if (!Object.prototype.hasOwnProperty.call(ui.pages || {}, rel)) return false;
+  delete ui.pages[rel];
   writeCompanionUi(root, ui);
   return true;
 }
@@ -309,6 +319,10 @@ function walkMarkdown(root: string, current = root): string[] {
   return out;
 }
 
+function canonicalBrainExists(root: string) {
+  return BRAIN_PAGE_ORDER.some((rel) => existsSync(join(root, rel)));
+}
+
 export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
   const root = normalizeProjectRoot(projectRoot);
   const projectName = projectDisplayName(root);
@@ -339,6 +353,11 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
       if (item) contentItems.push(item);
     }
   }
+  const workbenchItems = walkMarkdown(join(root, 'workbench'))
+    .map((child) => readSummary(root, `workbench/${child}`, ui))
+    .filter(Boolean) as ProjectTreeItem[];
+  const hasFiles = orderedBrain.map((rel) => readSummary(root, rel, ui)).filter(Boolean).length + contentItems.length + workbenchItems.length > 0;
+  const hasBrain = canonicalBrainExists(root);
 
   const sections: ProjectTreeSection[] = [
     {
@@ -348,8 +367,52 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
     },
   ];
   if (contentItems.length) sections.push({ id: 'conteudos', title: 'Conteúdos', items: contentItems });
+  if (workbenchItems.length) sections.push({ id: 'workbench', title: 'Workbench', items: workbenchItems });
 
-  return { ok: true, project: { root, name: projectName, icon: projectIcon }, sections };
+  return {
+    ok: true,
+    hasFiles,
+    hasBrain,
+    canBootstrapBrain: !hasBrain,
+    project: { root, name: projectName, icon: projectIcon },
+    sections,
+  };
+}
+
+function renderBrainTemplate(rel: string, text: string, projectName: string) {
+  const today = todayIso();
+  let out = text.replaceAll('<YYYY-MM-DD>', today);
+  if (rel === 'brain/index.md') {
+    out = out.replaceAll('<Nome do projeto>', projectName || 'SEO Brain');
+  }
+  return out;
+}
+
+export function bootstrapBrainFiles({ projectRoot }: { projectRoot?: string }) {
+  const root = normalizeProjectRoot(projectRoot);
+  if (canonicalBrainExists(root)) return { ok: false, reason: 'brain-already-exists' };
+  const projectName = projectDisplayName(root);
+  const created: string[] = [];
+  for (const rel of BRAIN_PAGE_ORDER) {
+    const source = join(/*turbopackIgnore: true*/ BRAIN_TEMPLATE_DIR, basename(rel));
+    if (!existsSync(source)) return { ok: false, reason: 'template-not-found', path: rel };
+    const validation = validateProjectFileRel(rel, { write: rel !== 'brain/log.md' });
+    if (!validation.ok && rel !== 'brain/log.md') return { ok: false, reason: validation.reason, path: rel };
+    const { filePath } = resolveAllowedFile(root, rel);
+    mkdirSync(dirname(filePath), { recursive: true });
+    writeFileSync(filePath, renderBrainTemplate(rel, readFileSync(source, 'utf8'), projectName), 'utf8');
+    created.push(rel);
+  }
+  appendLogEntry(join(root, 'brain', 'log.md'), {
+    date: todayIso(),
+    tipo: 'decisao',
+    titulo: 'Brain criado no Companion',
+    escopo: created.join(', '),
+    decisao: 'Arquivos canônicos do Brain criados no Companion Web.',
+    evidencia: created.join(', '),
+    aprovador: 'agent',
+  });
+  return { ok: true, created, tree: buildProjectTree({ projectRoot: root }) };
 }
 
 export function readProjectFile({ projectRoot, fileRel }: { projectRoot?: string; fileRel: unknown }) {
@@ -521,6 +584,59 @@ export function createProjectFile({
   writeFileSync(filePath, text, 'utf8');
   const file = readProjectFile({ projectRoot: root, fileRel: rel });
   return { ...file, created: true };
+}
+
+function uniqueTrashPath(root: string, rel: string) {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  let trashRel = `.seo-brain/trash/${stamp}/${rel}`;
+  let i = 2;
+  while (existsSync(join(root, trashRel))) {
+    trashRel = `.seo-brain/trash/${stamp}-${i}/${rel}`;
+    i++;
+  }
+  return trashRel;
+}
+
+export function deleteProjectFile({
+  projectRoot,
+  fileRel,
+  expectedHash,
+  dirty = false,
+}: {
+  projectRoot?: string;
+  fileRel: unknown;
+  expectedHash?: string;
+  dirty?: boolean;
+}) {
+  if (dirty) return { ok: false, reason: 'dirty-file' };
+  const validation = validateProjectFileRel(fileRel, { write: true });
+  if (!validation.ok) return { ok: false, reason: validation.reason };
+  const { root, filePath } = resolveAllowedFile(projectRoot, validation.rel);
+  if (!existsSync(filePath)) return { ok: false, reason: 'file-not-found' };
+  const current = readFileSync(filePath, 'utf8');
+  const currentHash = sha256(current);
+  if (!expectedHash || expectedHash !== currentHash) {
+    return { ok: false, reason: 'file-modified', currentHash };
+  }
+  const trashPath = uniqueTrashPath(root, validation.rel);
+  const absoluteTrash = join(root, trashPath);
+  mkdirSync(dirname(absoluteTrash), { recursive: true });
+  renameSync(filePath, absoluteTrash);
+  deletePageUi(root, validation.rel);
+
+  if (validation.rel.startsWith('brain/')) {
+    appendLogEntry(join(root, 'brain', 'log.md'), {
+      date: todayIso(),
+      tipo: 'decisao',
+      titulo: `${basename(validation.rel, '.md')} movido para lixeira`,
+      escopo: validation.rel,
+      decisao: `${validation.rel} movido para a lixeira do Companion Web.`,
+      evidencia: trashPath,
+      aprovador: 'agent',
+    });
+  }
+
+  return { ok: true, path: validation.rel, trashPath };
 }
 
 export function readProjectLog({ projectRoot }: { projectRoot?: string }) {

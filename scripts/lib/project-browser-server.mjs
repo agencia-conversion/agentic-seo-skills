@@ -88,6 +88,7 @@ export async function startProjectBrowser({ projectRoot = "project", open = true
       cwd: companionDir(),
       env: {
         ...process.env,
+        SEO_BRAIN_PLUGIN_ROOT: PATHS.root,
         SEO_BRAIN_PROJECT_ROOT: root,
         SEO_BRAIN_COMPANION_TOKEN: token,
         NEXT_TELEMETRY_DISABLED: "1",
