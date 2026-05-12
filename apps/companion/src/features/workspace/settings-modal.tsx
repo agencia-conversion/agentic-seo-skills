@@ -65,7 +65,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                 <div>
                   <h3 className="text-base font-semibold text-notion-text mb-1">Projeto local</h3>
                   <p className="text-xs text-notion-text-muted">
-                    O companion lê e grava arquivos Markdown diretamente no projeto Agentic SEO.
+                    O companion lê e grava arquivos Markdown diretamente no projeto agentic seo.
                   </p>
                 </div>
 

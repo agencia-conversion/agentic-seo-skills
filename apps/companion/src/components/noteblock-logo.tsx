@@ -14,7 +14,7 @@ export function NoteblockLogo({ size = 20, className }: NoteblockLogoProps) {
       stroke="currentColor"
       strokeWidth="3.5"
       strokeLinecap="round"
-      aria-label="Agentic SEO"
+      aria-label="agentic seo"
       className={className}
       role="img"
     >
