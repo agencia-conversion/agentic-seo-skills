@@ -1,6 +1,7 @@
 'use client';
 
-import { FileText, Lock, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { Lock, Settings, X } from 'lucide-react';
 import type { Page } from '../workspace/store';
 import { parseFrontmatterText, useWorkspace } from '../workspace/store';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,16 @@ export function FrontmatterDrawer({
   onClose: () => void;
 }) {
   const updatePage = useWorkspace((s) => s.updatePage);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   const isContent = page.path.startsWith('conteudos/');
@@ -51,13 +62,13 @@ export function FrontmatterDrawer({
     <aside className="fixed right-0 top-0 z-[260] h-screen w-[360px] border-l border-notion-border bg-background shadow-2xl flex flex-col">
       <header className="h-12 px-4 border-b border-notion-border flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <FileText className="w-4 h-4 text-notion-text-muted shrink-0" />
-          <strong className="text-sm text-notion-text truncate">Frontmatter</strong>
+          <Settings className="w-4 h-4 text-notion-text-muted shrink-0" />
+          <strong className="text-sm text-notion-text truncate">Metadados</strong>
         </div>
         <button
           onClick={onClose}
           className="p-1.5 rounded hover:bg-notion-hover text-notion-text-muted hover:text-notion-text cursor-pointer"
-          aria-label="Fechar frontmatter"
+          aria-label="Fechar metadados"
         >
           <X className="w-4 h-4" />
         </button>

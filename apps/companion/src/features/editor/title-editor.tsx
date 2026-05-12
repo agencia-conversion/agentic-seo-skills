@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { useWorkspace } from '../workspace/store';
 
@@ -38,6 +38,11 @@ interface TitleEditorProps {
   pageId: string;
   initialTitle: string;
   placeholder: string;
+  endAction?: {
+    icon: ReactNode;
+    label: string;
+    onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  };
   isModal?: boolean;
   autoFocus?: boolean;
   readOnly?: boolean;
@@ -49,6 +54,7 @@ export function TitleEditor({
   pageId,
   initialTitle,
   placeholder,
+  endAction,
   isModal,
   autoFocus,
   readOnly,
@@ -134,29 +140,48 @@ export function TitleEditor({
     }
   };
 
+  const titleLayoutStyle = {
+    width: 'calc(100% + 16px)',
+    marginLeft: '-8px',
+    paddingLeft: '8px',
+    paddingRight: '8px',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  } as const;
+  const titleClassName = cn(
+    'block font-bold border-none outline-none bg-transparent placeholder:text-notion-text-muted/30 text-notion-text tracking-tight leading-[1.15] resize-none overflow-hidden',
+    readOnly && 'cursor-default',
+    isModal ? 'text-3xl' : 'text-[40px]'
+  );
+
   return (
-    <textarea
-      ref={ref}
-      value={value}
-      onChange={handleChange}
-      onKeyDown={handleKeyDown}
-      onPaste={handlePaste}
-      placeholder={placeholder}
-      readOnly={readOnly}
-      rows={1}
-      style={{
-        width: 'calc(100% + 16px)',
-        marginLeft: '-8px',
-        paddingLeft: '8px',
-        paddingRight: '8px',
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
-      }}
-      className={cn(
-        'block font-bold border-none outline-none bg-transparent placeholder:text-notion-text-muted/30 text-notion-text tracking-tight leading-[1.15] resize-none overflow-hidden',
-        readOnly && 'cursor-default',
-        isModal ? 'text-3xl' : 'text-[40px]'
+    <div className={cn('grid items-start', endAction ? 'grid-cols-[minmax(0,1fr)_auto] gap-[0.35em]' : 'grid-cols-1')}>
+      <textarea
+        ref={ref}
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
+        placeholder={placeholder}
+        readOnly={readOnly}
+        rows={1}
+        style={titleLayoutStyle}
+        className={titleClassName}
+      />
+      {endAction && (
+        <button
+          type="button"
+          onClick={endAction.onClick}
+          className={cn(
+            'mt-[0.075em] flex h-[1em] w-[1em] items-center justify-center text-notion-text-muted opacity-0 transition-opacity hover:text-notion-text group-hover/title:opacity-100 focus-visible:opacity-100 [&_svg]:h-[52.5%] [&_svg]:w-[52.5%]',
+            isModal ? 'text-3xl' : 'text-[40px]'
+          )}
+          aria-label={endAction.label}
+          title={endAction.label}
+        >
+          {endAction.icon}
+        </button>
       )}
-    />
+    </div>
   );
 }

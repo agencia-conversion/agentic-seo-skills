@@ -32,6 +32,7 @@ import {
   MoreHorizontal,
   PanelLeftOpen,
   Save,
+  Settings,
   Smile,
   Star,
   Strikethrough,
@@ -394,8 +395,8 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                       }}
                     />
                     <MenuAction
-                      icon={<FileText className="w-4 h-4" />}
-                      label="Frontmatter"
+                      icon={<Settings className="w-4 h-4" />}
+                      label="Metadados"
                       onClick={() => {
                         setShowFrontmatterDrawer(true);
                         setShowMenu(false);
@@ -543,6 +544,18 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               pageId={activePage.id}
               initialTitle={activePage.title}
               placeholder={t('common.untitled')}
+              endAction={
+                !isModal
+                  ? {
+                      icon: <Settings />,
+                      label: 'Editar metadados',
+                      onClick: (e) => {
+                        e.stopPropagation();
+                        setShowFrontmatterDrawer((open) => !open);
+                      },
+                    }
+                  : undefined
+              }
               isModal={isModal}
               autoFocus={!activePage.title && !activePage.readOnly}
               readOnly={activePage.readOnly}
@@ -552,17 +565,12 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               }}
               onPasteMultiline={(p) => setPendingPasteHtml(p)}
             />
-            <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
-              {activePage.requiresApproval && <span className="rounded bg-amber-500/10 text-amber-600 px-2 py-0.5">aprovação obrigatória</span>}
-              {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">somente leitura</span>}
-              <button
-                onClick={() => setShowFrontmatterDrawer(true)}
-                className="rounded bg-notion-active hover:bg-notion-hover px-2 py-0.5 cursor-pointer text-notion-text-muted hover:text-notion-text"
-              >
-                Frontmatter · {activePage.path.startsWith('conteudos/') ? activePage.frontmatter?.origem || 'conteúdo' : activePage.path.startsWith('brain/') ? 'brain' : 'local'} · {Object.keys(activePage.frontmatter || {}).length} campos
-              </button>
-              <span className="truncate">{activePage.path}</span>
-            </div>
+            {(activePage.requiresApproval || activePage.readOnly) && (
+              <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
+                {activePage.requiresApproval && <span className="rounded bg-amber-500/10 text-amber-600 px-2 py-0.5">aprovação obrigatória</span>}
+                {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">somente leitura</span>}
+              </div>
+            )}
           </div>
 
           {activePage.sourceMode ? (
