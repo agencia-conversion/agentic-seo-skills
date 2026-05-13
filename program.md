@@ -97,7 +97,7 @@ The v0.1 golden path is:
 5. run keyword and SERP analysis;
 6. create topic cluster;
 7. create content brief;
-8. create or audit Next.js SSG site;
+8. audit existing technical SEO surfaces without generating website code;
 9. view outputs in the dashboard;
 10. append all important events to the log.
 

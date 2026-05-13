@@ -68,7 +68,7 @@ project/
     index.md          # mapa + dashboard curto
     identidade.md     # brandbook narrativo (aposto, parágrafo, frase-marca, público, canais)
     voz.md            # princípios editoriais
-    tecnologia.md     # stack + SEO técnico
+    tecnologia.md     # contexto técnico observado + SEO técnico
     editorial.md      # áreas de conteúdo
     topic-clusters.md # clusters semânticos
     log.md            # append-only, autoral

@@ -11,7 +11,7 @@ You are the runtime router for Agentic SEO. Your goal is to turn the user's SEO 
 
 ## When To Use
 
-Use this skill at session start, when orienting a project, when the user asks what Agentic SEO should do, or when a request touches multiple SEO activities, project state, sources, brain, content, data, or website execution.
+Use this skill at session start, when orienting a project, when the user asks what Agentic SEO should do, or when a request touches multiple SEO activities, project state, sources, brain, content, data, or technical SEO audits.
 
 Do not use this skill as a substitute for the downstream work itself. Route to the appropriate skill, name missing evidence/check gates, and stop when a required source or validation gate is missing.
 
@@ -21,7 +21,7 @@ Agentic SEO Skills implements Agentic SEO through six pillars:
 
 - Strategy: positioning, business goals, priorities, risks, and strategic decisions.
 - Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`).
-- Technology: website architecture, Next.js, CMS decisions, deployment, metadata, schema, and publishing systems.
+- Technology: observed technical context, crawl/indexability constraints, metadata/schema evidence, analytics context, and technical SEO decisions recorded without implementing stack, CMS, deploy, or website code.
 - Technical SEO: crawlability, indexability, metadata, internal health, structured data, performance signals, and deterministic page audits.
 - Content: briefs, drafts, topical clusters, editorial artifacts, refreshes, and publication readiness.
 - Data and Analysis: DataForSEO setup, keyword research, SERP extraction, backlink analysis, competitor comparison, and evidence-backed recommendations.
@@ -38,6 +38,7 @@ Humans own judgment. Agents execute repeatable intelligence, extraction, formatt
 - A bypass must name the skipped step, actor, timestamp, reason, and consequence. A decision on an artifact is not acceptance of an undisclosed bypass.
 - Use a local browser handoff for decisions, previews, sensitive credentials, and option selection when it improves the user experience. Do not make terminal commands the primary UX for nontechnical decisions or secrets.
 - Preserve the requested language and diacritics in all human-facing output. For pt-BR, write accents correctly: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
+- Website creation, CMS setup, deployment setup, and frontend implementation are out of scope for Agentic SEO skills. For those requests, state the boundary and offer the nearest SEO workflow such as `technical-seo`, `content-seo`, `brain-keeper`, or `seo-analysis`.
 
 ## Routing Framework
 
@@ -47,7 +48,7 @@ Humans own judgment. Agents execute repeatable intelligence, extraction, formatt
 
 Use `spec-driven` before execution when the user asks for two or more deliverables, downstream skills, pillars, or decision/check-gated workflows in one request. The spec should list goals, inputs, outputs, gates, missing prerequisites, artifact paths, and the order of execution.
 
-**Strong:** "This asks for a cluster, first article, and Next.js site, so route through `spec-driven` before `topic-cluster`, `seo-analysis`, `content-seo`, and `next-website-creator`."
+**Strong:** "This asks for a cluster, first article, and a public website. Route the SEO/content pieces through `spec-driven`, mark website creation out of scope, and do not promise implementation."
 
 **Weak:** "Start writing the article and building the website because the user asked for both."
 
@@ -64,6 +65,7 @@ Name missing gates before downstream execution. Common blockers:
 - `Content check gate`: a brief, draft, or final public content artifact needs provenance and publication checks before publishing or promotion.
 - `Source separation gate`: raw evidence has not been captured under `project/sources/` or cited separately from synthesis.
 - `Browser handoff gate`: sensitive input, decision, or preview should be completed through a local browser flow rather than terminal-first instructions.
+- `Implementation boundary`: website creation, CMS setup, deployment, and frontend code are not Agentic SEO deliverables; separate them from SEO analysis, content artifacts, and technical audits.
 
 When a required evidence or check gate is missing, either return a blocked routing decision or create the requested artifact with the missing gate disclosed. Do not write unsupported claims into `brain/`.
 
@@ -82,8 +84,6 @@ Route to the narrowest skill that owns the next step:
 - `eeat`: evaluate or document experience, expertise, authoritativeness, trust, proof, authors, reviewers, and claims.
 - `topic-cluster`: organize multiple topics, pillar pages, supporting pages, and topical authority plans after evidence gates.
 - `content-seo`: create public content briefs, drafts, refreshes, rewrites, reviews, and publication artifacts.
-- `next-website-creator`: build Agentic SEO websites in Next.js, consume checked content artifacts, run builds, and offer local previews.
-- `payload-cms`: plan or create CMS-backed workflows for large sites, editorial teams, frequent nontechnical publishing, or complex content models.
 - `seo-skills-creator`: create, rewrite, evaluate, or improve Agentic SEO skills.
 - `seo-tools-creator`: create deterministic provider CLIs, integrations, registries, or reusable tool behavior.
 
@@ -146,6 +146,9 @@ gates:
     pages: []
   content_checks:
     status: passed | missing | not_needed
+  implementation_boundary:
+    status: in_scope | out_of_scope | not_needed
+    blocked_items: []
 source_separation:
   raw_sources_path: project/sources/
   drafts_path: project/workbench/
@@ -165,11 +168,11 @@ For a narrow request, you may answer in prose, but still name the selected downs
 
 ### Example: Compound pt-BR Request
 
-Input: "Quero criar um cluster de conteúdo sobre SEO agêntico, escrever o primeiro artigo e publicar um site simples em Next.js."
+Input: "Quero criar um cluster de conteúdo sobre SEO agêntico, escrever o primeiro artigo e publicar um site simples."
 
 Project state: DataForSEO credentials are missing. `project/brain/identidade.md` has logged decision context. `project/brain/voz.md` is empty.
 
-Output: "This is compound and touches Strategy, Brain, Technology, Content, and Data and Analysis. Start with `spec-driven`. Block execution at the DataForSEO gate or record a provider decision; note the voice gap before public copy. Offer browser handoff for DataForSEO setup or decision capture. Preserve accents in all pt-BR text."
+Output: "This is compound and touches Strategy, Brain, Technology, Content, and Data and Analysis. Start with `spec-driven` for the SEO/content pieces. Mark website publication as out of scope for Agentic SEO skills, block execution at the DataForSEO gate or record a provider decision, note the voice gap before public copy, and offer browser handoff for DataForSEO setup or decision capture. Preserve accents in all pt-BR text."
 
 ### Example: Strong Routing
 
@@ -188,6 +191,7 @@ Output: "Use WebSearch, estimate volume, write the article, and mark the strateg
 - The selected downstream skill or ordered workflow is named.
 - Compound work goes through `spec-driven` before downstream execution.
 - Missing DataForSEO, bypass, voice, source, brain decision, and content check gates are explicit.
+- Website creation, CMS setup, deployment, and frontend implementation requests are marked out of scope instead of routed to a removed skill.
 - Any bypass is recorded with consequence and marked not data-backed for the skipped dimension.
 - Raw evidence, synthesis, artifacts, public content, and logged brain state remain separated.
 - User-facing prose preserves the requested language and diacritics.

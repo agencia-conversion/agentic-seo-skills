@@ -67,7 +67,6 @@ try {
   run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico", "--provider-bypass-confirmed", "--provider-bypass-reason", "teste de acentuação sem DataForSEO", ...dataforseoBypassArgs("teste de acentuação sem DataForSEO"), "--top3-bypass-confirmed", "--top3-bypass-reason", "teste de acentuação sem Top 3");
   run("content-seo", "--phase", "approve", "--topic", "O que é SEO agêntico", "--approved-by", "Teste", "--approval-notes", "Tom de voz em draft reconhecido.");
   run("technical-seo", "--html-file", join(root, "tests", "fixtures", "technical-seo-valid.html"), "--page-type", "blog-post");
-  run("next-website-creator");
 
   const markdown = [...walk(join(project, "brain")), ...walk(join(project, "conteudos")), ...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]
     .filter((file) => file.endsWith(".md") && !file.endsWith("log.md"))
@@ -77,8 +76,7 @@ try {
     .filter((file) => file.endsWith(".json") || file.endsWith(".yaml"))
     .flatMap((file) => jsonHumanStrings(file.endsWith(".yaml") ? YAML.parse(readFileSync(file, "utf8")) : JSON.parse(readFileSync(file, "utf8"))))
     .join("\n");
-  const webText = walk(join(project, "web")).filter((file) => file.endsWith(".tsx")).map((file) => readFileSync(file, "utf8")).join("\n");
-  const humanText = `${markdown}\n${structuredOutput}\n${webText}`;
+  const humanText = `${markdown}\n${structuredOutput}`;
 
   for (const term of ["aprovacao", "pagina", "conteudo", "analise", "evidencia", "nao", "ate", "tecnico"]) {
     assert.doesNotMatch(humanText, new RegExp(`\\b${term}\\b`, "i"), `unaccented pt-BR term leaked: ${term}`);

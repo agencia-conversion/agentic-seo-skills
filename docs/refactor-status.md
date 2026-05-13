@@ -35,7 +35,9 @@ project/
 - `project-init` (creates the brain structure and seeds blank templates)
 - `project-browser` (opens the local web companion project browser)
 - `brain-lint`, `brain-approve`, `brain-ingest`
-- `data-setup`, `serp-extract`, `keyword-research`, `kw-volume`, `backlink-analysis`, `seo-analysis`, `topic-cluster`, `eeat`, `content-seo`, `technical-seo`, `next-website-creator`, `payload-cms`, `audit-skills`
+- `data-setup`, `serp-extract`, `keyword-research`, `kw-volume`, `backlink-analysis`, `seo-analysis`, `topic-cluster`, `eeat`, `content-seo`, `technical-seo`, `audit-skills`
+
+Website creation, CMS setup, deployment setup, and frontend implementation commands are intentionally not exposed. `technical-seo` remains focused on deterministic audits of existing URLs, HTML, templates, or audit JSON.
 
 ## Log format
 
@@ -60,7 +62,7 @@ The browser-based decision/preview flow runs on the brain model:
 - Helper module: `scripts/lib/brain-page.mjs`.
 - Review target paths are `brain/<page>.md`; the only authorial pages are `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`.
 - Missing sources detected during page review are registered as `tipo: ingestao` entries in `brain/log.md` (no separate sources catalog).
-- Project browser mode: `scripts/companion.mjs project-browser` starts the Noteon-based Next companion on `127.0.0.1` with a tokenized URL. It maps local Markdown files from `project/brain/`, `project/conteudos/`, and `project/workbench/` into the Noteon UI, keeps `brain/log.md` read-only, and autosaves editable files while logging authorial brain edits as `tipo: decisao`.
+- Project browser mode: `scripts/companion.mjs project-browser` starts the Noteon-based local companion on `127.0.0.1` with a tokenized URL. It maps local Markdown files from `project/brain/`, `project/conteudos/`, and `project/workbench/` into the Noteon UI, keeps `brain/log.md` read-only, and autosaves editable files while logging authorial brain edits as `tipo: decisao`.
 - `eeat` engine accepts `--mode brain` or `--mode url`.
 
 ## Tools

@@ -18,5 +18,15 @@ const result = spawnSync(bin, ["brain-lint", "--project", "legacy"], {
 assert.equal(result.status, 1);
 assert.match(result.stderr, /--project is no longer supported/);
 
+for (const removedCommand of ["next-website-creator", "payload-cms"]) {
+  const removed = spawnSync(bin, [removedCommand], {
+    cwd: root,
+    encoding: "utf8",
+    env,
+  });
+  assert.equal(removed.status, 1);
+  assert.match(removed.stderr, new RegExp(`Unknown command: ${removedCommand}`));
+}
+
 rmSync(tmp, { recursive: true, force: true });
-console.log("cli rejects project flag ok");
+console.log("cli command rejection ok");

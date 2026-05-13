@@ -2,7 +2,7 @@
 
 The user says:
 
-> Quero criar um cluster de conteúdo sobre SEO agêntico, escrever o primeiro artigo e publicar um site simples em Next.js.
+> Quero criar um cluster de conteúdo sobre SEO agêntico, escrever o primeiro artigo e publicar um site simples.
 
 Project state:
 
@@ -21,4 +21,5 @@ Constraints:
 
 - Do not skip missing data or voice gates.
 - Do not present the site/article as done.
+- Mark website publication as outside the Agentic SEO skill scope.
 - Preserve pt-BR accents.

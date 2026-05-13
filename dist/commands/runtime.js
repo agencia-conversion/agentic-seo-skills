@@ -3196,30 +3196,6 @@ async function commandTechnicalSeo(args) {
     appendLog("technical-seo", pageType, [path.relative(p, outYaml), path.relative(p, outMd)], "Auditoria técnica determinística executada.", "not-required");
     printJson(result);
 }
-async function commandNextWebsiteCreator(args) {
-    const p = ensureProject();
-    const projectName = projectDisplayName(p);
-    const web = path.join(p, "web");
-    mkdirp(path.join(web, "app", "blog", "[slug]"));
-    mkdirp(path.join(web, "app", "contato"));
-    mkdirp(path.join(web, "app", "servicos"));
-    writeJson(path.join(web, "package.json"), { scripts: { dev: "next dev", build: "next build", start: "next start" }, dependencies: { next: "latest", react: "latest", "react-dom": "latest" }, devDependencies: { typescript: "latest", "@types/react": "latest", "@types/node": "latest" } });
-    writeText(path.join(web, "app", "layout.tsx"), 'export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang="pt-BR"><body>{children}</body></html>; }\n');
-    writeText(path.join(web, "app", "page.tsx"), `export default function Page() { return <main><h1>${projectName}</h1><p>Site Agentic SEO em rascunho.</p></main>; }\n`);
-    writeText(path.join(web, "app", "servicos", "page.tsx"), "export default function Page() { return <main><h1>Serviços</h1></main>; }\n");
-    writeText(path.join(web, "app", "contato", "page.tsx"), "export default function Page() { return <main><h1>Contato</h1></main>; }\n");
-    writeText(path.join(web, "app", "blog", "page.tsx"), "export default function Page() { return <main><h1>Blog</h1></main>; }\n");
-    writeText(path.join(web, "app", "blog", "[slug]", "page.tsx"), "export default function Page() { return <main><h1>Post</h1></main>; }\n");
-    appendLog("technology", "Next.js site", ["web"], "Starter Next.js SSG criado.", "pending");
-    printJson({ ok: true, web });
-}
-async function commandPayloadCms(args) {
-    const web = path.join(ensureProject(), "web");
-    mkdirp(web);
-    writeText(path.join(web, "payload.config.ts"), "import { buildConfig } from 'payload'\n\nexport default buildConfig({\n  collections: [\n    { slug: 'pages', fields: [{ name: 'title', type: 'text', required: true }, { name: 'seoTitle', type: 'text' }, { name: 'seoDescription', type: 'textarea' }] },\n    { slug: 'posts', fields: [{ name: 'title', type: 'text', required: true }, { name: 'slug', type: 'text', required: true }, { name: 'content', type: 'richText' }] },\n    { slug: 'authors', fields: [{ name: 'name', type: 'text', required: true }, { name: 'bio', type: 'textarea' }] }\n  ]\n})\n");
-    appendLog("technology", "Payload CMS", ["web/payload.config.ts"], "Config inicial do Payload criada.", "pending");
-    printJson({ ok: true, payload_config: path.join(web, "payload.config.ts") });
-}
 async function commandAuditSkills(args) {
     const skillDir = path.join(ROOT, "skills");
     const requiredSections = ["## When To Use", "## Critical Points", "## Output Format"];
@@ -3269,8 +3245,6 @@ const COMMANDS = {
     eeat: commandEeat,
     "content-seo": commandContentSeo,
     "technical-seo": commandTechnicalSeo,
-    "next-website-creator": commandNextWebsiteCreator,
-    "payload-cms": commandPayloadCms,
     "audit-skills": commandAuditSkills,
 };
 function parseArgs(argv) {

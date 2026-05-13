@@ -41,11 +41,12 @@ for (const required of [
   "backlink-analysis",
   "data-setup",
   "technical-seo",
-  "next-website-creator",
-  "payload-cms",
   "DataForSEO",
   "não somos afiliados",
-  "Next.js",
+  "Implementation boundary",
+  "Website creation",
+  "out of scope",
+  "frontend implementation",
   "local browser handoff",
   "two or more deliverables",
   "decision/check-gated workflows",
@@ -56,6 +57,10 @@ for (const required of [
   "stop at the first missing gate",
 ]) {
   assert.ok(skill.includes(required), `missing runtime rule: ${required}`);
+}
+
+for (const forbidden of ["next-website-creator", "payload-cms", "Next.js"]) {
+  assert.ok(!skill.includes(forbidden), `removed website/CMS route still present: ${forbidden}`);
 }
 
 for (const text of [agents, claude]) {

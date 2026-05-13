@@ -2,13 +2,13 @@
 
 The user asks:
 
-> Faça uma auditoria técnica, crie um plano de conteúdo e gere o site em Next.js para uma consultoria de SEO.
+> Faça uma auditoria técnica, crie um plano de conteúdo e gere o site para uma consultoria de SEO.
 
 Known state:
 
 - The project has no logged authorial brain decisions (no `tipo: decisao` entries in `project/brain/log.md`).
 - No DataForSEO credentials are configured.
-- The website output depends on content that does not exist.
+- Website generation is outside the Agentic SEO skill scope.
 
 Expected output:
 
@@ -21,4 +21,5 @@ Constraints:
 
 - Do not write the spec into `project/brain/`.
 - Do not bypass missing brain decision evidence.
-- Do not promise final website delivery before upstream gates.
+- Do not promise final website delivery.
+- Mark website implementation as out of scope rather than planning code changes.

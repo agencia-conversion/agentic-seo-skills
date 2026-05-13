@@ -86,8 +86,6 @@ function main() {
   if (!written.draft_path) throw new Error("content-seo write should create artifact draft");
   if (!fs.existsSync(path.join(PROJECT_DIR, "artifacts", "contents", "o-que-e-seo-agentico", "draft.md"))) throw new Error("content-seo write did not write artifact draft");
   run("backlink-analysis", "--target", "example.com", "--mode", "offline");
-  run("next-website-creator");
-  run("payload-cms");
   const technical = run(
     "technical-seo",
     "--html-file",
