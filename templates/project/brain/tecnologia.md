@@ -6,20 +6,20 @@ updated: "<YYYY-MM-DD>"
 # Tecnologia
 
 <!--
-Stack, decisões técnicas e mapa de SEO técnico do projeto. Mantém junto porque
-em sites pequenos é a mesma decisão. Cada linha de decisão técnica deve estar
-ancorada em entrada de [[log]].
+Contexto técnico observado, decisões de SEO técnico e mapa de verificação do
+projeto. Não é um plano de implementação de site, CMS, deploy ou stack. Cada
+linha de decisão técnica deve estar ancorada em entrada de [[log]].
 -->
 
-## Stack
+## Contexto técnico
 
-| Camada | Escolha | Motivo |
+| Área | Estado observado | Evidência |
 | --- | --- | --- |
-| Hospedagem | <ex: Vercel> | <razão curta> |
-| Framework | <ex: Next.js SSG> | <razão> |
-| CMS | <ex: Payload CMS \| Markdown puro \| nenhum> | <razão> |
-| Domínio/DNS | <provedor> | <razão> |
-| Analytics | <ex: Plausible \| GA4 \| nenhum> | <razão> |
+| Domínio/DNS | <observado \| desconhecido> | <link ou nota> |
+| Analytics | <observado \| desconhecido \| nenhum> | <link ou nota> |
+| Rastreamento e renderização | <observado \| pendente> | <link ou nota> |
+| Indexação | <observado \| pendente> | <link ou nota> |
+| Dados estruturados | <observado \| pendente> | <link ou nota> |
 
 ## Decisões técnicas registradas
 

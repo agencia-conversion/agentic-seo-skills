@@ -18,7 +18,8 @@ for (const required of [
   "downstream skills",
   "cross Agentic SEO pillars",
   "decision/evidence/check gates",
-  "content drafts plus Next.js website generation",
+  "content drafts plus publication-readiness review",
+  "Website creation, CMS setup, deployment, and frontend implementation are out of scope",
   "Do not use this skill for a single clear task",
   "Simple Design",
   "deliverables",
@@ -30,6 +31,8 @@ for (const required of [
   "Never write specs, plans, drafts, hypotheses, or execution notes to `project/brain/`",
   "result-check",
   "upstream gate passes",
+  "technical-audit-content-plan",
+  "Mark website generation as out of scope",
   "write the workbench files after presenting the design",
   "mark the dependent deliverable blocked",
   "Do not bypass strategic decisions",
@@ -37,6 +40,10 @@ for (const required of [
   "local browser handoff",
 ]) {
   assert.ok(skill.includes(required), `missing spec-driven rule: ${required}`);
+}
+
+for (const forbidden of ["Next.js website generation", "next-website-creator", "payload-cms"]) {
+  assert.ok(!skill.includes(forbidden), `removed implementation route still present: ${forbidden}`);
 }
 
 for (const term of ["página", "conteúdo", "análise", "evidência", "aprovação", "técnico", "não", "até"]) {

@@ -1,6 +1,6 @@
 ---
 name: spec-driven
-description: MUST USE PROACTIVELY before executing a user request with two or more distinct deliverables, downstream skills, Agentic SEO pillars, dependencies, or decision/evidence/check gates. Use for compound requests such as research plus brain updates, brain plus website, technical audit plus content plan, content plus site, or any bulleted/numbered request with separate outcomes. Do not use for a single clear task.
+description: MUST USE PROACTIVELY before executing a user request with two or more distinct deliverables, downstream skills, Agentic SEO pillars, dependencies, or decision/evidence/check gates. Use for compound requests such as research plus brain updates, technical audit plus content plan, content plus publication review, or any bulleted/numbered request with separate outcomes. Do not use for a single clear task.
 metadata:
   version: 1.0.0
 ---
@@ -19,14 +19,14 @@ Use it for requests that combine work such as:
 - strategy plus public content;
 - technical SEO plus content planning;
 - DataForSEO research plus SERP analysis plus brief creation;
-- content drafts plus Next.js website generation;
+- content drafts plus publication-readiness review;
 - any request with multiple verbs like analyze, create, write, build, publish, deploy, approve, or review.
 
-Do not use this skill for a single clear task. If the user asks only for one keyword analysis, one technical audit, one content brief, one skill rewrite, or one website change, route directly to the relevant skill.
+Do not use this skill for a single clear task. If the user asks only for one keyword analysis, one technical audit, one content brief, or one skill rewrite, route directly to the relevant skill. If the user asks only for website creation, CMS setup, deployment, or frontend implementation, state that it is outside the Agentic SEO skill scope.
 
 ## Critical Points
 
-- This skill creates control artifacts only. It does not execute downstream SEO, content, brain, technical, or website work by itself.
+- This skill creates control artifacts only. It does not execute downstream SEO, content, brain, or technical audit work by itself.
 - Always present a simple design before writing `spec.md`, `plan.md`, or `result-check.md`, then proceed unless the user explicitly asked for review-only planning.
 - Write the control files only under `project/workbench/specs/<slug>/`. Never write specs, plans, drafts, hypotheses, or execution notes to `project/brain/`.
 - Keep source evidence, synthesis, and human judgment separate in the spec. Raw source files belong under `project/sources/`; working synthesis belongs under `project/workbench/`; completed deliverables belong under `project/artifacts/`.
@@ -34,7 +34,8 @@ Do not use this skill for a single clear task. If the user asks only for one key
 - Do not bypass strategic decisions, DataForSEO requirements, content checks, source review, lint, or publication gates. Name missing gates as blockers or requirements.
 - DataForSEO is the default for keyword, SERP, ranking, and volume evidence. Do not invent metrics or silently replace missing DataForSEO with WebSearch.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, rankings, traffic, or proof. Unknown values stay unknown.
-- If public content or a website depends on missing strategy, missing evidence, or unchecked content, mark the dependent deliverable blocked until the upstream gate passes.
+- Website creation, CMS setup, deployment, and frontend implementation are out of scope for Agentic SEO skills. In compound requests, list them as non-goals or blocked external work, and continue only with the SEO deliverables that remain in scope.
+- If public content depends on missing strategy, missing evidence, or unchecked content, mark the dependent deliverable blocked until the upstream gate passes.
 - Preserve the requested output language. For pt-BR, keep accents in all human-facing text: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Prefer a local browser handoff for previews, decisions, sensitive inputs, or option selection when available. Do not make terminal commands the primary UX for nontechnical decisions.
 
@@ -44,7 +45,7 @@ Do not use this skill for a single clear task. If the user asks only for one key
 
 **Check:** Does the request contain multiple deliverables, skills, pillars, dependencies, or gates?
 
-**Strong:** "The request asks for a technical audit, content plan, and Next.js website. This crosses Technical SEO, Content, and Technology, so create a spec first."
+**Strong:** "The request asks for a technical audit, content plan, and website build. Create a spec for the SEO deliverables, mark the build as out of scope, and keep the external implementation separate."
 
 **Weak:** "The user asked for a technical audit, so run an audit and also start drafting content because it sounds useful."
 
@@ -64,7 +65,7 @@ List:
 - deterministic checks;
 - blocked items and why they are blocked.
 
-Be explicit about gates. A website that depends on content cannot be treated as ready if the content brief or draft has not passed required checks. An authorial brain page cannot be changed without a `tipo: decisao` entry in `brain/log.md` that records evidence, limitations, and actor. SERP or keyword metrics cannot be asserted without source evidence.
+Be explicit about gates. Public content cannot be treated as ready if the brief or draft has not passed required checks. Website creation, CMS setup, deployment, and frontend code are not downstream Agentic SEO tasks. An authorial brain page cannot be changed without a `tipo: decisao` entry in `brain/log.md` that records evidence, limitations, and actor. SERP or keyword metrics cannot be asserted without source evidence.
 
 ### 3. Present A Simple Design
 
@@ -91,7 +92,7 @@ Create exactly these files unless the user explicitly asks for a narrower contro
 - `project/workbench/specs/<slug>/plan.md`
 - `project/workbench/specs/<slug>/result-check.md`
 
-Choose a short, stable ASCII slug from the request, such as `technical-audit-content-site`. ASCII is for the path only; preserve accents in human-facing prose.
+Choose a short, stable ASCII slug from the request, such as `technical-audit-content-plan`. ASCII is for the path only; preserve accents in human-facing prose.
 
 ### 5. Keep Execution Gates Visible
 
@@ -187,9 +188,9 @@ registrado_em: <timestamp or null>
 
 ### Example: Compound Request
 
-Input: "Faça uma auditoria técnica, crie um plano de conteúdo e gere o site em Next.js para uma consultoria de SEO."
+Input: "Faça uma auditoria técnica, crie um plano de conteúdo e gere o site para uma consultoria de SEO."
 
-Output: Present a simple design showing Technical SEO first, then evidence-backed content planning, then website generation only after required strategy and content checks. Write the three control files under `project/workbench/specs/technical-audit-content-site/`. Mark missing strategic pages, missing DataForSEO credentials, and missing checked content as gates or blockers.
+Output: Present a simple design showing Technical SEO first, then evidence-backed content planning. Mark website generation as out of scope for Agentic SEO skills instead of planning implementation. Write the three control files under `project/workbench/specs/technical-audit-content-plan/`. Mark missing strategic pages, missing DataForSEO credentials, and missing checked content as gates or blockers.
 
 ### Example: Single Task
 
