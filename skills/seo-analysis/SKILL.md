@@ -157,6 +157,10 @@ next_actions: []
 
 If blocked by a missing provider or missing bypass record, return `status: blocked`, describe the gate, and do not invent a partial SERP.
 
+### Default delivery
+
+After producing the YAML artifact above, also render a branded HTML report at `project/workbench/seo-analysis/<keyword-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/workbench/seo-analysis/` so the user can navigate the report visually. Conversational previews and quick clarifications stay in chat as prose.
+
 ## Examples
 
 ### Example: DataForSEO Analysis

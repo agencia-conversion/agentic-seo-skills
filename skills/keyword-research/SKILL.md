@@ -139,6 +139,10 @@ brain_promotion:
 
 If blocked because DataForSEO is unavailable and no substitute is recorded, return `status: blocked`, name the missing provider gate, and do not invent metrics.
 
+### Default delivery
+
+After producing the YAML artifact above, also render a branded HTML report at `project/workbench/keyword-research/<seed-or-topic-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/workbench/keyword-research/` so the user can navigate the keyword set visually. Conversational previews and quick clarifications stay in chat as prose.
+
 ## Examples
 
 ### Example: pt-BR Keyword Research With Null Metrics

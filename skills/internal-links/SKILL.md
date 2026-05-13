@@ -165,6 +165,10 @@ next_actions: []
 
 If blocked by missing scope, unavailable validation, or unclear apply scope, return `status: blocked`, explain the gate, and do not invent recommendations.
 
+### Default delivery
+
+After producing the machine-readable YAML and the review Markdown above, also render a branded HTML report at `project/artifacts/internal-links/<run-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/artifacts/internal-links/` so the user can navigate the recommendations visually. Conversational previews and quick clarifications stay in chat as prose.
+
 ## Examples
 
 ### Example: Valid Inbound Recommendation

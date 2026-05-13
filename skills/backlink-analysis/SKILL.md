@@ -168,6 +168,10 @@ brain_promotion:
 
 If blocked by missing provider access, missing target, or unavailable competitor evidence, return `status: blocked` or `status: incomplete` and explain the gate. Do not invent a partial backlink profile.
 
+### Default delivery
+
+After producing the YAML artifact above, also render a branded HTML report at `project/workbench/backlinks/<target-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/workbench/backlinks/` so the user can navigate the analysis visually. Conversational previews and quick clarifications stay in chat as prose.
+
 ## Examples
 
 ### Example: Competitor Delta From DataForSEO

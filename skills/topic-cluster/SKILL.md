@@ -209,6 +209,10 @@ If blocked by missing DataForSEO and no bypass record, return `status: blocked`,
 
 When projection is requested, regenerate `project/brain/topic-clusters.md` from the workbench JSONs and append a `tipo: decisao` entry in `project/brain/log.md`. The projection uses one section per cluster (`## <Cluster> (<slug>)`) with a Markdown table containing `Subtópico`, `Intent`, `Status`, `Conteúdo relacionado`, `Gap`. It must identify itself as generated from workbench data.
 
+### Default delivery
+
+After producing the JSON cluster above, also render a branded HTML report at `project/workbench/topic-cluster/<seed-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/workbench/topic-cluster/` so the user can navigate the cluster visually. Conversational previews and quick clarifications stay in chat as prose.
+
 ## Examples
 
 ### Example: Data-Backed Cluster
