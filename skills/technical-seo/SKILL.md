@@ -151,6 +151,10 @@ follow_up_checks: []
 
 When the user provides existing JSON, include it unchanged under `deterministic_json` in the final answer or saved artifact. If the JSON result and prose conflict, the JSON is authoritative and the prose must be corrected.
 
+### Default delivery
+
+After producing the YAML/JSON audit above, also render a branded HTML report at `project/audits/<slug>/report.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/audits/<slug>/` so the user can navigate the audit visually. Conversational previews and quick clarifications stay in chat as prose.
+
 ## Examples
 
 ### Example: Deterministic Blog Audit Interpretation

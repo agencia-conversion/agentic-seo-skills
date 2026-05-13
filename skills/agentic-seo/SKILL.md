@@ -15,6 +15,22 @@ Use this skill at session start, when orienting a project, when the user asks wh
 
 Do not use this skill as a substitute for the downstream work itself. Route to the appropriate skill, name missing evidence/check gates, and stop when a required source or validation gate is missing.
 
+## Audience And Output Format
+
+The default user is nontechnical (founder, marketing lead, SEO strategist). Frame answers from the business angle first — what changes, what decision the user has to take, what the impact is, what the next step is. Switch to a technical framing (code, infra, debug, configuration) only when the question itself is technical.
+
+For any substantive deliverable (report, analysis, content, brief, audit, recommendation), pick the delivery in this order:
+
+1. **Web companion first** when it fits the artifact: open `project-browser` for browsing files in `project/`, or pick a specific handoff for the task — `approve-page` for a finalized page, `approve-briefing` for a content brief, `pick-cluster` for cluster selection, `review-changes` for brain edits, `dataforseo-bypass` for a provider decision, `collect-env` for credentials.
+2. **Branded HTML report** when the output is visual or doesn't fit a handoff. Render via `scripts/lib/html-report.mjs`. The helper inlines the Agentic SEO color token (`#3a5bd9`), the asterisk logo SVG, and the "by Conversion" mark in the footer. Do not handcraft HTML — pass a `{ title, subtitle, generatedAt, sections }` struct to the helper.
+3. **Markdown** only when the user explicitly asks for it.
+
+Before opening any companion: ask a short consent line in Portuguese ("Posso abrir no browser?"). Never expose `node scripts/companion.mjs ...` to the user; run it as the agent after consent. If the user declines, leave the artifact in place and tell them where it lives.
+
+The eight data and report skills — `seo-analysis`, `technical-seo`, `backlink-analysis`, `keyword-research`, `serp-extract`, `internal-links`, `eeat`, `topic-cluster` — must always write `report.html` next to their YAML/JSON artifact and offer companion access. Editorial skills like `content-seo` use the existing `approve-briefing` and `approve-page` handoffs.
+
+Conversational replies (clarifications, status checks, short factual questions) stay as plain prose in the chat. Do not force HTML or open the companion for these.
+
 ## Operating Model
 
 Agentic SEO Skills implements Agentic SEO through six pillars:
