@@ -60,7 +60,7 @@ npm test
 
 ## Other IDEs and Agents
 
-Agentic SEO Skills is officially supported only as a Claude Code plugin in v0.1.
+Agentic SEO Skills is officially supported only as a Claude Code plugin in the current release.
 
 Other IDEs and agents can test the portable parts of the framework, but not the complete plugin experience. What can be tested:
 
@@ -135,12 +135,12 @@ Provider calls can consume credits unless an offline mode or provider sandbox is
 
 ## Release
 
-Agentic SEO 0.1.0 is distributed through:
+Agentic SEO 0.2.0 is distributed through:
 
 - GitHub repository: `agencia-conversion/agentic-seo-skills`
 - Claude Code marketplace: `.claude-plugin/marketplace.json`
 - Claude Code plugin id: `agentic-seo@agentic-seo-skills-marketplace`
-- Claude plugin release tag: `agentic-seo--v0.1.0`
+- Claude plugin release tag: `agentic-seo--v0.2.0`
 
 ## Security
 
