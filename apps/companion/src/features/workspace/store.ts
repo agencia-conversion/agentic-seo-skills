@@ -53,6 +53,12 @@ export interface ReportModuleSummary {
   latestGeneratedAt: string | null;
 }
 
+export interface ContentTopicClusterSummary {
+  id: string;
+  title: string;
+  count: number;
+}
+
 export interface Page {
   id: string;
   slug: string;
@@ -92,8 +98,9 @@ export interface Page {
   readOnly: boolean;
   requiresApproval: boolean;
   sourceMode: boolean;
-  kind?: 'file' | 'reportIndex' | 'reportModule';
+  kind?: 'file' | 'reportIndex' | 'reportModule' | 'contentIndex' | 'workbenchIndex';
   reportModuleId?: string;
+  contentTopicClusterId?: string;
 }
 
 interface WorkspaceState {
@@ -288,15 +295,19 @@ function virtualPage({
   parentId,
   sortOrder,
   kind,
+  sectionId = 'brain',
   reportModuleId,
+  contentTopicClusterId,
 }: {
   id: string;
   title: string;
   icon: string;
   parentId: string | null;
   sortOrder: number;
-  kind: 'reportIndex' | 'reportModule';
+  kind: 'reportIndex' | 'reportModule' | 'contentIndex' | 'workbenchIndex';
+  sectionId?: string;
   reportModuleId?: string;
+  contentTopicClusterId?: string;
 }): Page {
   return {
     id,
@@ -313,7 +324,7 @@ function virtualPage({
     createdAt: Date.now(),
     width: null,
     path: id,
-    sectionId: 'brain',
+    sectionId,
     hash: null,
     frontmatter: {},
     frontmatterText: '',
@@ -330,6 +341,7 @@ function virtualPage({
     sourceMode: false,
     kind,
     reportModuleId,
+    contentTopicClusterId,
   };
 }
 
@@ -438,18 +450,41 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
 
   initializeProject: async (token) => {
     set({ token, _hasHydrated: false });
-    const [tree, reportIndex, projectSettings] = await Promise.all([
+    const [tree, reportIndex, contentIndex, projectSettings] = await Promise.all([
       apiFetch(token, '/api/project/tree'),
       apiFetch(token, '/api/project/reports').catch(() => ({ ok: false, modules: [] })),
+      apiFetch(token, '/api/project/contents').catch(() => ({ ok: false, topicClusters: [], items: [] })),
       apiFetch(token, '/api/project/settings').catch(() => ({ ok: false })),
     ]);
     if (!tree.ok) throw new Error(tree.reason || 'project tree failed');
     const pages: Page[] = [];
     const sections: ProjectSection[] = [];
     let brainSection: ProjectSection | null = null;
+    let hasContentSurface = false;
+    let hasWorkbenchSurface = false;
     for (const section of tree.sections || []) {
       const pageIds: string[] = [];
       const items = section.items || [];
+      if (section.id === 'conteudos') {
+        hasContentSurface = hasContentSurface || items.length > 0;
+        items.forEach((item: any, index: number) => {
+          pages.push({
+            ...pageFromSummary(item, section.id, index, null),
+            inline: true,
+          });
+        });
+        continue;
+      }
+      if (section.id === 'workbench') {
+        hasWorkbenchSurface = hasWorkbenchSurface || items.length > 0;
+        items.forEach((item: any, index: number) => {
+          pages.push({
+            ...pageFromSummary(item, section.id, index, null),
+            inline: true,
+          });
+        });
+        continue;
+      }
       const brainRootId =
         section.id === 'brain' ? items.find((item: any) => item.path === 'brain/index.md')?.path || items[0]?.path || null : null;
       items.forEach((item: any, index: number) => {
@@ -461,6 +496,37 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       const projectSection = { id: section.id, title: section.title, pageIds };
       sections.push(projectSection);
       if (section.id === 'brain') brainSection = projectSection;
+    }
+    const contentTopicClusters: ContentTopicClusterSummary[] = Array.isArray(contentIndex.topicClusters)
+      ? contentIndex.topicClusters.filter((cluster: any) => cluster?.id && cluster.id !== '__none__')
+      : [];
+    hasContentSurface = hasContentSurface || contentTopicClusters.length > 0;
+    if (brainSection && hasContentSurface) {
+      const contentsRootId = 'virtual/contents';
+      pages.push(
+        virtualPage({
+          id: contentsRootId,
+          title: 'Conteúdos',
+          icon: '🗂️',
+          parentId: null,
+          sortOrder: brainSection.pageIds.length,
+          kind: 'contentIndex',
+        })
+      );
+      brainSection.pageIds.push(contentsRootId);
+      contentTopicClusters.forEach((cluster, index) => {
+        pages.push(
+          virtualPage({
+            id: `virtual/contents/${cluster.id}`,
+            title: cluster.title || cluster.id,
+            icon: '🧩',
+            parentId: contentsRootId,
+            sortOrder: index,
+            kind: 'contentIndex',
+            contentTopicClusterId: cluster.id,
+          })
+        );
+      });
     }
     const reportModules: ReportModuleSummary[] = Array.isArray(reportIndex.modules) ? reportIndex.modules : [];
     if (brainSection && reportModules.length > 0) {
@@ -517,6 +583,20 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
         }
       }
     }
+    if (brainSection && hasWorkbenchSurface) {
+      const workbenchRootId = 'virtual/workbench';
+      pages.push(
+        virtualPage({
+          id: workbenchRootId,
+          title: 'Workbench',
+          icon: '🧰',
+          parentId: null,
+          sortOrder: brainSection.pageIds.length,
+          kind: 'workbenchIndex',
+        })
+      );
+      brainSection.pageIds.push(workbenchRootId);
+    }
     const firstPageId = pages[0]?.id || null;
     const currentSettings = get().settings;
     const nextSettings =
@@ -535,7 +615,9 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       canBootstrapBrain: !!tree.canBootstrapBrain,
       reportModules,
       settings: nextSettings,
-      expandedPageIds: pages.filter((p) => p.path === 'brain/index.md' || p.id === 'virtual/reports' || (p.sectionId === 'brain' && !p.parentId)).map((p) => p.id),
+      expandedPageIds: pages
+        .filter((p) => p.path === 'brain/index.md' || p.id === 'virtual/reports' || p.id === 'virtual/contents' || p.id === 'virtual/workbench' || (p.sectionId === 'brain' && !p.parentId))
+        .map((p) => p.id),
       _hasHydrated: true,
     });
     if (firstPageId) void get().loadPage(firstPageId);

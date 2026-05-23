@@ -1,14 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ChevronsLeft, Search, Star } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
 import { useWorkspace } from './store';
 import { SortablePageList } from './sortable-page-list';
 import { SettingsModal } from './settings-modal';
 import { WorkspaceSwitcher } from './workspace-switcher';
 import { NoteblockBrand } from '@/components/noteblock-brand';
-import { usePagePath } from '@/hooks/use-page-path';
 import { NewPageButton } from './new-page-button';
 import { UserFooter } from './user-footer';
 import { useI18n } from '@/components/i18n-provider';
@@ -30,8 +28,6 @@ export function Sidebar() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const resizeStartRef = useRef<{ x: number; w: number } | null>(null);
   const mobileAutoCollapsedRef = useRef(false);
-  const router = useRouter();
-  const pagePath = usePagePath();
 
   const handleResizeMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -123,19 +119,11 @@ export function Sidebar() {
       className="fixed inset-y-0 left-0 z-40 flex flex-col bg-notion-sidebar border-r border-notion-border h-full select-none shadow-xl md:relative md:z-auto md:shadow-none shrink-0"
     >
       <div className="px-3 pt-3 pb-1 flex flex-col gap-1">
-        <div className="flex items-start gap-2 px-2 py-1.5 mb-1 group/logo">
+        <div className="flex items-start gap-2 px-2 py-1.5 mb-1">
           <div className="flex flex-col flex-1 min-w-0 gap-0.5">
             <NoteblockBrand />
             <WorkspaceSwitcher />
           </div>
-          <button
-            onClick={toggleSidebar}
-            className="p-1 rounded hover:bg-notion-hover text-notion-text-muted opacity-0 group-hover/logo:opacity-100 transition-opacity mt-0.5"
-            aria-label={t('sidebar.collapse')}
-            title={t('sidebar.collapse')}
-          >
-            <ChevronsLeft className="w-3.5 h-3.5" />
-          </button>
         </div>
 
         <div className="mt-1 flex flex-col gap-[1px]">

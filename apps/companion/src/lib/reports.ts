@@ -42,6 +42,16 @@ function safeProjectReportRoot(projectRoot: string, moduleId: string) {
   return moduleRoot;
 }
 
+function hasCurrentReportContract(moduleId: string, frontmatter: Record<string, any>, body: string) {
+  const required = ['title', 'slug', 'report_type', 'generated_at', 'status', 'source_artifact', 'summary'];
+  if (!required.every((key) => String(frontmatter[key] || '').trim())) return false;
+  if (String(frontmatter.report_type || '').replace(/^["']|["']$/g, '') !== moduleId) return false;
+  if (!/```agentic-(kpis|chart|table)\s*\n/.test(body)) return false;
+  if (/```agentic-(?:kpis|chart|table)\s*\n\s*\{/.test(body)) return false;
+  if (/\[object Object\]|round\(sum\(points_awarded\)|report\.html/i.test(body)) return false;
+  return true;
+}
+
 function reportSummary(projectRoot: string, moduleId: string, childRel: string) {
   const rel = `relatorios/${moduleId}/${childRel}`;
   const filePath = resolve(projectRoot, rel);
@@ -50,6 +60,7 @@ function reportSummary(projectRoot: string, moduleId: string, childRel: string) 
   if (!realFile.startsWith(`${moduleRoot}${sep}`)) throw new Error('report path escaped module root');
   const text = readFileSync(filePath, 'utf8');
   const { data: frontmatter, body } = parseFrontmatter(text);
+  if (!hasCurrentReportContract(moduleId, frontmatter, body)) return null;
   const st = statSync(filePath);
   return {
     id: sha256(rel),
@@ -69,7 +80,9 @@ function reportSummary(projectRoot: string, moduleId: string, childRel: string) 
 export function listReportModules({ projectRoot }: { projectRoot: string }) {
   const modules = REPORT_MODULES.map((module) => {
     const root = safeProjectReportRoot(projectRoot, module.id);
-    const reports = walkReportMarkdown(root).map((child) => reportSummary(projectRoot, module.id, child));
+    const reports = walkReportMarkdown(root)
+      .map((child) => reportSummary(projectRoot, module.id, child))
+      .filter((report): report is NonNullable<typeof report> => Boolean(report));
     reports.sort((a, b) => String(b.generatedAt || b.updatedAt).localeCompare(String(a.generatedAt || a.updatedAt)));
     return {
       ...module,
@@ -97,7 +110,9 @@ export function listReports({
   if (!module) return { ok: false, reason: 'unknown-report-module' };
   const root = safeProjectReportRoot(projectRoot, module.id);
   const q = query.trim().toLowerCase();
-  let reports = walkReportMarkdown(root).map((child) => reportSummary(projectRoot, module.id, child));
+  let reports = walkReportMarkdown(root)
+    .map((child) => reportSummary(projectRoot, module.id, child))
+    .filter((report): report is NonNullable<typeof report> => Boolean(report));
   if (q) {
     reports = reports.filter((report) =>
       [report.title, report.path, report.summary, report.status, report.sourceArtifact].some((value) =>

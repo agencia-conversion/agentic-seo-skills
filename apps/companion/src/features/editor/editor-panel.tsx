@@ -53,6 +53,7 @@ import { MentionChipHydrator } from './mention-chip-hydrator';
 import { FrontmatterDrawer } from './frontmatter-drawer';
 import { useI18n } from '@/components/i18n-provider';
 import { ConfirmModal } from '@/components/confirm-modal';
+import { BreadcrumbTrail } from '../workspace/breadcrumb-trail';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
   ssr: false,
@@ -265,7 +266,6 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     );
   }
 
-  const breadcrumbs = [activePage];
   const pageWidthOptions = getPageWidthOptions(t);
   const validContent: JSONContent =
     activePage.content && typeof activePage.content === 'object' && 'type' in activePage.content
@@ -379,19 +379,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
             >
               <Menu className="w-4 h-4" />
             </button>
-            {breadcrumbs.map((crumb) => (
-              <div key={crumb.id} className="flex items-center gap-1">
-                <div
-                  onClick={() => router.push(pagePath(crumb.slug))}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-notion-hover cursor-pointer transition-colors max-w-[360px] overflow-hidden truncate"
-                >
-                  <span className="w-[18px] h-[18px] flex items-center justify-center shrink-0 text-notion-text-muted">
-                    {crumb.icon || <FileText className="w-[18px] h-[18px]" />}
-                  </span>
-                  <span className="text-notion-text truncate font-medium">{crumb.title || t('common.untitled')}</span>
-                </div>
-              </div>
-            ))}
+            <BreadcrumbTrail activePage={activePage} />
           </div>
           <div className="flex items-center gap-1 text-notion-text-muted relative" ref={menuRef}>
             <span className={cn('text-[11px] mr-1', activePage.saveError ? 'text-red-500' : 'text-notion-text-muted')}>
@@ -539,32 +527,6 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                 onChange={(cover) => updatePage(activePage.id, { cover })}
               />
             </div>
-            {activePage.icon && (
-              <div className={cn('relative group/icon-container w-fit', activePage.cover && 'mt-2')}>
-                <div
-                  className={cn(
-                    'leading-none mb-4 w-fit rounded-lg transition-colors -ml-1',
-                    !activePage.readOnly && 'cursor-pointer hover:bg-notion-hover',
-                    isModal ? 'text-[64px]' : 'text-[78px]'
-                  )}
-                  onClick={(e) => {
-                    if (activePage.readOnly) return;
-                    e.stopPropagation();
-                    setShowEmojiPicker(true);
-                  }}
-                >
-                  {activePage.icon}
-                </div>
-                {!activePage.readOnly && (
-                  <button
-                    onClick={() => updatePage(activePage.id, { icon: null })}
-                    className="absolute -top-2 -right-2 p-1 bg-background border border-notion-border rounded-full opacity-0 group-hover/icon-container:opacity-100 transition-opacity shadow-sm hover:bg-notion-hover cursor-pointer"
-                  >
-                    <X className="w-3 h-3 text-notion-text-muted" />
-                  </button>
-                )}
-              </div>
-            )}
             <AnimatePresence>
               {showEmojiPicker && (
                 <motion.div
@@ -584,31 +546,66 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                 </motion.div>
               )}
             </AnimatePresence>
-            <TitleEditor
-              pageId={activePage.id}
-              initialTitle={activePage.title}
-              placeholder={t('common.untitled')}
-              endAction={
-                !isModal
-                  ? {
-                      icon: <Settings />,
-                      label: 'Editar metadados',
-                      onClick: (e) => {
-                        e.stopPropagation();
-                        setShowFrontmatterDrawer((open) => !open);
-                      },
-                    }
-                  : undefined
-              }
-              isModal={isModal}
-              autoFocus={!activePage.title && !activePage.readOnly}
-              readOnly={activePage.readOnly}
-              onEnter={() => {
-                const editorEl = document.querySelector('.ProseMirror') as HTMLElement | null;
-                editorEl?.focus();
-              }}
-              onPasteMultiline={(p) => setPendingPasteHtml(p)}
-            />
+            <div className="flex items-end gap-2">
+              {activePage.icon && (
+                <div className="relative group/icon-container shrink-0 self-end mb-[0.36em]">
+                  <button
+                    type="button"
+                    className={cn(
+                      'flex h-[1.15em] w-[1.15em] items-center justify-center rounded-md leading-none transition-colors',
+                      !activePage.readOnly && 'cursor-pointer hover:bg-notion-hover',
+                      activePage.readOnly && 'cursor-default',
+                      isModal ? 'text-3xl' : 'text-[40px]'
+                    )}
+                    onClick={(e) => {
+                      if (activePage.readOnly) return;
+                      e.stopPropagation();
+                      setShowEmojiPicker(true);
+                    }}
+                    aria-label={activePage.readOnly ? activePage.title || t('common.untitled') : t('editor.addIcon')}
+                  >
+                    {activePage.icon}
+                  </button>
+                  {!activePage.readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => updatePage(activePage.id, { icon: null })}
+                      className="absolute -top-1.5 -right-1.5 p-0.5 bg-background border border-notion-border rounded-full opacity-0 group-hover/icon-container:opacity-100 transition-opacity shadow-sm hover:bg-notion-hover cursor-pointer"
+                      aria-label="Remover ícone"
+                    >
+                      <X className="w-3 h-3 text-notion-text-muted" />
+                    </button>
+                  )}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <TitleEditor
+                  pageId={activePage.id}
+                  initialTitle={activePage.title}
+                  placeholder={t('common.untitled')}
+                  endAction={
+                    !isModal
+                      ? {
+                          icon: <Settings />,
+                          label: 'Editar metadados',
+                          onClick: (e) => {
+                            e.stopPropagation();
+                            setShowFrontmatterDrawer((open) => !open);
+                          },
+                        }
+                      : undefined
+                  }
+                  isModal={isModal}
+                  autoFocus={!activePage.title && !activePage.readOnly}
+                  readOnly={activePage.readOnly}
+                  onEnter={() => {
+                    const editorEl = document.querySelector('.ProseMirror') as HTMLElement | null;
+                    editorEl?.focus();
+                  }}
+                  onPasteMultiline={(p) => setPendingPasteHtml(p)}
+                />
+              </div>
+            </div>
             <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
               {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">{t('shared.readOnly')}</span>}
               <button

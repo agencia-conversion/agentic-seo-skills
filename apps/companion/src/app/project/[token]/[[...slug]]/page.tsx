@@ -13,6 +13,8 @@ import { usePagePath } from '@/hooks/use-page-path';
 import { projectSlugMatches } from '@/lib/project-slugs';
 import { useI18n } from '@/components/i18n-provider';
 import { ReportModulePanel } from '@/features/reports/report-module-panel';
+import { ContentIndexPanel } from '@/features/contents/content-index-panel';
+import { WorkbenchIndexPanel } from '@/features/workbench/workbench-index-panel';
 
 const EditorPanel = dynamic(() => import('@/features/editor/editor-panel').then((mod) => mod.EditorPanel), {
   ssr: false,
@@ -107,7 +109,11 @@ export default function ProjectPage() {
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        {activePage?.kind === 'reportIndex' || activePage?.kind === 'reportModule' ? (
+        {activePage?.kind === 'workbenchIndex' ? (
+          <WorkbenchIndexPanel />
+        ) : activePage?.kind === 'contentIndex' ? (
+          <ContentIndexPanel topicClusterId={activePage.contentTopicClusterId} />
+        ) : activePage?.kind === 'reportIndex' || activePage?.kind === 'reportModule' ? (
           <ReportModulePanel moduleId={activePage.reportModuleId} />
         ) : (
           <EditorPanel />

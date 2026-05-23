@@ -296,6 +296,8 @@ function walkMarkdown(root, current = root) {
   for (const name of readdirSync(current).sort((a, b) => a.localeCompare(b, "pt-BR"))) {
     if (name.startsWith(".") || name.startsWith("_")) continue;
     const full = join(current, name);
+    const lst = lstatSync(full);
+    if (lst.isSymbolicLink()) continue;
     const st = statSync(full);
     if (st.isDirectory()) out.push(...walkMarkdown(root, full));
     if (st.isFile() && name.endsWith(".md")) {
@@ -355,7 +357,7 @@ export function buildProjectTree({ projectRoot }) {
       items,
     },
   ];
-  if (contentItems.length) sections.push({ id: "conteudos", title: "Conteúdos", items: contentItems });
+  if (contentItems.length || existsSync(join(root, "conteudos"))) sections.push({ id: "conteudos", title: "Conteúdos", items: contentItems });
   if (workbenchItems.length) sections.push({ id: "workbench", title: "Workbench", items: workbenchItems });
   return {
     ok: true,
@@ -368,6 +370,205 @@ export function buildProjectTree({ projectRoot }) {
       icon: projectIcon,
     },
     sections,
+  };
+}
+
+function cleanValue(value) {
+  return String(value ?? "").replace(/^["']|["']$/g, "").trim();
+}
+
+function slugValue(value) {
+  return cleanValue(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function walkClusterJson(root, current = root) {
+  if (!existsSync(current)) return [];
+  const out = [];
+  for (const name of readdirSync(current).sort((a, b) => a.localeCompare(b, "pt-BR"))) {
+    if (name.startsWith(".") || name.startsWith("_")) continue;
+    const full = join(current, name);
+    const lst = lstatSync(full);
+    if (lst.isSymbolicLink()) continue;
+    const st = statSync(full);
+    if (st.isDirectory()) out.push(...walkClusterJson(root, full));
+    if (st.isFile() && name === "cluster.json") out.push(relative(root, full).split(sep).join("/"));
+  }
+  return out;
+}
+
+function readTopicClusters(root) {
+  const clustersRoot = resolve(root, "clusters");
+  if (!existsSync(clustersRoot)) return [];
+  const realRoot = realpathSync(root);
+  const clusters = [];
+  for (const child of walkClusterJson(clustersRoot)) {
+    const filePath = resolve(clustersRoot, child);
+    const realFile = realpathSync(filePath);
+    if (!realFile.startsWith(`${realRoot}${sep}`)) continue;
+    try {
+      const data = JSON.parse(readFileSync(filePath, "utf8"));
+      const id = slugValue(data.seed_slug || data.pillar?.slug || basename(resolve(filePath, "..")));
+      if (!id) continue;
+      const title = cleanValue(data.pillar?.title || data.seed || id) || id;
+      const aliases = new Set([id, slugValue(title), slugValue(data.seed), slugValue(data.pillar?.slug), slugValue(data.seed_slug)].filter(Boolean));
+      const pageSlugs = new Set();
+      for (const value of [data.pillar?.slug, data.pillar?.title, data.seed]) {
+        const slug = slugValue(value);
+        if (slug) pageSlugs.add(slug);
+      }
+      for (const page of Array.isArray(data.supporting_pages) ? data.supporting_pages : []) {
+        for (const value of [page?.slug, page?.title, page?.keyword_principal?.keyword]) {
+          const slug = slugValue(value);
+          if (slug) pageSlugs.add(slug);
+        }
+      }
+      clusters.push({ id, title, path: relative(root, filePath).split(sep).join("/"), aliases, pageSlugs });
+    } catch {
+      // Ignore malformed cluster drafts.
+    }
+  }
+  return clusters.sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+}
+
+function inferContentCluster(frontmatter, contentSlug, clusters) {
+  const explicit = slugValue(frontmatter.topic_cluster || frontmatter.topicCluster || frontmatter.cluster);
+  const area = slugValue(frontmatter.area);
+  const slug = slugValue(frontmatter.slug || contentSlug);
+  if (explicit) {
+    return clusters.find((cluster) => cluster.id === explicit || cluster.aliases.has(explicit)) || {
+      id: explicit,
+      title: cleanValue(frontmatter.topic_cluster || frontmatter.topicCluster || frontmatter.cluster) || explicit,
+      path: null,
+    };
+  }
+  return clusters.find((cluster) => cluster.aliases.has(area) || cluster.pageSlugs.has(slug)) || null;
+}
+
+export function listProjectContents({ projectRoot, page = 1, pageSize = 25, query = "", origin = "", topicCluster = "" }) {
+  const root = normalizeProjectRoot(projectRoot);
+  const clusters = readTopicClusters(root);
+  const rows = [];
+  for (const contentOrigin of CONTENT_ORIGINS) {
+    const dir = resolve(root, "conteudos", contentOrigin);
+    if (!existsSync(dir)) continue;
+    const realDir = realpathSync(dir);
+    if (!realDir.startsWith(`${realpathSync(root)}${sep}`)) continue;
+    for (const child of walkMarkdown(dir)) {
+      const rel = `conteudos/${contentOrigin}/${child}`;
+      const filePath = resolve(root, rel);
+      const realFile = realpathSync(filePath);
+      if (!realFile.startsWith(`${realDir}${sep}`)) continue;
+      const text = readFileSync(filePath, "utf8");
+      const { data: frontmatter, body } = parseFrontmatter(text);
+      const contentSlug = cleanValue(frontmatter.slug) || basename(child, ".md");
+      const cluster = inferContentCluster(frontmatter, contentSlug, clusters);
+      rows.push({
+        id: sha256(rel),
+        path: rel,
+        title: cleanValue(frontmatter.title) || titleFromFile(rel, frontmatter),
+        slug: contentSlug,
+        origin: cleanValue(frontmatter.origem || frontmatter.origin) || contentOrigin,
+        area: cleanValue(frontmatter.area),
+        topic_cluster: cluster?.id || null,
+        topicClusterTitle: cluster?.title || null,
+        topicClusterPath: cluster?.path || null,
+        published_at: cleanValue(frontmatter.published_at),
+        updated: cleanValue(frontmatter.updated || frontmatter.updated_at),
+        status: cleanValue(frontmatter.status) || (cleanValue(frontmatter.published_at) ? "published" : "draft"),
+        excerpt: body.replace(/\s+/g, " ").trim().slice(0, 180),
+        hash: sha256(text),
+      });
+    }
+  }
+
+  const noneCluster = "__none__";
+  const q = query.trim().toLowerCase();
+  let filtered = rows;
+  if (origin.trim()) filtered = filtered.filter((row) => row.origin === origin.trim());
+  if (topicCluster.trim()) {
+    filtered = filtered.filter((row) => topicCluster.trim() === noneCluster ? !row.topic_cluster : row.topic_cluster === topicCluster.trim());
+  }
+  if (q) {
+    filtered = filtered.filter((row) =>
+      [row.title, row.path, row.origin, row.area, row.topicClusterTitle, row.status, row.excerpt].some((value) =>
+        String(value || "").toLowerCase().includes(q)
+      )
+    );
+  }
+  filtered.sort((a, b) => String(b.updated || b.published_at || b.path).localeCompare(String(a.updated || a.published_at || a.path)));
+  const safePageSize = Math.max(1, Math.min(100, Number(pageSize) || 25));
+  const safePage = Math.max(1, Number(page) || 1);
+  const assignedCounts = new Map();
+  for (const row of rows) assignedCounts.set(row.topic_cluster || noneCluster, (assignedCounts.get(row.topic_cluster || noneCluster) || 0) + 1);
+  const topicClusters = [
+    ...clusters.map((cluster) => ({ id: cluster.id, title: cluster.title, count: assignedCounts.get(cluster.id) || 0 })),
+    ...(assignedCounts.get(noneCluster) ? [{ id: noneCluster, title: "Sem cluster", count: assignedCounts.get(noneCluster) || 0 }] : []),
+  ];
+  const start = (safePage - 1) * safePageSize;
+  return {
+    ok: true,
+    page: safePage,
+    pageSize: safePageSize,
+    total: filtered.length,
+    origins: [...CONTENT_ORIGINS].map((id) => ({ id, count: rows.filter((row) => row.origin === id).length })),
+    topicClusters,
+    items: filtered.slice(start, start + safePageSize),
+  };
+}
+
+export function listProjectWorkbench({ projectRoot, page = 1, pageSize = 25, query = "" }) {
+  const root = normalizeProjectRoot(projectRoot);
+  const workbenchRoot = resolve(root, "workbench");
+  const rows = [];
+  if (existsSync(workbenchRoot)) {
+    const realRoot = realpathSync(root);
+    const realWorkbench = realpathSync(workbenchRoot);
+    if (!realWorkbench.startsWith(`${realRoot}${sep}`)) return { ok: false, reason: "path-not-allowed" };
+    for (const child of walkMarkdown(workbenchRoot)) {
+      const rel = `workbench/${child}`;
+      const filePath = resolve(root, rel);
+      const realFile = realpathSync(filePath);
+      if (!realFile.startsWith(`${realWorkbench}${sep}`)) continue;
+      const text = readFileSync(filePath, "utf8");
+      const { data: frontmatter, body } = parseFrontmatter(text);
+      const st = statSync(filePath);
+      rows.push({
+        id: sha256(rel),
+        path: rel,
+        title: cleanValue(frontmatter.title) || titleFromFile(rel, frontmatter),
+        folder: dirname(child) === "." ? "workbench" : dirname(child).split(sep).join("/"),
+        updated: cleanValue(frontmatter.updated || frontmatter.updated_at) || st.mtime.toISOString(),
+        frontmatter: Object.keys(frontmatter || {}).length,
+        excerpt: body.replace(/\s+/g, " ").trim().slice(0, 180),
+        hash: sha256(text),
+      });
+    }
+  }
+
+  const q = query.trim().toLowerCase();
+  let filtered = rows;
+  if (q) {
+    filtered = filtered.filter((row) =>
+      [row.title, row.path, row.folder, row.excerpt].some((value) =>
+        String(value || "").toLowerCase().includes(q)
+      )
+    );
+  }
+  filtered.sort((a, b) => String(b.updated || b.path).localeCompare(String(a.updated || a.path)));
+  const safePageSize = Math.max(1, Math.min(100, Number(pageSize) || 25));
+  const safePage = Math.max(1, Number(page) || 1);
+  const start = (safePage - 1) * safePageSize;
+  return {
+    ok: true,
+    page: safePage,
+    pageSize: safePageSize,
+    total: filtered.length,
+    items: filtered.slice(start, start + safePageSize),
   };
 }
 

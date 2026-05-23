@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
-import { BarChart3, ChevronLeft, ChevronRight, FileText, Menu, Search } from 'lucide-react';
+import { BarChart3, ChevronLeft, ChevronRight, FileText, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useWorkspace } from '@/features/workspace/store';
+import { VirtualPageShell } from '@/features/workspace/virtual-page-shell';
 import { usePagePath } from '@/hooks/use-page-path';
-import { cn } from '@/lib/utils';
 
 interface ReportRow {
   id: string;
@@ -25,8 +24,6 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
   const token = useWorkspace((s) => s.token);
   const modules = useWorkspace((s) => s.reportModules);
   const openReportPage = useWorkspace((s) => s.openReportPage);
-  const sidebarCollapsed = useWorkspace((s) => s.sidebarCollapsed);
-  const toggleSidebar = useWorkspace((s) => s.toggleSidebar);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState<ReportRow[]>([]);
@@ -36,30 +33,39 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
 
   const activeModule = useMemo(() => modules.find((item) => item.id === moduleId) || null, [moduleId, modules]);
 
+  const openRow = (row: ReportRow) => {
+    const slug = openReportPage(row);
+    if (slug) router.push(pagePath(slug));
+  };
+
   useEffect(() => {
     if (!moduleId || !token) return;
-    const controller = new AbortController();
+    let cancelled = false;
     setLoading(true);
     const params = new URLSearchParams({ module: moduleId, page: String(page), pageSize: String(pageSize) });
     if (query.trim()) params.set('query', query.trim());
     fetch(`/api/project/reports?${params}`, {
       headers: { 'x-companion-token': token },
-      signal: controller.signal,
     })
       .then((res) => res.json())
       .then((data) => {
+        if (cancelled) return;
         if (!data.ok) return;
         setRows(data.reports || []);
         setTotal(data.total || 0);
       })
       .catch(() => {})
-      .finally(() => setLoading(false));
-    return () => controller.abort();
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [moduleId, page, query, token]);
 
   if (!moduleId) {
     return (
-      <ReportShell title="Relatórios" sidebarCollapsed={sidebarCollapsed} toggleSidebar={toggleSidebar}>
+      <VirtualPageShell title="Relatórios">
         <div className="grid gap-2">
           {modules.map((module) => (
             <button
@@ -76,14 +82,14 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
             </button>
           ))}
         </div>
-      </ReportShell>
+      </VirtualPageShell>
     );
   }
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <ReportShell title={activeModule?.title || 'Relatórios'} sidebarCollapsed={sidebarCollapsed} toggleSidebar={toggleSidebar}>
+    <VirtualPageShell title={activeModule?.title || 'Relatórios'}>
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-notion-text-muted">
           {loading ? 'Carregando relatórios...' : `${total} relatório${total === 1 ? '' : 's'}`}
@@ -123,19 +129,24 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
             )}
             {rows.map((row) => {
               return (
-                <tr key={row.id} className="border-t border-notion-border hover:bg-notion-hover">
+                <tr
+                  key={row.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Abrir relatório ${row.title}`}
+                  onClick={() => openRow(row)}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    openRow(row);
+                  }}
+                  className="cursor-pointer border-t border-notion-border transition-colors hover:bg-notion-hover focus-visible:bg-notion-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-notion-text/10"
+                >
                   <td className="max-w-[420px] px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const slug = openReportPage(row);
-                        if (slug) router.push(pagePath(slug));
-                      }}
-                      className="flex items-center gap-2 text-left text-notion-text hover:underline disabled:no-underline disabled:text-notion-text-muted"
-                    >
+                    <div className="flex items-center gap-2 text-left text-notion-text">
                       <FileText className="h-4 w-4 shrink-0 text-notion-text-muted" />
                       <span className="truncate">{row.title}</span>
-                    </button>
+                    </div>
                     {row.summary && <div className="mt-0.5 line-clamp-1 text-xs text-notion-text-muted">{row.summary}</div>}
                   </td>
                   <td className="hidden whitespace-nowrap px-3 py-2 text-notion-text-muted md:table-cell">{formatDate(row.generatedAt)}</td>
@@ -174,37 +185,7 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
           </button>
         </div>
       </div>
-    </ReportShell>
-  );
-}
-
-function ReportShell({
-  title,
-  sidebarCollapsed,
-  toggleSidebar,
-  children,
-}: {
-  title: string;
-  sidebarCollapsed: boolean;
-  toggleSidebar: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex-1 flex flex-col h-full bg-background overflow-hidden">
-      <header className="h-12 px-4 flex items-center gap-2 sticky top-0 bg-background/80 backdrop-blur-md z-20">
-        <button
-          onClick={toggleSidebar}
-          className="p-1.5 hover:bg-notion-hover rounded text-notion-text-muted hover:text-notion-text transition-colors shrink-0"
-          aria-label={sidebarCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
-        >
-          <Menu className="w-4 h-4" />
-        </button>
-        <span className="font-medium text-notion-text">{title}</span>
-      </header>
-      <div className={cn('flex-1 overflow-y-auto px-6 py-6 md:px-10')}>
-        <div className="mx-auto max-w-6xl">{children}</div>
-      </div>
-    </div>
+    </VirtualPageShell>
   );
 }
 

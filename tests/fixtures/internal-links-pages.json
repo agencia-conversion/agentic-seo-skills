@@ -1,0 +1,29 @@
+{
+  "site": "https://example.com",
+  "pages": [
+    {
+      "url": "https://example.com/seo-agentico/",
+      "title": "SEO agêntico",
+      "content": "Página destino sobre SEO agêntico, automação e inteligência aplicada à busca.",
+      "links": ["/contato/"]
+    },
+    {
+      "url": "https://example.com/blog/ia-para-seo/",
+      "title": "IA para SEO",
+      "content": "Equipes de marketing estão usando SEO agêntico para transformar análise técnica, conteúdo e priorização em rotinas assistidas por agentes.",
+      "links": ["/blog/ferramentas-seo/"]
+    },
+    {
+      "url": "https://example.com/blog/ferramentas-seo/",
+      "title": "Ferramentas de SEO",
+      "content": "A pilha moderna de SEO combina auditoria técnica, pesquisa de palavras-chave e SEO agêntico em ciclos curtos de melhoria.",
+      "links": ["/seo-agentico/"]
+    },
+    {
+      "url": "https://other.example.com/post/",
+      "title": "Post externo",
+      "content": "SEO agêntico citado fora do site principal.",
+      "links": []
+    }
+  ]
+}

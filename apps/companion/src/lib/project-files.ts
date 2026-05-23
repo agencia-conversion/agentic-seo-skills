@@ -434,6 +434,8 @@ function walkMarkdown(root: string, current = root): string[] {
   for (const name of readdirSync(current).sort((a, b) => a.localeCompare(b, 'pt-BR'))) {
     if (name.startsWith('.') || name.startsWith('_')) continue;
     const full = join(current, name);
+    const lst = lstatSync(full);
+    if (lst.isSymbolicLink()) continue;
     const st = statSync(full);
     if (st.isDirectory()) out.push(...walkMarkdown(root, full));
     if (st.isFile() && name.endsWith('.md')) out.push(relative(root, full).split(sep).join('/'));
@@ -488,7 +490,7 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
       items: orderedBrain.map((rel) => readSummary(root, rel, ui)).filter(Boolean) as ProjectTreeItem[],
     },
   ];
-  if (contentItems.length) sections.push({ id: 'conteudos', title: 'Conteúdos', items: contentItems });
+  if (contentItems.length || existsSync(join(root, 'conteudos'))) sections.push({ id: 'conteudos', title: 'Conteúdos', items: contentItems });
   if (workbenchItems.length) sections.push({ id: 'workbench', title: 'Workbench', items: workbenchItems });
 
   return {

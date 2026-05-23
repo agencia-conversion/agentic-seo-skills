@@ -211,7 +211,7 @@ When projection is requested, regenerate `project/brain/topic-clusters.md` from 
 
 ### Default delivery
 
-After producing the JSON cluster above, also render an editable, human-first Companion Markdown report at `project/relatorios/topic-cluster/<seed-slug>/report.md`. Use the project language from `project/.agentic-seo/project.json.language` unless the execution has an explicit language override; v1 report copy supports `pt-BR` and `en`. Do not put `# <title>` in the body because the Companion title comes from frontmatter. Use structured fences (`agentic-kpis`, `agentic-chart`, `agentic-table`) for visual modules; new fence bodies must be YAML with `version: 1`, not JSON. Present pillar/support decisions, intent, evidence gaps, and provenance in human-readable prose and tables with friendly field names; never paste raw cluster JSON, SERP JSON, or object arrays into the visual report body. Keep the canonical cluster JSON in `source_artifact` and `project/clusters/<seed-slug>/cluster.json`. Return `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver o relatório?" }`, then ask that exact consent line in chat before opening any browser. Conversational previews and quick clarifications stay in chat as prose.
+Follow the shared `page-report` contract. The module-specific source artifact is `project/clusters/<seed-slug>/cluster.json`; the Companion page is `project/relatorios/topic-cluster/<seed-slug>/report.md`. Present pillar/support decisions, intent, evidence gaps, and provenance in human-readable prose and tables with friendly field names; never paste raw cluster JSON, SERP JSON, or object arrays into the visual report body.
 
 ## Examples
 

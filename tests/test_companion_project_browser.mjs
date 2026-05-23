@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -7,6 +7,8 @@ import {
   buildProjectTree,
   createProjectFile,
   deleteProjectFile,
+  listProjectContents,
+  listProjectWorkbench,
   readProjectSettings,
   readProjectFile,
   readProjectLog,
@@ -42,6 +44,8 @@ const projectRoot = join(tmp, "project");
 const brain = join(projectRoot, "brain");
 mkdirSync(brain, { recursive: true });
 mkdirSync(join(projectRoot, "conteudos", "blog"), { recursive: true });
+mkdirSync(join(projectRoot, "conteudos", "linkedin"), { recursive: true });
+mkdirSync(join(projectRoot, "clusters", "seo-agentico"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "drafts"), { recursive: true });
 mkdirSync(join(projectRoot, "relatorios", "technical-seo", "run-1"), { recursive: true });
 mkdirSync(join(projectRoot, ".agentic-seo"), { recursive: true });
@@ -97,6 +101,40 @@ Conteúdo público.
   "utf8",
 );
 writeFileSync(
+  join(projectRoot, "conteudos", "blog", "_template.md"),
+  `---
+title: "Template"
+---
+
+Não deve aparecer na tabela.
+`,
+  "utf8",
+);
+writeFileSync(
+  join(projectRoot, "conteudos", "linkedin", "post-linkedin.md"),
+  `---
+title: "Post LinkedIn"
+slug: "post-linkedin"
+origem: "linkedin"
+topic_cluster: "seo-agentico"
+status: "draft"
+---
+
+Conteúdo para LinkedIn.
+`,
+  "utf8",
+);
+writeFileSync(
+  join(projectRoot, "clusters", "seo-agentico", "cluster.json"),
+  JSON.stringify({
+    seed: "SEO agêntico",
+    seed_slug: "seo-agentico",
+    pillar: { title: "SEO agêntico", slug: "seo-agentico" },
+    supporting_pages: [{ slug: "post-teste", title: "Post Teste" }],
+  }, null, 2),
+  "utf8",
+);
+writeFileSync(
   join(projectRoot, "workbench", "drafts", "ideia.md"),
   `---
 title: "Ideia"
@@ -107,6 +145,21 @@ Rascunho.
 `,
   "utf8",
 );
+writeFileSync(
+  join(projectRoot, "workbench", "drafts", "_template.md"),
+  `---
+title: "Template Workbench"
+---
+
+Não deve aparecer.
+`,
+  "utf8",
+);
+try {
+  symlinkSync(join(brain, "voz.md"), join(projectRoot, "workbench", "drafts", "symlink.md"));
+} catch {
+  // Symlink creation can be unavailable in some restricted environments.
+}
 writeFileSync(
   join(projectRoot, "relatorios", "technical-seo", "run-1", "report.md"),
   `---
@@ -148,7 +201,28 @@ const vozSummary = tree.sections[0].items.find((item) => item.path === "brain/vo
 assert.equal(vozSummary.title, "Tom de Voz");
 assert.equal(vozSummary.requiresApproval, false);
 assert.ok(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path === "conteudos/blog/post-teste.md"));
+assert.equal(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path.endsWith("_template.md")), false);
 assert.ok(tree.sections.find((section) => section.id === "workbench").items.some((item) => item.path === "workbench/drafts/ideia.md"));
+
+const contentIndex = listProjectContents({ projectRoot });
+assert.equal(contentIndex.ok, true);
+assert.equal(contentIndex.total, 2);
+assert.equal(contentIndex.items.some((item) => item.path === "conteudos/blog/_template.md"), false);
+assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").topic_cluster, "seo-agentico");
+assert.equal(contentIndex.items.find((item) => item.path === "conteudos/linkedin/post-linkedin.md").topicClusterTitle, "SEO agêntico");
+assert.equal(listProjectContents({ projectRoot, origin: "blog" }).total, 1);
+assert.equal(listProjectContents({ projectRoot, topicCluster: "seo-agentico" }).total, 2);
+
+const workbenchIndex = listProjectWorkbench({ projectRoot });
+assert.equal(workbenchIndex.ok, true);
+assert.equal(workbenchIndex.total, 1);
+assert.equal(workbenchIndex.items[0].path, "workbench/drafts/ideia.md");
+assert.equal(workbenchIndex.items[0].folder, "drafts");
+assert.equal(workbenchIndex.items[0].frontmatter, 2);
+assert.equal(workbenchIndex.items.some((item) => item.path.endsWith("_template.md")), false);
+assert.equal(workbenchIndex.items.some((item) => item.path.endsWith("symlink.md")), false);
+assert.equal(listProjectWorkbench({ projectRoot, query: "ideia" }).total, 1);
+assert.equal(listProjectWorkbench({ projectRoot, query: "nao-existe" }).total, 0);
 
 writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Conversion" }), "utf8");
 const conversionTree = buildProjectTree({ projectRoot });

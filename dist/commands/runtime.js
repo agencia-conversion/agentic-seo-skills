@@ -1355,13 +1355,17 @@ function humanList(items, locale) {
         return reportText(locale, "Nenhum item registrado.", "No items recorded.");
     return items.map((item) => `- ${humanEvidence(item, locale).replace(/\n+/g, " ")}`).join("\n");
 }
-function extractSourceLabel(source) {
+function extractSourceLabel(source, extracted, localeInput) {
     try {
         const url = new URL(source);
         return url.host;
     }
     catch {
-        return path.basename(source || "relatório");
+        const title = String(extracted?.title || "").trim();
+        if (title)
+            return title;
+        const base = path.basename(source || "", path.extname(source || "")).replace(/[-_]+/g, " ").trim();
+        return base || reportText(localeInput, "relatório local", "local report");
     }
 }
 function technicalSeveritySummary(report) {
@@ -1381,7 +1385,7 @@ function buildTechnicalSeoReportPayload(report, localeInput) {
     const failedCount = memoryChecks.filter((item) => item.status === "fail").length;
     const severity = technicalSeveritySummary(report);
     const extracted = report.extracted || {};
-    const sourceLabel = extractSourceLabel(report.source);
+    const sourceLabel = extractSourceLabel(report.source, extracted, locale);
     const findings = Array.isArray(report.findings) ? report.findings : [];
     const metadataRows = [
         ["Title", extracted.title || unavailable(locale)],
@@ -1583,6 +1587,217 @@ function buildBacklinkReportPayload(report, localeInput) {
             { heading: reportText(locale, "Resumo executivo", "Executive summary"), body_markdown: reportText(locale, `O alvo analisado foi **${report.target}**. Métricas ausentes são mantidas como “${unavailable(locale)}” para preservar a separação entre evidência e interpretação.`, `The analyzed target was **${report.target}**. Missing metrics remain “${unavailable(locale)}” to preserve evidence/synthesis separation.`) },
             { heading: reportText(locale, "Comparativo", "Comparison"), body_markdown: reportTable(["Target", "Backlinks", reportText(locale, "Domínios ref.", "Ref. domains"), "Rank", "Spam"], [[report.target, report.backlinks ?? unavailable(locale), report.referring_domains ?? unavailable(locale), report.rank ?? unavailable(locale), report.spam_score ?? unavailable(locale)], ...competitors.map((item) => [item.target, item.backlinks ?? unavailable(locale), item.referring_domains ?? unavailable(locale), item.rank ?? unavailable(locale), item.spam_score ?? unavailable(locale)])]) },
             { heading: reportText(locale, "Amostra de backlinks", "Backlink sample"), body_markdown: reportTable([reportText(locale, "Origem", "Source"), reportText(locale, "Destino", "Target"), "Anchor", "Dofollow"], (report.sample_backlinks || []).slice(0, 30).map((item) => [item.from || "", item.to || "", item.anchor || "", item.dofollow == null ? unavailable(locale) : yesNo(Boolean(item.dofollow), locale)])) },
+        ],
+    };
+}
+function internalLinkUrl(value, siteScope) {
+    const raw = String(value || "").trim();
+    if (!raw)
+        return null;
+    try {
+        return new URL(raw, siteScope.endsWith("/") ? siteScope : `${siteScope}/`);
+    }
+    catch {
+        return null;
+    }
+}
+function internalLinkPath(value, siteScope) {
+    const url = internalLinkUrl(value, siteScope);
+    if (!url)
+        return String(value || "").trim();
+    const normalized = url.pathname.replace(/\/+/g, "/").replace(/\/$/, "") || "/";
+    return normalized.toLowerCase();
+}
+function internalLinkPageText(page) {
+    if (typeof page.text === "string")
+        return page.text;
+    if (typeof page.content === "string")
+        return page.content;
+    if (typeof page.body === "string")
+        return page.body;
+    if (typeof page.html === "string")
+        return htmlVisibleText(page.html);
+    return "";
+}
+function internalLinkPageLinks(page) {
+    const links = Array.isArray(page.links) ? page.links : [];
+    return links.map((link) => typeof link === "string" ? link : String(link?.href || "")).filter(Boolean);
+}
+function textSnippet(text, needles, locale) {
+    const clean = text.replace(/\s+/g, " ").trim();
+    if (!clean)
+        return reportText(locale, "Sem trecho textual disponível.", "No text excerpt available.");
+    const lower = clean.toLowerCase();
+    const needle = needles.find((item) => item && lower.includes(item.toLowerCase()));
+    const index = needle ? lower.indexOf(needle.toLowerCase()) : 0;
+    const start = Math.max(0, index - 90);
+    const end = Math.min(clean.length, index + 180);
+    const prefix = start > 0 ? "..." : "";
+    const suffix = end < clean.length ? "..." : "";
+    return `${prefix}${clean.slice(start, end)}${suffix}`;
+}
+function uniqueInternalLinkKey(page, index) {
+    return String(page.id || page.url || page.path || page.title || `page-${index + 1}`);
+}
+function buildInternalLinksReport(input, args, projectDir) {
+    const settings = projectSettings(projectDir);
+    const locale = reportLocale(args.language || settings.language);
+    const rawPages = Array.isArray(input) ? input : Array.isArray(input.pages) ? input.pages : [];
+    if (!rawPages.length)
+        throw new CliError("--pages-file must contain a pages array.");
+    const firstUrl = rawPages.map((page) => page.url || page.path).find(Boolean);
+    const siteScope = String(args.site || input.site || input.site_scope || (firstUrl && String(firstUrl).startsWith("http") ? new URL(String(firstUrl)).origin : "")).trim();
+    if (!siteScope)
+        throw new CliError("Provide --site or include site/site_scope in --pages-file.");
+    const target = required(args, "target");
+    const topic = String(args.topic || path.basename(internalLinkPath(target, siteScope)) || target).replace(/[-_]+/g, " ").trim();
+    const targetUrl = internalLinkUrl(target, siteScope);
+    if (!targetUrl)
+        throw new CliError("Invalid --target URL/path.");
+    const targetHost = targetUrl.host;
+    const targetPath = internalLinkPath(target, siteScope);
+    const targetPage = rawPages.find((page, index) => {
+        const pageUrl = internalLinkUrl(page.url || page.path || uniqueInternalLinkKey(page, index), siteScope);
+        return pageUrl && pageUrl.host === targetHost && internalLinkPath(pageUrl.href, siteScope) === targetPath;
+    });
+    const terms = Array.from(new Set([
+        topic,
+        ...topic.split(/\s+/g),
+        ...targetPath.split(/[\/-]+/g),
+    ].map((term) => term.trim()).filter((term) => term.length >= 4)));
+    const recommendations = [];
+    const blocked = [];
+    const pages = rawPages.map((page, index) => {
+        const pageUrl = internalLinkUrl(page.url || page.path || uniqueInternalLinkKey(page, index), siteScope);
+        const url = pageUrl?.href || String(page.url || page.path || "");
+        const sameSite = Boolean(pageUrl && pageUrl.host === targetHost);
+        const text = internalLinkPageText(page);
+        const lowerText = text.toLowerCase();
+        const matchedTerm = terms.find((term) => lowerText.includes(term.toLowerCase())) || "";
+        const links = internalLinkPageLinks(page);
+        const alreadyLinks = links.some((href) => internalLinkPath(href, siteScope) === targetPath);
+        const isTarget = pageUrl ? internalLinkPath(pageUrl.href, siteScope) === targetPath : false;
+        const evidence = matchedTerm
+            ? reportText(locale, `O trecho menciona "${matchedTerm}": ${textSnippet(text, [matchedTerm], locale)}`, `The excerpt mentions "${matchedTerm}": ${textSnippet(text, [matchedTerm], locale)}`)
+            : reportText(locale, "Nenhuma menção textual forte ao tema foi encontrada.", "No strong textual mention of the topic was found.");
+        const normalized = {
+            id: uniqueInternalLinkKey(page, index),
+            url,
+            title: page.title || reportText(locale, "Página sem título", "Untitled page"),
+            same_site: sameSite,
+            is_target: isTarget,
+            already_links_to_target: alreadyLinks,
+            matched_term: matchedTerm || null,
+            evidence,
+        };
+        if (!sameSite) {
+            blocked.push({ source_url: url, reason: reportText(locale, "Fora do mesmo site.", "Outside the same site."), evidence });
+        }
+        else if (isTarget) {
+            blocked.push({ source_url: url, reason: reportText(locale, "A página é o próprio destino.", "The page is the target itself."), evidence });
+        }
+        else if (alreadyLinks) {
+            blocked.push({ source_url: url, reason: reportText(locale, "Já existe link para o destino.", "A link to the target already exists."), evidence });
+        }
+        else if (matchedTerm) {
+            recommendations.push({
+                id: `il-${String(recommendations.length + 1).padStart(2, "0")}`,
+                direction: "inbound",
+                status: "needs_review",
+                source_url: url,
+                source_title: normalized.title,
+                target_url: targetUrl.href,
+                target_title: targetPage?.title || topic,
+                suggested_anchor: matchedTerm,
+                evidence,
+                action: reportText(locale, `Adicionar um link contextual para ${targetPath} usando "${matchedTerm}" como âncora, se o parágrafo continuar natural.`, `Add a contextual link to ${targetPath} using "${matchedTerm}" as anchor if the paragraph still reads naturally.`),
+            });
+        }
+        else {
+            blocked.push({ source_url: url, reason: reportText(locale, "Sem contexto textual suficiente para recomendar link.", "Insufficient textual context for a link recommendation."), evidence });
+        }
+        return normalized;
+    });
+    return {
+        run_id: String(args.run_slug || `${stamp()}-internal-links-${slugify(topic || targetPath)}`),
+        generated_at: nowIso(),
+        status: "ready",
+        site_scope: siteScope,
+        direction: args.direction || "inbound",
+        language: locale,
+        target: { url: targetUrl.href, path: targetPath, title: targetPage?.title || topic },
+        topic,
+        pages_analyzed: pages,
+        recommendations,
+        blocked_candidates: blocked,
+        summary: reportText(locale, `${recommendations.length} oportunidades recomendadas e ${blocked.length} candidatos bloqueados.`, `${recommendations.length} recommended opportunities and ${blocked.length} blocked candidates.`),
+        limitations: [
+            reportText(locale, "Análise baseada no arquivo de páginas fornecido; não substitui um crawl completo.", "Analysis based on the supplied pages file; it does not replace a full crawl."),
+            reportText(locale, "A aplicação dos links exige revisão do parágrafo final no CMS ou arquivo de origem.", "Applying links requires reviewing the final paragraph in the CMS or source file."),
+        ],
+    };
+}
+function renderInternalLinksReview(report, locale) {
+    const lines = [
+        `# ${reportText(locale, "Revisão de links internos", "Internal links review")} - ${report.topic}`,
+        "",
+        `- ${reportText(locale, "Destino", "Target")}: ${report.target?.url || unavailable(locale)}`,
+        `- ${reportText(locale, "Oportunidades", "Opportunities")}: ${(report.recommendations || []).length}`,
+        `- ${reportText(locale, "Bloqueados", "Blocked")}: ${(report.blocked_candidates || []).length}`,
+        "",
+        `## ${reportText(locale, "Recomendações", "Recommendations")}`,
+        "",
+    ];
+    if (!(report.recommendations || []).length)
+        lines.push(reportText(locale, "Nenhuma recomendação pronta para revisão.", "No recommendation ready for review."));
+    for (const item of report.recommendations || []) {
+        lines.push(`- ${item.source_title || item.source_url}: ${item.action}`);
+    }
+    lines.push("", `## ${reportText(locale, "Limitações", "Limitations")}`, "", markdownList(report.limitations || []), "");
+    return `${lines.join("\n")}\n`;
+}
+function buildInternalLinksReportPayload(report, localeInput) {
+    const locale = reportLocale(localeInput || report.language);
+    const recommendations = report.recommendations || [];
+    const blocked = report.blocked_candidates || [];
+    const recommendationRows = recommendations.map((item) => [
+        item.source_title || item.source_url,
+        item.target_title || report.target?.title || unavailable(locale),
+        item.suggested_anchor || unavailable(locale),
+        statusLabel(item.status, locale),
+        item.evidence || unavailable(locale),
+        item.action || unavailable(locale),
+    ]);
+    const blockedRows = blocked.map((item) => [
+        item.source_url || unavailable(locale),
+        item.reason || unavailable(locale),
+        item.evidence || unavailable(locale),
+    ]);
+    return {
+        title: reportText(locale, `Links internos — ${report.topic}`, `Internal links — ${report.topic}`),
+        subtitle: `${report.site_scope || "site"} · ${report.direction || "inbound"}`,
+        generatedAt: report.generated_at || nowIso(),
+        locale,
+        kpis: [
+            { label: reportText(locale, "Oportunidades", "Opportunities"), value: String(recommendations.length), tone: recommendations.length ? "good" : "warn" },
+            { label: reportText(locale, "Páginas analisadas", "Pages analyzed"), value: String((report.pages_analyzed || []).length), tone: "info" },
+            { label: reportText(locale, "Candidatos bloqueados", "Blocked candidates"), value: String(blocked.length), tone: blocked.length ? "warn" : "good" },
+            { label: reportText(locale, "Destino", "Target"), value: report.target?.path || unavailable(locale), tone: "info" },
+        ],
+        charts: [{
+                title: reportText(locale, "Status dos candidatos", "Candidate status"),
+                description: reportText(locale, "Separação entre oportunidades revisáveis e candidatos bloqueados.", "Split between reviewable opportunities and blocked candidates."),
+                type: "doughnut",
+                data: {
+                    labels: [reportText(locale, "Recomendados", "Recommended"), reportText(locale, "Bloqueados", "Blocked")],
+                    datasets: [{ data: [recommendations.length, blocked.length], backgroundColor: [REPORT_COLORS.green, REPORT_COLORS.amber], borderWidth: 0 }],
+                },
+            }],
+        sections: [
+            { heading: reportText(locale, "Resumo executivo", "Executive summary"), body_markdown: reportText(locale, `Foram analisadas **${(report.pages_analyzed || []).length} páginas** para encontrar links internos até **${report.target?.path || report.target?.url}**. O relatório encontrou **${recommendations.length} oportunidades** que precisam de revisão humana antes de aplicação.`, `Analyzed **${(report.pages_analyzed || []).length} pages** to find internal links to **${report.target?.path || report.target?.url}**. The report found **${recommendations.length} opportunities** that need human review before applying.`) },
+            { heading: reportText(locale, "Oportunidades recomendadas", "Recommended opportunities"), body_markdown: recommendationRows.length ? reportTable([reportText(locale, "Fonte", "Source"), reportText(locale, "Destino", "Target"), "Anchor", "Status", reportText(locale, "Evidência", "Evidence"), reportText(locale, "Ação recomendada", "Recommended action")], recommendationRows, locale) : reportText(locale, "Nenhuma oportunidade recomendada com a evidência atual.", "No recommended opportunity with the current evidence.") },
+            { heading: reportText(locale, "Candidatos bloqueados", "Blocked candidates"), body_markdown: blockedRows.length ? reportTable([reportText(locale, "Fonte", "Source"), reportText(locale, "Motivo", "Reason"), reportText(locale, "Evidência", "Evidence")], blockedRows, locale) : reportText(locale, "Nenhum candidato bloqueado.", "No blocked candidate.") },
+            { heading: reportText(locale, "Limitações", "Limitations"), body_markdown: humanList(report.limitations || [], locale) },
         ],
     };
 }
@@ -2614,6 +2829,34 @@ async function commandBacklinkAnalysis(args) {
         title: target,
         files: [path.relative(p, `${base}.raw.json`), path.relative(p, reportYaml)],
         summary: "Análise de backlinks registrada e renderizada como relatório Markdown no Web Companion.",
+    }));
+}
+async function commandInternalLinks(args) {
+    const pagesFile = required(args, "pages_file");
+    const p = ensureProject();
+    const settings = projectSettings(p);
+    const input = readDataFile(path.resolve(pagesFile));
+    const report = buildInternalLinksReport(input, args, p);
+    const runSlug = reportRunSlug(report.run_id);
+    const rawDir = path.join(p, "sources", "internal-links", runSlug);
+    const workbenchYaml = path.join(p, "workbench", "internal-links", `${runSlug}.yaml`);
+    const artifactMd = path.join(p, "artifacts", "internal-links", `${runSlug}.md`);
+    const reportDir = path.join(p, "audits", `internal-links-${runSlug}`);
+    const reportYaml = path.join(reportDir, "report.yaml");
+    const reportMd = reportMarkdownPath(p, "internal-links", runSlug);
+    const rawPages = path.join(rawDir, "pages.json");
+    writeJson(rawPages, input);
+    writeYaml(workbenchYaml, report);
+    writeText(artifactMd, renderInternalLinksReview(report, report.language || settings.language));
+    writeYaml(reportYaml, report);
+    printJson(completeReportWorkflow(report, {
+        projectDir: p,
+        reportMd,
+        payload: { ...buildInternalLinksReportPayload(report, settings.language), reportType: "internal-links", slug: runSlug, sourceArtifact: path.relative(p, reportYaml) },
+        eventType: "internal-links",
+        title: report.topic || report.target?.path || "internal links",
+        files: [path.relative(p, rawPages), path.relative(p, workbenchYaml), path.relative(p, artifactMd), path.relative(p, reportYaml)],
+        summary: `Análise de links internos com ${(report.recommendations || []).length} oportunidades e relatório Markdown no Web Companion.`,
     }));
 }
 async function commandSeoAnalysis(args) {
@@ -4018,6 +4261,7 @@ const COMMANDS = {
     "keyword-research": commandKeywordResearch,
     "kw-volume": commandKwVolume,
     "backlink-analysis": commandBacklinkAnalysis,
+    "internal-links": commandInternalLinks,
     "seo-analysis": commandSeoAnalysis,
     "topic-cluster": commandTopicCluster,
     eeat: commandEeat,

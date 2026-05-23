@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import * as path from "node:path";
 import YAML from "yaml";
+import { buildRater, statesAllPresent } from "../tests/fixtures/eeat/rater-builder.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BIN = path.join(ROOT, "bin", "agentic-seo");
@@ -84,6 +85,15 @@ function main() {
   if (eeatInit.status !== 0) throw new Error(`eeat init failed: ${eeatInit.stderr}`);
   const eeatRun = JSON.parse(eeatInit.stdout);
   if (!eeatRun.run_id) throw new Error("eeat init did not return run_id");
+  for (const [i, outPath] of eeatRun.rater_output_paths.entries()) {
+    const rater = buildRater({ raterId: `rater-${i + 1}`, states: statesAllPresent() });
+    fs.writeFileSync(path.resolve(ROOT, outPath), JSON.stringify(rater, null, 2), "utf8");
+  }
+  const eeatConsensus = spawnSync("node", [path.join(ROOT, "scripts", "eeat.mjs"), "consensus", "--run", eeatRun.run_id], {
+    cwd: ROOT, encoding: "utf8", env: { ...process.env, AGENTIC_SEO_PROJECT_DIR: PROJECT_DIR },
+  });
+  if (eeatConsensus.status !== 0) throw new Error(`eeat consensus failed: ${eeatConsensus.stderr}`);
+  assertReportContract(JSON.parse(eeatConsensus.stdout), "eeat");
   const content = run("content-seo", "--topic", "O que é SEO agêntico", "--keyword", "seo agêntico", "--top3-bypass-confirmed", "--top3-bypass-reason", "smoke test offline sem fetch de concorrentes");
   if (content.status !== "ready_for_writing") throw new Error("content-seo should create a write-ready briefing");
   if (!Array.isArray(content.brief?.brief?.outline) || content.brief.brief.outline.length < 3) throw new Error("content-seo did not generate an outline");
@@ -96,6 +106,7 @@ function main() {
   if (!written.draft_path) throw new Error("content-seo write should create artifact draft");
   if (!fs.existsSync(path.join(PROJECT_DIR, "artifacts", "contents", "o-que-e-seo-agentico", "draft.md"))) throw new Error("content-seo write did not write artifact draft");
   assertReportContract(run("backlink-analysis", "--target", "example.com", "--mode", "offline"), "backlink-analysis");
+  assertReportContract(run("internal-links", "--pages-file", path.join(ROOT, "tests", "fixtures", "internal-links-pages.json"), "--target", "/seo-agentico/", "--topic", "SEO agêntico"), "internal-links");
   const technical = run(
     "technical-seo",
     "--html-file",

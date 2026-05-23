@@ -170,7 +170,7 @@ If the user asks to register proof in `project/brain/editorial.md` or `project/b
 
 ### Default delivery
 
-After producing the structured review above, also render an editable, human-first Companion Markdown report at `project/relatorios/eeat/<entity-or-run-slug>/report.md`. Use the project language from `project/.agentic-seo/project.json.language` unless the execution has an explicit language override; v1 report copy supports `pt-BR` and `en`. Do not put `# <title>` in the body because the Companion title comes from frontmatter. Use structured fences (`agentic-kpis`, `agentic-chart`, `agentic-table`) for visual modules when useful; new fence bodies must be YAML with `version: 1`, not JSON. Present the proof inventory, gaps, confidence, and do-not-claim items in human-readable prose and tables with friendly risk/check names; never paste raw evidence JSON or object arrays into the visual report body. Keep raw evidence and source classifications in `source_artifact`, `sources/`, `eeat/`, or `workbench/`. Return `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver o relatório?" }`, then ask that exact consent line in chat before opening any browser. Conversational previews and quick clarifications stay in chat as prose.
+Follow the shared `page-report` contract. The module-specific source artifact is the consensus JSON under `workbench/eeat/<run-id>/report.json`; the Companion page is `project/relatorios/eeat/<run-id>/report.md`. Present the proof inventory, gaps, confidence, and do-not-claim items in human-readable prose and tables with friendly risk/check names; never paste raw evidence JSON or object arrays into the visual report body.
 
 ## Examples
 

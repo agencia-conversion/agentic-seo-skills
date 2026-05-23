@@ -37,6 +37,8 @@ assert.equal(home.calculation_memory.points_awarded, pointsAwarded);
 assert.equal(home.calculation_memory.lost_points, totalWeight - pointsAwarded);
 assert.equal(home.calculation_memory.checks.length, home.checks.length);
 const homeReport = readFileSync(resolve(tmp, "project", home.report_md), "utf8");
+assert.match(homeReport, /title: "SEO técnico — Agentic SEO para crescimento orgânico"/);
+assert.doesNotMatch(homeReport, /technical-seo-home\.html/);
 assert.match(homeReport, /Resumo executivo/);
 assert.ok(homeReport.indexOf("## Meta e indexabilidade") > homeReport.indexOf("## Resumo executivo"));
 assert.ok(homeReport.indexOf("## Meta e indexabilidade") < homeReport.indexOf("## Prioridades de correção"));

@@ -10,6 +10,7 @@ import { normalizeRaterOutput } from "./lib/eeat/scoring.mjs";
 import { buildReport } from "./lib/eeat/build-report.mjs";
 import { renderMarkdown } from "./lib/eeat/render.mjs";
 import { renderMarkdownReport } from "./lib/markdown-report.mjs";
+import { appendReportLog, attachReportPrompt, reportMarkdownPath } from "./lib/page-report.mjs";
 import YAML from "yaml";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -67,7 +68,7 @@ function stamp() {
 }
 
 function companionReportPath(proj, runId) {
-  return path.join(proj, "relatorios", "eeat", slugify(runId), "report.md");
+  return reportMarkdownPath(proj, "eeat", runId);
 }
 
 const EEAT_PILLARS = ["experience", "expertise", "authoritativeness", "trust"];
@@ -255,21 +256,19 @@ const SUBCOMMANDS = {
     writeJson(outJson, report);
     writeText(outMd, body);
     writeText(companionMd, renderCompanionReport(report));
-    ok({
+    appendReportLog(proj, {
+      title: `E-E-A-T ${report.run_id}`,
+      files: [path.relative(proj, outJson), path.relative(proj, outMd), path.relative(proj, companionMd)],
+      summary: `Consensus E-E-A-T report generated with score ${report.score}/100 and Companion Markdown report.`,
+    });
+    ok(attachReportPrompt({
       ok: true,
       report_json: path.relative(cwd, outJson),
       workbench_report_md: path.relative(cwd, outMd),
-      report_md: path.relative(cwd, companionMd),
-      browser_prompt: {
-        recommended: true,
-        message: "Posso abrir o Web Companion para você ver o relatório?",
-        report_md: path.relative(proj, companionMd),
-        open_with: "project-browser",
-      },
       score: report.score,
       page_quality: report.page_quality,
       narrative_pending: true,
-    });
+    }, companionMd, proj));
   },
 
   synthesize(args, cwd) {
@@ -286,8 +285,14 @@ const SUBCOMMANDS = {
     const body = renderMarkdown(report);
     writeJson(reportPath, report);
     writeText(path.join(runDir, "report.md"), body);
-    writeText(companionReportPath(proj, report.run_id), renderCompanionReport(report));
-    ok({ ok: true, run_id: report.run_id, report_md: path.relative(cwd, companionReportPath(proj, report.run_id)), narrative_chars: narrative.length });
+    const companionMd = companionReportPath(proj, report.run_id);
+    writeText(companionMd, renderCompanionReport(report));
+    appendReportLog(proj, {
+      title: `E-E-A-T ${report.run_id}`,
+      files: [path.relative(proj, reportPath), path.relative(proj, path.join(runDir, "report.md")), path.relative(proj, companionMd)],
+      summary: "Narrativa consolidada do relatório E-E-A-T atualizada no Web Companion.",
+    });
+    ok(attachReportPrompt({ ok: true, run_id: report.run_id, narrative_chars: narrative.length }, companionMd, proj));
   },
 };
 
