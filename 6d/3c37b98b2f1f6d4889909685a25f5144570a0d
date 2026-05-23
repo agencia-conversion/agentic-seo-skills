@@ -1,0 +1,127 @@
+apps/companion/src/features/workspace/store.ts
+  s_b4d0b78e4d2531::t_eb5769d8cf0bf8 298,308,327,618,620
+  s_b4d0b78e4d2531::t_e75ee744229151 56-61,103,300,310,344,453,456,463,468-469,480-487,500-529
+  s_b4d0b78e4d2531::t_7f942965c0c61e 101
+  s_b4d0b78e4d2531::t_3e9c2d41617d4d 586-599
+  s_b4d0b78e4d2531::t_363a59434a62b3 619
+  s_b4d0b78e4d2531::t_f2e9e32c72ee1b 307
+  s_b4d0b78e4d2531::t_da7ea09afc8e15 464,470-479
+scripts/smoke_test.mjs
+  s_b4d0b78e4d2531::t_a4947839ef7e3b 11,88-96,109
+skills/seo-analysis/SKILL.md
+  s_b4d0b78e4d2531::t_7a4af59a604e20 162
+src/commands/runtime.ts
+  s_b4d0b78e4d2531::t_27791c85416e86 4256
+  s_b4d0b78e4d2531::t_781a9f2343aedd 1370,1375-1378,1399
+  s_b4d0b78e4d2531::t_4339921b3d6457 1620-1823
+  s_b4d0b78e4d2531::t_8295a7040e05bb 2818-2846
+package.json
+  s_b4d0b78e4d2531::t_c3265d50a8c336 15
+apps/companion/src/app/api/project/contents/route.ts
+  s_b4d0b78e4d2531::t_c629de75f11159 1-20
+apps/companion/src/features/workbench/workbench-index-panel.tsx
+  s_b4d0b78e4d2531::t_105dbf39597558 1-176
+skills/page-report/SKILL.md
+  s_b4d0b78e4d2531::t_08d254543769b0 54,74
+  s_b4d0b78e4d2531::t_d0ec4e7b42a870 1-53,55-73,75-85
+apps/companion/src/lib/project-files.ts
+  s_b4d0b78e4d2531::t_3cf66f5bc3b746 437-438
+  s_b4d0b78e4d2531::t_b1dbc1439079cb 493
+tests/test_companion_project_browser.mjs
+  s_b4d0b78e4d2531::t_3d1695af55c298 11,149-157,215-222,224-225
+  s_b4d0b78e4d2531::t_61cafa216cb5c4 2,158-162,223
+  s_b4d0b78e4d2531::t_27115cc828df3c 10,47-48,103-136,204,207-214
+apps/companion/src/features/workspace/breadcrumb-trail.tsx
+  s_b4d0b78e4d2531::t_105dbf39597558 1-16,29-40,46-84
+  s_b4d0b78e4d2531::t_ba83f613649a3f 17-28,41-45
+scripts/lib/project-browser-files.mjs
+  s_b4d0b78e4d2531::t_77a97ad6f97ac3 299-300
+  s_b4d0b78e4d2531::t_f1b0fd5d89f969 360,376-520
+  s_b4d0b78e4d2531::t_83cc2a0640948a 524-574
+docs/refactor-status.md
+  s_b4d0b78e4d2531::t_08513d771bd5e9 7,69
+skills/agentic-seo/SKILL.md
+  s_b4d0b78e4d2531::t_c4d846ae44ae77 24,30
+apps/companion/src/features/workspace/sidebar.tsx
+  s_b4d0b78e4d2531::t_f70c9448399fac 4,122
+dist/commands/runtime.js
+  s_b4d0b78e4d2531::t_60431fadd9c908 1358,1364-1368,1388
+  s_b4d0b78e4d2531::t_3d95f701dacea0 1593-1803,2834-2861,4264
+apps/companion/src/features/reports/report-module-panel.tsx
+  s_b4d0b78e4d2531::t_a37877202a1a21 43,52,58-63
+  s_b4d0b78e4d2531::t_402d48c093f398 4,7,68,85,92,188
+  s_b4d0b78e4d2531::t_f70c9448399fac 36-40,132-144,146,149
+apps/companion/src/app/api/project/workbench/route.ts
+  s_b4d0b78e4d2531::t_105dbf39597558 1-18
+CLAUDE.md
+  s_b4d0b78e4d2531::t_08513d771bd5e9 7
+skills/internal-links/SKILL.md
+  s_b4d0b78e4d2531::t_7a4af59a604e20 170
+apps/companion/src/features/editor/editor-panel.tsx
+  s_b4d0b78e4d2531::t_f70c9448399fac 550,552-608
+  s_b4d0b78e4d2531::t_23e8d0c2f6504c 56,382
+  s_b4d0b78e4d2531::t_389425176747a8 549
+  s_b4d0b78e4d2531::t_67148708f2699b 551
+skills/keyword-research/SKILL.md
+  s_b4d0b78e4d2531::t_7a4af59a604e20 144
+scripts/session-bootstrap.mjs
+  s_b4d0b78e4d2531::t_c4d846ae44ae77 53,58
+apps/companion/src/lib/reports.ts
+  s_b4d0b78e4d2531::t_c2a7d267be50ea 45-54,63,83-85,113-115
+tests/fixtures/internal-links-pages.json
+  s_b4d0b78e4d2531::t_57b40fd9f2e8ed 1-29
+apps/companion/src/lib/contents.ts
+  s_b4d0b78e4d2531::t_c629de75f11159 1-216
+apps/companion/src/features/contents/content-index-panel.tsx
+  s_b4d0b78e4d2531::t_c629de75f11159 1-30,32-39,41-60,66,68-77,79-85,92-248
+  s_b4d0b78e4d2531::t_f4a885b33c3e5a 31,40,61-65,67,78,86-91
+skills/backlink-analysis/SKILL.md
+  s_b4d0b78e4d2531::t_7a4af59a604e20 173
+apps/companion/src/app/project/[token]/[[...slug]]/page.tsx
+  s_b4d0b78e4d2531::t_90ace6cc553a4a 17,112-114
+  s_b4d0b78e4d2531::t_210e6992e4e0a4 16,116
+  s_b4d0b78e4d2531::t_c31c74785b5f59 115
+AGENTS.md
+  s_b4d0b78e4d2531::t_08513d771bd5e9 113,123,148
+tests/test_page_report_contract.mjs
+  s_b4d0b78e4d2531::t_57b40fd9f2e8ed 1-117
+scripts/lib/page-report.mjs
+  s_b4d0b78e4d2531::t_d0ec4e7b42a870 1-104
+skills/topic-cluster/SKILL.md
+  s_b4d0b78e4d2531::t_7a4af59a604e20 214
+skills/technical-seo/SKILL.md
+  s_b4d0b78e4d2531::t_7a4af59a604e20 164
+scripts/review_reports.mjs
+  s_b4d0b78e4d2531::t_d0ec4e7b42a870 1-107
+apps/companion/src/features/workspace/virtual-page-shell.tsx
+  s_b4d0b78e4d2531::t_c629de75f11159 1-6,8-11,14-23,25-31
+  s_b4d0b78e4d2531::t_70a81f6667dba7 7,12-13,24
+skills/serp-extract/SKILL.md
+  s_b4d0b78e4d2531::t_7a4af59a604e20 170
+skills/eeat/SKILL.md
+  s_b4d0b78e4d2531::t_7a4af59a604e20 173
+apps/companion/src/lib/workbench.ts
+  s_b4d0b78e4d2531::t_105dbf39597558 1-93
+tests/test_technical_seo.mjs
+  s_b4d0b78e4d2531::t_93e67869a613fd 40-41
+tests/test_eeat_engine.mjs
+  s_b4d0b78e4d2531::t_6796023020b1a7 48,61-62,65
+scripts/eeat.mjs
+  s_b4d0b78e4d2531::t_cdba9b3bd10297 13,71,259-264,271,288-295
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "6d3c37b98b2f1f6d4889909685a25f5144570a0d",
+  "prompts": {},
+  "sessions": {
+    "s_b4d0b78e4d2531": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e557d-293d-7981-824e-ee6027d84836",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
