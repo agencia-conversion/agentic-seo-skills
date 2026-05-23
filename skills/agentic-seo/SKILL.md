@@ -21,7 +21,7 @@ The default user is nontechnical (founder, marketing lead, SEO strategist). Fram
 
 For any substantive deliverable (report, analysis, content, brief, audit, recommendation), pick the delivery in this order:
 
-1. **Web Companion first** for reports and project artifacts. Data/report workflows write editable, human-first Markdown pages under `project/relatorios/<module>/<run-slug>/report.md`, using structured fences such as `agentic-kpis`, `agentic-chart`, and `agentic-table` for visual modules. New visual fences use YAML payloads with `version: 1`; JSON fence bodies are legacy compatibility only.
+1. **Web Companion first** for reports and project artifacts. Data/report workflows write editable, human-first Markdown pages under `project/relatorios/<module>/<run-slug>/report.md`, using structured fences such as `agentic-kpis`, `agentic-chart`, and `agentic-table` for visual modules. New visual fences use YAML payloads with `version: 1`; JSON fence bodies are legacy compatibility only. `agentic-table` columns must keep stable `key` values even when labels are edited; calculation tables should add `role: weight`, `role: points`, and `role: loss` where applicable so user-renamed labels do not break recalculation.
 2. **Specific local handoff** when a decision or sensitive input is required — `approve-page`, `approve-briefing`, `pick-cluster`, `review-changes`, `dataforseo-bypass`, or `collect-env`.
 3. **Plain Markdown/prose in chat** only for quick clarifications, status, or when the user explicitly asks for inline output.
 

@@ -128,17 +128,39 @@ function reportColumnKey(value: unknown, index: number): string {
   return key || `c${index}`;
 }
 
+type ReportTableColumn = string | { key?: string; label: unknown; role?: string };
+
+function uniqueReportColumnKey(value: unknown, index: number, used: Set<string>): string {
+  const base = reportColumnKey(value, index);
+  let candidate = base;
+  let suffix = 2;
+  while (used.has(candidate)) {
+    candidate = `${base}_${suffix}`;
+    suffix += 1;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
 function reportCell(value: unknown, locale: unknown): unknown {
   if (value == null) return "";
   if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return value;
   return humanEvidence(value, locale);
 }
 
-function reportTable(columns: string[], rows: unknown[][], locale: unknown = "pt-BR"): string {
-  const normalizedColumns = columns.map((label, index) => ({
-    key: reportColumnKey(label, index),
-    label: String(label || `Coluna ${index + 1}`),
-  }));
+function reportTable(columns: ReportTableColumn[], rows: unknown[][], locale: unknown = "pt-BR"): string {
+  const usedKeys = new Set<string>();
+  const normalizedColumns = columns.map((column, index) => {
+    const isSpec = column && typeof column === "object";
+    const label = isSpec ? (column as { label: unknown }).label : column;
+    const keySource = isSpec ? ((column as { key?: string }).key || label) : label;
+    const role = isSpec ? (column as { role?: string }).role : undefined;
+    return {
+      key: uniqueReportColumnKey(keySource, index, usedKeys),
+      label: String(label || `Coluna ${index + 1}`),
+      ...(role ? { role } : {}),
+    };
+  });
   const normalizedRows = rows.map((row) =>
     Object.fromEntries(normalizedColumns.map((column, index) => [column.key, reportCell(row?.[index], locale)]))
   );
@@ -1479,8 +1501,8 @@ function buildTechnicalSeoReportPayload(report: AnyRecord, localeInput?: unknown
         heading: reportText(locale, "Apêndice: memória de cálculo", "Appendix: calculation memory"),
         body_markdown: reportText(
           locale,
-          `O score foi calculado a partir dos pesos dos checks executados. O total de peso foi **${calc.total_weight ?? 0}**, com **${calc.points_awarded ?? 0}** pontos conquistados e **${calc.lost_points ?? 0}** pontos perdidos.\n\n${reportTable(["Check", "Severidade", "Status", "Peso", "Pontos", "Perda", "Evidência humana"], calculationRows, locale)}`,
-          `The score was calculated from the weights of the executed checks. Total weight was **${calc.total_weight ?? 0}**, with **${calc.points_awarded ?? 0}** points earned and **${calc.lost_points ?? 0}** points lost.\n\n${reportTable(["Check", "Severity", "Status", "Weight", "Points", "Loss", "Human evidence"], calculationRows, locale)}`
+          `O score foi calculado a partir dos pesos dos checks executados. O total de peso foi **${calc.total_weight ?? 0}**, com **${calc.points_awarded ?? 0}** pontos conquistados e **${calc.lost_points ?? 0}** pontos perdidos.\n\n${reportTable([{ key: "check", label: "Check" }, { key: "severity", label: "Severidade" }, { key: "status", label: "Status" }, { key: "weight", label: "Peso", role: "weight" }, { key: "points", label: "Pontos", role: "points" }, { key: "loss", label: "Perda", role: "loss" }, { key: "human_evidence", label: "Evidência humana" }], calculationRows, locale)}`,
+          `The score was calculated from the weights of the executed checks. Total weight was **${calc.total_weight ?? 0}**, with **${calc.points_awarded ?? 0}** points earned and **${calc.lost_points ?? 0}** points lost.\n\n${reportTable([{ key: "check", label: "Check" }, { key: "severity", label: "Severity" }, { key: "status", label: "Status" }, { key: "weight", label: "Weight", role: "weight" }, { key: "points", label: "Points", role: "points" }, { key: "loss", label: "Loss", role: "loss" }, { key: "human_evidence", label: "Human evidence" }], calculationRows, locale)}`
         ),
       },
       {

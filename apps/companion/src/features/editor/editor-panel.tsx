@@ -1,24 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, MutableRefObject, ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Command,
-  EditorBubble,
-  EditorBubbleItem,
-  EditorCommand,
-  EditorCommandEmpty,
-  EditorCommandItem,
-  EditorCommandList,
   EditorContent,
-  EditorRoot,
   JSONContent,
-  handleCommandNavigation,
-  renderItems,
-} from 'novel';
+  useEditor,
+  type Editor,
+} from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react/menus';
 import {
   Bold,
   Check,
@@ -46,6 +39,8 @@ import { useClickOutside } from '@/hooks/use-click-outside';
 import { getExtensions } from './editor-extensions';
 import type { ReportScoreResult } from './report-block-data';
 import { buildSuggestionItems, SuggestionItem } from './editor-commands';
+import { SlashCommandMenu } from './slash-command-menu';
+import { ReportTableMenu } from './report-table-menu';
 import { showToast } from '@/components/toast';
 import { CoverPicker } from './cover-picker';
 import { TitleEditor } from './title-editor';
@@ -641,145 +636,22 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               <div className="w-8 h-8 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" />
             </div>
           ) : (
-            <div id={`noteblock-editor-${activePage.id}`} className="novel-editor relative group/editor">
-              <MentionChipHydrator editorRootId={`noteblock-editor-${activePage.id}`} />
-              <EditorRoot key={activePage.id}>
-                <EditorContent
-                  initialContent={validContent}
-                  immediatelyRender={false}
-                  editable={!isReadOnly}
-                  extensions={[
-                    ...getExtensions({ onReportScoreRecalculated: handleReportScoreRecalculated, locale }),
-                    Command.configure({
-                      suggestion: {
-                        items: ({ query }: any) => {
-                          if (!query) return suggestionItems;
-                          return suggestionItems.filter((item) => {
-                            const q = query.toLowerCase();
-                            return item.title.toLowerCase().includes(q) || item.searchTerms?.some((term) => term.includes(q));
-                          });
-                        },
-                        render: renderItems,
-                      },
-                    }),
-                  ]}
-                  onUpdate={({ editor }) => {
-                    editorInstanceRef.current = editor;
-                    updatePage(activePage.id, { content: editor.getJSON() });
-                  }}
-                  onCreate={({ editor }) => {
-                    editorInstanceRef.current = editor;
-                  }}
-                  editorProps={{
-                    attributes: {
-                      class: cn('prose prose-zinc dark:prose-invert max-w-none focus:outline-none', isModal ? 'min-h-[300px]' : 'min-h-[500px]'),
-                    },
-                    handleKeyDown: (view, event) => {
-                      const mod = event.metaKey || event.ctrlKey;
-                      if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
-                        event.preventDefault();
-                        if (isReadOnly) {
-                          showToast('Esta página é somente leitura.', 'error');
-                          return true;
-                        }
-                        const { selection } = view.state;
-                        const alias = selection.empty ? '' : view.state.doc.textBetween(selection.from, selection.to, ' ');
-                        linkContextRef.current = {
-                          mode: 'editor',
-                          from: selection.from,
-                          to: selection.to,
-                          alias: alias.trim() || undefined,
-                        };
-                        openInternalLinkPicker(view.coordsAtPos(selection.from), alias);
-                        return true;
-                      }
-                      if (event.key === '[' && !mod) {
-                        const { state } = view;
-                        const { selection } = state;
-                        if (selection.empty && selection.from > 1 && state.doc.textBetween(selection.from - 1, selection.from) === '[') {
-                          event.preventDefault();
-                          view.dispatch(state.tr.delete(selection.from - 1, selection.from));
-                          linkContextRef.current = {
-                            mode: 'editor',
-                            from: selection.from - 1,
-                            to: selection.from - 1,
-                          };
-                          openInternalLinkPicker(view.coordsAtPos(selection.from - 1));
-                          return true;
-                        }
-                      }
-                      if (handleCommandNavigation(event)) return true;
-                      if (event.key === '+') {
-                        const now = Date.now();
-                        if (now - lastPlusTimeRef.current < 350) {
-                          event.preventDefault();
-                          const { state } = view;
-                          const { selection } = state;
-                          view.dispatch(state.tr.delete(selection.from - 1, selection.from));
-                          showToast('AI local ainda não está habilitada neste companion.', 'error');
-                          lastPlusTimeRef.current = 0;
-                          return true;
-                        }
-                        lastPlusTimeRef.current = now;
-                      }
-                      return false;
-                    },
-                  }}
-                >
-                  <EditorCommand className="z-50 h-auto max-h-[330px] w-72 overflow-y-auto rounded-md border border-notion-border bg-background px-1 py-2 shadow-md">
-                    <EditorCommandEmpty className="px-2 text-notion-text-muted">No results</EditorCommandEmpty>
-                    <EditorCommandList>
-                      {suggestionItems.map((item) => (
-                        <EditorCommandItem
-                          value={item.title}
-                          onCommand={(val) => item.command(val as any)}
-                          className="flex w-full items-center space-x-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-notion-hover aria-selected:bg-notion-hover cursor-pointer"
-                          key={item.title}
-                        >
-                          <div className="flex h-10 w-10 items-center justify-center rounded-md border border-notion-border bg-background shrink-0">
-                            {item.icon}
-                          </div>
-                          <div>
-                            <p className="font-medium text-notion-text">{item.title}</p>
-                            <p className="text-xs text-notion-text-muted">{item.description}</p>
-                          </div>
-                        </EditorCommandItem>
-                      ))}
-                    </EditorCommandList>
-                  </EditorCommand>
-                  <EditorBubble className="flex w-fit max-w-[90vw] overflow-hidden rounded-lg border border-notion-border bg-background shadow-xl">
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleBold().run()} label="Bold">
-                      <Bold className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleItalic().run()} label="Italic">
-                      <Italic className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleUnderline().run()} label="Underline">
-                      <Underline className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleStrike().run()} label="Strikethrough">
-                      <Strikethrough className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleCode().run()} label="Code">
-                      <Code className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleSep />
-                    <BubbleBtn
-                      onSelect={(ed) => {
-                        const url = window.prompt('URL');
-                        if (url) ed.chain().focus().setLink({ href: url }).run();
-                      }}
-                      label="Link"
-                    >
-                      <Link2 className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleHighlight().run()} label="Highlight">
-                      <Highlighter className="w-4 h-4" />
-                    </BubbleBtn>
-                  </EditorBubble>
-                </EditorContent>
-              </EditorRoot>
-            </div>
+            <TiptapEditorSurface
+              key={activePage.id}
+              pageId={activePage.id}
+              content={validContent}
+              editable={!isReadOnly}
+              isReadOnly={isReadOnly}
+              isModal={isModal}
+              locale={locale}
+              suggestionItems={suggestionItems}
+              editorInstanceRef={editorInstanceRef}
+              linkContextRef={linkContextRef}
+              lastPlusTimeRef={lastPlusTimeRef}
+              onUpdate={(content) => updatePage(activePage.id, { content })}
+              onOpenInternalLinkPicker={openInternalLinkPicker}
+              onReportScoreRecalculated={handleReportScoreRecalculated}
+            />
           )}
         </div>
       </div>
@@ -810,25 +682,193 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   );
 }
 
+function TiptapEditorSurface({
+  pageId,
+  content,
+  editable,
+  isReadOnly,
+  isModal,
+  locale,
+  suggestionItems,
+  editorInstanceRef,
+  linkContextRef,
+  lastPlusTimeRef,
+  onUpdate,
+  onOpenInternalLinkPicker,
+  onReportScoreRecalculated,
+}: {
+  pageId: string;
+  content: JSONContent;
+  editable: boolean;
+  isReadOnly: boolean;
+  isModal?: boolean;
+  locale: string;
+  suggestionItems: SuggestionItem[];
+  editorInstanceRef: MutableRefObject<any>;
+  linkContextRef: MutableRefObject<InternalLinkContext | null>;
+  lastPlusTimeRef: MutableRefObject<number>;
+  onUpdate: (content: JSONContent) => void;
+  onOpenInternalLinkPicker: (clientRect: Pick<DOMRect, 'left' | 'bottom'> | { left: number; bottom: number }, query?: string) => void;
+  onReportScoreRecalculated: (result: ReportScoreResult) => void;
+}) {
+  useEffect(() => {
+    (window as any).__noteblockSlashItems = (query: string) => {
+      if (!query) return suggestionItems;
+      const q = query.toLowerCase();
+      return suggestionItems.filter((item) => item.title.toLowerCase().includes(q) || item.searchTerms?.some((term) => term.includes(q)));
+    };
+    return () => {
+      delete (window as any).__noteblockSlashItems;
+    };
+  }, [suggestionItems]);
+
+  const editor = useEditor({
+    content,
+    editable,
+    immediatelyRender: false,
+    extensions: getExtensions({ onReportScoreRecalculated, locale: locale as any }),
+    onCreate: ({ editor }) => {
+      editorInstanceRef.current = editor;
+    },
+    onDestroy: () => {
+      editorInstanceRef.current = null;
+    },
+    onUpdate: ({ editor }) => {
+      editorInstanceRef.current = editor;
+      onUpdate(editor.getJSON() as JSONContent);
+    },
+    editorProps: {
+      attributes: {
+        class: cn('prose prose-zinc dark:prose-invert max-w-none focus:outline-none', isModal ? 'min-h-[300px]' : 'min-h-[500px]'),
+      },
+      handleKeyDown: (view, event) => {
+        const mod = event.metaKey || event.ctrlKey;
+        if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
+          event.preventDefault();
+          if (isReadOnly) {
+            showToast('Esta página é somente leitura.', 'error');
+            return true;
+          }
+          const { selection } = view.state;
+          const alias = selection.empty ? '' : view.state.doc.textBetween(selection.from, selection.to, ' ');
+          linkContextRef.current = {
+            mode: 'editor',
+            from: selection.from,
+            to: selection.to,
+            alias: alias.trim() || undefined,
+          };
+          onOpenInternalLinkPicker(view.coordsAtPos(selection.from), alias);
+          return true;
+        }
+        if (event.key === '[' && !mod) {
+          const { state } = view;
+          const { selection } = state;
+          if (selection.empty && selection.from > 1 && state.doc.textBetween(selection.from - 1, selection.from) === '[') {
+            event.preventDefault();
+            view.dispatch(state.tr.delete(selection.from - 1, selection.from));
+            linkContextRef.current = {
+              mode: 'editor',
+              from: selection.from - 1,
+              to: selection.from - 1,
+            };
+            onOpenInternalLinkPicker(view.coordsAtPos(selection.from - 1));
+            return true;
+          }
+        }
+        if (event.key === '+') {
+          const now = Date.now();
+          if (now - lastPlusTimeRef.current < 350) {
+            event.preventDefault();
+            const { selection } = view.state;
+            view.dispatch(view.state.tr.delete(selection.from - 1, selection.from));
+            showToast('AI local ainda não está habilitada neste companion.', 'error');
+            lastPlusTimeRef.current = 0;
+            return true;
+          }
+          lastPlusTimeRef.current = now;
+        }
+        return false;
+      },
+    },
+  });
+
+  useEffect(() => {
+    if (editor) editor.setEditable(editable);
+  }, [editable, editor]);
+
+  return (
+    <div id={`noteblock-editor-${pageId}`} className="noteblock-editor relative group/editor">
+      <MentionChipHydrator editorRootId={`noteblock-editor-${pageId}`} />
+      {editor && (
+        <BubbleMenu
+          editor={editor}
+          updateDelay={120}
+          shouldShow={({ editor }) => editor.isEditable && !editor.isActive('table') && !editor.state.selection.empty}
+          className="z-40 flex w-fit max-w-full overflow-hidden rounded-lg border border-notion-border bg-background shadow-lg"
+        >
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleBold().run()} label="Bold">
+            <Bold className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleItalic().run()} label="Italic">
+            <Italic className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleUnderline().run()} label="Underline">
+            <Underline className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleStrike().run()} label="Strikethrough">
+            <Strikethrough className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleCode().run()} label="Code">
+            <Code className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleSep />
+          <BubbleBtn
+            editor={editor}
+            onSelect={(ed) => {
+              const url = window.prompt('URL');
+              if (url) ed.chain().focus().setLink({ href: url }).run();
+            }}
+            label="Link"
+          >
+            <Link2 className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleHighlight().run()} label="Highlight">
+            <Highlighter className="w-4 h-4" />
+          </BubbleBtn>
+        </BubbleMenu>
+      )}
+      {editor && (
+        <ReportTableMenu editor={editor} locale={locale} onScoreRecalculated={onReportScoreRecalculated} />
+      )}
+      <EditorContent editor={editor} />
+      <SlashCommandMenu />
+    </div>
+  );
+}
+
 function BubbleBtn({
+  editor,
   onSelect,
   label,
   children,
   className,
 }: {
+  editor: Editor;
   onSelect: (editor: any) => void;
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }) {
   return (
-    <EditorBubbleItem
-      onSelect={onSelect}
+    <button
+      type="button"
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={() => onSelect(editor)}
       className={cn('flex h-8 w-8 items-center justify-center text-notion-text hover:bg-notion-hover cursor-pointer', className)}
       aria-label={label}
     >
       {children}
-    </EditorBubbleItem>
+    </button>
   );
 }
 
@@ -836,7 +876,7 @@ function BubbleSep() {
   return <div className="w-px h-5 bg-notion-border self-center" />;
 }
 
-function HeaderButton({ icon, onClick, ariaLabel }: { icon: React.ReactNode; onClick?: () => void; ariaLabel?: string }) {
+function HeaderButton({ icon, onClick, ariaLabel }: { icon: ReactNode; onClick?: () => void; ariaLabel?: string }) {
   return (
     <button
       onClick={onClick}
@@ -855,7 +895,7 @@ function MenuAction({
   destructive,
   className,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   onClick: () => void;
   destructive?: boolean;

@@ -1,21 +1,49 @@
-import {
-  StarterKit,
-  Placeholder,
-  TaskList,
-  TaskItem,
-  TiptapLink,
-  TiptapUnderline,
-  HighlightExtension,
-  GlobalDragHandle,
-  UpdatedImage,
-  HorizontalRule,
-} from 'novel';
+import { StarterKit } from '@tiptap/starter-kit';
+import { Placeholder } from '@tiptap/extension-placeholder';
+import { TaskList } from '@tiptap/extension-task-list';
+import { TaskItem } from '@tiptap/extension-task-item';
+import { Link } from '@tiptap/extension-link';
+import { Underline } from '@tiptap/extension-underline';
+import { Highlight } from '@tiptap/extension-highlight';
+import { Image } from '@tiptap/extension-image';
+import { HorizontalRule } from '@tiptap/extension-horizontal-rule';
+import { DragHandle } from '@tiptap/extension-drag-handle';
+import { Table, TableKit } from '@tiptap/extension-table';
 import { CollapsibleHeading } from './collapsible-heading';
 import { PageMention } from './page-mention-extension';
 import { RawMarkdown } from './raw-markdown-extension';
 import { ReportBlock } from './report-block-extension';
+import { SlashCommand } from './slash-command-extension';
 import type { ReportScoreResult } from './report-block-data';
 import type { SupportedLocale } from '@/lib/i18n';
+
+export const AgenticTable = Table.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      agenticReport: {
+        default: false,
+        parseHTML: (element) => element.getAttribute('data-agentic-report') === 'true',
+        renderHTML: (attributes) => (attributes.agenticReport ? { 'data-agentic-report': 'true' } : {}),
+      },
+      columns: {
+        default: null,
+        parseHTML: () => null,
+        renderHTML: () => ({}),
+      },
+      summary: {
+        default: null,
+        parseHTML: () => null,
+        renderHTML: () => ({}),
+      },
+      source_refs: {
+        default: null,
+        parseHTML: () => null,
+        renderHTML: () => ({}),
+      },
+    };
+  },
+});
 
 export const getExtensions = (options: { onReportScoreRecalculated?: (result: ReportScoreResult) => void; locale?: SupportedLocale } = {}) => [
   StarterKit.configure({
@@ -43,6 +71,27 @@ export const getExtensions = (options: { onReportScoreRecalculated?: (result: Re
     code: {
       HTMLAttributes: {
         class: 'rounded-sm bg-notion-active px-1.5 py-0.5 font-mono text-[0.9em]',
+      },
+    },
+  }),
+  AgenticTable.configure({
+    resizable: false,
+    allowTableNodeSelection: true,
+    HTMLAttributes: {
+      class: 'agentic-native-table',
+    },
+  }),
+  TableKit.configure({
+    table: false,
+    tableRow: {},
+    tableHeader: {
+      HTMLAttributes: {
+        class: 'agentic-native-table-header',
+      },
+    },
+    tableCell: {
+      HTMLAttributes: {
+        class: 'agentic-native-table-cell',
       },
     },
   }),
@@ -75,25 +124,32 @@ export const getExtensions = (options: { onReportScoreRecalculated?: (result: Re
     nested: true,
     HTMLAttributes: { class: 'flex gap-2 items-start my-1' },
   }),
-  UpdatedImage.configure({
+  Image.configure({
     HTMLAttributes: {
       class: 'rounded-lg border border-notion-border my-4',
     },
   }),
   HorizontalRule,
-  TiptapLink.configure({
+  Link.configure({
     openOnClick: false,
     HTMLAttributes: {
       class: 'underline underline-offset-2 text-notion-text cursor-pointer',
     },
   }),
-  TiptapUnderline,
-  HighlightExtension.configure({ multicolor: true }),
-  GlobalDragHandle.configure({
-    dragHandleWidth: 24,
-    scrollTreshold: 50,
+  Underline,
+  Highlight.configure({ multicolor: true }),
+  DragHandle.configure({
+    render: () => {
+      const element = document.createElement('button');
+      element.type = 'button';
+      element.className = 'agentic-drag-handle';
+      element.setAttribute('aria-label', 'Arrastar bloco');
+      element.textContent = '⋮⋮';
+      return element;
+    },
   }),
   PageMention,
+  SlashCommand,
   ReportBlock.configure({
     onScoreRecalculated: options.onReportScoreRecalculated || null,
     locale: options.locale || 'pt-BR',

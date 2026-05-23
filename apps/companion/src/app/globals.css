@@ -218,10 +218,88 @@ body {
   margin: 0.5rem 0;
 }
 
-.novel-editor { min-height: 60vh; }
+.noteblock-editor { min-height: 60vh; }
 
 .ProseMirror { outline: none !important; }
 .ProseMirror-focused { outline: none !important; border: none !important; }
+
+.agentic-drag-handle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--notion-text-muted);
+  cursor: grab;
+  display: inline-flex;
+  font-size: 13px;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+.agentic-drag-handle:hover {
+  background: var(--notion-hover);
+  color: var(--notion-text);
+}
+
+.ProseMirror table {
+  border-collapse: collapse;
+  border: 1px solid var(--notion-border);
+  border-radius: 6px;
+  font-size: 13px;
+  margin: 1rem 0;
+  table-layout: fixed;
+  width: 100%;
+}
+.ProseMirror table th,
+.ProseMirror table td {
+  border: 1px solid var(--notion-border);
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  position: relative;
+  vertical-align: top;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.ProseMirror table th {
+  background: var(--notion-sidebar);
+  color: var(--notion-text-muted);
+  font-weight: 600;
+}
+.ProseMirror table p {
+  margin: 0;
+  padding: 0;
+}
+.ProseMirror table .selectedCell::after {
+  background: rgba(58, 91, 217, 0.12);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+@media (max-width: 640px) {
+  .ProseMirror table,
+  .ProseMirror table tbody,
+  .ProseMirror table tr,
+  .ProseMirror table th,
+  .ProseMirror table td {
+    display: block;
+    width: 100%;
+  }
+  .ProseMirror table tr {
+    border-top: 1px solid var(--notion-border);
+    padding: 0.5rem;
+  }
+  .ProseMirror table tr:first-child {
+    background: var(--notion-sidebar);
+  }
+  .ProseMirror table th,
+  .ProseMirror table td {
+    border: 0;
+    padding: 0.25rem 0;
+  }
+}
 
 /* Hide ProseMirror gap cursor — it flickers a 1px horizontal line
    between blocks (notably after H1). We don't use node types that

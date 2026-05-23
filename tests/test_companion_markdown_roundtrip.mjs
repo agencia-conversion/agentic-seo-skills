@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -27,9 +27,16 @@ const compiled = spawnSync(
 );
 assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
 
-const jsFile = join(outDir, "markdown.js");
-const mjsFile = join(outDir, "markdown.mjs");
+const jsFile = join(outDir, "lib", "markdown.js");
+const mjsFile = join(outDir, "lib", "markdown.mjs");
 if (existsSync(jsFile)) renameSync(jsFile, mjsFile);
+const dataJsFile = join(outDir, "features", "editor", "report-block-data.js");
+const dataMjsFile = join(outDir, "features", "editor", "report-block-data.mjs");
+if (existsSync(dataJsFile)) renameSync(dataJsFile, dataMjsFile);
+const markdownSource = readFileSync(mjsFile, "utf8")
+  .replace("../features/editor/report-block-data.js", "../features/editor/report-block-data.mjs")
+  .replace("../features/editor/report-block-data", "../features/editor/report-block-data.mjs");
+writeFileSync(mjsFile, markdownSource);
 
 const { markdownToDoc, docToMarkdown } = await import(`../${mjsFile}`);
 const seenTargets = [];
@@ -87,6 +94,8 @@ assert.match(serializedDoc, /"anchor":"SEO estratégico"/);
 assert.equal(seenTargets.includes("editorial#SEO estratégico"), false);
 assert.match(JSON.stringify(doc), /rawMarkdown/);
 assert.match(JSON.stringify(doc), /reportBlock/);
+assert.match(JSON.stringify(doc), /"type":"table"/);
+assert.match(JSON.stringify(doc), /"agenticReport":true/);
 assert.match(JSON.stringify(doc), /"hidden":true/);
 
 const out = docToMarkdown(doc, resolver);
@@ -105,10 +114,23 @@ assert.match(out, /items:/);
 assert.match(out, /"title": "Score"/);
 
 const reportBlockSource = readFileSync("apps/companion/src/features/editor/report-block-extension.tsx", "utf8");
-assert.doesNotMatch(reportBlockSource, /overflow-x-auto/);
-assert.match(reportBlockSource, /table-fixed/);
-assert.match(reportBlockSource, /sm:hidden/);
-assert.match(reportBlockSource, /Recalcular/);
+const editorExtensionSource = readFileSync("apps/companion/src/features/editor/editor-extensions.ts", "utf8");
+const editorPanelSource = readFileSync("apps/companion/src/features/editor/editor-panel.tsx", "utf8");
+const reportTableMenuSource = readFileSync("apps/companion/src/features/editor/report-table-menu.tsx", "utf8");
+const companionPackage = readFileSync("apps/companion/package.json", "utf8");
+assert.equal(existsSync("apps/companion/src/features/editor/report-table-editor.tsx"), false);
+assert.doesNotMatch(reportBlockSource, /ReportTableEditor/);
+assert.doesNotMatch(reportBlockSource + reportTableMenuSource, /overflow-x-auto/);
+assert.match(editorExtensionSource, /@tiptap\/extension-table/);
+assert.match(editorExtensionSource, /TableKit/);
+assert.match(editorExtensionSource, /AgenticTable/);
+assert.match(editorPanelSource, /@tiptap\/react/);
+assert.match(editorPanelSource, /@tiptap\/react\/menus/);
+assert.doesNotMatch(editorExtensionSource + editorPanelSource + companionPackage, /novel/);
+assert.match(reportTableMenuSource, /addRowBefore/);
+assert.match(reportTableMenuSource, /addColumnAfter/);
+assert.match(reportTableMenuSource, /deleteColumn/);
+assert.match(reportTableMenuSource, /Recalcular/);
 
 const reportBlockDataSource = readFileSync("apps/companion/src/features/editor/report-block-data.ts", "utf8");
 assert.match(reportBlockDataSource, /YAML\.parse/);

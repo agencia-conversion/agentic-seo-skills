@@ -158,6 +158,17 @@ function reportColumnKey(value, index) {
         .replace(/^_+|_+$/g, "");
     return key || `c${index}`;
 }
+function uniqueReportColumnKey(value, index, used) {
+    const base = reportColumnKey(value, index);
+    let candidate = base;
+    let suffix = 2;
+    while (used.has(candidate)) {
+        candidate = `${base}_${suffix}`;
+        suffix += 1;
+    }
+    used.add(candidate);
+    return candidate;
+}
 function reportCell(value, locale) {
     if (value == null)
         return "";
@@ -166,10 +177,18 @@ function reportCell(value, locale) {
     return humanEvidence(value, locale);
 }
 function reportTable(columns, rows, locale = "pt-BR") {
-    const normalizedColumns = columns.map((label, index) => ({
-        key: reportColumnKey(label, index),
-        label: String(label || `Coluna ${index + 1}`),
-    }));
+    const usedKeys = new Set();
+    const normalizedColumns = columns.map((column, index) => {
+        const isSpec = column && typeof column === "object";
+        const label = isSpec ? column.label : column;
+        const keySource = isSpec ? (column.key || label) : label;
+        const role = isSpec ? column.role : undefined;
+        return {
+            key: uniqueReportColumnKey(keySource, index, usedKeys),
+            label: String(label || `Coluna ${index + 1}`),
+            ...(role ? { role } : {}),
+        };
+    });
     const normalizedRows = rows.map((row) => Object.fromEntries(normalizedColumns.map((column, index) => [column.key, reportCell(row?.[index], locale)])));
     const payload = {
         version: 1,
@@ -1460,7 +1479,7 @@ function buildTechnicalSeoReportPayload(report, localeInput) {
             },
             {
                 heading: reportText(locale, "Apêndice: memória de cálculo", "Appendix: calculation memory"),
-                body_markdown: reportText(locale, `O score foi calculado a partir dos pesos dos checks executados. O total de peso foi **${calc.total_weight ?? 0}**, com **${calc.points_awarded ?? 0}** pontos conquistados e **${calc.lost_points ?? 0}** pontos perdidos.\n\n${reportTable(["Check", "Severidade", "Status", "Peso", "Pontos", "Perda", "Evidência humana"], calculationRows, locale)}`, `The score was calculated from the weights of the executed checks. Total weight was **${calc.total_weight ?? 0}**, with **${calc.points_awarded ?? 0}** points earned and **${calc.lost_points ?? 0}** points lost.\n\n${reportTable(["Check", "Severity", "Status", "Weight", "Points", "Loss", "Human evidence"], calculationRows, locale)}`),
+                body_markdown: reportText(locale, `O score foi calculado a partir dos pesos dos checks executados. O total de peso foi **${calc.total_weight ?? 0}**, com **${calc.points_awarded ?? 0}** pontos conquistados e **${calc.lost_points ?? 0}** pontos perdidos.\n\n${reportTable([{ key: "check", label: "Check" }, { key: "severity", label: "Severidade" }, { key: "status", label: "Status" }, { key: "weight", label: "Peso", role: "weight" }, { key: "points", label: "Pontos", role: "points" }, { key: "loss", label: "Perda", role: "loss" }, { key: "human_evidence", label: "Evidência humana" }], calculationRows, locale)}`, `The score was calculated from the weights of the executed checks. Total weight was **${calc.total_weight ?? 0}**, with **${calc.points_awarded ?? 0}** points earned and **${calc.lost_points ?? 0}** points lost.\n\n${reportTable([{ key: "check", label: "Check" }, { key: "severity", label: "Severity" }, { key: "status", label: "Status" }, { key: "weight", label: "Weight", role: "weight" }, { key: "points", label: "Points", role: "points" }, { key: "loss", label: "Loss", role: "loss" }, { key: "human_evidence", label: "Human evidence" }], calculationRows, locale)}`),
             },
             {
                 heading: reportText(locale, "Estrutura rastreável", "Crawlable structure"),

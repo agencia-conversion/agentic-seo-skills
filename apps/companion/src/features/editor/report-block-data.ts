@@ -13,6 +13,7 @@ export interface ReportScoreResult {
 export interface NormalizedColumn {
   key: string;
   label: string;
+  role?: string;
 }
 
 export interface NormalizedTable {
@@ -61,15 +62,32 @@ function normalizeKey(value: string, index: number) {
   return key || `c${index}`;
 }
 
+function uniqueKey(base: string, used: Set<string>) {
+  const clean = normalizeKey(base, used.size);
+  let candidate = clean;
+  let suffix = 2;
+  while (used.has(candidate)) {
+    candidate = `${clean}_${suffix}`;
+    suffix += 1;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
 export function normalizeTable(payload: any): NormalizedTable {
   const rawColumns = Array.isArray(payload?.columns) ? payload.columns : [];
+  const usedKeys = new Set<string>();
   const columns = rawColumns.map((column: any, index: number) => {
     if (column && typeof column === 'object') {
       const label = String(column.label ?? column.title ?? column.name ?? column.key ?? `Coluna ${index + 1}`);
-      return { key: String(column.key || normalizeKey(label, index)), label };
+      return {
+        key: uniqueKey(String(column.key || label), usedKeys),
+        label,
+        ...(column.role ? { role: String(column.role) } : {}),
+      };
     }
     const label = String(column ?? `Coluna ${index + 1}`);
-    return { key: `c${index}`, label };
+    return { key: uniqueKey(`c${index}`, usedKeys), label };
   });
   const rawRows = Array.isArray(payload?.rows) ? payload.rows : [];
   const rows = rawRows.map((row: any) => {
@@ -86,15 +104,149 @@ export function withTableCell(payload: any, rowIndex: number, columnIndex: numbe
   return tableToPayload(payload, table.columns, rows);
 }
 
+export function ensureUniqueColumns(columns: NormalizedColumn[]): NormalizedColumn[] {
+  const usedKeys = new Set<string>();
+  return columns.map((column, index) => ({
+    ...column,
+    key: uniqueKey(column.key || column.label || `c${index}`, usedKeys),
+    label: column.label || `Coluna ${index + 1}`,
+  }));
+}
+
 export function tableToPayload(payload: any, columns: NormalizedColumn[], rows: string[][]) {
+  const safeColumns = ensureUniqueColumns(columns);
   return {
     version: 1,
     ...(payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {}),
-    columns: columns.map((column) => ({ key: column.key, label: column.label })),
+    columns: safeColumns.map((column) => ({
+      key: column.key,
+      label: column.label,
+      ...(column.role ? { role: column.role } : {}),
+    })),
     rows: rows.map((row) =>
-      Object.fromEntries(columns.map((column, index) => [column.key, row[index] ?? '']))
+      Object.fromEntries(safeColumns.map((column, index) => [column.key, row[index] ?? '']))
     ),
   };
+}
+
+export function withColumnLabel(payload: any, columnIndex: number, label: string) {
+  const table = normalizeTable(payload);
+  const columns = table.columns.map((column, index) => (index === columnIndex ? { ...column, label } : column));
+  return tableToPayload(payload, columns, table.rows);
+}
+
+export function withTableRow(payload: any, rowIndex?: number, values?: string[]) {
+  const table = normalizeTable(payload);
+  const nextRow = table.columns.map((_, index) => values?.[index] ?? '');
+  const insertAt = Math.max(0, Math.min(rowIndex ?? table.rows.length, table.rows.length));
+  const rows = [...table.rows.slice(0, insertAt), nextRow, ...table.rows.slice(insertAt)];
+  return tableToPayload(payload, table.columns, rows);
+}
+
+export function withoutTableRow(payload: any, rowIndex: number) {
+  const table = normalizeTable(payload);
+  return tableToPayload(payload, table.columns, table.rows.filter((_, index) => index !== rowIndex));
+}
+
+export function duplicateTableRow(payload: any, rowIndex: number) {
+  const table = normalizeTable(payload);
+  const source = table.rows[rowIndex] || table.columns.map(() => '');
+  const rows = [...table.rows.slice(0, rowIndex + 1), [...source], ...table.rows.slice(rowIndex + 1)];
+  return tableToPayload(payload, table.columns, rows);
+}
+
+export function withTableColumn(payload: any, columnIndex?: number, label = 'Coluna') {
+  const table = normalizeTable(payload);
+  const used = new Set(table.columns.map((column) => column.key));
+  const key = uniqueKey(label, used);
+  const insertAt = Math.max(0, Math.min(columnIndex ?? table.columns.length, table.columns.length));
+  const columns = [
+    ...table.columns.slice(0, insertAt),
+    { key, label },
+    ...table.columns.slice(insertAt),
+  ];
+  const rows = table.rows.map((row) => [...row.slice(0, insertAt), '', ...row.slice(insertAt)]);
+  return tableToPayload(payload, columns, rows);
+}
+
+export function withoutTableColumn(payload: any, columnIndex: number) {
+  const table = normalizeTable(payload);
+  if (table.columns.length <= 1) return tableToPayload(payload, table.columns, table.rows);
+  const columns = table.columns.filter((_, index) => index !== columnIndex);
+  const rows = table.rows.map((row) => row.filter((_, index) => index !== columnIndex));
+  return tableToPayload(payload, columns, rows);
+}
+
+export function duplicateTableColumn(payload: any, columnIndex: number) {
+  const table = normalizeTable(payload);
+  const source = table.columns[columnIndex];
+  if (!source) return tableToPayload(payload, table.columns, table.rows);
+  const used = new Set(table.columns.map((column) => column.key));
+  const copy = {
+    ...source,
+    key: uniqueKey(`${source.key}_copy`, used),
+    label: `${source.label} copy`,
+  };
+  const insertAt = columnIndex + 1;
+  const columns = [...table.columns.slice(0, insertAt), copy, ...table.columns.slice(insertAt)];
+  const rows = table.rows.map((row) => [...row.slice(0, insertAt), row[columnIndex] ?? '', ...row.slice(insertAt)]);
+  return tableToPayload(payload, columns, rows);
+}
+
+export function withTableGridPaste(payload: any, startRow: number, startColumn: number, grid: string[][]) {
+  const table = normalizeTable(payload);
+  if (!grid.length || !grid[0]?.length) return tableToPayload(payload, table.columns, table.rows);
+  let columns = [...table.columns];
+  while (columns.length < startColumn + grid[0].length) {
+    const used = new Set(columns.map((column) => column.key));
+    columns.push({ key: uniqueKey(`col_${columns.length + 1}`, used), label: `Coluna ${columns.length + 1}` });
+  }
+  const rows = table.rows.map((row) => [...row]);
+  while (rows.length < startRow + grid.length) rows.push(columns.map(() => ''));
+  for (let r = 0; r < grid.length; r += 1) {
+    for (let c = 0; c < grid[r].length; c += 1) {
+      rows[startRow + r][startColumn + c] = grid[r][c] ?? '';
+    }
+  }
+  return tableToPayload(payload, columns, rows.map((row) => columns.map((_, index) => row[index] ?? '')));
+}
+
+export function parseTablePasteGrid(text: string): string[][] | null {
+  const normalized = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\n$/, '');
+  if (!/[\t\n,]/.test(normalized)) return null;
+  if (normalized.includes('\t')) return normalized.split('\n').map((line) => line.split('\t'));
+  if (!normalized.includes(',')) return normalized.split('\n').map((line) => [line]);
+
+  const rows: string[][] = [[]];
+  let cell = '';
+  let quoted = false;
+  for (let index = 0; index < normalized.length; index += 1) {
+    const char = normalized[index];
+    const next = normalized[index + 1];
+    if (char === '"' && quoted && next === '"') {
+      cell += '"';
+      index += 1;
+      continue;
+    }
+    if (char === '"') {
+      quoted = !quoted;
+      continue;
+    }
+    if (char === ',' && !quoted) {
+      rows[rows.length - 1].push(cell);
+      cell = '';
+      continue;
+    }
+    if (char === '\n' && !quoted) {
+      rows[rows.length - 1].push(cell);
+      rows.push([]);
+      cell = '';
+      continue;
+    }
+    cell += char;
+  }
+  rows[rows.length - 1].push(cell);
+  return rows.filter((row) => row.some((value) => value !== ''));
 }
 
 export function chartLabels(payload: any): string[] {
@@ -139,7 +291,7 @@ function numberFromCell(value: unknown) {
 
 function columnIndex(columns: NormalizedColumn[], candidates: string[]) {
   return columns.findIndex((column) => {
-    const label = normalizedLabel(`${column.label} ${column.key}`);
+    const label = normalizedLabel(`${column.role || ''} ${column.label} ${column.key}`);
     return candidates.some((candidate) => label.includes(candidate));
   });
 }
