@@ -28,11 +28,11 @@ Do not use this skill to write strategic content, draft brand identity, run SEO 
 
 Collect or infer only what is needed for stable metadata:
 
-- `project_name`: required.
+- `name`: required.
 - `site_url`: optional; use `null` when unknown.
-- `brand_name`: optional; default to `project_name`.
-- `country_or_market`: required unless existing metadata already defines it.
-- `primary_language`: required unless existing metadata already defines it.
+- `market`: required unless existing metadata already defines it.
+- `country`: optional; default to `market` when unknown.
+- `language`: required unless existing metadata already defines it. Use `pt-BR` or `en` when the project needs fully translated UI/report copy in v1.
 
 If these are missing and cannot be safely inferred from `project/.agentic-seo/project.json`, ask before writing.
 
@@ -52,6 +52,19 @@ project/.agentic-seo/
 project/sources/
 project/workbench/
 project/artifacts/
+project/audits/
+project/keywords/
+project/clusters/
+project/eeat/
+project/relatorios/
+project/relatorios/technical-seo/
+project/relatorios/internal-links/
+project/relatorios/seo-analysis/
+project/relatorios/keyword-research/
+project/relatorios/serp-extract/
+project/relatorios/backlink-analysis/
+project/relatorios/topic-cluster/
+project/relatorios/eeat/
 project/brain/
 project/conteudos/
 project/conteudos/blog/
@@ -67,11 +80,11 @@ Write `project/.agentic-seo/project.json` with stable, machine-readable metadata
 ```json
 {
   "schema_version": "2.0.0",
-  "project_name": "",
-  "brand_name": "",
+  "name": "",
   "site_url": null,
-  "country_or_market": "",
-  "primary_language": "",
+  "market": "",
+  "country": "",
+  "language": "pt-BR",
   "created_at": "",
   "updated_at": "",
   "single_project_root": "project"
@@ -101,10 +114,10 @@ Append to `brain/log.md` exactly one entry per init run that creates or complete
 
 - tipo: decisao
 - escopo: project/
-- decisao: Estrutura inicial criada (brain/, sources/, conteudos/, artifacts/, workbench/) com templates em branco para preenchimento humano.
+- decisao: Estrutura inicial criada (brain/, sources/, conteudos/, artifacts/, workbench/, audits/, keywords/, clusters/, eeat/, relatorios/) com templates em branco para preenchimento humano.
 - evidencia: project/.agentic-seo/project.json
 - aprovador: agent
-- notas: <project_name>, <country_or_market>, <primary_language>.
+- notas: <name>, <market>, <language>.
 ```
 
 Do not append duplicate entries on idempotent reruns that did not change anything.
@@ -113,7 +126,7 @@ Do not append duplicate entries on idempotent reruns that did not change anythin
 
 Before reporting completion, verify:
 
-- `project/.agentic-seo/project.json` exists with project name, market, language, `single_project_root: "project"`, `schema_version: "2.0.0"`.
+- `project/.agentic-seo/project.json` exists with project name, market, canonical `language`, `single_project_root: "project"`, `schema_version: "2.0.0"`. `pt-BR` and `en` are the fully translated UI/report languages in v1; other project language values require future UI/report copy or fall back during report rendering.
 - All required directories exist.
 - The 7 brain files exist with frontmatter populated (title and updated only); placeholders untouched if user has not filled them.
 - `brain/log.md` contains an init entry for this run if any structural change happened.
@@ -127,9 +140,10 @@ status: complete | blocked
 project_root: project
 metadata:
   path: project/.agentic-seo/project.json
-  project_name: ""
-  country_or_market: ""
-  primary_language: ""
+  name: ""
+  market: ""
+  country: ""
+  language: "pt-BR"
 created:
   - path: ""
 unchanged:
@@ -140,7 +154,7 @@ log_entry:
 next_action: ""
 ```
 
-Use `blocked` when required inputs (`project_name`, `country_or_market`, `primary_language`) are missing and cannot be inferred.
+Use `blocked` when required inputs (`name`, `market`, `language`) are missing and cannot be inferred.
 
 ## Examples
 

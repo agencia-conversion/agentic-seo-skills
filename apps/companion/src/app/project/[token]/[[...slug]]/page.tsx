@@ -12,6 +12,9 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { usePagePath } from '@/hooks/use-page-path';
 import { projectSlugMatches } from '@/lib/project-slugs';
 import { useI18n } from '@/components/i18n-provider';
+import { ReportModulePanel } from '@/features/reports/report-module-panel';
+import { ContentIndexPanel } from '@/features/contents/content-index-panel';
+import { WorkbenchIndexPanel } from '@/features/workbench/workbench-index-panel';
 
 const EditorPanel = dynamic(() => import('@/features/editor/editor-panel').then((mod) => mod.EditorPanel), {
   ssr: false,
@@ -35,6 +38,7 @@ export default function ProjectPage() {
   const activePageId = useWorkspace((s) => s.activePageId);
   const pages = useWorkspace((s) => s.pages);
   const storeToken = useWorkspace((s) => s.token);
+  const activePage = useMemo(() => pages.find((p) => p.id === activePageId) || null, [activePageId, pages]);
 
   useKeyboardShortcuts();
 
@@ -105,7 +109,15 @@ export default function ProjectPage() {
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        <EditorPanel />
+        {activePage?.kind === 'workbenchIndex' ? (
+          <WorkbenchIndexPanel />
+        ) : activePage?.kind === 'contentIndex' ? (
+          <ContentIndexPanel topicClusterId={activePage.contentTopicClusterId} />
+        ) : activePage?.kind === 'reportIndex' || activePage?.kind === 'reportModule' ? (
+          <ReportModulePanel moduleId={activePage.reportModuleId} />
+        ) : (
+          <EditorPanel />
+        )}
       </main>
       <SearchModal />
       <ToastContainer />

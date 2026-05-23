@@ -167,7 +167,7 @@ If blocked, include the missing input, credential, fixture, or provider conditio
 
 ### Default delivery
 
-After producing the YAML extraction above, also render a branded HTML report at `project/audits/<slug>/report.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/audits/<slug>/` so the user can navigate the SERP evidence visually. Conversational previews and quick clarifications stay in chat as prose.
+Follow the shared `page-report` contract. The module-specific source artifact is the normalized SERP YAML under `sources/serp/` or `audits/serp-<slug>/report.yaml`; the Companion page is `project/relatorios/serp-extract/<slug>/report.md`. Present provider, market, device, organic results, SERP features, and limitations as a readable SERP briefing with friendly field names; never paste raw provider JSON or object arrays into the visual report body.
 
 ## Examples
 

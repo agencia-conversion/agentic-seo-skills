@@ -1,24 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, MutableRefObject, ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Command,
-  EditorBubble,
-  EditorBubbleItem,
-  EditorCommand,
-  EditorCommandEmpty,
-  EditorCommandItem,
-  EditorCommandList,
   EditorContent,
-  EditorRoot,
   JSONContent,
-  handleCommandNavigation,
-  renderItems,
-} from 'novel';
+  useEditor,
+  type Editor,
+} from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react/menus';
 import {
   Bold,
   Check,
@@ -44,7 +37,10 @@ import { useWorkspace } from '../workspace/store';
 import { cn } from '@/lib/utils';
 import { useClickOutside } from '@/hooks/use-click-outside';
 import { getExtensions } from './editor-extensions';
+import type { ReportScoreResult } from './report-block-data';
 import { buildSuggestionItems, SuggestionItem } from './editor-commands';
+import { SlashCommandMenu } from './slash-command-menu';
+import { ReportTableMenu } from './report-table-menu';
 import { showToast } from '@/components/toast';
 import { CoverPicker } from './cover-picker';
 import { TitleEditor } from './title-editor';
@@ -57,6 +53,7 @@ import { MentionChipHydrator } from './mention-chip-hydrator';
 import { FrontmatterDrawer } from './frontmatter-drawer';
 import { useI18n } from '@/components/i18n-provider';
 import { ConfirmModal } from '@/components/confirm-modal';
+import { BreadcrumbTrail } from '../workspace/breadcrumb-trail';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
   ssr: false,
@@ -114,7 +111,7 @@ function currentHashAnchor() {
 }
 
 export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const activePageId = useWorkspace((s) => s.activePageId);
   const effectivePageId = pageId || activePageId;
   const pages = useWorkspace((s) => s.pages);
@@ -249,6 +246,17 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     isReadOnly,
   ]);
 
+  const handleReportScoreRecalculated = useCallback((result: ReportScoreResult) => {
+    if (!activePage?.path.startsWith('relatorios/')) return;
+    updatePage(activePage.id, {
+      frontmatter: {
+        ...(activePage.frontmatter || {}),
+        score: result.score,
+      },
+    });
+    showToast(`Score recalculado: ${result.score}/100`, 'success');
+  }, [activePage?.frontmatter, activePage?.id, activePage?.path, updatePage]);
+
   if (!mounted) return <div className="flex-1 bg-background" />;
   if (!activePage) {
     return (
@@ -258,7 +266,6 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     );
   }
 
-  const breadcrumbs = [activePage];
   const pageWidthOptions = getPageWidthOptions(t);
   const validContent: JSONContent =
     activePage.content && typeof activePage.content === 'object' && 'type' in activePage.content
@@ -372,19 +379,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
             >
               <Menu className="w-4 h-4" />
             </button>
-            {breadcrumbs.map((crumb) => (
-              <div key={crumb.id} className="flex items-center gap-1">
-                <div
-                  onClick={() => router.push(pagePath(crumb.slug))}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-notion-hover cursor-pointer transition-colors max-w-[360px] overflow-hidden truncate"
-                >
-                  <span className="w-[18px] h-[18px] flex items-center justify-center shrink-0 text-notion-text-muted">
-                    {crumb.icon || <FileText className="w-[18px] h-[18px]" />}
-                  </span>
-                  <span className="text-notion-text truncate font-medium">{crumb.title || t('common.untitled')}</span>
-                </div>
-              </div>
-            ))}
+            <BreadcrumbTrail activePage={activePage} />
           </div>
           <div className="flex items-center gap-1 text-notion-text-muted relative" ref={menuRef}>
             <span className={cn('text-[11px] mr-1', activePage.saveError ? 'text-red-500' : 'text-notion-text-muted')}>
@@ -428,7 +423,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                         setShowMenu(false);
                       }}
                     />
-                    {activePage.path !== 'brain/log.md' && (
+                    {!activePage.readOnly && activePage.path !== 'brain/log.md' && !activePage.path.startsWith('relatorios/') && (
                       <MenuAction
                         icon={<Trash2 className="w-4 h-4" />}
                         label={t('common.delete')}
@@ -532,32 +527,6 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                 onChange={(cover) => updatePage(activePage.id, { cover })}
               />
             </div>
-            {activePage.icon && (
-              <div className={cn('relative group/icon-container w-fit', activePage.cover && 'mt-2')}>
-                <div
-                  className={cn(
-                    'leading-none mb-4 w-fit rounded-lg transition-colors -ml-1',
-                    !activePage.readOnly && 'cursor-pointer hover:bg-notion-hover',
-                    isModal ? 'text-[64px]' : 'text-[78px]'
-                  )}
-                  onClick={(e) => {
-                    if (activePage.readOnly) return;
-                    e.stopPropagation();
-                    setShowEmojiPicker(true);
-                  }}
-                >
-                  {activePage.icon}
-                </div>
-                {!activePage.readOnly && (
-                  <button
-                    onClick={() => updatePage(activePage.id, { icon: null })}
-                    className="absolute -top-2 -right-2 p-1 bg-background border border-notion-border rounded-full opacity-0 group-hover/icon-container:opacity-100 transition-opacity shadow-sm hover:bg-notion-hover cursor-pointer"
-                  >
-                    <X className="w-3 h-3 text-notion-text-muted" />
-                  </button>
-                )}
-              </div>
-            )}
             <AnimatePresence>
               {showEmojiPicker && (
                 <motion.div
@@ -577,31 +546,66 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                 </motion.div>
               )}
             </AnimatePresence>
-            <TitleEditor
-              pageId={activePage.id}
-              initialTitle={activePage.title}
-              placeholder={t('common.untitled')}
-              endAction={
-                !isModal
-                  ? {
-                      icon: <Settings />,
-                      label: 'Editar metadados',
-                      onClick: (e) => {
-                        e.stopPropagation();
-                        setShowFrontmatterDrawer((open) => !open);
-                      },
-                    }
-                  : undefined
-              }
-              isModal={isModal}
-              autoFocus={!activePage.title && !activePage.readOnly}
-              readOnly={activePage.readOnly}
-              onEnter={() => {
-                const editorEl = document.querySelector('.ProseMirror') as HTMLElement | null;
-                editorEl?.focus();
-              }}
-              onPasteMultiline={(p) => setPendingPasteHtml(p)}
-            />
+            <div className="flex items-end gap-2">
+              {activePage.icon && (
+                <div className="relative group/icon-container shrink-0 self-end mb-[0.36em]">
+                  <button
+                    type="button"
+                    className={cn(
+                      'flex h-[1.15em] w-[1.15em] items-center justify-center rounded-md leading-none transition-colors',
+                      !activePage.readOnly && 'cursor-pointer hover:bg-notion-hover',
+                      activePage.readOnly && 'cursor-default',
+                      isModal ? 'text-3xl' : 'text-[40px]'
+                    )}
+                    onClick={(e) => {
+                      if (activePage.readOnly) return;
+                      e.stopPropagation();
+                      setShowEmojiPicker(true);
+                    }}
+                    aria-label={activePage.readOnly ? activePage.title || t('common.untitled') : t('editor.addIcon')}
+                  >
+                    {activePage.icon}
+                  </button>
+                  {!activePage.readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => updatePage(activePage.id, { icon: null })}
+                      className="absolute -top-1.5 -right-1.5 p-0.5 bg-background border border-notion-border rounded-full opacity-0 group-hover/icon-container:opacity-100 transition-opacity shadow-sm hover:bg-notion-hover cursor-pointer"
+                      aria-label="Remover ícone"
+                    >
+                      <X className="w-3 h-3 text-notion-text-muted" />
+                    </button>
+                  )}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <TitleEditor
+                  pageId={activePage.id}
+                  initialTitle={activePage.title}
+                  placeholder={t('common.untitled')}
+                  endAction={
+                    !isModal
+                      ? {
+                          icon: <Settings />,
+                          label: 'Editar metadados',
+                          onClick: (e) => {
+                            e.stopPropagation();
+                            setShowFrontmatterDrawer((open) => !open);
+                          },
+                        }
+                      : undefined
+                  }
+                  isModal={isModal}
+                  autoFocus={!activePage.title && !activePage.readOnly}
+                  readOnly={activePage.readOnly}
+                  onEnter={() => {
+                    const editorEl = document.querySelector('.ProseMirror') as HTMLElement | null;
+                    editorEl?.focus();
+                  }}
+                  onPasteMultiline={(p) => setPendingPasteHtml(p)}
+                />
+              </div>
+            </div>
             <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
               {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">{t('shared.readOnly')}</span>}
               <button
@@ -629,145 +633,22 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               <div className="w-8 h-8 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" />
             </div>
           ) : (
-            <div id={`noteblock-editor-${activePage.id}`} className="novel-editor relative group/editor">
-              <MentionChipHydrator editorRootId={`noteblock-editor-${activePage.id}`} />
-              <EditorRoot key={activePage.id}>
-                <EditorContent
-                  initialContent={validContent}
-                  immediatelyRender={false}
-                  editable={!isReadOnly}
-                  extensions={[
-                    ...getExtensions(),
-                    Command.configure({
-                      suggestion: {
-                        items: ({ query }: any) => {
-                          if (!query) return suggestionItems;
-                          return suggestionItems.filter((item) => {
-                            const q = query.toLowerCase();
-                            return item.title.toLowerCase().includes(q) || item.searchTerms?.some((term) => term.includes(q));
-                          });
-                        },
-                        render: renderItems,
-                      },
-                    }),
-                  ]}
-                  onUpdate={({ editor }) => {
-                    editorInstanceRef.current = editor;
-                    updatePage(activePage.id, { content: editor.getJSON() });
-                  }}
-                  onCreate={({ editor }) => {
-                    editorInstanceRef.current = editor;
-                  }}
-                  editorProps={{
-                    attributes: {
-                      class: cn('prose prose-zinc dark:prose-invert max-w-none focus:outline-none', isModal ? 'min-h-[300px]' : 'min-h-[500px]'),
-                    },
-                    handleKeyDown: (view, event) => {
-                      const mod = event.metaKey || event.ctrlKey;
-                      if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
-                        event.preventDefault();
-                        if (isReadOnly) {
-                          showToast('Esta página é somente leitura.', 'error');
-                          return true;
-                        }
-                        const { selection } = view.state;
-                        const alias = selection.empty ? '' : view.state.doc.textBetween(selection.from, selection.to, ' ');
-                        linkContextRef.current = {
-                          mode: 'editor',
-                          from: selection.from,
-                          to: selection.to,
-                          alias: alias.trim() || undefined,
-                        };
-                        openInternalLinkPicker(view.coordsAtPos(selection.from), alias);
-                        return true;
-                      }
-                      if (event.key === '[' && !mod) {
-                        const { state } = view;
-                        const { selection } = state;
-                        if (selection.empty && selection.from > 1 && state.doc.textBetween(selection.from - 1, selection.from) === '[') {
-                          event.preventDefault();
-                          view.dispatch(state.tr.delete(selection.from - 1, selection.from));
-                          linkContextRef.current = {
-                            mode: 'editor',
-                            from: selection.from - 1,
-                            to: selection.from - 1,
-                          };
-                          openInternalLinkPicker(view.coordsAtPos(selection.from - 1));
-                          return true;
-                        }
-                      }
-                      if (handleCommandNavigation(event)) return true;
-                      if (event.key === '+') {
-                        const now = Date.now();
-                        if (now - lastPlusTimeRef.current < 350) {
-                          event.preventDefault();
-                          const { state } = view;
-                          const { selection } = state;
-                          view.dispatch(state.tr.delete(selection.from - 1, selection.from));
-                          showToast('AI local ainda não está habilitada neste companion.', 'error');
-                          lastPlusTimeRef.current = 0;
-                          return true;
-                        }
-                        lastPlusTimeRef.current = now;
-                      }
-                      return false;
-                    },
-                  }}
-                >
-                  <EditorCommand className="z-50 h-auto max-h-[330px] w-72 overflow-y-auto rounded-md border border-notion-border bg-background px-1 py-2 shadow-md">
-                    <EditorCommandEmpty className="px-2 text-notion-text-muted">No results</EditorCommandEmpty>
-                    <EditorCommandList>
-                      {suggestionItems.map((item) => (
-                        <EditorCommandItem
-                          value={item.title}
-                          onCommand={(val) => item.command(val as any)}
-                          className="flex w-full items-center space-x-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-notion-hover aria-selected:bg-notion-hover cursor-pointer"
-                          key={item.title}
-                        >
-                          <div className="flex h-10 w-10 items-center justify-center rounded-md border border-notion-border bg-background shrink-0">
-                            {item.icon}
-                          </div>
-                          <div>
-                            <p className="font-medium text-notion-text">{item.title}</p>
-                            <p className="text-xs text-notion-text-muted">{item.description}</p>
-                          </div>
-                        </EditorCommandItem>
-                      ))}
-                    </EditorCommandList>
-                  </EditorCommand>
-                  <EditorBubble className="flex w-fit max-w-[90vw] overflow-hidden rounded-lg border border-notion-border bg-background shadow-xl">
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleBold().run()} label="Bold">
-                      <Bold className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleItalic().run()} label="Italic">
-                      <Italic className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleUnderline().run()} label="Underline">
-                      <Underline className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleStrike().run()} label="Strikethrough">
-                      <Strikethrough className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleCode().run()} label="Code">
-                      <Code className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleSep />
-                    <BubbleBtn
-                      onSelect={(ed) => {
-                        const url = window.prompt('URL');
-                        if (url) ed.chain().focus().setLink({ href: url }).run();
-                      }}
-                      label="Link"
-                    >
-                      <Link2 className="w-4 h-4" />
-                    </BubbleBtn>
-                    <BubbleBtn onSelect={(ed) => ed.chain().focus().toggleHighlight().run()} label="Highlight">
-                      <Highlighter className="w-4 h-4" />
-                    </BubbleBtn>
-                  </EditorBubble>
-                </EditorContent>
-              </EditorRoot>
-            </div>
+            <TiptapEditorSurface
+              key={activePage.id}
+              pageId={activePage.id}
+              content={validContent}
+              editable={!isReadOnly}
+              isReadOnly={isReadOnly}
+              isModal={isModal}
+              locale={locale}
+              suggestionItems={suggestionItems}
+              editorInstanceRef={editorInstanceRef}
+              linkContextRef={linkContextRef}
+              lastPlusTimeRef={lastPlusTimeRef}
+              onUpdate={(content) => updatePage(activePage.id, { content })}
+              onOpenInternalLinkPicker={openInternalLinkPicker}
+              onReportScoreRecalculated={handleReportScoreRecalculated}
+            />
           )}
         </div>
       </div>
@@ -798,25 +679,193 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   );
 }
 
+function TiptapEditorSurface({
+  pageId,
+  content,
+  editable,
+  isReadOnly,
+  isModal,
+  locale,
+  suggestionItems,
+  editorInstanceRef,
+  linkContextRef,
+  lastPlusTimeRef,
+  onUpdate,
+  onOpenInternalLinkPicker,
+  onReportScoreRecalculated,
+}: {
+  pageId: string;
+  content: JSONContent;
+  editable: boolean;
+  isReadOnly: boolean;
+  isModal?: boolean;
+  locale: string;
+  suggestionItems: SuggestionItem[];
+  editorInstanceRef: MutableRefObject<any>;
+  linkContextRef: MutableRefObject<InternalLinkContext | null>;
+  lastPlusTimeRef: MutableRefObject<number>;
+  onUpdate: (content: JSONContent) => void;
+  onOpenInternalLinkPicker: (clientRect: Pick<DOMRect, 'left' | 'bottom'> | { left: number; bottom: number }, query?: string) => void;
+  onReportScoreRecalculated: (result: ReportScoreResult) => void;
+}) {
+  useEffect(() => {
+    (window as any).__noteblockSlashItems = (query: string) => {
+      if (!query) return suggestionItems;
+      const q = query.toLowerCase();
+      return suggestionItems.filter((item) => item.title.toLowerCase().includes(q) || item.searchTerms?.some((term) => term.includes(q)));
+    };
+    return () => {
+      delete (window as any).__noteblockSlashItems;
+    };
+  }, [suggestionItems]);
+
+  const editor = useEditor({
+    content,
+    editable,
+    immediatelyRender: false,
+    extensions: getExtensions({ onReportScoreRecalculated, locale: locale as any }),
+    onCreate: ({ editor }) => {
+      editorInstanceRef.current = editor;
+    },
+    onDestroy: () => {
+      editorInstanceRef.current = null;
+    },
+    onUpdate: ({ editor }) => {
+      editorInstanceRef.current = editor;
+      onUpdate(editor.getJSON() as JSONContent);
+    },
+    editorProps: {
+      attributes: {
+        class: cn('prose prose-zinc dark:prose-invert max-w-none focus:outline-none', isModal ? 'min-h-[300px]' : 'min-h-[500px]'),
+      },
+      handleKeyDown: (view, event) => {
+        const mod = event.metaKey || event.ctrlKey;
+        if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
+          event.preventDefault();
+          if (isReadOnly) {
+            showToast('Esta página é somente leitura.', 'error');
+            return true;
+          }
+          const { selection } = view.state;
+          const alias = selection.empty ? '' : view.state.doc.textBetween(selection.from, selection.to, ' ');
+          linkContextRef.current = {
+            mode: 'editor',
+            from: selection.from,
+            to: selection.to,
+            alias: alias.trim() || undefined,
+          };
+          onOpenInternalLinkPicker(view.coordsAtPos(selection.from), alias);
+          return true;
+        }
+        if (event.key === '[' && !mod) {
+          const { state } = view;
+          const { selection } = state;
+          if (selection.empty && selection.from > 1 && state.doc.textBetween(selection.from - 1, selection.from) === '[') {
+            event.preventDefault();
+            view.dispatch(state.tr.delete(selection.from - 1, selection.from));
+            linkContextRef.current = {
+              mode: 'editor',
+              from: selection.from - 1,
+              to: selection.from - 1,
+            };
+            onOpenInternalLinkPicker(view.coordsAtPos(selection.from - 1));
+            return true;
+          }
+        }
+        if (event.key === '+') {
+          const now = Date.now();
+          if (now - lastPlusTimeRef.current < 350) {
+            event.preventDefault();
+            const { selection } = view.state;
+            view.dispatch(view.state.tr.delete(selection.from - 1, selection.from));
+            showToast('AI local ainda não está habilitada neste companion.', 'error');
+            lastPlusTimeRef.current = 0;
+            return true;
+          }
+          lastPlusTimeRef.current = now;
+        }
+        return false;
+      },
+    },
+  });
+
+  useEffect(() => {
+    if (editor) editor.setEditable(editable);
+  }, [editable, editor]);
+
+  return (
+    <div id={`noteblock-editor-${pageId}`} className="noteblock-editor relative group/editor">
+      <MentionChipHydrator editorRootId={`noteblock-editor-${pageId}`} />
+      {editor && (
+        <BubbleMenu
+          editor={editor}
+          updateDelay={120}
+          shouldShow={({ editor }) => editor.isEditable && !editor.isActive('table') && !editor.state.selection.empty}
+          className="z-40 flex w-fit max-w-full overflow-hidden rounded-lg border border-notion-border bg-background shadow-lg"
+        >
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleBold().run()} label="Bold">
+            <Bold className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleItalic().run()} label="Italic">
+            <Italic className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleUnderline().run()} label="Underline">
+            <Underline className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleStrike().run()} label="Strikethrough">
+            <Strikethrough className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleCode().run()} label="Code">
+            <Code className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleSep />
+          <BubbleBtn
+            editor={editor}
+            onSelect={(ed) => {
+              const url = window.prompt('URL');
+              if (url) ed.chain().focus().setLink({ href: url }).run();
+            }}
+            label="Link"
+          >
+            <Link2 className="w-4 h-4" />
+          </BubbleBtn>
+          <BubbleBtn editor={editor} onSelect={(ed) => ed.chain().focus().toggleHighlight().run()} label="Highlight">
+            <Highlighter className="w-4 h-4" />
+          </BubbleBtn>
+        </BubbleMenu>
+      )}
+      {editor && (
+        <ReportTableMenu editor={editor} locale={locale} onScoreRecalculated={onReportScoreRecalculated} />
+      )}
+      <EditorContent editor={editor} />
+      <SlashCommandMenu />
+    </div>
+  );
+}
+
 function BubbleBtn({
+  editor,
   onSelect,
   label,
   children,
   className,
 }: {
+  editor: Editor;
   onSelect: (editor: any) => void;
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }) {
   return (
-    <EditorBubbleItem
-      onSelect={onSelect}
+    <button
+      type="button"
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={() => onSelect(editor)}
       className={cn('flex h-8 w-8 items-center justify-center text-notion-text hover:bg-notion-hover cursor-pointer', className)}
       aria-label={label}
     >
       {children}
-    </EditorBubbleItem>
+    </button>
   );
 }
 
@@ -824,7 +873,7 @@ function BubbleSep() {
   return <div className="w-px h-5 bg-notion-border self-center" />;
 }
 
-function HeaderButton({ icon, onClick, ariaLabel }: { icon: React.ReactNode; onClick?: () => void; ariaLabel?: string }) {
+function HeaderButton({ icon, onClick, ariaLabel }: { icon: ReactNode; onClick?: () => void; ariaLabel?: string }) {
   return (
     <button
       onClick={onClick}
@@ -843,7 +892,7 @@ function MenuAction({
   destructive,
   className,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   onClick: () => void;
   destructive?: boolean;

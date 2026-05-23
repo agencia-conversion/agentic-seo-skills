@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,17 @@ const BRAIN_PAGE_ORDER = [
   "brain/log.md",
 ];
 const CONTENT_ORIGINS = new Set(["blog", "linkedin", "podcast", "outros"]);
+const REPORT_MODULES = new Set([
+  "technical-seo",
+  "internal-links",
+  "seo-analysis",
+  "keyword-research",
+  "serp-extract",
+  "backlink-analysis",
+  "topic-cluster",
+  "eeat",
+]);
+const SUPPORTED_PROJECT_LANGUAGES = new Set(["pt-BR", "en"]);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const BRAIN_TEMPLATE_DIR = join(ROOT, "templates", "project", "brain");
 
@@ -34,8 +45,35 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
 function normalizeProjectRoot(projectRoot) {
   return resolve(projectRoot || "project");
+}
+
+function projectConfigPath(root) {
+  return join(root, ".agentic-seo", "project.json");
+}
+
+function readProjectConfig(root) {
+  const config = projectConfigPath(root);
+  if (!existsSync(config)) return {};
+  try {
+    const data = JSON.parse(readFileSync(config, "utf8"));
+    return data && typeof data === "object" ? data : {};
+  } catch {
+    return {};
+  }
+}
+
+function normalizeProjectLanguage(value, fallback = "pt-BR") {
+  if (!value) return fallback;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized.startsWith("pt")) return "pt-BR";
+  if (normalized.startsWith("en")) return "en";
+  return "en";
 }
 
 function yamlString(value) {
@@ -76,9 +114,13 @@ export function validateProjectFileRel(rawPath, { write = false } = {}) {
   const allowed =
     /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^conteudos\/(blog|linkedin|podcast|outros)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
-    /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel);
+    /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel) ||
+    /^relatorios\/[A-Za-z0-9._-]+\/[A-Za-z0-9._/-]+\/report\.md$/.test(rel);
   if (rel.includes("\\") || !safe || !allowed) {
     return { ok: false, reason: "path-not-allowed" };
+  }
+  if (rel.startsWith("relatorios/")) {
+    if (!REPORT_MODULES.has(parts[1])) return { ok: false, reason: "path-not-allowed" };
   }
   if (write && rel === "brain/log.md") return { ok: false, reason: "read-only-log" };
   return { ok: true, rel };
@@ -87,9 +129,16 @@ export function validateProjectFileRel(rawPath, { write = false } = {}) {
 function resolveAllowedFile(projectRoot, rel) {
   const root = normalizeProjectRoot(projectRoot);
   const filePath = resolve(root, rel);
-  const allowedRoots = ["brain", "conteudos", "workbench"].map((dir) => resolve(root, dir));
+  const allowedRoots = ["brain", "conteudos", "workbench", "relatorios"].map((dir) => resolve(root, dir));
   if (!allowedRoots.some((allowedRoot) => filePath === allowedRoot || filePath.startsWith(`${allowedRoot}${sep}`))) {
     throw new Error("path escaped project root");
+  }
+  if (existsSync(filePath)) {
+    const lst = lstatSync(filePath);
+    if (lst.isSymbolicLink()) throw new Error("symlink files are not allowed");
+    const realFile = realpathSync(filePath);
+    const realRoot = realpathSync(root);
+    if (!realFile.startsWith(`${realRoot}${sep}`)) throw new Error("path escaped project root");
   }
   return { root, filePath };
 }
@@ -165,14 +214,9 @@ function titleFromFile(rel, frontmatter) {
 
 function projectDisplayName(projectRoot) {
   const root = normalizeProjectRoot(projectRoot);
-  const config = join(root, ".agentic-seo", "project.json");
-  if (existsSync(config)) {
-    try {
-      const data = JSON.parse(readFileSync(config, "utf8"));
-      if (data?.name) return String(data.name);
-      if (data?.brand_name) return String(data.brand_name);
-    } catch {}
-  }
+  const project = readProjectConfig(root);
+  if (project?.name) return String(project.name);
+  if (project?.brand_name) return String(project.brand_name);
   const index = join(root, "brain", "index.md");
   if (existsSync(index)) {
     try {
@@ -183,18 +227,65 @@ function projectDisplayName(projectRoot) {
   return "Agentic SEO";
 }
 
+export function readProjectSettings({ projectRoot }) {
+  const root = normalizeProjectRoot(projectRoot);
+  const data = readProjectConfig(root);
+  const projectName = data?.name || data?.brand_name || projectDisplayName(root);
+  const market = data?.market || data?.country || "Brasil";
+  const country = data?.country || market;
+  return {
+    ok: true,
+    projectRoot: root,
+    projectName: String(projectName),
+    language: normalizeProjectLanguage(data?.language),
+    market: String(market),
+    country: String(country),
+  };
+}
+
+export function updateProjectSettings({ projectRoot, language }) {
+  const root = normalizeProjectRoot(projectRoot);
+  const nextLanguage = typeof language === "string" ? language.trim() : "";
+  if (!SUPPORTED_PROJECT_LANGUAGES.has(nextLanguage)) return { ok: false, reason: "invalid-language" };
+  const previous = readProjectConfig(root);
+  const next = {
+    schema_version: previous.schema_version || "2.0.0",
+    name: previous.name || previous.project_name || "Agentic SEO Project",
+    ...previous,
+    language: nextLanguage,
+    updated_at: nowIso(),
+    single_project_root: previous.single_project_root || "project",
+  };
+  mkdirSync(dirname(projectConfigPath(root)), { recursive: true });
+  writeFileSync(projectConfigPath(root), JSON.stringify(next, null, 2) + "\n", "utf8");
+  if (existsSync(join(root, "brain", "log.md"))) {
+    appendLogEntry(join(root, "brain", "log.md"), {
+      date: todayIso(),
+      tipo: "decisao",
+      titulo: "Idioma do projeto atualizado",
+      escopo: ".agentic-seo/project.json",
+      decisao: `Idioma canônico do projeto definido como ${nextLanguage}.`,
+      evidencia: ".agentic-seo/project.json",
+      aprovador: "agent",
+    });
+  }
+  return readProjectSettings({ projectRoot: root });
+}
+
 function readBrainPageSummary(projectRoot, rel, ui) {
   const { filePath } = resolveAllowedFile(projectRoot, rel);
   if (!existsSync(filePath)) return null;
   const text = readFileSync(filePath, "utf8");
   const { data: frontmatter, body } = parseFrontmatter(text);
+  const title = titleFromFile(rel, frontmatter);
+  const displayBody = stripDuplicateReportHeading(rel, body, title);
   return applyPageUi({
     path: rel,
-    title: titleFromFile(rel, frontmatter),
+    title,
     updated: frontmatter.updated || frontmatter.published_at || null,
     readOnly: rel === "brain/log.md",
     requiresApproval: false,
-    excerpt: body.replace(/\s+/g, " ").trim().slice(0, 180),
+    excerpt: displayBody.replace(/\s+/g, " ").trim().slice(0, 180),
     hash: sha256(text),
   }, ui);
 }
@@ -205,6 +296,8 @@ function walkMarkdown(root, current = root) {
   for (const name of readdirSync(current).sort((a, b) => a.localeCompare(b, "pt-BR"))) {
     if (name.startsWith(".") || name.startsWith("_")) continue;
     const full = join(current, name);
+    const lst = lstatSync(full);
+    if (lst.isSymbolicLink()) continue;
     const st = statSync(full);
     if (st.isDirectory()) out.push(...walkMarkdown(root, full));
     if (st.isFile() && name.endsWith(".md")) {
@@ -264,7 +357,7 @@ export function buildProjectTree({ projectRoot }) {
       items,
     },
   ];
-  if (contentItems.length) sections.push({ id: "conteudos", title: "Conteúdos", items: contentItems });
+  if (contentItems.length || existsSync(join(root, "conteudos"))) sections.push({ id: "conteudos", title: "Conteúdos", items: contentItems });
   if (workbenchItems.length) sections.push({ id: "workbench", title: "Workbench", items: workbenchItems });
   return {
     ok: true,
@@ -277,6 +370,205 @@ export function buildProjectTree({ projectRoot }) {
       icon: projectIcon,
     },
     sections,
+  };
+}
+
+function cleanValue(value) {
+  return String(value ?? "").replace(/^["']|["']$/g, "").trim();
+}
+
+function slugValue(value) {
+  return cleanValue(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function walkClusterJson(root, current = root) {
+  if (!existsSync(current)) return [];
+  const out = [];
+  for (const name of readdirSync(current).sort((a, b) => a.localeCompare(b, "pt-BR"))) {
+    if (name.startsWith(".") || name.startsWith("_")) continue;
+    const full = join(current, name);
+    const lst = lstatSync(full);
+    if (lst.isSymbolicLink()) continue;
+    const st = statSync(full);
+    if (st.isDirectory()) out.push(...walkClusterJson(root, full));
+    if (st.isFile() && name === "cluster.json") out.push(relative(root, full).split(sep).join("/"));
+  }
+  return out;
+}
+
+function readTopicClusters(root) {
+  const clustersRoot = resolve(root, "clusters");
+  if (!existsSync(clustersRoot)) return [];
+  const realRoot = realpathSync(root);
+  const clusters = [];
+  for (const child of walkClusterJson(clustersRoot)) {
+    const filePath = resolve(clustersRoot, child);
+    const realFile = realpathSync(filePath);
+    if (!realFile.startsWith(`${realRoot}${sep}`)) continue;
+    try {
+      const data = JSON.parse(readFileSync(filePath, "utf8"));
+      const id = slugValue(data.seed_slug || data.pillar?.slug || basename(resolve(filePath, "..")));
+      if (!id) continue;
+      const title = cleanValue(data.pillar?.title || data.seed || id) || id;
+      const aliases = new Set([id, slugValue(title), slugValue(data.seed), slugValue(data.pillar?.slug), slugValue(data.seed_slug)].filter(Boolean));
+      const pageSlugs = new Set();
+      for (const value of [data.pillar?.slug, data.pillar?.title, data.seed]) {
+        const slug = slugValue(value);
+        if (slug) pageSlugs.add(slug);
+      }
+      for (const page of Array.isArray(data.supporting_pages) ? data.supporting_pages : []) {
+        for (const value of [page?.slug, page?.title, page?.keyword_principal?.keyword]) {
+          const slug = slugValue(value);
+          if (slug) pageSlugs.add(slug);
+        }
+      }
+      clusters.push({ id, title, path: relative(root, filePath).split(sep).join("/"), aliases, pageSlugs });
+    } catch {
+      // Ignore malformed cluster drafts.
+    }
+  }
+  return clusters.sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+}
+
+function inferContentCluster(frontmatter, contentSlug, clusters) {
+  const explicit = slugValue(frontmatter.topic_cluster || frontmatter.topicCluster || frontmatter.cluster);
+  const area = slugValue(frontmatter.area);
+  const slug = slugValue(frontmatter.slug || contentSlug);
+  if (explicit) {
+    return clusters.find((cluster) => cluster.id === explicit || cluster.aliases.has(explicit)) || {
+      id: explicit,
+      title: cleanValue(frontmatter.topic_cluster || frontmatter.topicCluster || frontmatter.cluster) || explicit,
+      path: null,
+    };
+  }
+  return clusters.find((cluster) => cluster.aliases.has(area) || cluster.pageSlugs.has(slug)) || null;
+}
+
+export function listProjectContents({ projectRoot, page = 1, pageSize = 25, query = "", origin = "", topicCluster = "" }) {
+  const root = normalizeProjectRoot(projectRoot);
+  const clusters = readTopicClusters(root);
+  const rows = [];
+  for (const contentOrigin of CONTENT_ORIGINS) {
+    const dir = resolve(root, "conteudos", contentOrigin);
+    if (!existsSync(dir)) continue;
+    const realDir = realpathSync(dir);
+    if (!realDir.startsWith(`${realpathSync(root)}${sep}`)) continue;
+    for (const child of walkMarkdown(dir)) {
+      const rel = `conteudos/${contentOrigin}/${child}`;
+      const filePath = resolve(root, rel);
+      const realFile = realpathSync(filePath);
+      if (!realFile.startsWith(`${realDir}${sep}`)) continue;
+      const text = readFileSync(filePath, "utf8");
+      const { data: frontmatter, body } = parseFrontmatter(text);
+      const contentSlug = cleanValue(frontmatter.slug) || basename(child, ".md");
+      const cluster = inferContentCluster(frontmatter, contentSlug, clusters);
+      rows.push({
+        id: sha256(rel),
+        path: rel,
+        title: cleanValue(frontmatter.title) || titleFromFile(rel, frontmatter),
+        slug: contentSlug,
+        origin: cleanValue(frontmatter.origem || frontmatter.origin) || contentOrigin,
+        area: cleanValue(frontmatter.area),
+        topic_cluster: cluster?.id || null,
+        topicClusterTitle: cluster?.title || null,
+        topicClusterPath: cluster?.path || null,
+        published_at: cleanValue(frontmatter.published_at),
+        updated: cleanValue(frontmatter.updated || frontmatter.updated_at),
+        status: cleanValue(frontmatter.status) || (cleanValue(frontmatter.published_at) ? "published" : "draft"),
+        excerpt: body.replace(/\s+/g, " ").trim().slice(0, 180),
+        hash: sha256(text),
+      });
+    }
+  }
+
+  const noneCluster = "__none__";
+  const q = query.trim().toLowerCase();
+  let filtered = rows;
+  if (origin.trim()) filtered = filtered.filter((row) => row.origin === origin.trim());
+  if (topicCluster.trim()) {
+    filtered = filtered.filter((row) => topicCluster.trim() === noneCluster ? !row.topic_cluster : row.topic_cluster === topicCluster.trim());
+  }
+  if (q) {
+    filtered = filtered.filter((row) =>
+      [row.title, row.path, row.origin, row.area, row.topicClusterTitle, row.status, row.excerpt].some((value) =>
+        String(value || "").toLowerCase().includes(q)
+      )
+    );
+  }
+  filtered.sort((a, b) => String(b.updated || b.published_at || b.path).localeCompare(String(a.updated || a.published_at || a.path)));
+  const safePageSize = Math.max(1, Math.min(100, Number(pageSize) || 25));
+  const safePage = Math.max(1, Number(page) || 1);
+  const assignedCounts = new Map();
+  for (const row of rows) assignedCounts.set(row.topic_cluster || noneCluster, (assignedCounts.get(row.topic_cluster || noneCluster) || 0) + 1);
+  const topicClusters = [
+    ...clusters.map((cluster) => ({ id: cluster.id, title: cluster.title, count: assignedCounts.get(cluster.id) || 0 })),
+    ...(assignedCounts.get(noneCluster) ? [{ id: noneCluster, title: "Sem cluster", count: assignedCounts.get(noneCluster) || 0 }] : []),
+  ];
+  const start = (safePage - 1) * safePageSize;
+  return {
+    ok: true,
+    page: safePage,
+    pageSize: safePageSize,
+    total: filtered.length,
+    origins: [...CONTENT_ORIGINS].map((id) => ({ id, count: rows.filter((row) => row.origin === id).length })),
+    topicClusters,
+    items: filtered.slice(start, start + safePageSize),
+  };
+}
+
+export function listProjectWorkbench({ projectRoot, page = 1, pageSize = 25, query = "" }) {
+  const root = normalizeProjectRoot(projectRoot);
+  const workbenchRoot = resolve(root, "workbench");
+  const rows = [];
+  if (existsSync(workbenchRoot)) {
+    const realRoot = realpathSync(root);
+    const realWorkbench = realpathSync(workbenchRoot);
+    if (!realWorkbench.startsWith(`${realRoot}${sep}`)) return { ok: false, reason: "path-not-allowed" };
+    for (const child of walkMarkdown(workbenchRoot)) {
+      const rel = `workbench/${child}`;
+      const filePath = resolve(root, rel);
+      const realFile = realpathSync(filePath);
+      if (!realFile.startsWith(`${realWorkbench}${sep}`)) continue;
+      const text = readFileSync(filePath, "utf8");
+      const { data: frontmatter, body } = parseFrontmatter(text);
+      const st = statSync(filePath);
+      rows.push({
+        id: sha256(rel),
+        path: rel,
+        title: cleanValue(frontmatter.title) || titleFromFile(rel, frontmatter),
+        folder: dirname(child) === "." ? "workbench" : dirname(child).split(sep).join("/"),
+        updated: cleanValue(frontmatter.updated || frontmatter.updated_at) || st.mtime.toISOString(),
+        frontmatter: Object.keys(frontmatter || {}).length,
+        excerpt: body.replace(/\s+/g, " ").trim().slice(0, 180),
+        hash: sha256(text),
+      });
+    }
+  }
+
+  const q = query.trim().toLowerCase();
+  let filtered = rows;
+  if (q) {
+    filtered = filtered.filter((row) =>
+      [row.title, row.path, row.folder, row.excerpt].some((value) =>
+        String(value || "").toLowerCase().includes(q)
+      )
+    );
+  }
+  filtered.sort((a, b) => String(b.updated || b.path).localeCompare(String(a.updated || a.path)));
+  const safePageSize = Math.max(1, Math.min(100, Number(pageSize) || 25));
+  const safePage = Math.max(1, Number(page) || 1);
+  const start = (safePage - 1) * safePageSize;
+  return {
+    ok: true,
+    page: safePage,
+    pageSize: safePageSize,
+    total: filtered.length,
+    items: filtered.slice(start, start + safePageSize),
   };
 }
 
@@ -324,16 +616,18 @@ export function readProjectFile({ projectRoot, fileRel }) {
   const text = readFileSync(filePath, "utf8");
   const { data: frontmatter, body, raw } = parseFrontmatter(text);
   const itemUi = pageUi(readCompanionUi(root), validation.rel);
+  const title = titleFromFile(validation.rel, frontmatter);
+  const displayBody = stripDuplicateReportHeading(validation.rel, body, title);
   return {
     ok: true,
     projectRoot: root,
     path: validation.rel,
-    title: titleFromFile(validation.rel, frontmatter),
+    title,
     frontmatter,
     frontmatterRaw: raw,
     icon: Object.prototype.hasOwnProperty.call(itemUi, "icon") ? itemUi.icon ?? null : undefined,
     cover: Object.prototype.hasOwnProperty.call(itemUi, "cover") ? itemUi.cover ?? null : undefined,
-    body,
+    body: displayBody,
     text,
     hash: sha256(text),
     readOnly: validation.rel === "brain/log.md",
@@ -387,11 +681,35 @@ function frontmatterFieldsForPath(rel, incoming, existing, title) {
       title: String(incoming.title || title || existing.title || titleFromFile(rel, existing)).trim(),
     };
   }
+  if (rel.startsWith("relatorios/")) {
+    return {
+      ...existing,
+      ...incoming,
+      title: String(incoming.title || title || existing.title || titleFromFile(rel, existing)).trim(),
+      edited_at: nowIso(),
+    };
+  }
   const next = {
     title: String(incoming.title || title || existing.title || titleFromFile(rel, existing)).trim(),
   };
   if (rel.startsWith("brain/")) next.updated = todayIso();
   return next;
+}
+
+function normalizeHeadingTitle(value) {
+  return String(value || "")
+    .replace(/^["']|["']$/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function stripDuplicateReportHeading(rel, body, title) {
+  if (!rel.startsWith("relatorios/")) return body;
+  const match = String(body || "").match(/^\s*#\s+([^\n\r]+)\s*(?:\r?\n|$)/);
+  if (!match) return body;
+  if (normalizeHeadingTitle(match[1]) !== normalizeHeadingTitle(title)) return body;
+  return String(body || "").slice(match[0].length).replace(/^\s*\n/, "");
 }
 
 export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, body, frontmatter, frontmatterRaw, ui, approver, notes }) {
@@ -437,14 +755,15 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
   writeFileSync(filePath, finalText, "utf8");
   const uiSaved = hasUiChange ? savePageUi(root, validation.rel, ui || {}) : false;
 
-  if (validation.rel.startsWith("brain/")) {
+  if (validation.rel.startsWith("brain/") || validation.rel.startsWith("relatorios/")) {
     const logFile = join(root, "brain", "log.md");
+    const isReport = validation.rel.startsWith("relatorios/");
     appendLogEntry(logFile, {
       date: today,
       tipo: "decisao",
-      titulo: `${basename(validation.rel, ".md")} editado no Companion`,
+      titulo: isReport ? "Relatório editado no Companion" : `${basename(validation.rel, ".md")} editado no Companion`,
       escopo: validation.rel,
-      decisao: `${validation.rel} editado no Companion Web${approverClean ? ` por ${approverClean}` : ""}.`,
+      decisao: `${isReport ? "Relatório" : validation.rel} editado no Companion Web${approverClean ? ` por ${approverClean}` : ""}.`,
       evidencia: validation.rel,
       aprovador: approverClean || "agent",
       aprovado_em: null,
@@ -461,7 +780,7 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
     hash: sha256(next),
     requiresApproval: false,
     uiSaved,
-    logAppended: validation.rel.startsWith("brain/"),
+    logAppended: validation.rel.startsWith("brain/") || validation.rel.startsWith("relatorios/"),
   };
 }
 
@@ -507,8 +826,10 @@ function uniqueTrashPath(root, rel) {
 
 export function deleteProjectFile({ projectRoot, fileRel, expectedHash, dirty = false }) {
   if (dirty) return { ok: false, reason: "dirty-file" };
-  const validation = validateProjectFileRel(fileRel, { write: true });
+  const validation = validateProjectFileRel(fileRel);
   if (!validation.ok) return { ok: false, reason: validation.reason };
+  if (validation.rel.startsWith("relatorios/")) return { ok: false, reason: "report-delete-not-allowed" };
+  if (validation.rel === "brain/log.md") return { ok: false, reason: "read-only-log" };
   const { root, filePath } = resolveAllowedFile(projectRoot, validation.rel);
   if (!existsSync(filePath)) return { ok: false, reason: "file-not-found" };
   const current = readFileSync(filePath, "utf8");

@@ -141,8 +141,9 @@ export function TitleEditor({
   };
 
   const titleLayoutStyle = {
-    width: 'calc(100% + 16px)',
-    marginLeft: '-8px',
+    width: '100%',
+    maxWidth: '100%',
+    minWidth: 0,
     paddingLeft: '8px',
     paddingRight: '8px',
     whiteSpace: 'pre-wrap',

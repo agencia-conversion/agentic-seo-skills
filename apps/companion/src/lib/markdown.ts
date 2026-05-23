@@ -1,3 +1,9 @@
+import {
+  normalizeTable,
+  parseReportBlockPayload,
+  serializeReportBlockPayload,
+} from '../features/editor/report-block-data';
+
 interface MentionResolver {
   findPageId: (target: string) => string | null;
   labelForPageId: (pageId: string) => string;
@@ -59,6 +65,85 @@ function isRawLine(line: string) {
   return /^\s*<!--/.test(line) || /^\s*\|.*\|\s*$/.test(line);
 }
 
+function cellTextNodes(value: unknown): JsonNode[] {
+  const text = String(value ?? '');
+  const paragraphs = text.split('\n');
+  return paragraphs.map((part) => ({
+    type: 'paragraph',
+    content: part ? [textNode(part)] : [],
+  }));
+}
+
+function reportTableNode(body: string): JsonNode {
+  const payload = parseReportBlockPayload(body) || {};
+  const table = normalizeTable(payload);
+  const columns = table.columns.length ? table.columns : [{ key: 'c0', label: 'Coluna 1' }];
+  const rows = table.rows.length ? table.rows : [columns.map(() => '')];
+  return {
+    type: 'table',
+    attrs: {
+      agenticReport: true,
+      columns,
+      summary: payload?.summary ?? null,
+      source_refs: payload?.source_refs ?? null,
+    },
+    content: [
+      {
+        type: 'tableRow',
+        content: columns.map((column) => ({
+          type: 'tableHeader',
+          attrs: { colspan: 1, rowspan: 1, colwidth: null },
+          content: cellTextNodes(column.label),
+        })),
+      },
+      ...rows.map((row) => ({
+        type: 'tableRow',
+        content: columns.map((_column, index) => ({
+          type: 'tableCell',
+          attrs: { colspan: 1, rowspan: 1, colwidth: null },
+          content: cellTextNodes(row[index] ?? ''),
+        })),
+      })),
+    ],
+  };
+}
+
+function splitPipeRow(line: string) {
+  const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+  return trimmed.split('|').map((cell) => cell.trim().replace(/\\\|/g, '|'));
+}
+
+function isPipeSeparator(line: string) {
+  return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+}
+
+function pipeTableNode(lines: string[]): JsonNode {
+  const headers = splitPipeRow(lines[0]);
+  const rows = lines.slice(2).map(splitPipeRow);
+  return {
+    type: 'table',
+    attrs: { agenticReport: false, columns: null, summary: null, source_refs: null },
+    content: [
+      {
+        type: 'tableRow',
+        content: headers.map((cell) => ({
+          type: 'tableHeader',
+          attrs: { colspan: 1, rowspan: 1, colwidth: null },
+          content: cellTextNodes(cell),
+        })),
+      },
+      ...rows.map((row) => ({
+        type: 'tableRow',
+        content: headers.map((_header, index) => ({
+          type: 'tableCell',
+          attrs: { colspan: 1, rowspan: 1, colwidth: null },
+          content: cellTextNodes(row[index] ?? ''),
+        })),
+      })),
+    ],
+  };
+}
+
 export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
   const lines = markdown.replace(/\r\n/g, '\n').split('\n');
   const content: JsonNode[] = [];
@@ -77,7 +162,15 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
       i++;
       while (i < lines.length && !/^```/.test(lines[i])) block.push(lines[i++]);
       if (i < lines.length) block.push(lines[i++]);
-      content.push({ type: 'codeBlock', attrs: { language: fence[1].trim() || null }, content: [textNode(block.slice(1, -1).join('\n'))] });
+      const language = fence[1].trim();
+      const body = block.slice(1, -1).join('\n');
+      if (language === 'agentic-table') {
+        content.push(reportTableNode(body));
+      } else if (/^agentic-(kpis|chart)$/.test(language)) {
+        content.push({ type: 'reportBlock', attrs: { kind: language, data: body } });
+      } else {
+        content.push({ type: 'codeBlock', attrs: { language: language || null }, content: [textNode(body)] });
+      }
       continue;
     }
 
@@ -88,6 +181,16 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
         block.push(lines[i++]);
       }
       content.push(raw(block.join('\n'), { hidden: true }));
+      continue;
+    }
+
+    if (/^\s*\|.*\|\s*$/.test(line) && i + 1 < lines.length && isPipeSeparator(lines[i + 1])) {
+      const block = [line, lines[i + 1]];
+      i += 2;
+      while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) {
+        block.push(lines[i++]);
+      }
+      content.push(pipeTableNode(block));
       continue;
     }
 
@@ -179,6 +282,55 @@ function paragraphText(node: JsonNode, resolver?: MentionResolver) {
   return (node.content || []).map((child) => textFromInline(child, resolver)).join('');
 }
 
+function tableCellText(node: JsonNode, resolver?: MentionResolver) {
+  return (node.content || []).map((child) => paragraphText(child, resolver)).join('\n');
+}
+
+function tableRows(node: JsonNode, resolver?: MentionResolver) {
+  return (node.content || []).map((row) =>
+    (row.content || []).map((cell) => tableCellText(cell, resolver))
+  );
+}
+
+function escapePipe(value: string) {
+  return value.replace(/\|/g, '\\|').replace(/\n+/g, '<br>');
+}
+
+function tableToPipeMarkdown(node: JsonNode, resolver?: MentionResolver) {
+  const rows = tableRows(node, resolver);
+  if (!rows.length) return '';
+  const headers = rows[0];
+  const body = rows.slice(1);
+  return [
+    `| ${headers.map(escapePipe).join(' | ')} |`,
+    `| ${headers.map(() => '---').join(' | ')} |`,
+    ...body.map((row) => `| ${headers.map((_header, index) => escapePipe(row[index] ?? '')).join(' | ')} |`),
+  ].join('\n');
+}
+
+function tableToReportFence(node: JsonNode, resolver?: MentionResolver) {
+  const rows = tableRows(node, resolver);
+  const headerCells = rows[0] || [];
+  const dataRows = rows.slice(1);
+  const existingColumns = Array.isArray(node.attrs?.columns) ? node.attrs?.columns : [];
+  const columns = headerCells.map((label, index) => {
+    const existing = existingColumns[index] || {};
+    return {
+      key: String(existing.key || `c${index}`),
+      label,
+      ...(existing.role ? { role: String(existing.role) } : {}),
+    };
+  });
+  const payload = {
+    version: 1,
+    ...(node.attrs?.summary ? { summary: node.attrs.summary } : {}),
+    ...(node.attrs?.source_refs ? { source_refs: node.attrs.source_refs } : {}),
+    columns,
+    rows: dataRows.map((row) => Object.fromEntries(columns.map((column, index) => [column.key, row[index] ?? '']))),
+  };
+  return `\`\`\`agentic-table\n${serializeReportBlockPayload(payload)}\n\`\`\``;
+}
+
 export function docToMarkdown(doc: any, resolver?: MentionResolver): string {
   const blocks = ((doc && doc.type === 'doc' ? doc.content : []) || []) as JsonNode[];
   const out: string[] = [];
@@ -188,6 +340,13 @@ export function docToMarkdown(doc: any, resolver?: MentionResolver): string {
     else if (node.type === 'heading') out.push(`${'#'.repeat(Number(node.attrs?.level || 1))} ${paragraphText(node, resolver)}`);
     else if (node.type === 'horizontalRule') out.push('---');
     else if (node.type === 'rawMarkdown') out.push(String(node.attrs?.text || ''));
+    else if (node.type === 'reportBlock') {
+      const kind = node.attrs?.kind || 'agentic-table';
+      out.push(`\`\`\`${kind}\n${String(node.attrs?.data || '').replace(/\s+$/, '')}\n\`\`\``);
+    }
+    else if (node.type === 'table') {
+      out.push(node.attrs?.agenticReport ? tableToReportFence(node, resolver) : tableToPipeMarkdown(node, resolver));
+    }
     else if (node.type === 'codeBlock') {
       const language = node.attrs?.language || '';
       out.push(`\`\`\`${language}\n${paragraphText(node, resolver)}\n\`\`\``);

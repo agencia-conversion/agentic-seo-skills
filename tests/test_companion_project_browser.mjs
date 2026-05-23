@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -7,9 +7,13 @@ import {
   buildProjectTree,
   createProjectFile,
   deleteProjectFile,
+  listProjectContents,
+  listProjectWorkbench,
+  readProjectSettings,
   readProjectFile,
   readProjectLog,
   saveProjectFile,
+  updateProjectSettings,
   validateProjectFileRel,
 } from "../scripts/lib/project-browser-files.mjs";
 
@@ -40,7 +44,10 @@ const projectRoot = join(tmp, "project");
 const brain = join(projectRoot, "brain");
 mkdirSync(brain, { recursive: true });
 mkdirSync(join(projectRoot, "conteudos", "blog"), { recursive: true });
+mkdirSync(join(projectRoot, "conteudos", "linkedin"), { recursive: true });
+mkdirSync(join(projectRoot, "clusters", "seo-agentico"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "drafts"), { recursive: true });
+mkdirSync(join(projectRoot, "relatorios", "technical-seo", "run-1"), { recursive: true });
 mkdirSync(join(projectRoot, ".agentic-seo"), { recursive: true });
 writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Projeto Teste" }), "utf8");
 
@@ -94,6 +101,40 @@ Conteúdo público.
   "utf8",
 );
 writeFileSync(
+  join(projectRoot, "conteudos", "blog", "_template.md"),
+  `---
+title: "Template"
+---
+
+Não deve aparecer na tabela.
+`,
+  "utf8",
+);
+writeFileSync(
+  join(projectRoot, "conteudos", "linkedin", "post-linkedin.md"),
+  `---
+title: "Post LinkedIn"
+slug: "post-linkedin"
+origem: "linkedin"
+topic_cluster: "seo-agentico"
+status: "draft"
+---
+
+Conteúdo para LinkedIn.
+`,
+  "utf8",
+);
+writeFileSync(
+  join(projectRoot, "clusters", "seo-agentico", "cluster.json"),
+  JSON.stringify({
+    seed: "SEO agêntico",
+    seed_slug: "seo-agentico",
+    pillar: { title: "SEO agêntico", slug: "seo-agentico" },
+    supporting_pages: [{ slug: "post-teste", title: "Post Teste" }],
+  }, null, 2),
+  "utf8",
+);
+writeFileSync(
   join(projectRoot, "workbench", "drafts", "ideia.md"),
   `---
 title: "Ideia"
@@ -104,12 +145,49 @@ Rascunho.
 `,
   "utf8",
 );
+writeFileSync(
+  join(projectRoot, "workbench", "drafts", "_template.md"),
+  `---
+title: "Template Workbench"
+---
+
+Não deve aparecer.
+`,
+  "utf8",
+);
+try {
+  symlinkSync(join(brain, "voz.md"), join(projectRoot, "workbench", "drafts", "symlink.md"));
+} catch {
+  // Symlink creation can be unavailable in some restricted environments.
+}
+writeFileSync(
+  join(projectRoot, "relatorios", "technical-seo", "run-1", "report.md"),
+  `---
+title: "Relatório técnico"
+slug: "run-1"
+report_type: "technical-seo"
+generated_at: "2026-05-07T10:00:00Z"
+status: "ready"
+source_artifact: "audits/run-1/report.yaml"
+summary: "Resumo técnico."
+score: "88"
+---
+
+# Relatório técnico
+
+Conteúdo do relatório.
+`,
+  "utf8",
+);
 
 assert.deepEqual(validateProjectFileRel("../AGENTS.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/../../AGENTS.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/voz.md").ok, true);
 assert.deepEqual(validateProjectFileRel("conteudos/blog/post-teste.md").ok, true);
 assert.deepEqual(validateProjectFileRel("workbench/drafts/ideia.md").ok, true);
+assert.deepEqual(validateProjectFileRel("relatorios/technical-seo/run-1/report.md").ok, true);
+assert.deepEqual(validateProjectFileRel("relatorios/technical-seo/run-1/report.md", { write: true }).ok, true);
+assert.deepEqual(validateProjectFileRel("relatorios/not-a-module/run-1/report.md").ok, false);
 assert.deepEqual(validateProjectFileRel("workbench/../brain/voz.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/log.md", { write: true }), { ok: false, reason: "read-only-log" });
 
@@ -123,7 +201,28 @@ const vozSummary = tree.sections[0].items.find((item) => item.path === "brain/vo
 assert.equal(vozSummary.title, "Tom de Voz");
 assert.equal(vozSummary.requiresApproval, false);
 assert.ok(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path === "conteudos/blog/post-teste.md"));
+assert.equal(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path.endsWith("_template.md")), false);
 assert.ok(tree.sections.find((section) => section.id === "workbench").items.some((item) => item.path === "workbench/drafts/ideia.md"));
+
+const contentIndex = listProjectContents({ projectRoot });
+assert.equal(contentIndex.ok, true);
+assert.equal(contentIndex.total, 2);
+assert.equal(contentIndex.items.some((item) => item.path === "conteudos/blog/_template.md"), false);
+assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").topic_cluster, "seo-agentico");
+assert.equal(contentIndex.items.find((item) => item.path === "conteudos/linkedin/post-linkedin.md").topicClusterTitle, "SEO agêntico");
+assert.equal(listProjectContents({ projectRoot, origin: "blog" }).total, 1);
+assert.equal(listProjectContents({ projectRoot, topicCluster: "seo-agentico" }).total, 2);
+
+const workbenchIndex = listProjectWorkbench({ projectRoot });
+assert.equal(workbenchIndex.ok, true);
+assert.equal(workbenchIndex.total, 1);
+assert.equal(workbenchIndex.items[0].path, "workbench/drafts/ideia.md");
+assert.equal(workbenchIndex.items[0].folder, "drafts");
+assert.equal(workbenchIndex.items[0].frontmatter, 2);
+assert.equal(workbenchIndex.items.some((item) => item.path.endsWith("_template.md")), false);
+assert.equal(workbenchIndex.items.some((item) => item.path.endsWith("symlink.md")), false);
+assert.equal(listProjectWorkbench({ projectRoot, query: "ideia" }).total, 1);
+assert.equal(listProjectWorkbench({ projectRoot, query: "nao-existe" }).total, 0);
 
 writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Conversion" }), "utf8");
 const conversionTree = buildProjectTree({ projectRoot });
@@ -235,6 +334,40 @@ const log = readProjectLog({ projectRoot });
 assert.equal(log.ok, true);
 assert.ok(log.readOnly);
 assert.ok(log.entries.length >= 2);
+
+const reportFile = readProjectFile({ projectRoot, fileRel: "relatorios/technical-seo/run-1/report.md" });
+assert.equal(reportFile.ok, true);
+assert.equal(reportFile.readOnly, false);
+assert.doesNotMatch(reportFile.body, /^# Relatório técnico/m);
+assert.match(reportFile.body, /Conteúdo do relatório/);
+const reportSave = saveProjectFile({
+  projectRoot,
+  fileRel: "relatorios/technical-seo/run-1/report.md",
+  expectedHash: reportFile.hash,
+  title: "Relatório técnico editado",
+  frontmatter: { ...reportFile.frontmatter, title: "Relatório técnico editado" },
+  body: "Relatório editado para apresentação humana.\n",
+});
+assert.equal(reportSave.ok, true);
+assert.equal(reportSave.logAppended, true);
+const editedReport = readFileSync(join(projectRoot, "relatorios", "technical-seo", "run-1", "report.md"), "utf8");
+assert.match(editedReport, /title: "Relatório técnico editado"/);
+assert.match(editedReport, /edited_at: "\d{4}-\d{2}-\d{2}T/);
+assert.match(readFileSync(join(brain, "log.md"), "utf8"), /Relatório editado no Companion/);
+const reportDelete = deleteProjectFile({
+  projectRoot,
+  fileRel: "relatorios/technical-seo/run-1/report.md",
+  expectedHash: reportSave.hash,
+});
+assert.deepEqual({ ok: reportDelete.ok, reason: reportDelete.reason }, { ok: false, reason: "report-delete-not-allowed" });
+
+const settingsBefore = readProjectSettings({ projectRoot });
+assert.equal(settingsBefore.ok, true);
+assert.equal(settingsBefore.language, "pt-BR");
+const settingsUpdated = updateProjectSettings({ projectRoot, language: "en" });
+assert.equal(settingsUpdated.ok, true);
+assert.equal(settingsUpdated.language, "en");
+assert.equal(updateProjectSettings({ projectRoot, language: "es" }).reason, "invalid-language");
 
 const created = createProjectFile({ projectRoot, kind: "workbench", title: "Página de trabalho" });
 assert.equal(created.ok, true);

@@ -167,7 +167,7 @@ If blocked by missing scope, unavailable validation, or unclear apply scope, ret
 
 ### Default delivery
 
-After producing the machine-readable YAML and the review Markdown above, also render a branded HTML report at `project/artifacts/internal-links/<run-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/artifacts/internal-links/` so the user can navigate the recommendations visually. Conversational previews and quick clarifications stay in chat as prose.
+Follow the shared `page-report` contract. The module-specific source artifact is the normalized internal-link YAML under `audits/internal-links-<run-slug>/report.yaml` or `workbench/internal-links/`; the Companion page is `project/relatorios/internal-links/<run-slug>/report.md`. Present recommendations as readable source/target/anchor decisions with friendly validation names and exact evidence snippets in natural language; never paste raw crawl JSON or object arrays into the visual report body.
 
 ## Examples
 

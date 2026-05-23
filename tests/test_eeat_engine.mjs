@@ -45,21 +45,24 @@ assert.equal(reportJson.consolidated_narrative, null);
 assert.ok(reportJson.numeric_scores);
 assert.equal(reportJson.numeric_scores.trust, 100);
 
-const mdBeforeSynth = readFileSync(resolve(root, consensus.report_md), "utf8");
+const mdBeforeSynth = readFileSync(resolve(projectDir, consensus.report_md), "utf8");
 assert.ok(mdBeforeSynth.includes("Score por pilar"));
 assert.ok(mdBeforeSynth.includes("Tipo de página"));
 assert.ok(mdBeforeSynth.includes("Issues priorizadas"));
-assert.ok(mdBeforeSynth.includes("Critério"));
-assert.ok(mdBeforeSynth.includes("| Item | Critério | Aplicabilidade | Estado | Score | Evidência |"));
+assert.ok(mdBeforeSynth.includes("Evidência por pilar"));
+assert.ok(mdBeforeSynth.includes("version: 1"));
+assert.ok(mdBeforeSynth.includes("label: Check"));
 assert.ok(!mdBeforeSynth.includes("Scores por rater"), "per-rater divergence block removed");
 assert.ok(!mdBeforeSynth.includes("rater-1"), "individual rater ids not surfaced in md");
 assert.ok(mdBeforeSynth.includes("Narrativa consolidada ainda não foi sintetizada"));
 
 const synth = runEngine(["synthesize", "--run", init.run_id, "--narrative", "Análise consolidada de teste com mais de oitenta caracteres para passar a validação mínima do engine."]);
 assert.equal(synth.ok, true);
-const mdAfterSynth = readFileSync(resolve(root, consensus.report_md), "utf8");
+assert.equal(synth.report_md, consensus.report_md);
+const mdAfterSynth = readFileSync(resolve(projectDir, consensus.report_md), "utf8");
 assert.ok(mdAfterSynth.includes("Análise consolidada de teste"));
 assert.ok(!mdAfterSynth.includes("Narrativa consolidada ainda não foi sintetizada"));
+assert.match(readFileSync(resolve(projectDir, "brain", "log.md"), "utf8"), new RegExp(consensus.report_md.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 
 let synthRejected = false;
 try { runEngine(["synthesize", "--run", init.run_id, "--narrative", "muito curto"]); } catch { synthRejected = true; }

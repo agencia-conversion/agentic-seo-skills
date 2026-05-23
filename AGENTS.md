@@ -110,6 +110,8 @@ A skill `brain-keeper` carrega a regra dura de escrita jornalística imparcial (
 
 Public content lives in `project/conteudos/<origem>/<slug>.md`. Drafts and reviews stay in `project/workbench/content/<slug>/` and `project/artifacts/contents/<slug>/`. The `area:` field in the frontmatter must match a section slug in `brain/editorial.md`.
 
+Canonical report pages live in `project/relatorios/<module>/<run-slug>/report.md` and are displayed by the Web Companion under the virtual `Relatórios` section. The shared `page-report` skill owns this contract. Report pages are editable presentation Markdown with structured fences (`agentic-kpis`, `agentic-chart`, `agentic-table`); new fence payloads use YAML with `version: 1`, while JSON fence bodies are legacy compatibility only. Creation and deletion of reports stay blocked in the Companion v1. Reports must be human-first, use the project language from `project/.agentic-seo/project.json.language` (`pt-BR` and `en` fully supported in v1), keep raw evidence separate in `source_artifact` plus `sources/`, `audits/`, `workbench/`, or module-specific normalized files, and never paste raw JSON/object dumps into the visual body.
+
 ### Project Subfolders
 
 Skill artifacts live under one folder per dimension per slug, separate from the brain. The brain remains the only authorial knowledge layer; these dimension folders hold provider evidence, working analysis, drafts, and per-run deliverables.
@@ -118,9 +120,10 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 |---|---|---|
 | Content | `project/contents/<slug>/` | `workbench/`, `sources/`, `draft.md`, `published.md`, `checks.yaml` |
 | Keywords | `project/keywords/<seed-slug>/` | `sources/`, `report.yaml` |
-| Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml`, optional `report.md` |
+| Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml` |
 | Topic cluster | `project/clusters/<seed-slug>/` | `sources/`, `cluster.json`, optional projection |
 | EEAT | `project/eeat/<entity-or-run-slug>/` | `sources/`, `report.md` |
+| Companion reports | `project/relatorios/<module>/<run-slug>/` | `report.md` |
 | Brain (authorial) | `project/brain/` | direct edits allowed when recorded as `tipo: decisao` in `brain/log.md` |
 
 Skills read the brain for context (identidade, voz, tecnologia, editorial) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`.
@@ -142,6 +145,7 @@ Use these rules when changing manifests, skills, templates, scripts, or agent in
 
 - Read `docs/refactor-status.md` for the current refactor state before starting work.
 - Canonical skills should be self-sufficient narrative `SKILL.md` files. Do not reintroduce required cross-skill reads through `skills/_shared/`.
+- Data/report skills should reference `page-report` for the shared report contract instead of duplicating the full Web Companion report rules.
 - Deterministic provider and audit behavior belongs in `tools/`, `scripts/`, or `src/commands/`, not hidden inside natural-language skill contracts.
 - Keep agent files short; put durable workflow detail in `skills/<skill>/SKILL.md`, local skill references, scripts, fixtures, or templates.
 - Treat every skill change as a verifiable workflow change. Before implementation is complete, define the skill contract, inputs, outputs, fixture strategy, and pass/fail criteria.

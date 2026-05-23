@@ -22,6 +22,11 @@ try {
   // JSON schema assertions
   assert.equal(cluster.seed, "agentic seo");
   assert.equal(cluster.status, "hypothesis");
+  assert.equal(cluster.browser_prompt.recommended, true);
+  assert.equal(cluster.browser_prompt.message, "Posso abrir o Web Companion para você ver o relatório?");
+  assert.equal(cluster.report_md, path.join("relatorios", "topic-cluster", "agentic-seo", "report.md"));
+  assert.ok(existsSync(path.join(PROJECT_DIR, cluster.report_md)));
+  assert.equal(existsSync(path.join(PROJECT_DIR, "clusters", "agentic-seo", "report.html")), false);
   assert.equal(cluster.data_provenance.hypothesis_only, true);
   assert.equal(cluster.data_provenance.provider_bypass.aprovador, "agent");
   assert.match(cluster.data_provenance.provider_bypass.confirmation_text, /DataForSEO/);
@@ -41,6 +46,7 @@ try {
   // Files persisted
   const clusterFile = path.join(PROJECT_DIR, "workbench", "topic-cluster", "agentic-seo.json");
   assert.ok(existsSync(clusterFile));
+  assert.ok(existsSync(path.join(PROJECT_DIR, "clusters", "agentic-seo", "cluster.json")));
   const brainFile = path.join(PROJECT_DIR, "brain", "topic-clusters.md");
   assert.ok(existsSync(brainFile));
   const brainContent = readFileSync(brainFile, "utf8");
@@ -53,6 +59,7 @@ try {
   const log = readFileSync(path.join(PROJECT_DIR, "brain", "log.md"), "utf8");
   assert.match(log, /agentic seo/);
   assert.match(log, /Cluster hypothesis/);
+  assert.match(log, new RegExp(cluster.report_md.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 
   // --render-only path: don't refetch, just rerender
   const rendered = run("topic-cluster", "--seed", "agentic seo", "--render-only");

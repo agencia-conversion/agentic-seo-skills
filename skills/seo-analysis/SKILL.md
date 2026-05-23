@@ -159,7 +159,7 @@ If blocked by a missing provider or missing bypass record, return `status: block
 
 ### Default delivery
 
-After producing the YAML artifact above, also render a branded HTML report at `project/workbench/seo-analysis/<keyword-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/workbench/seo-analysis/` so the user can navigate the report visually. Conversational previews and quick clarifications stay in chat as prose.
+Follow the shared `page-report` contract. The module-specific source artifact is the normalized SEO-analysis YAML under `audits/seo-analysis-<keyword-slug>/report.yaml` or `workbench/seo-analysis/`; the Companion page is `project/relatorios/seo-analysis/<keyword-slug>/report.md`. Start with the executive reading and priorities, then show competitor/player details and limitations as readable tables and prose. Translate labels/status/severities/nulls, use friendly check names, and never paste raw SERP, heading, player-score, or provider JSON into the visual report body.
 
 ## Examples
 

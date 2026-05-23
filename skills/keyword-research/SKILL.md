@@ -141,7 +141,7 @@ If blocked because DataForSEO is unavailable and no substitute is recorded, retu
 
 ### Default delivery
 
-After producing the YAML artifact above, also render a branded HTML report at `project/workbench/keyword-research/<seed-or-topic-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/workbench/keyword-research/` so the user can navigate the keyword set visually. Conversational previews and quick clarifications stay in chat as prose.
+Follow the shared `page-report` contract. The module-specific source artifact is the normalized keyword YAML/JSON under `keywords/`, `sources/keyword-research/`, or `workbench/`; the Companion page is `project/relatorios/keyword-research/<seed-or-topic-slug>/report.md`. Write an executive reading first, keep metrics and limitations in human-readable tables, translate labels/status/nulls, use friendly metric names, and never paste raw provider JSON or object arrays into the visual report body.
 
 ## Examples
 

@@ -9,6 +9,9 @@ import { validateRaterOutput } from "./lib/eeat/validate.mjs";
 import { normalizeRaterOutput } from "./lib/eeat/scoring.mjs";
 import { buildReport } from "./lib/eeat/build-report.mjs";
 import { renderMarkdown } from "./lib/eeat/render.mjs";
+import { renderMarkdownReport } from "./lib/markdown-report.mjs";
+import { appendReportLog, attachReportPrompt, reportMarkdownPath } from "./lib/page-report.mjs";
+import YAML from "yaml";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -45,6 +48,10 @@ function writeText(p, text) {
   fs.writeFileSync(p, text, "utf8");
 }
 
+function yamlString(value) {
+  return JSON.stringify(String(value ?? ""));
+}
+
 function projectDir(cwd) {
   const env = process.env.AGENTIC_SEO_PROJECT_DIR;
   if (env) return path.resolve(env);
@@ -58,6 +65,111 @@ function slugify(s) {
 function stamp() {
   const d = new Date();
   return d.toISOString().replace(/[:.]/g, "-").slice(0, 19);
+}
+
+function companionReportPath(proj, runId) {
+  return reportMarkdownPath(proj, "eeat", runId);
+}
+
+const EEAT_PILLARS = ["experience", "expertise", "authoritativeness", "trust"];
+const EEAT_PILLAR_LABELS = {
+  experience: "Experience",
+  expertise: "Expertise",
+  authoritativeness: "Authoritativeness",
+  trust: "Trust",
+};
+
+function naturalIdCompare(a, b) {
+  const ra = String(a.id || "").match(/^([a-z]+)(\d+)$/i);
+  const rb = String(b.id || "").match(/^([a-z]+)(\d+)$/i);
+  if (ra && rb && ra[1] === rb[1]) return Number(ra[2]) - Number(rb[2]);
+  return String(a.id || "").localeCompare(String(b.id || ""));
+}
+
+function reportTable(columns, rows) {
+  const normalizedColumns = columns.map((label, index) => ({
+    key: String(label || `c${index}`).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || `c${index}`,
+    label: String(label || `Coluna ${index + 1}`),
+  }));
+  const normalizedRows = rows.map((row) => Object.fromEntries(normalizedColumns.map((column, index) => [column.key, String(row?.[index] ?? "")])));
+  return ["```agentic-table", YAML.stringify({ version: 1, columns: normalizedColumns, rows: normalizedRows }, { lineWidth: 0 }).replace(/\s+$/, ""), "```"].join("\n");
+}
+
+function friendlySeverity(value) {
+  const labels = { critical: "crítico", high: "alto", medium: "médio", low: "baixo", warning: "atenção" };
+  return labels[String(value || "").toLowerCase()] || String(value || "não informado").replace(/_/g, " ");
+}
+
+function friendlyState(value) {
+  const labels = { met: "atendido", partially_met: "parcial", not_met: "não atendido", unknown: "não informado", expected: "esperado" };
+  return labels[String(value || "").toLowerCase()] || String(value || "não informado").replace(/_/g, " ");
+}
+
+function friendlyIssue(value) {
+  return String(value || "item").replace(/_/g, " ");
+}
+
+function renderCompanionReport(report) {
+  const target = report.target?.mode === "url" ? report.target.value : "brain do projeto";
+  const pillarRows = EEAT_PILLARS.map((pillar) => [
+    EEAT_PILLAR_LABELS[pillar],
+    report.numeric_scores?.[pillar] == null ? "não informado" : report.numeric_scores[pillar].toFixed(1),
+  ]);
+  const issueRows = (report.issues || []).map((issue) => [
+    friendlySeverity(issue.severity),
+    friendlyIssue(issue.issue_type),
+    friendlyIssue(issue.criterion_id),
+    friendlyIssue(issue.page_type),
+    issue.recommendation || "Sem recomendação registrada.",
+    issue.evidence || "Sem evidência compacta registrada.",
+  ]);
+  const evidenceRows = EEAT_PILLARS.flatMap((pillar) =>
+    [...(report.checklist_consensus?.[pillar] || [])].sort(naturalIdCompare).map((item) => [
+      EEAT_PILLAR_LABELS[pillar],
+      item.label || friendlyIssue(item.id),
+      friendlyState(item.applicability),
+      friendlyState(item.consensus_state),
+      item.criterion_score == null ? "não informado" : item.criterion_score,
+      item.evidence_quotes?.[0]?.quote || "Sem citação curta registrada.",
+    ])
+  );
+  return renderMarkdownReport({
+    title: `E-E-A-T — ${report.run_id || "relatório"}`,
+    slug: slugify(report.run_id || "eeat"),
+    reportType: "eeat",
+    generatedAt: new Date().toISOString(),
+    status: "ready",
+    sourceArtifact: `workbench/eeat/${report.run_id}/report.json`,
+    summary: `Score ${report.score ?? "unknown"}; qualidade ${report.page_quality ?? "unknown"}.`,
+    score: report.score,
+    locale: "pt-BR",
+    kpis: [
+      { label: "Score", value: report.score == null ? "não informado" : `${report.score}/100`, detail: `Qualidade: ${report.page_quality ?? "não informada"}`, tone: Number(report.score || 0) >= 80 ? "good" : "warn" },
+      { label: "Tipo de página", value: friendlyIssue(report.page_type || "homepage"), tone: "info" },
+      { label: "YMYL", value: report.ymyl ? "sim" : "não", tone: report.ymyl ? "warn" : "info" },
+      { label: "Issues", value: String((report.issues || []).length), tone: (report.issues || []).length ? "warn" : "good" },
+    ],
+    charts: [{
+      title: "Score por pilar",
+      description: "Leitura consolidada dos pilares E-E-A-T.",
+      type: "bar",
+      data: {
+        labels: EEAT_PILLARS.map((pillar) => EEAT_PILLAR_LABELS[pillar]),
+        datasets: [{ label: "Score", data: EEAT_PILLARS.map((pillar) => report.numeric_scores?.[pillar] || 0), backgroundColor: "#3a5bd9" }],
+      },
+    }],
+    leadSections: [{
+      heading: "Resumo executivo",
+      body_markdown: `A análise E-E-A-T avaliou **${target}** e chegou a **${report.score ?? "score não informado"}/100**. O relatório visual resume os sinais principais; a evidência auditável completa permanece no artefato técnico.`,
+    }],
+    sections: [
+      { heading: "Análise", body_markdown: report.consolidated_narrative || "_Narrativa consolidada ainda não foi sintetizada._" },
+      { heading: "Score por pilar", body_markdown: reportTable(["Pilar", "Score"], pillarRows) },
+      { heading: "Issues priorizadas", body_markdown: issueRows.length ? reportTable(["Severidade", "Tipo", "Critério", "Página", "Recomendação", "Evidência"], issueRows) : "Nenhuma issue estruturada." },
+      { heading: "Evidência por pilar", body_markdown: evidenceRows.length ? reportTable(["Pilar", "Check", "Aplicabilidade", "Estado", "Score", "Evidência"], evidenceRows) : "Nenhuma evidência estruturada." },
+      { heading: "Limitações", body_markdown: (report.limitations || []).length ? (report.limitations || []).map((item) => `- ${item}`).join("\n") : "Nenhuma limitação registrada." },
+    ],
+  }, { locale: "pt-BR" });
 }
 
 function defaultPagesForBrain(projDir) {
@@ -139,9 +251,24 @@ const SUBCOMMANDS = {
     const report = buildReport({ manifest, rawRaters, onError: fail });
     const outJson = path.join(runDir, "report.json");
     const outMd = path.join(runDir, "report.md");
+    const companionMd = companionReportPath(proj, report.run_id);
+    const body = renderMarkdown(report);
     writeJson(outJson, report);
-    writeText(outMd, renderMarkdown(report));
-    ok({ ok: true, report_json: path.relative(cwd, outJson), report_md: path.relative(cwd, outMd), score: report.score, page_quality: report.page_quality, narrative_pending: true });
+    writeText(outMd, body);
+    writeText(companionMd, renderCompanionReport(report));
+    appendReportLog(proj, {
+      title: `E-E-A-T ${report.run_id}`,
+      files: [path.relative(proj, outJson), path.relative(proj, outMd), path.relative(proj, companionMd)],
+      summary: `Consensus E-E-A-T report generated with score ${report.score}/100 and Companion Markdown report.`,
+    });
+    ok(attachReportPrompt({
+      ok: true,
+      report_json: path.relative(cwd, outJson),
+      workbench_report_md: path.relative(cwd, outMd),
+      score: report.score,
+      page_quality: report.page_quality,
+      narrative_pending: true,
+    }, companionMd, proj));
   },
 
   synthesize(args, cwd) {
@@ -155,9 +282,17 @@ const SUBCOMMANDS = {
     if (narrative.length < 80) fail("narrative too short — write at least one substantive paragraph (≥80 chars)");
     const reportPath = path.join(runDir, "report.json");
     const report = { ...readJson(reportPath), consolidated_narrative: narrative };
+    const body = renderMarkdown(report);
     writeJson(reportPath, report);
-    writeText(path.join(runDir, "report.md"), renderMarkdown(report));
-    ok({ ok: true, run_id: report.run_id, narrative_chars: narrative.length });
+    writeText(path.join(runDir, "report.md"), body);
+    const companionMd = companionReportPath(proj, report.run_id);
+    writeText(companionMd, renderCompanionReport(report));
+    appendReportLog(proj, {
+      title: `E-E-A-T ${report.run_id}`,
+      files: [path.relative(proj, reportPath), path.relative(proj, path.join(runDir, "report.md")), path.relative(proj, companionMd)],
+      summary: "Narrativa consolidada do relatório E-E-A-T atualizada no Web Companion.",
+    });
+    ok(attachReportPrompt({ ok: true, run_id: report.run_id, narrative_chars: narrative.length }, companionMd, proj));
   },
 };
 

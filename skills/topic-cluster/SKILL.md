@@ -211,7 +211,7 @@ When projection is requested, regenerate `project/brain/topic-clusters.md` from 
 
 ### Default delivery
 
-After producing the JSON cluster above, also render a branded HTML report at `project/workbench/topic-cluster/<seed-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/workbench/topic-cluster/` so the user can navigate the cluster visually. Conversational previews and quick clarifications stay in chat as prose.
+Follow the shared `page-report` contract. The module-specific source artifact is `project/clusters/<seed-slug>/cluster.json`; the Companion page is `project/relatorios/topic-cluster/<seed-slug>/report.md`. Present pillar/support decisions, intent, evidence gaps, and provenance in human-readable prose and tables with friendly field names; never paste raw cluster JSON, SERP JSON, or object arrays into the visual report body.
 
 ## Examples
 

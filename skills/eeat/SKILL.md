@@ -170,7 +170,7 @@ If the user asks to register proof in `project/brain/editorial.md` or `project/b
 
 ### Default delivery
 
-After producing the structured review above, also render a branded HTML report at `project/workbench/eeat/<entity-or-run-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/workbench/eeat/` so the user can navigate the E-E-A-T review visually. Conversational previews and quick clarifications stay in chat as prose.
+Follow the shared `page-report` contract. The module-specific source artifact is the consensus JSON under `workbench/eeat/<run-id>/report.json`; the Companion page is `project/relatorios/eeat/<run-id>/report.md`. Present the proof inventory, gaps, confidence, and do-not-claim items in human-readable prose and tables with friendly risk/check names; never paste raw evidence JSON or object arrays into the visual report body.
 
 ## Examples
 

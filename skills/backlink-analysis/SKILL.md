@@ -170,7 +170,7 @@ If blocked by missing provider access, missing target, or unavailable competitor
 
 ### Default delivery
 
-After producing the YAML artifact above, also render a branded HTML report at `project/workbench/backlinks/<target-slug>.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/workbench/backlinks/` so the user can navigate the analysis visually. Conversational previews and quick clarifications stay in chat as prose.
+Follow the shared `page-report` contract. The module-specific source artifact is the normalized backlink YAML under `audits/`, `sources/backlinks/`, or `workbench/`; the Companion page is `project/relatorios/backlink-analysis/<target-slug>/report.md`. Start with the executive reading, then present backlink volume, referring domains, competitor deltas, risks, and limitations in readable tables with friendly metric names; never paste raw provider JSON or object arrays into the visual report body.
 
 ## Examples
 
