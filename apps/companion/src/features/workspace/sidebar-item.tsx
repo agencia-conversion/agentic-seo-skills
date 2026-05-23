@@ -62,7 +62,7 @@ function SidebarItemImpl({
     [childPages]
   );
   const displayTitle = page.path === 'brain/index.md' ? 'Brain' : page.title || t('common.untitled');
-  const canDelete = page.path !== 'brain/log.md';
+  const canDelete = page.kind === 'file' && !page.readOnly && page.path !== 'brain/log.md' && !page.path.startsWith('relatorios/');
 
   const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();

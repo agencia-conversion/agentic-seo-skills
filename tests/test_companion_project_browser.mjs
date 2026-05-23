@@ -7,9 +7,11 @@ import {
   buildProjectTree,
   createProjectFile,
   deleteProjectFile,
+  readProjectSettings,
   readProjectFile,
   readProjectLog,
   saveProjectFile,
+  updateProjectSettings,
   validateProjectFileRel,
 } from "../scripts/lib/project-browser-files.mjs";
 
@@ -41,6 +43,7 @@ const brain = join(projectRoot, "brain");
 mkdirSync(brain, { recursive: true });
 mkdirSync(join(projectRoot, "conteudos", "blog"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "drafts"), { recursive: true });
+mkdirSync(join(projectRoot, "relatorios", "technical-seo", "run-1"), { recursive: true });
 mkdirSync(join(projectRoot, ".agentic-seo"), { recursive: true });
 writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Projeto Teste" }), "utf8");
 
@@ -104,12 +107,34 @@ Rascunho.
 `,
   "utf8",
 );
+writeFileSync(
+  join(projectRoot, "relatorios", "technical-seo", "run-1", "report.md"),
+  `---
+title: "Relatório técnico"
+slug: "run-1"
+report_type: "technical-seo"
+generated_at: "2026-05-07T10:00:00Z"
+status: "ready"
+source_artifact: "audits/run-1/report.yaml"
+summary: "Resumo técnico."
+score: "88"
+---
+
+# Relatório técnico
+
+Conteúdo do relatório.
+`,
+  "utf8",
+);
 
 assert.deepEqual(validateProjectFileRel("../AGENTS.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/../../AGENTS.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/voz.md").ok, true);
 assert.deepEqual(validateProjectFileRel("conteudos/blog/post-teste.md").ok, true);
 assert.deepEqual(validateProjectFileRel("workbench/drafts/ideia.md").ok, true);
+assert.deepEqual(validateProjectFileRel("relatorios/technical-seo/run-1/report.md").ok, true);
+assert.deepEqual(validateProjectFileRel("relatorios/technical-seo/run-1/report.md", { write: true }).ok, true);
+assert.deepEqual(validateProjectFileRel("relatorios/not-a-module/run-1/report.md").ok, false);
 assert.deepEqual(validateProjectFileRel("workbench/../brain/voz.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/log.md", { write: true }), { ok: false, reason: "read-only-log" });
 
@@ -235,6 +260,40 @@ const log = readProjectLog({ projectRoot });
 assert.equal(log.ok, true);
 assert.ok(log.readOnly);
 assert.ok(log.entries.length >= 2);
+
+const reportFile = readProjectFile({ projectRoot, fileRel: "relatorios/technical-seo/run-1/report.md" });
+assert.equal(reportFile.ok, true);
+assert.equal(reportFile.readOnly, false);
+assert.doesNotMatch(reportFile.body, /^# Relatório técnico/m);
+assert.match(reportFile.body, /Conteúdo do relatório/);
+const reportSave = saveProjectFile({
+  projectRoot,
+  fileRel: "relatorios/technical-seo/run-1/report.md",
+  expectedHash: reportFile.hash,
+  title: "Relatório técnico editado",
+  frontmatter: { ...reportFile.frontmatter, title: "Relatório técnico editado" },
+  body: "Relatório editado para apresentação humana.\n",
+});
+assert.equal(reportSave.ok, true);
+assert.equal(reportSave.logAppended, true);
+const editedReport = readFileSync(join(projectRoot, "relatorios", "technical-seo", "run-1", "report.md"), "utf8");
+assert.match(editedReport, /title: "Relatório técnico editado"/);
+assert.match(editedReport, /edited_at: "\d{4}-\d{2}-\d{2}T/);
+assert.match(readFileSync(join(brain, "log.md"), "utf8"), /Relatório editado no Companion/);
+const reportDelete = deleteProjectFile({
+  projectRoot,
+  fileRel: "relatorios/technical-seo/run-1/report.md",
+  expectedHash: reportSave.hash,
+});
+assert.deepEqual({ ok: reportDelete.ok, reason: reportDelete.reason }, { ok: false, reason: "report-delete-not-allowed" });
+
+const settingsBefore = readProjectSettings({ projectRoot });
+assert.equal(settingsBefore.ok, true);
+assert.equal(settingsBefore.language, "pt-BR");
+const settingsUpdated = updateProjectSettings({ projectRoot, language: "en" });
+assert.equal(settingsUpdated.ok, true);
+assert.equal(settingsUpdated.language, "en");
+assert.equal(updateProjectSettings({ projectRoot, language: "es" }).reason, "invalid-language");
 
 const created = createProjectFile({ projectRoot, kind: "workbench", title: "Página de trabalho" });
 assert.equal(created.ok, true);

@@ -41,9 +41,11 @@ export function resolvePageWidth(
   if (!pageId) return defaultWidth;
   let current: Page | undefined = pages.find((p) => p.id === pageId);
   while (current) {
+    if (current.path?.startsWith('relatorios/') && current.width === 'full') return 'lg';
     if (current.width) return current.width;
     if (!current.parentId) break;
     current = pages.find((p) => p.id === current!.parentId);
   }
+  if (pages.find((p) => p.id === pageId)?.path?.startsWith('relatorios/') && defaultWidth === 'full') return 'lg';
   return defaultWidth;
 }

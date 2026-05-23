@@ -44,6 +44,7 @@ import { useWorkspace } from '../workspace/store';
 import { cn } from '@/lib/utils';
 import { useClickOutside } from '@/hooks/use-click-outside';
 import { getExtensions } from './editor-extensions';
+import type { ReportScoreResult } from './report-block-data';
 import { buildSuggestionItems, SuggestionItem } from './editor-commands';
 import { showToast } from '@/components/toast';
 import { CoverPicker } from './cover-picker';
@@ -114,7 +115,7 @@ function currentHashAnchor() {
 }
 
 export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const activePageId = useWorkspace((s) => s.activePageId);
   const effectivePageId = pageId || activePageId;
   const pages = useWorkspace((s) => s.pages);
@@ -248,6 +249,17 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     handleSave,
     isReadOnly,
   ]);
+
+  const handleReportScoreRecalculated = useCallback((result: ReportScoreResult) => {
+    if (!activePage?.path.startsWith('relatorios/')) return;
+    updatePage(activePage.id, {
+      frontmatter: {
+        ...(activePage.frontmatter || {}),
+        score: result.score,
+      },
+    });
+    showToast(`Score recalculado: ${result.score}/100`, 'success');
+  }, [activePage?.frontmatter, activePage?.id, activePage?.path, updatePage]);
 
   if (!mounted) return <div className="flex-1 bg-background" />;
   if (!activePage) {
@@ -428,7 +440,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                         setShowMenu(false);
                       }}
                     />
-                    {activePage.path !== 'brain/log.md' && (
+                    {!activePage.readOnly && activePage.path !== 'brain/log.md' && !activePage.path.startsWith('relatorios/') && (
                       <MenuAction
                         icon={<Trash2 className="w-4 h-4" />}
                         label={t('common.delete')}
@@ -637,7 +649,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                   immediatelyRender={false}
                   editable={!isReadOnly}
                   extensions={[
-                    ...getExtensions(),
+                    ...getExtensions({ onReportScoreRecalculated: handleReportScoreRecalculated, locale }),
                     Command.configure({
                       suggestion: {
                         items: ({ query }: any) => {

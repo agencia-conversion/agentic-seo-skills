@@ -246,7 +246,7 @@ body {
   align-items: center;
   justify-content: center;
   position: absolute;
-  left: -76px;
+  left: -28px;
   top: 50%;
   transform: translateY(-50%) rotate(90deg);
   transform-origin: center;
@@ -260,6 +260,11 @@ body {
   border-radius: 4px;
   transition: opacity 0.15s ease, transform 0.2s ease, background-color 0.15s ease;
   z-index: 5;
+}
+@media (min-width: 768px) {
+  .heading-toggle {
+    left: -36px;
+  }
 }
 .heading-toggle.is-collapsed {
   transform: translateY(-50%) rotate(0deg);

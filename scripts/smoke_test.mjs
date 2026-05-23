@@ -42,13 +42,23 @@ function dataforseoBypassArgs(reason) {
   ];
 }
 
+function assertReportContract(result, label) {
+  if (!result.report_md) throw new Error(`${label} did not return report_md`);
+  if (!result.browser_prompt?.recommended) throw new Error(`${label} did not recommend browser prompt`);
+  if (result.browser_prompt.message !== "Posso abrir o Web Companion para você ver o relatório?") throw new Error(`${label} returned unexpected browser prompt`);
+  if (!fs.existsSync(path.join(PROJECT_DIR, result.report_md))) throw new Error(`${label} report_md file is missing`);
+  if (result.report_html) throw new Error(`${label} returned legacy report_html`);
+  const log = fs.readFileSync(path.join(PROJECT_DIR, "brain", "log.md"), "utf8");
+  if (!log.includes(result.report_md)) throw new Error(`${label} report_md was not registered in brain log`);
+}
+
 function main() {
   run("project-init", "Smoke test");
   const lint = run("brain-lint");
   if (!lint.ok) throw new Error("Brain lint failed");
   run("data-setup");
-  run("keyword-research", "--keyword", "seo agêntico", "--mode", "offline");
-  run("serp-extract", "--keyword", "seo agêntico", "--mode", "offline");
+  assertReportContract(run("keyword-research", "--keyword", "seo agêntico", "--mode", "offline"), "keyword-research");
+  assertReportContract(run("serp-extract", "--keyword", "seo agêntico", "--mode", "offline"), "serp-extract");
   const serpDir = path.join(PROJECT_DIR, "sources", "serp");
   fs.mkdirSync(serpDir, { recursive: true });
   fs.writeFileSync(path.join(serpDir, "99999999-999999-seo-agentico.normalized.yaml"), YAML.stringify({
@@ -66,8 +76,8 @@ function main() {
     ],
     serp_features: [],
   }, { lineWidth: 0 }));
-  run("seo-analysis", "--keyword", "seo agêntico");
-  run("topic-cluster", "--seed", "seo agêntico", "--hypothesis-only", ...dataforseoBypassArgs("smoke test hypothesis-only sem DataForSEO"));
+  assertReportContract(run("seo-analysis", "--keyword", "seo agêntico"), "seo-analysis");
+  assertReportContract(run("topic-cluster", "--seed", "seo agêntico", "--hypothesis-only", ...dataforseoBypassArgs("smoke test hypothesis-only sem DataForSEO")), "topic-cluster");
   const eeatInit = spawnSync("node", [path.join(ROOT, "scripts", "eeat.mjs"), "init", "--mode", "brain", "--slug", "smoke"], {
     cwd: ROOT, encoding: "utf8", env: { ...process.env, AGENTIC_SEO_PROJECT_DIR: PROJECT_DIR },
   });
@@ -85,7 +95,7 @@ function main() {
   const written = run("content-seo", "--phase", "write", "--topic", "O que é SEO agêntico");
   if (!written.draft_path) throw new Error("content-seo write should create artifact draft");
   if (!fs.existsSync(path.join(PROJECT_DIR, "artifacts", "contents", "o-que-e-seo-agentico", "draft.md"))) throw new Error("content-seo write did not write artifact draft");
-  run("backlink-analysis", "--target", "example.com", "--mode", "offline");
+  assertReportContract(run("backlink-analysis", "--target", "example.com", "--mode", "offline"), "backlink-analysis");
   const technical = run(
     "technical-seo",
     "--html-file",
@@ -94,6 +104,7 @@ function main() {
     "blog-post",
   );
   if (!technical.ok) throw new Error("Technical SEO valid fixture failed");
+  assertReportContract(technical, "technical-seo");
   const auditSkills = run("audit-skills");
   if (!auditSkills.ok) throw new Error("audit-skills failed");
   process.stdout.write(JSON.stringify({ ok: true, project_dir: PROJECT_DIR }) + "\n");

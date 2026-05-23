@@ -65,6 +65,7 @@ const PROJECT_DIR = resolveProjectDir();
 const TEMPLATES_DIR = path.join(ROOT, "templates", "project");
 const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
 const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
+const REPORT_BROWSER_PROMPT_MESSAGE = "Posso abrir o Web Companion para você ver o relatório?";
 const REQUIRED_BRAIN_PAGES = [
     "index.md",
     "identidade.md",
@@ -83,6 +84,16 @@ const AUTHORIAL_BRAIN_PAGES = new Set([
     "topic-clusters.md",
 ]);
 const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "outros"]);
+const REPORT_MODULE_IDS = [
+    "technical-seo",
+    "internal-links",
+    "seo-analysis",
+    "keyword-research",
+    "serp-extract",
+    "backlink-analysis",
+    "topic-cluster",
+    "eeat",
+];
 function nowIso() {
     return new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
 }
@@ -137,6 +148,85 @@ function writeYaml(file, data) {
     mkdirp(path.dirname(file));
     const text = yaml_1.default.stringify(data, { lineWidth: 0 });
     fs.writeFileSync(file, text.endsWith("\n") ? text : `${text}\n`, "utf8");
+}
+function reportColumnKey(value, index) {
+    const key = String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    return key || `c${index}`;
+}
+function reportCell(value, locale) {
+    if (value == null)
+        return "";
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean")
+        return value;
+    return humanEvidence(value, locale);
+}
+function reportTable(columns, rows, locale = "pt-BR") {
+    const normalizedColumns = columns.map((label, index) => ({
+        key: reportColumnKey(label, index),
+        label: String(label || `Coluna ${index + 1}`),
+    }));
+    const normalizedRows = rows.map((row) => Object.fromEntries(normalizedColumns.map((column, index) => [column.key, reportCell(row?.[index], locale)])));
+    const payload = {
+        version: 1,
+        columns: normalizedColumns,
+        rows: normalizedRows,
+    };
+    return ["```agentic-table", yaml_1.default.stringify(payload, { lineWidth: 0 }).replace(/\s+$/, ""), "```"].join("\n");
+}
+function markdownList(items) {
+    if (!items.length)
+        return "Nenhum item registrado.";
+    return items.map((item) => `- ${String(item ?? "").replace(/\n+/g, " ")}`).join("\n");
+}
+function markdownCode(value, language = "json") {
+    return ["```" + language, typeof value === "string" ? value : JSON.stringify(value ?? {}, null, 2), "```"].join("\n");
+}
+function reportRunSlug(value) {
+    return slugify(value).slice(0, 96);
+}
+function reportMarkdownPath(projectDir, moduleId, runSlug) {
+    return path.join(projectDir, "relatorios", moduleId, reportRunSlug(runSlug), "report.md");
+}
+function browserPrompt(reportMd, projectDir) {
+    return {
+        recommended: true,
+        message: REPORT_BROWSER_PROMPT_MESSAGE,
+        report_md: path.relative(projectDir, reportMd),
+        open_with: "project-browser",
+    };
+}
+function attachReportPrompt(data, reportMd, projectDir) {
+    return {
+        ...data,
+        report_md: path.relative(projectDir, reportMd),
+        browser_prompt: browserPrompt(reportMd, projectDir),
+    };
+}
+function writeMarkdownReport(file, payload) {
+    const rendered = (0, node_child_process_1.spawnSync)(process.execPath, [path.join(ROOT, "scripts", "lib", "markdown-report.mjs")], {
+        cwd: ROOT,
+        encoding: "utf8",
+        input: JSON.stringify(payload),
+        maxBuffer: 20 * 1024 * 1024,
+    });
+    if (rendered.error)
+        throw new CliError(`Markdown report failed: ${rendered.error.message}`);
+    if (rendered.status !== 0)
+        throw new CliError(`Markdown report failed: ${rendered.stderr || rendered.stdout || "unknown error"}`);
+    writeText(file, rendered.stdout);
+}
+function completeReportWorkflow(data, options) {
+    const locale = reportLocale(options.payload.locale || projectSettings(options.projectDir).language);
+    writeMarkdownReport(options.reportMd, { locale, ...options.payload });
+    const reportRel = path.relative(options.projectDir, options.reportMd);
+    const files = Array.from(new Set([...options.files, reportRel]));
+    appendLog(options.eventType, options.title, files, options.summary, options.approval || "not-required");
+    return attachReportPrompt(data, options.reportMd, options.projectDir);
 }
 function readYaml(file) {
     const data = yaml_1.default.parse(fs.readFileSync(file, "utf8"));
@@ -267,7 +357,7 @@ function formatLogFileRefs(files) {
         return "n/a";
     return files.map((f) => {
         const normalized = f.replace(/\\/g, "/").replace(/\.md$/, "");
-        if (normalized.startsWith("workbench/") || normalized.startsWith("artifacts/") || normalized.startsWith("../") || normalized.startsWith("sources/") || normalized.includes("."))
+        if (normalized.startsWith("workbench/") || normalized.startsWith("artifacts/") || normalized.startsWith("relatorios/") || normalized.startsWith("../") || normalized.startsWith("sources/") || normalized.includes("."))
             return f;
         return `[[${normalized}]]`;
     }).join(", ");
@@ -935,6 +1025,25 @@ function auditTechnicalSeo(extracted, options) {
     const totalWeight = checks.reduce((sum, item) => sum + item.weight, 0);
     const awarded = checks.reduce((sum, item) => sum + item.points_awarded, 0);
     const score = totalWeight ? Math.round((awarded / totalWeight) * 100) : 0;
+    const calculationMemory = {
+        formula: "round(sum(points_awarded) / sum(weight) * 100)",
+        total_weight: totalWeight,
+        points_awarded: awarded,
+        lost_points: totalWeight - awarded,
+        grade_thresholds: { A: "score >= 90", B: "score >= 80", C: "score >= 70", D: "score >= 50", F: "score < 50" },
+        checks: checks.map((item) => ({
+            id: item.id,
+            name: item.name,
+            severity: item.severity,
+            status: item.passed ? "pass" : "fail",
+            weight: item.weight,
+            score: item.score,
+            points_awarded: item.points_awarded,
+            points_lost: item.weight - item.points_awarded,
+            evidence: item.evidence,
+            repair: item.repair,
+        })),
+    };
     const findings = checks
         .filter((item) => !item.passed)
         .map((item) => ({ severity: item.severity, check: item.id, message: item.name, evidence: item.evidence, repair: item.repair, weight: item.weight }))
@@ -955,6 +1064,7 @@ function auditTechnicalSeo(extracted, options) {
         ok: !findings.some((f) => f.severity === "critical" || f.severity === "error"),
         extracted,
         checks,
+        calculation_memory: calculationMemory,
         findings,
         llm_improvement_context: {
             instruction: "Use only deterministic findings as evidence. Do not invent metrics, backlinks, credentials, awards, clients, or proof.",
@@ -987,6 +1097,545 @@ function renderTechnicalMarkdown(report) {
         lines.push(`- [${finding.severity}] ${finding.check}: ${finding.repair}`);
     lines.push("", "## Extracted signals", "", "```json", JSON.stringify(report.extracted, null, 2), "```", "");
     return `${lines.join("\n")}\n`;
+}
+const REPORT_COLORS = {
+    blue: "#3a5bd9",
+    green: "#2f9e44",
+    amber: "#b25a00",
+    red: "#d92d20",
+    gray: "#9b9b9b",
+    surface: "rgba(58,91,217,0.12)",
+};
+function scoreTone(score) {
+    if (score >= 90)
+        return "good";
+    if (score >= 70)
+        return "warn";
+    return "bad";
+}
+function reportLocale(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (!normalized)
+        return "pt-BR";
+    if (normalized.startsWith("pt"))
+        return "pt-BR";
+    if (normalized.startsWith("en"))
+        return "en";
+    return "en";
+}
+function reportText(locale, pt, en) {
+    return reportLocale(locale) === "pt-BR" ? pt : en;
+}
+function unavailable(locale) {
+    return reportText(locale, "não informado", "not available");
+}
+function yesNo(value, locale) {
+    return value ? reportText(locale, "sim", "yes") : reportText(locale, "não", "no");
+}
+function severityLabel(value, locale) {
+    const key = String(value || "").toLowerCase();
+    const pt = { critical: "crítico", error: "erro", warning: "atenção", info: "informativo" };
+    const en = { critical: "critical", error: "error", warning: "warning", info: "info" };
+    return reportLocale(locale) === "pt-BR" ? pt[key] || String(value || "") : en[key] || String(value || "");
+}
+function statusLabel(value, locale) {
+    const key = String(value || "").toLowerCase();
+    if (key === "pass" || key === "passed" || key === "true")
+        return reportText(locale, "aprovado", "passed");
+    if (key === "fail" || key === "failed" || key === "false")
+        return reportText(locale, "requer atenção", "needs attention");
+    return String(value || unavailable(locale));
+}
+function checkLabel(value, locale) {
+    const id = String(value || "");
+    const pt = {
+        http_status_2xx: "Status HTTP permite indexação",
+        indexable_robots: "Robots permite indexação",
+        title_present: "Title tag presente",
+        title_length: "Tamanho do title",
+        meta_description_present: "Meta description presente",
+        meta_description_length: "Tamanho da meta description",
+        single_h1: "H1 único",
+        heading_hierarchy: "Hierarquia de headings",
+        canonical_absolute: "Canonical absoluto",
+        html_lang: "Idioma declarado no HTML",
+        viewport: "Viewport responsivo",
+        image_alt: "Texto alternativo de imagens",
+        jsonld_valid: "JSON-LD válido",
+        internal_links: "Links internos",
+        open_graph: "Open Graph",
+        home_schema: "Schema da home",
+        home_navigation_depth: "Navegação da home",
+        home_content_depth: "Conteúdo rastreável da home",
+        product_schema: "Schema de produto",
+        product_commerce_signals: "Sinais comerciais do produto",
+        product_image: "Imagem principal do produto",
+        product_trust: "Provas de confiança do produto",
+        service_schema: "Schema de serviço",
+        service_offer_clarity: "Clareza da oferta de serviço",
+        service_supporting_links: "Links de apoio do serviço",
+        article_schema: "Schema de artigo",
+        blog_depth: "Profundidade editorial do artigo",
+        blog_h2_structure: "Estrutura de H2 do artigo",
+        blog_author_date_signals: "Autoria e data do artigo",
+        about_schema: "Schema institucional",
+        about_identity: "Identidade institucional",
+        about_contact_trust: "Contato e sinais de confiança",
+    };
+    const en = {
+        http_status_2xx: "HTTP status allows indexing",
+        indexable_robots: "Robots allows indexing",
+        title_present: "Title tag present",
+        title_length: "Title length",
+        meta_description_present: "Meta description present",
+        meta_description_length: "Meta description length",
+        single_h1: "Single H1",
+        heading_hierarchy: "Heading hierarchy",
+        canonical_absolute: "Absolute canonical",
+        html_lang: "HTML language declared",
+        viewport: "Responsive viewport",
+        image_alt: "Image alt text",
+        jsonld_valid: "Valid JSON-LD",
+        internal_links: "Internal links",
+        open_graph: "Open Graph",
+        home_schema: "Home schema",
+        home_navigation_depth: "Home navigation",
+        home_content_depth: "Crawlable home content",
+        product_schema: "Product schema",
+        product_commerce_signals: "Product commerce signals",
+        product_image: "Main product image",
+        product_trust: "Product trust proof",
+        service_schema: "Service schema",
+        service_offer_clarity: "Service offer clarity",
+        service_supporting_links: "Service supporting links",
+        article_schema: "Article schema",
+        blog_depth: "Article editorial depth",
+        blog_h2_structure: "Article H2 structure",
+        blog_author_date_signals: "Article author and date signals",
+        about_schema: "Organization schema",
+        about_identity: "Organization identity",
+        about_contact_trust: "Contact and trust signals",
+    };
+    return reportLocale(locale) === "pt-BR" ? pt[id] || id.replace(/_/g, " ") : en[id] || id.replace(/_/g, " ");
+}
+function repairLabel(checkId, fallback, locale) {
+    const id = String(checkId || "");
+    const pt = {
+        http_status_2xx: "Retornar uma resposta 2xx estável para a URL auditada.",
+        indexable_robots: "Remover diretivas noindex das páginas que devem aparecer na busca.",
+        title_present: "Adicionar uma title tag descritiva.",
+        title_length: "Manter o title em uma faixa aproximada de 10 a 65 caracteres.",
+        meta_description_present: "Adicionar uma meta description específica para o snippet de busca.",
+        meta_description_length: "Manter a meta description em uma faixa aproximada de 50 a 170 caracteres.",
+        single_h1: "Usar exatamente um H1 que declare o tema da página.",
+        heading_hierarchy: "Organizar os headings em sequência, sem saltar de H1 para H3 ou H4.",
+        canonical_absolute: "Adicionar uma URL canonical absoluta.",
+        html_lang: "Definir o atributo lang do HTML, por exemplo pt-BR.",
+        viewport: "Adicionar a meta viewport responsiva.",
+        image_alt: "Adicionar alt descritivo às imagens relevantes, ou alt vazio para imagens decorativas.",
+        jsonld_valid: "Corrigir o JSON-LD inválido para que parsers consigam ler os dados estruturados.",
+        internal_links: "Adicionar links internos contextuais para páginas relevantes.",
+        open_graph: "Adicionar metadados Open Graph para melhorar a prévia social.",
+        home_schema: "Adicionar dados estruturados Organization e WebSite.",
+        home_navigation_depth: "Linkar a home para serviços, conteúdos, sobre e contato.",
+        home_content_depth: "Adicionar texto rastreável que explique oferta, público, prova e próximo passo.",
+        product_schema: "Adicionar schema de produto quando a página representar um produto.",
+        product_commerce_signals: "Explicitar preço, disponibilidade, prova ou próximos passos comerciais quando aplicável.",
+        product_image: "Adicionar uma imagem principal clara do produto com texto alternativo adequado.",
+        product_trust: "Adicionar sinais de confiança, como avaliações, garantias, políticas ou prova verificável.",
+        service_schema: "Adicionar schema de serviço quando a página representar uma oferta de serviço.",
+        service_offer_clarity: "Deixar a oferta de serviço, público e próximo passo claros no conteúdo rastreável.",
+        service_supporting_links: "Adicionar links de apoio para casos, prova, contato ou conteúdos relacionados.",
+        article_schema: "Adicionar schema de artigo quando a página for editorial.",
+        blog_depth: "Aprofundar o conteúdo editorial com contexto, exemplos e resposta suficiente à intenção.",
+        blog_h2_structure: "Organizar o artigo com H2s claros que ajudem leitura e rastreamento.",
+        blog_author_date_signals: "Exibir autoria, data e sinais editoriais úteis para o leitor.",
+        about_schema: "Adicionar schema institucional quando a página for sobre a organização.",
+        about_identity: "Explicar identidade, atuação, equipe ou trajetória de forma verificável.",
+        about_contact_trust: "Adicionar contato e sinais de confiança institucionais.",
+    };
+    if (reportLocale(locale) === "pt-BR")
+        return pt[id] || String(fallback || unavailable(locale));
+    return String(fallback || unavailable(locale));
+}
+function humanKey(value, locale) {
+    const pt = {
+        missing_alt_count: "imagens sem alt",
+        examples: "exemplos",
+        total: "total",
+        internal: "internos",
+        external: "externos",
+        status: "status",
+        title: "title",
+        length: "tamanho",
+        meta_description: "meta description",
+        canonical: "canonical",
+        lang: "idioma",
+        viewport: "viewport",
+        blocks: "blocos",
+        valid: "válidos",
+        h1_count: "H1",
+        word_count: "palavras",
+    };
+    const en = {
+        missing_alt_count: "images without alt",
+        examples: "examples",
+        total: "total",
+        internal: "internal",
+        external: "external",
+        status: "status",
+        title: "title",
+        length: "length",
+        meta_description: "meta description",
+        canonical: "canonical",
+        lang: "language",
+        viewport: "viewport",
+        blocks: "blocks",
+        valid: "valid",
+        h1_count: "H1",
+        word_count: "words",
+    };
+    return reportLocale(locale) === "pt-BR" ? pt[value] || value.replace(/_/g, " ") : en[value] || value.replace(/_/g, " ");
+}
+function humanEvidence(value, locale) {
+    if (value == null || value === "")
+        return unavailable(locale);
+    if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (/^[\[{]/.test(trimmed)) {
+            try {
+                return humanEvidence(JSON.parse(trimmed), locale);
+            }
+            catch {
+                return value;
+            }
+        }
+        return value;
+    }
+    if (typeof value === "number" || typeof value === "boolean")
+        return String(value);
+    if (Array.isArray(value)) {
+        if (!value.length)
+            return reportText(locale, "nenhum item", "no items");
+        if (value.every((item) => item && typeof item === "object" && ("level" in item || "text" in item))) {
+            const examples = value.slice(0, 5).map((item) => `${String(item.level || "").toUpperCase()}: ${item.text || unavailable(locale)}`);
+            return reportText(locale, `Foram encontrados ${value.length} exemplos: ${examples.join("; ")}.`, `Found ${value.length} examples: ${examples.join("; ")}.`);
+        }
+        return value.slice(0, 6).map((item) => humanEvidence(item, locale)).join("; ");
+    }
+    if (typeof value === "object") {
+        const entries = Object.entries(value).filter(([, v]) => v !== undefined && v !== null && v !== "");
+        if (!entries.length)
+            return unavailable(locale);
+        return entries.slice(0, 8).map(([key, v]) => `${humanKey(key, locale)}: ${humanEvidence(v, locale)}`).join("; ");
+    }
+    return String(value);
+}
+function humanList(items, locale) {
+    if (!items.length)
+        return reportText(locale, "Nenhum item registrado.", "No items recorded.");
+    return items.map((item) => `- ${humanEvidence(item, locale).replace(/\n+/g, " ")}`).join("\n");
+}
+function extractSourceLabel(source) {
+    try {
+        const url = new URL(source);
+        return url.host;
+    }
+    catch {
+        return path.basename(source || "relatório");
+    }
+}
+function technicalSeveritySummary(report) {
+    const summary = { critical: 0, error: 0, warning: 0, info: 0 };
+    for (const checkItem of report.checks || []) {
+        if (!checkItem.passed)
+            summary[checkItem.severity] = (summary[checkItem.severity] || 0) + 1;
+    }
+    return summary;
+}
+function buildTechnicalSeoReportPayload(report, localeInput) {
+    const locale = reportLocale(localeInput || report.language);
+    const calc = report.calculation_memory || {};
+    const memoryChecks = Array.isArray(calc.checks) ? calc.checks : [];
+    const failed = memoryChecks.filter((item) => Number(item.points_lost) > 0);
+    const passedCount = memoryChecks.filter((item) => item.status === "pass").length;
+    const failedCount = memoryChecks.filter((item) => item.status === "fail").length;
+    const severity = technicalSeveritySummary(report);
+    const extracted = report.extracted || {};
+    const sourceLabel = extractSourceLabel(report.source);
+    const findings = Array.isArray(report.findings) ? report.findings : [];
+    const metadataRows = [
+        ["Title", extracted.title || unavailable(locale)],
+        [reportText(locale, "Tamanho do title", "Title length"), extracted.title_length ?? unavailable(locale)],
+        ["Meta description", extracted.meta_description || unavailable(locale)],
+        [reportText(locale, "Tamanho da meta description", "Meta description length"), extracted.meta_description_length ?? unavailable(locale)],
+        ["Canonical", extracted.canonical || unavailable(locale)],
+        ["Robots", extracted.meta_robots || unavailable(locale)],
+        [reportText(locale, "Idioma HTML", "HTML language"), extracted.lang || unavailable(locale)],
+        ["Viewport", extracted.viewport || unavailable(locale)],
+    ];
+    const calculationRows = (calc.checks || []).map((item) => [
+        checkLabel(item.id, locale),
+        severityLabel(item.severity, locale),
+        statusLabel(item.status, locale),
+        item.weight,
+        item.points_awarded,
+        item.points_lost,
+        humanEvidence(item.evidence, locale),
+    ]);
+    const priorityRows = findings.map((finding, index) => [
+        index + 1,
+        severityLabel(finding.severity, locale),
+        checkLabel(finding.check, locale),
+        humanEvidence(finding.evidence, locale),
+        repairLabel(finding.check, finding.repair, locale),
+    ]);
+    const executive = findings.length
+        ? reportText(locale, `A página auditada chegou a **${report.score}/100 (${report.grade})**. O principal ponto de atenção é **${checkLabel(findings[0].check, locale)}**, com evidência: ${humanEvidence(findings[0].evidence, locale)}.`, `The audited page scored **${report.score}/100 (${report.grade})**. The main attention point is **${checkLabel(findings[0].check, locale)}**, with evidence: ${humanEvidence(findings[0].evidence, locale)}.`)
+        : reportText(locale, `A página auditada chegou a **${report.score}/100 (${report.grade})** e não teve achados determinísticos pendentes nos checks executados.`, `The audited page scored **${report.score}/100 (${report.grade})** and had no pending deterministic findings in the executed checks.`);
+    return {
+        title: reportText(locale, `SEO técnico — ${sourceLabel}`, `Technical SEO — ${sourceLabel}`),
+        subtitle: reportText(locale, `Auditoria determinística · ${report.page_type} · score ${report.score}/100 (${report.grade})`, `Deterministic audit · ${report.page_type} · score ${report.score}/100 (${report.grade})`),
+        generatedAt: report.generated_at,
+        locale,
+        kpis: [
+            { label: "Score", value: `${report.score}/100`, detail: `Grade ${report.grade}`, tone: scoreTone(Number(report.score)) },
+            { label: "HTTP", value: report.http_status ?? unavailable(locale), detail: report.ok ? reportText(locale, "Sem bloqueio crítico", "No critical blocker") : reportText(locale, "Há falhas críticas ou de erro", "Critical or error findings exist"), tone: report.ok ? "good" : "bad" },
+            { label: reportText(locale, "Checks", "Checks"), value: String((report.checks || []).length), detail: reportText(locale, `${findings.length} achados`, `${findings.length} findings`), tone: findings.length ? "warn" : "good" },
+            { label: reportText(locale, "Pontos", "Points"), value: `${calc.points_awarded ?? 0}/${calc.total_weight ?? 0}`, detail: reportText(locale, `${calc.lost_points ?? 0} pontos perdidos`, `${calc.lost_points ?? 0} points lost`), tone: Number(calc.lost_points || 0) ? "warn" : "good" },
+        ],
+        charts: [
+            {
+                title: reportText(locale, "Score técnico", "Technical score"),
+                description: reportText(locale, "Percentual final calculado pelos pesos determinísticos.", "Final percentage calculated from deterministic weights."),
+                type: "doughnut",
+                data: {
+                    labels: [reportText(locale, "Pontos conquistados", "Points earned"), reportText(locale, "Pontos perdidos", "Points lost")],
+                    datasets: [{ data: [calc.points_awarded || 0, calc.lost_points || 0], backgroundColor: [REPORT_COLORS.blue, "rgba(155,155,155,0.28)"], borderWidth: 0 }],
+                },
+            },
+            {
+                title: reportText(locale, "Pontos perdidos por check", "Points lost by check"),
+                description: reportText(locale, "Mostra onde o score foi descontado.", "Shows where the score was discounted."),
+                type: "bar",
+                height: "tall",
+                data: {
+                    labels: failed.length ? failed.map((item) => checkLabel(item.id, locale)) : [reportText(locale, "sem perdas", "no losses")],
+                    datasets: [{ label: reportText(locale, "Pontos perdidos", "Points lost"), data: failed.length ? failed.map((item) => item.points_lost) : [0], backgroundColor: REPORT_COLORS.red }],
+                },
+                options: { indexAxis: "y", scales: { x: { beginAtZero: true } } },
+            },
+            {
+                title: reportText(locale, "Achados por severidade", "Findings by severity"),
+                description: reportText(locale, "Distribuição das falhas detectadas.", "Distribution of detected issues."),
+                type: "doughnut",
+                data: {
+                    labels: ["critical", "error", "warning", "info"].map((item) => severityLabel(item, locale)),
+                    datasets: [{ data: [severity.critical, severity.error, severity.warning, severity.info], backgroundColor: [REPORT_COLORS.red, "#e86b5a", REPORT_COLORS.amber, REPORT_COLORS.gray], borderWidth: 0 }],
+                },
+            },
+            {
+                title: reportText(locale, "Status dos checks", "Check status"),
+                description: reportText(locale, "Distribuição entre checks aprovados e checks que exigem atenção.", "Distribution between passed checks and checks that need attention."),
+                type: "doughnut",
+                data: {
+                    labels: [statusLabel("pass", locale), statusLabel("fail", locale)],
+                    datasets: [{ data: [passedCount, failedCount], backgroundColor: [REPORT_COLORS.green, REPORT_COLORS.red], borderWidth: 0 }],
+                },
+            },
+        ],
+        leadSections: [
+            {
+                heading: reportText(locale, "Resumo executivo", "Executive summary"),
+                body_markdown: executive,
+            },
+            { heading: reportText(locale, "Meta e indexabilidade", "Meta and indexability"), body_markdown: reportTable([reportText(locale, "Sinal", "Signal"), reportText(locale, "Valor", "Value")], metadataRows, locale) },
+        ],
+        sections: [
+            {
+                heading: reportText(locale, "Prioridades de correção", "Fix priorities"),
+                body_markdown: priorityRows.length
+                    ? reportTable([reportText(locale, "Prioridade", "Priority"), reportText(locale, "Severidade", "Severity"), "Check", reportText(locale, "Evidência observada", "Observed evidence"), reportText(locale, "Ação recomendada", "Recommended action")], priorityRows, locale)
+                    : reportText(locale, "Nenhum achado determinístico.", "No deterministic findings."),
+            },
+            {
+                heading: reportText(locale, "Apêndice: memória de cálculo", "Appendix: calculation memory"),
+                body_markdown: reportText(locale, `O score foi calculado a partir dos pesos dos checks executados. O total de peso foi **${calc.total_weight ?? 0}**, com **${calc.points_awarded ?? 0}** pontos conquistados e **${calc.lost_points ?? 0}** pontos perdidos.\n\n${reportTable(["Check", "Severidade", "Status", "Peso", "Pontos", "Perda", "Evidência humana"], calculationRows, locale)}`, `The score was calculated from the weights of the executed checks. Total weight was **${calc.total_weight ?? 0}**, with **${calc.points_awarded ?? 0}** points earned and **${calc.lost_points ?? 0}** points lost.\n\n${reportTable(["Check", "Severity", "Status", "Weight", "Points", "Loss", "Human evidence"], calculationRows, locale)}`),
+            },
+            {
+                heading: reportText(locale, "Estrutura rastreável", "Crawlable structure"),
+                body_markdown: reportTable([reportText(locale, "Sinal", "Signal"), reportText(locale, "Leitura humana", "Human reading")], [
+                    ["H1", extracted.h1_count ?? 0],
+                    ["H2", humanEvidence((extracted.headings || []).filter((item) => item.level === "h2"), locale)],
+                    [reportText(locale, "Palavras visíveis", "Visible words"), extracted.word_count ?? 0],
+                    [reportText(locale, "Imagens", "Images"), extracted.images_total ?? 0],
+                    [reportText(locale, "Imagens sem alt", "Images without alt"), humanEvidence({ missing_alt_count: (extracted.images_missing_alt || []).length, examples: (extracted.images_missing_alt || []).slice(0, 5) }, locale)],
+                    [reportText(locale, "Links", "Links"), humanEvidence(extracted.link_counts || {}, locale)],
+                ], locale),
+            },
+            {
+                heading: reportText(locale, "Schema e social", "Schema and social"),
+                body_markdown: reportTable([reportText(locale, "Sinal", "Signal"), reportText(locale, "Leitura humana", "Human reading")], [
+                    ["JSON-LD", humanEvidence({ blocks: extracted.structured_data_blocks ?? 0, valid: extracted.structured_data_valid_blocks ?? 0 }, locale)],
+                    [reportText(locale, "Tipos schema", "Schema types"), (extracted.schema_types || []).join(", ") || reportText(locale, "nenhum", "none")],
+                    ["Open Graph", Object.keys(extracted.open_graph || {}).join(", ") || reportText(locale, "nenhum", "none")],
+                    ["Twitter", Object.keys(extracted.twitter || {}).join(", ") || reportText(locale, "nenhum", "none")],
+                ], locale),
+            },
+        ],
+    };
+}
+function buildSerpReportPayload(report, localeInput) {
+    const locale = reportLocale(localeInput || report.language);
+    const results = report.organic_results || [];
+    return {
+        title: `SERP — ${report.keyword}`,
+        subtitle: `${report.provider || "provider"} · ${report.location || unavailable(locale)} · ${report.device || "desktop"}`,
+        generatedAt: report.timestamp || nowIso(),
+        locale,
+        kpis: [
+            { label: reportText(locale, "Resultados orgânicos", "Organic results"), value: String(results.length), tone: results.length ? "good" : "warn" },
+            { label: "Features", value: String((report.serp_features || []).length), detail: (report.serp_features || []).join(", ") || reportText(locale, "nenhuma", "none"), tone: "info" },
+            { label: "Provider", value: report.provider || "n/a", detail: report.mode || "", tone: report.provider === "dataforseo" ? "good" : "warn" },
+        ],
+        charts: [{
+                title: reportText(locale, "Top resultados", "Top results"),
+                description: reportText(locale, "Posições orgânicas capturadas na SERP.", "Organic positions captured from the SERP."),
+                type: "bar",
+                data: { labels: results.slice(0, 10).map((item) => item.domain || item.url || reportText(locale, "resultado", "result")), datasets: [{ label: reportText(locale, "Posição", "Position"), data: results.slice(0, 10).map((item) => item.rank_absolute || item.rank_group || 0), backgroundColor: REPORT_COLORS.blue }] },
+                options: { scales: { y: { beginAtZero: true, reverse: true } } },
+            }],
+        sections: [
+            { heading: reportText(locale, "Resumo executivo", "Executive summary"), body_markdown: reportText(locale, `Foram capturados **${results.length} resultados orgânicos** para a keyword **${report.keyword}** em ${report.location || unavailable(locale)}.`, `Captured **${results.length} organic results** for **${report.keyword}** in ${report.location || unavailable(locale)}.`) },
+            { heading: reportText(locale, "Resultados orgânicos", "Organic results"), body_markdown: reportTable([reportText(locale, "Posição", "Position"), reportText(locale, "Título", "Title"), reportText(locale, "Domínio", "Domain"), "URL"], results.slice(0, 20).map((item) => [item.rank_absolute || item.rank_group || "", item.title || "", item.domain || "", item.url || ""])) },
+            { heading: "SERP features", body_markdown: humanList(report.serp_features || [], locale) },
+        ],
+    };
+}
+function buildKeywordReportPayload(report, localeInput) {
+    const locale = reportLocale(localeInput || report.language);
+    const keywords = report.keywords || [];
+    return {
+        title: reportText(locale, `Pesquisa de keywords — ${report.keyword || report.seed || "bulk"}`, `Keyword research — ${report.keyword || report.seed || "bulk"}`),
+        subtitle: `${report.provider || "provider"} · ${report.location || unavailable(locale)} · ${report.language || locale}`,
+        generatedAt: report.timestamp || nowIso(),
+        locale,
+        kpis: [
+            { label: "Keywords", value: String(keywords.length), tone: keywords.length ? "good" : "warn" },
+            { label: "Provider", value: report.provider || "n/a", detail: report.mode || "", tone: report.provider === "dataforseo" ? "good" : "warn" },
+        ],
+        charts: [{
+                title: reportText(locale, "Volume por keyword", "Volume by keyword"),
+                description: reportText(locale, "Volumes retornados pelo provider; métricas ausentes aparecem como zero no gráfico.", "Provider volumes; missing metrics appear as zero in the chart."),
+                type: "bar",
+                height: "tall",
+                data: { labels: keywords.slice(0, 20).map((item) => item.keyword), datasets: [{ label: "Volume", data: keywords.slice(0, 20).map((item) => item.search_volume || 0), backgroundColor: REPORT_COLORS.blue }] },
+                options: { indexAxis: "y", scales: { x: { beginAtZero: true } } },
+            }],
+        sections: [
+            { heading: reportText(locale, "Resumo executivo", "Executive summary"), body_markdown: reportText(locale, `A pesquisa retornou **${keywords.length} keywords** para análise. Métricas ausentes permanecem explícitas como “${unavailable(locale)}”, sem inventar volume, CPC ou competição.`, `The research returned **${keywords.length} keywords** for analysis. Missing metrics remain explicit as “${unavailable(locale)}”, without inventing volume, CPC, or competition.`) },
+            { heading: "Keywords", body_markdown: reportTable(["Keyword", "Volume", "CPC", reportText(locale, "Competição", "Competition")], keywords.slice(0, 100).map((item) => [item.keyword, item.search_volume ?? unavailable(locale), item.cpc ?? unavailable(locale), item.competition ?? unavailable(locale)])) },
+            { heading: reportText(locale, "Nota", "Note"), body_markdown: report.note || reportText(locale, "Sem nota adicional.", "No additional note.") },
+        ],
+    };
+}
+function buildBacklinkReportPayload(report, localeInput) {
+    const locale = reportLocale(localeInput || report.language);
+    const competitors = report.competitor_comparison || [];
+    return {
+        title: `Backlinks — ${report.target}`,
+        subtitle: `${report.provider || "provider"} · ${report.mode || reportText(locale, "modo", "mode")}`,
+        generatedAt: report.timestamp || nowIso(),
+        locale,
+        kpis: [
+            { label: "Backlinks", value: report.backlinks ?? unavailable(locale), tone: report.backlinks == null ? "warn" : "good" },
+            { label: reportText(locale, "Domínios ref.", "Ref. domains"), value: report.referring_domains ?? unavailable(locale), tone: report.referring_domains == null ? "warn" : "good" },
+            { label: "Rank", value: report.rank ?? unavailable(locale), tone: "info" },
+            { label: "Spam score", value: report.spam_score ?? unavailable(locale), tone: Number(report.spam_score || 0) > 20 ? "warn" : "info" },
+        ],
+        charts: [{
+                title: reportText(locale, "Comparativo de backlinks", "Backlink comparison"),
+                description: reportText(locale, "Backlinks informados para concorrentes quando disponíveis.", "Backlinks reported for competitors when available."),
+                type: "bar",
+                data: { labels: [report.target, ...competitors.map((item) => item.target)], datasets: [{ label: "Backlinks", data: [report.backlinks || 0, ...competitors.map((item) => item.backlinks || 0)], backgroundColor: REPORT_COLORS.blue }] },
+                options: { scales: { y: { beginAtZero: true } } },
+            }],
+        sections: [
+            { heading: reportText(locale, "Resumo executivo", "Executive summary"), body_markdown: reportText(locale, `O alvo analisado foi **${report.target}**. Métricas ausentes são mantidas como “${unavailable(locale)}” para preservar a separação entre evidência e interpretação.`, `The analyzed target was **${report.target}**. Missing metrics remain “${unavailable(locale)}” to preserve evidence/synthesis separation.`) },
+            { heading: reportText(locale, "Comparativo", "Comparison"), body_markdown: reportTable(["Target", "Backlinks", reportText(locale, "Domínios ref.", "Ref. domains"), "Rank", "Spam"], [[report.target, report.backlinks ?? unavailable(locale), report.referring_domains ?? unavailable(locale), report.rank ?? unavailable(locale), report.spam_score ?? unavailable(locale)], ...competitors.map((item) => [item.target, item.backlinks ?? unavailable(locale), item.referring_domains ?? unavailable(locale), item.rank ?? unavailable(locale), item.spam_score ?? unavailable(locale)])]) },
+            { heading: reportText(locale, "Amostra de backlinks", "Backlink sample"), body_markdown: reportTable([reportText(locale, "Origem", "Source"), reportText(locale, "Destino", "Target"), "Anchor", "Dofollow"], (report.sample_backlinks || []).slice(0, 30).map((item) => [item.from || "", item.to || "", item.anchor || "", item.dofollow == null ? unavailable(locale) : yesNo(Boolean(item.dofollow), locale)])) },
+        ],
+    };
+}
+function buildSeoAnalysisReportPayload(report, localeInput) {
+    const locale = reportLocale(localeInput || report.language);
+    const top = report.top_results || [];
+    return {
+        title: reportText(locale, `Análise SEO — ${report.keyword}`, `SEO analysis — ${report.keyword}`),
+        subtitle: `${report.provider || "provider"} · ${report.intent || reportText(locale, "intenção não informada", "intent not provided")}`,
+        generatedAt: report.generated_at || nowIso(),
+        locale,
+        kpis: [
+            { label: "Top results", value: String(top.length), tone: top.length >= 5 ? "good" : "warn" },
+            { label: "Provider", value: report.provider || "n/a", detail: report.provider_reason || "", tone: report.provider === "dataforseo" ? "good" : "warn" },
+            { label: reportText(locale, "Completo", "Complete"), value: yesNo(!report.incomplete, locale), tone: report.incomplete ? "warn" : "good" },
+        ],
+        charts: [{
+                title: reportText(locale, "Top resultados por posição", "Top results by position"),
+                description: reportText(locale, "Distribuição dos resultados capturados.", "Distribution of captured results."),
+                type: "bar",
+                data: { labels: top.slice(0, 10).map((item) => item.domain || item.url || reportText(locale, "resultado", "result")), datasets: [{ label: reportText(locale, "Posição", "Position"), data: top.slice(0, 10).map((item) => item.position || 0), backgroundColor: REPORT_COLORS.blue }] },
+                options: { scales: { y: { beginAtZero: true, reverse: true } } },
+            }],
+        sections: [
+            { heading: reportText(locale, "Resumo executivo", "Executive summary"), body_markdown: reportText(locale, `A análise reuniu **${top.length} resultados** para a keyword **${report.keyword}** e separou lacunas, hipóteses e limitações sem transformar hipótese em evidência.`, `The analysis gathered **${top.length} results** for **${report.keyword}** and separates gaps, hypotheses, and limitations without treating hypotheses as evidence.`) },
+            { heading: reportText(locale, "Top resultados", "Top results"), body_markdown: reportTable([reportText(locale, "Posição", "Position"), reportText(locale, "Título", "Title"), reportText(locale, "Domínio", "Domain"), "URL"], top.slice(0, 20).map((item) => [item.position, item.title, item.domain, item.url])) },
+            { heading: reportText(locale, "Lacunas e hipóteses", "Gaps and hypotheses"), body_markdown: `### ${reportText(locale, "Lacunas", "Gaps")}\n\n${humanList(report.gaps || [], locale)}\n\n### ${reportText(locale, "Hipóteses", "Hypotheses")}\n\n${humanList(report.improvement_hypotheses || [], locale)}` },
+            { heading: reportText(locale, "Limitações", "Limitations"), body_markdown: humanList(report.limitations || [], locale) },
+        ],
+    };
+}
+function provenanceRows(provenance, locale) {
+    const rows = [];
+    if (provenance?.suggestions)
+        rows.push([reportText(locale, "Sugestões", "Suggestions"), provenance.suggestions.provider || unavailable(locale), provenance.suggestions.count ?? unavailable(locale), provenance.suggestions.endpoint || unavailable(locale)]);
+    if (provenance?.ideas)
+        rows.push([reportText(locale, "Ideias", "Ideas"), provenance.ideas.provider || unavailable(locale), provenance.ideas.count ?? unavailable(locale), provenance.ideas.endpoint || unavailable(locale)]);
+    if (provenance?.serp)
+        rows.push(["SERP", provenance.serp.provider || unavailable(locale), provenance.serp.keyword_count ?? unavailable(locale), reportText(locale, "keywords analisadas", "keywords analyzed")]);
+    if (provenance?.hypothesis_only)
+        rows.push([reportText(locale, "Modo hipótese", "Hypothesis mode"), yesNo(true, locale), unavailable(locale), provenance.hypothesis_reason || unavailable(locale)]);
+    return rows.length ? rows : [[reportText(locale, "Proveniência", "Provenance"), unavailable(locale), unavailable(locale), unavailable(locale)]];
+}
+function buildTopicClusterReportPayload(cluster, localeInput) {
+    const locale = reportLocale(localeInput || cluster.language);
+    const supports = cluster.supporting_pages || [];
+    const pages = [cluster.pillar, ...supports].filter(Boolean);
+    return {
+        title: `Topic cluster — ${cluster.seed}`,
+        subtitle: `${cluster.status || "status"} · ${cluster.language || locale} · ${cluster.location || unavailable(locale)}`,
+        generatedAt: cluster.generated_at || nowIso(),
+        locale,
+        kpis: [
+            { label: "Pillar", value: cluster.pillar?.keyword_principal?.keyword || "n/a", tone: "info" },
+            { label: reportText(locale, "Suportes", "Supports"), value: String(supports.length), tone: supports.length ? "good" : "warn" },
+            { label: "Pool", value: String(cluster.data_provenance?.pool_size ?? 0), tone: "info" },
+            { label: "SERP keywords", value: String(cluster.data_provenance?.serp?.keyword_count ?? 0), tone: cluster.data_provenance?.serp ? "good" : "warn" },
+        ],
+        charts: [{
+                title: reportText(locale, "Volume por página", "Volume by page"),
+                description: reportText(locale, "Volumes disponíveis para pillar e suportes.", "Available volumes for pillar and support pages."),
+                type: "bar",
+                height: "tall",
+                data: { labels: pages.map((page) => page.keyword_principal?.keyword || page.slug || reportText(locale, "página", "page")), datasets: [{ label: "Volume", data: pages.map((page) => page.keyword_principal?.volume || 0), backgroundColor: REPORT_COLORS.blue }] },
+                options: { indexAxis: "y", scales: { x: { beginAtZero: true } } },
+            }],
+        sections: [
+            { heading: reportText(locale, "Resumo executivo", "Executive summary"), body_markdown: reportText(locale, `O cluster para **${cluster.seed}** contém **${supports.length} páginas de suporte**. A tabela abaixo separa papel, keyword principal e intenção observada, preservando a proveniência em apêndice.`, `The cluster for **${cluster.seed}** contains **${supports.length} support pages**. The table below separates role, primary keyword, and observed intent, with provenance preserved in the appendix.`) },
+            { heading: reportText(locale, "Páginas do cluster", "Cluster pages"), body_markdown: reportTable([reportText(locale, "Papel", "Role"), "Slug", "Keyword", "Volume", reportText(locale, "Intenção", "Intent")], pages.map((page) => [page.role || "pillar", page.slug || "", page.keyword_principal?.keyword || "", page.keyword_principal?.volume ?? unavailable(locale), page.serp_intent || unavailable(locale)])) },
+            { heading: reportText(locale, "Apêndice: proveniência", "Appendix: provenance"), body_markdown: reportTable([reportText(locale, "Fonte", "Source"), "Provider", reportText(locale, "Volume/contagem", "Volume/count"), reportText(locale, "Observação", "Note")], provenanceRows(cluster.data_provenance || {}, locale)) },
+        ],
+    };
 }
 function normalizeSerp(source, keyword, location, language, device) {
     const [normalized] = normalizeSerpBatch(source, [keyword], location, language, device);
@@ -1424,10 +2073,12 @@ async function commandProjectInit(args) {
     const language = args.language || "pt-BR";
     const market = args.market || "Brasil";
     const country = args.country || market;
-    for (const dir of ["brain", "conteudos", "web", "sources", "workbench", "artifacts", ".agentic-seo"])
+    for (const dir of ["brain", "conteudos", "web", "sources", "workbench", "artifacts", "audits", "keywords", "clusters", "eeat", "relatorios", ".agentic-seo"])
         mkdirp(path.join(p, dir));
     for (const origem of PUBLIC_CONTENT_ORIGENS)
         mkdirp(path.join(p, "conteudos", origem));
+    for (const moduleId of REPORT_MODULE_IDS)
+        mkdirp(path.join(p, "relatorios", moduleId));
     copyDir(path.join(TEMPLATES_DIR, "brain"), path.join(p, "brain"));
     copyDir(path.join(TEMPLATES_DIR, "conteudos"), path.join(p, "conteudos"));
     writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
@@ -1725,6 +2376,8 @@ async function commandSerpExtract(args) {
     const keyword = required(args, "keyword");
     const p = ensureProject();
     const settings = projectSettings(p);
+    const keywordSlug = slugify(keyword);
+    const ts = stamp();
     const mode = resolveDataforseoMode(args);
     if (mode !== "offline" && !dataforseoCredentialsPresent()) {
         if (shouldAutoOpenDataSetup(args)) {
@@ -1748,12 +2401,23 @@ async function commandSerpExtract(args) {
     else
         source = { status_code: "offline", mode: "offline", tasks: [], note: "Run with --mode standard or --mode live to fetch DataForSEO SERP data." };
     const normalized = normalizeSerp(source, keyword, location, language, args.device || "desktop");
-    const base = path.join(p, "sources", "serp", `${stamp()}-${slugify(keyword)}`);
+    const base = path.join(p, "sources", "serp", `${ts}-${keywordSlug}`);
+    const reportDir = path.join(p, "audits", `serp-${keywordSlug}`);
+    const reportYaml = path.join(reportDir, "report.yaml");
+    const reportMd = reportMarkdownPath(p, "serp-extract", keywordSlug);
     writeJson(`${base}.raw.json`, source);
     writeYaml(`${base}.normalized.yaml`, normalized);
-    writeYaml(path.join(p, "workbench", "serp", `${stamp()}-${slugify(keyword)}.yaml`), normalized);
-    appendLog("serp", keyword, [path.relative(p, `${base}.normalized.yaml`)], "SERP extraída e normalizada.", "not-required");
-    printJson(normalized);
+    writeYaml(path.join(p, "workbench", "serp", `${ts}-${keywordSlug}.yaml`), normalized);
+    writeYaml(reportYaml, normalized);
+    printJson(completeReportWorkflow(normalized, {
+        projectDir: p,
+        reportMd,
+        payload: { ...buildSerpReportPayload(normalized, settings.language), reportType: "serp-extract", slug: keywordSlug, sourceArtifact: path.relative(p, reportYaml) },
+        eventType: "serp",
+        title: keyword,
+        files: [path.relative(p, `${base}.normalized.yaml`), path.relative(p, reportYaml)],
+        summary: "SERP extraída, normalizada e renderizada como relatório Markdown no Web Companion.",
+    }));
 }
 const VOLUME_ENDPOINTS = {
     liveEndpoint: "/v3/keywords_data/google_ads/search_volume/live",
@@ -1788,12 +2452,23 @@ async function runKeywordVolume(args, projectDir) {
     const slug = isBulk ? `bulk-${keywords.length}` : slugify(keywords[0]);
     const ts = stamp();
     const base = path.join(projectDir, "sources", "keyword-research", `${ts}-${slug}`);
+    const reportDir = path.join(projectDir, "keywords", slug);
+    const reportYaml = path.join(reportDir, "report.yaml");
+    const reportMd = reportMarkdownPath(projectDir, "keyword-research", slug);
     writeJson(`${base}.raw.json`, source);
     writeYaml(`${base}.normalized.yaml`, normalized);
     writeYaml(path.join(projectDir, "workbench", "keyword-research", `${ts}-${slug}.yaml`), normalized);
+    writeYaml(reportYaml, normalized);
     const logTitle = isBulk ? `bulk (${keywords.length} keywords)` : keywords[0];
-    appendLog("keyword-research", logTitle, [path.relative(projectDir, `${base}.normalized.yaml`)], "Pesquisa de keyword registrada.", "not-required");
-    printJson(normalized);
+    printJson(completeReportWorkflow(normalized, {
+        projectDir,
+        reportMd,
+        payload: { ...buildKeywordReportPayload(normalized, projectSettings(projectDir).language), reportType: "keyword-research", slug, sourceArtifact: path.relative(projectDir, reportYaml) },
+        eventType: "keyword-research",
+        title: logTitle,
+        files: [path.relative(projectDir, `${base}.normalized.yaml`), path.relative(projectDir, reportYaml)],
+        summary: "Pesquisa de keyword registrada e renderizada como relatório Markdown no Web Companion.",
+    }));
 }
 async function runKeywordSuggestions(args, projectDir) {
     const seed = required(args, "keyword");
@@ -1807,11 +2482,22 @@ async function runKeywordSuggestions(args, projectDir) {
     const slug = slugify(seed);
     const ts = stamp();
     const base = path.join(projectDir, "sources", "keyword-research", `${ts}-${slug}.suggestions`);
+    const reportDir = path.join(projectDir, "keywords", `${slug}-suggestions`);
+    const reportJson = path.join(reportDir, "report.json");
+    const reportMd = reportMarkdownPath(projectDir, "keyword-research", `${slug}-suggestions`);
     writeJson(`${base}.raw.json`, source);
     writeJson(`${base}.normalized.json`, normalized);
     writeJson(path.join(projectDir, "workbench", "keyword-research", `${ts}-${slug}.suggestions.json`), normalized);
-    appendLog("keyword-suggestions", seed, [path.relative(projectDir, `${base}.normalized.json`)], `Sugestões de keyword registradas (${normalized.keywords.length} itens).`, "not-required");
-    printJson(normalized);
+    writeJson(reportJson, normalized);
+    printJson(completeReportWorkflow(normalized, {
+        projectDir,
+        reportMd,
+        payload: { ...buildKeywordReportPayload(normalized, projectSettings(projectDir).language), reportType: "keyword-research", slug: `${slug}-suggestions`, sourceArtifact: path.relative(projectDir, reportJson) },
+        eventType: "keyword-suggestions",
+        title: seed,
+        files: [path.relative(projectDir, `${base}.normalized.json`), path.relative(projectDir, reportJson)],
+        summary: `Sugestões de keyword registradas (${normalized.keywords.length} itens) e renderizadas como relatório Markdown no Web Companion.`,
+    }));
 }
 async function commandKwVolume(args) {
     const p = ensureProject();
@@ -1836,6 +2522,7 @@ async function commandKwVolume(args) {
 async function commandBacklinkAnalysis(args) {
     const target = required(args, "target");
     const p = ensureProject();
+    const settings = projectSettings(p);
     const mode = resolveDataforseoMode(args);
     const competitors = listArg(args.competitors || args.competitor);
     const limit = intArg(args.limit, 10, 1, 1000);
@@ -1891,11 +2578,24 @@ async function commandBacklinkAnalysis(args) {
             note: "Run with --mode live or --mode standard to fetch DataForSEO backlink data.",
         };
     const normalized = normalizeBacklinkReport(target, competitors, source, args);
-    const base = path.join(p, "sources", "backlinks", `${stamp()}-${slugify(target)}`);
+    const targetSlug = slugify(target);
+    const ts = stamp();
+    const base = path.join(p, "sources", "backlinks", `${ts}-${targetSlug}`);
+    const reportDir = path.join(p, "audits", `backlinks-${targetSlug}`);
+    const reportYaml = path.join(reportDir, "report.yaml");
+    const reportMd = reportMarkdownPath(p, "backlink-analysis", targetSlug);
     writeJson(`${base}.raw.json`, source);
-    writeYaml(path.join(p, "workbench", "backlinks", `${stamp()}-${slugify(target)}.yaml`), normalized);
-    appendLog("backlinks", target, [path.relative(p, `${base}.raw.json`)], "Análise de backlinks registrada.", "not-required");
-    printJson(normalized);
+    writeYaml(path.join(p, "workbench", "backlinks", `${ts}-${targetSlug}.yaml`), normalized);
+    writeYaml(reportYaml, normalized);
+    printJson(completeReportWorkflow(normalized, {
+        projectDir: p,
+        reportMd,
+        payload: { ...buildBacklinkReportPayload(normalized, settings.language), reportType: "backlink-analysis", slug: targetSlug, sourceArtifact: path.relative(p, reportYaml) },
+        eventType: "backlinks",
+        title: target,
+        files: [path.relative(p, `${base}.raw.json`), path.relative(p, reportYaml)],
+        summary: "Análise de backlinks registrada e renderizada como relatório Markdown no Web Companion.",
+    }));
 }
 async function commandSeoAnalysis(args) {
     const keyword = required(args, "keyword");
@@ -1978,11 +2678,23 @@ async function commandSeoAnalysis(args) {
             stamp,
         });
     }
-    const out = path.join(p, "workbench", "seo-analysis", `${slugify(keyword)}.yaml`);
+    const keywordSlug = slugify(keyword);
+    const out = path.join(p, "workbench", "seo-analysis", `${keywordSlug}.yaml`);
+    const reportDir = path.join(p, "audits", `seo-analysis-${keywordSlug}`);
+    const reportYaml = path.join(reportDir, "report.yaml");
+    const reportMd = reportMarkdownPath(p, "seo-analysis", keywordSlug);
     writeYaml(out, report);
+    writeYaml(reportYaml, report);
     appendDataforseoBypassLog(keyword, decision.bypass, [path.relative(p, out)]);
-    appendLog("seo-analysis", keyword, [path.relative(p, out), ...(report.technical_seo_reports || [])], `Análise SEO via ${decision.provider} (${topResults.length} resultados${args.player_score ? "; player score ativo" : ""}).`, "not-required");
-    printJson(report);
+    printJson(completeReportWorkflow(report, {
+        projectDir: p,
+        reportMd,
+        payload: { ...buildSeoAnalysisReportPayload(report, settings.language), reportType: "seo-analysis", slug: keywordSlug, sourceArtifact: path.relative(p, reportYaml) },
+        eventType: "seo-analysis",
+        title: keyword,
+        files: [path.relative(p, out), path.relative(p, reportYaml), ...(report.technical_seo_reports || [])],
+        summary: `Análise SEO via ${decision.provider} (${topResults.length} resultados${args.player_score ? "; player score ativo" : ""}) com relatório Markdown no Web Companion.`,
+    }));
 }
 function loadExistingCluster(projectDir, seedSlug) {
     const file = path.join(projectDir, "workbench", "topic-cluster", `${seedSlug}.json`);
@@ -2184,10 +2896,21 @@ async function commandTopicCluster(args) {
         approval: existingCluster?.approval ?? { aprovador: "agent", aprovado_em: null, status: "not_required" },
     };
     writeJson(clusterFile, cluster);
+    const canonicalClusterFile = path.join(p, "clusters", seedSlug, "cluster.json");
+    const reportMd = reportMarkdownPath(p, "topic-cluster", seedSlug);
+    writeJson(canonicalClusterFile, cluster);
     renderTopicClustersBrain(p);
-    appendDataforseoBypassLog(seed, dataforseoBypass, [path.relative(p, clusterFile), "topic-clusters"]);
-    appendLog("topic-cluster", seed, ["topic-clusters"], `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}).`, "agent");
-    printJson(cluster);
+    appendDataforseoBypassLog(seed, dataforseoBypass, [path.relative(p, clusterFile), path.relative(p, canonicalClusterFile), "topic-clusters"]);
+    printJson(completeReportWorkflow(cluster, {
+        projectDir: p,
+        reportMd,
+        payload: { ...buildTopicClusterReportPayload(cluster, language), reportType: "topic-cluster", slug: seedSlug, sourceArtifact: path.relative(p, canonicalClusterFile) },
+        eventType: "topic-cluster",
+        title: seed,
+        files: ["topic-clusters", path.relative(p, canonicalClusterFile)],
+        summary: `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}) e relatório Markdown no Web Companion.`,
+        approval: "agent",
+    }));
 }
 function renderTopicClustersBrain(projectDir) {
     const dir = path.join(projectDir, "workbench", "topic-cluster");
@@ -3170,6 +3893,7 @@ async function commandTechnicalSeo(args) {
     let status = null;
     let source;
     let headers = {};
+    const inputWasUrl = Boolean(args.url);
     if (args.html_file) {
         html = fs.readFileSync(args.html_file, "utf8");
         source = args.html_file;
@@ -3185,16 +3909,51 @@ async function commandTechnicalSeo(args) {
         throw new CliError("Provide --url or --html-file.");
     }
     const pageType = normalizePageType(args.page_type || "unknown");
-    const extracted = extractHtml(html, args.url);
+    const extracted = extractHtml(html, source);
     const result = auditTechnicalSeo(extracted, { pageType, source, status, headers });
     const p = ensureProject();
-    const basename = `${stamp()}-${pageType}`;
+    const settings = projectSettings(p);
+    const reportLanguage = args.language || settings.language;
+    const ts = stamp();
+    const sourceSlug = inputWasUrl ? slugify(`${safeHost(source)}-${new URL(source).pathname || "home"}`) : slugify(path.basename(source, path.extname(source)) || pageType);
+    const auditDir = path.join(p, "audits", `${ts}-technical-seo-${sourceSlug}`);
+    const sourcesDir = path.join(auditDir, "sources");
+    const canonicalYaml = path.join(auditDir, "report.yaml");
+    const reportMd = reportMarkdownPath(p, "technical-seo", path.basename(auditDir));
+    const extractionPath = path.join(sourcesDir, "extraction.json");
+    const headerPath = path.join(sourcesDir, "headers.json");
+    const rawHtmlPath = path.join(sourcesDir, "raw.html");
+    const sourceRefPath = path.join(sourcesDir, "source.json");
+    if (inputWasUrl) {
+        writeText(rawHtmlPath, html);
+        writeJson(headerPath, headers);
+    }
+    else {
+        writeJson(sourceRefPath, { html_file: path.resolve(source), captured_at: nowIso() });
+    }
+    writeJson(extractionPath, extracted);
+    result.audit_paths = {
+        report_yaml: path.relative(p, canonicalYaml),
+        report_md: path.relative(p, reportMd),
+        sources: inputWasUrl
+            ? [path.relative(p, rawHtmlPath), path.relative(p, headerPath), path.relative(p, extractionPath)]
+            : [path.relative(p, sourceRefPath), path.relative(p, extractionPath)],
+    };
+    const basename = `${ts}-${pageType}`;
     const outYaml = path.join(p, "workbench", "technical-seo", `${basename}.yaml`);
     const outMd = path.join(p, "workbench", "technical-seo", `${basename}.md`);
     writeYaml(outYaml, result);
     writeText(outMd, renderTechnicalMarkdown(result));
-    appendLog("technical-seo", pageType, [path.relative(p, outYaml), path.relative(p, outMd)], "Auditoria técnica determinística executada.", "not-required");
-    printJson(result);
+    writeYaml(canonicalYaml, result);
+    printJson(completeReportWorkflow(result, {
+        projectDir: p,
+        reportMd,
+        payload: { ...buildTechnicalSeoReportPayload(result, reportLanguage), reportType: "technical-seo", slug: path.basename(auditDir), sourceArtifact: path.relative(p, canonicalYaml), score: result.score },
+        eventType: "technical-seo",
+        title: pageType,
+        files: [path.relative(p, outYaml), path.relative(p, outMd), path.relative(p, canonicalYaml), ...(result.audit_paths.sources || [])],
+        summary: "Auditoria técnica determinística executada com memória de cálculo e relatório Markdown no Web Companion.",
+    }));
 }
 async function commandAuditSkills(args) {
     const skillDir = path.join(ROOT, "skills");

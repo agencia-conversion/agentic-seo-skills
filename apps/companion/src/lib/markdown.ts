@@ -77,7 +77,13 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
       i++;
       while (i < lines.length && !/^```/.test(lines[i])) block.push(lines[i++]);
       if (i < lines.length) block.push(lines[i++]);
-      content.push({ type: 'codeBlock', attrs: { language: fence[1].trim() || null }, content: [textNode(block.slice(1, -1).join('\n'))] });
+      const language = fence[1].trim();
+      const body = block.slice(1, -1).join('\n');
+      if (/^agentic-(kpis|chart|table)$/.test(language)) {
+        content.push({ type: 'reportBlock', attrs: { kind: language, data: body } });
+      } else {
+        content.push({ type: 'codeBlock', attrs: { language: language || null }, content: [textNode(body)] });
+      }
       continue;
     }
 
@@ -188,6 +194,10 @@ export function docToMarkdown(doc: any, resolver?: MentionResolver): string {
     else if (node.type === 'heading') out.push(`${'#'.repeat(Number(node.attrs?.level || 1))} ${paragraphText(node, resolver)}`);
     else if (node.type === 'horizontalRule') out.push('---');
     else if (node.type === 'rawMarkdown') out.push(String(node.attrs?.text || ''));
+    else if (node.type === 'reportBlock') {
+      const kind = node.attrs?.kind || 'agentic-table';
+      out.push(`\`\`\`${kind}\n${String(node.attrs?.data || '').replace(/\s+$/, '')}\n\`\`\``);
+    }
     else if (node.type === 'codeBlock') {
       const language = node.attrs?.language || '';
       out.push(`\`\`\`${language}\n${paragraphText(node, resolver)}\n\`\`\``);

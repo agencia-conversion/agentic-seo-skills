@@ -46,6 +46,13 @@ export interface ProjectSection {
   pageIds: string[];
 }
 
+export interface ReportModuleSummary {
+  id: string;
+  title: string;
+  count: number;
+  latestGeneratedAt: string | null;
+}
+
 export interface Page {
   id: string;
   slug: string;
@@ -85,6 +92,8 @@ export interface Page {
   readOnly: boolean;
   requiresApproval: boolean;
   sourceMode: boolean;
+  kind?: 'file' | 'reportIndex' | 'reportModule';
+  reportModuleId?: string;
 }
 
 interface WorkspaceState {
@@ -96,6 +105,7 @@ interface WorkspaceState {
   hasFiles: boolean;
   hasBrain: boolean;
   canBootstrapBrain: boolean;
+  reportModules: ReportModuleSummary[];
   token: string | null;
   sidebarCollapsed: boolean;
   sidebarWidth: number;
@@ -121,6 +131,7 @@ interface WorkspaceState {
   addPage: (parentId?: string | null, type?: 'doc' | 'database', options?: { setActive?: boolean; initialTitle?: string }) => string;
   createWorkbenchFile: (title?: string) => Promise<string | null>;
   createContentPage: (title?: string) => Promise<string | null>;
+  openReportPage: (report: { path: string; title?: string; hash?: string | null }) => string | null;
   updatePage: (id: string, updates: Partial<Page>) => void;
   toggleFavorite: (id: string) => void;
   deleteFile: (id: string) => Promise<boolean>;
@@ -227,6 +238,7 @@ function iconForPath(path: string) {
   if (path.startsWith('conteudos/linkedin/')) return '💼';
   if (path.startsWith('conteudos/podcast/')) return '🎧';
   if (path.startsWith('conteudos/')) return '✍️';
+  if (path.startsWith('relatorios/')) return '📊';
   return '📝';
 }
 
@@ -248,7 +260,7 @@ function pageFromSummary(item: any, sectionId: string, sortOrder: number, parent
     sortOrder,
     updatedAt: Date.now(),
     createdAt: Date.now(),
-    width: null,
+    width: item.path?.startsWith('relatorios/') ? 'lg' : null,
     path: item.path,
     sectionId,
     hash: item.hash || null,
@@ -265,6 +277,59 @@ function pageFromSummary(item: any, sectionId: string, sortOrder: number, parent
     readOnly: !!item.readOnly,
     requiresApproval: false,
     sourceMode: false,
+    kind: 'file',
+  };
+}
+
+function virtualPage({
+  id,
+  title,
+  icon,
+  parentId,
+  sortOrder,
+  kind,
+  reportModuleId,
+}: {
+  id: string;
+  title: string;
+  icon: string;
+  parentId: string | null;
+  sortOrder: number;
+  kind: 'reportIndex' | 'reportModule';
+  reportModuleId?: string;
+}): Page {
+  return {
+    id,
+    slug: projectPageSlug(id),
+    title,
+    content: emptyDoc(),
+    parentId,
+    icon,
+    cover: null,
+    type: 'doc',
+    favorite: false,
+    sortOrder,
+    updatedAt: Date.now(),
+    createdAt: Date.now(),
+    width: null,
+    path: id,
+    sectionId: 'brain',
+    hash: null,
+    frontmatter: {},
+    frontmatterText: '',
+    bodyMarkdown: '',
+    sourceBody: '',
+    loaded: true,
+    dirty: false,
+    fileDirty: false,
+    uiDirty: false,
+    saving: false,
+    saveError: null,
+    readOnly: true,
+    requiresApproval: false,
+    sourceMode: false,
+    kind,
+    reportModuleId,
   };
 }
 
@@ -362,6 +427,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   hasFiles: false,
   hasBrain: false,
   canBootstrapBrain: true,
+  reportModules: [],
   token: null,
   sidebarCollapsed: readSidebarPreference().collapsed ?? false,
   sidebarWidth: readSidebarPreference().width ?? DEFAULT_SIDEBAR_WIDTH,
@@ -372,10 +438,15 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
 
   initializeProject: async (token) => {
     set({ token, _hasHydrated: false });
-    const tree = await apiFetch(token, '/api/project/tree');
+    const [tree, reportIndex, projectSettings] = await Promise.all([
+      apiFetch(token, '/api/project/tree'),
+      apiFetch(token, '/api/project/reports').catch(() => ({ ok: false, modules: [] })),
+      apiFetch(token, '/api/project/settings').catch(() => ({ ok: false })),
+    ]);
     if (!tree.ok) throw new Error(tree.reason || 'project tree failed');
     const pages: Page[] = [];
     const sections: ProjectSection[] = [];
+    let brainSection: ProjectSection | null = null;
     for (const section of tree.sections || []) {
       const pageIds: string[] = [];
       const items = section.items || [];
@@ -387,9 +458,72 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
         pages.push(page);
         if (!parentId) pageIds.push(page.id);
       });
-      sections.push({ id: section.id, title: section.title, pageIds });
+      const projectSection = { id: section.id, title: section.title, pageIds };
+      sections.push(projectSection);
+      if (section.id === 'brain') brainSection = projectSection;
+    }
+    const reportModules: ReportModuleSummary[] = Array.isArray(reportIndex.modules) ? reportIndex.modules : [];
+    if (brainSection && reportModules.length > 0) {
+      const reportsRootId = 'virtual/reports';
+      pages.push(
+        virtualPage({
+          id: reportsRootId,
+          title: 'Relatórios',
+          icon: '📊',
+          parentId: null,
+          sortOrder: brainSection.pageIds.length,
+          kind: 'reportIndex',
+        })
+      );
+      brainSection.pageIds.push(reportsRootId);
+      reportModules.forEach((module, index) => {
+        pages.push(
+          virtualPage({
+            id: `virtual/reports/${module.id}`,
+            title: module.title,
+            icon: '📈',
+            parentId: reportsRootId,
+            sortOrder: index,
+            kind: 'reportModule',
+            reportModuleId: module.id,
+          })
+        );
+      });
+      for (const module of reportModules) {
+        try {
+          const list = await apiFetch(token, `/api/project/reports?module=${encodeURIComponent(module.id)}&page=1&pageSize=100`);
+          for (const report of list.reports || []) {
+            const reportPage: Page = {
+              ...pageFromSummary(
+                {
+                  path: report.path,
+                  title: report.title || report.path,
+                  hash: report.hash || null,
+                  readOnly: false,
+                  icon: '📊',
+                },
+                'relatorios',
+                pages.length,
+                null
+              ),
+              inline: true,
+              readOnly: false,
+              width: 'lg',
+            };
+            pages.push(reportPage);
+          }
+        } catch {
+          // Report table browsing still works when preloading report pages fails.
+        }
+      }
     }
     const firstPageId = pages[0]?.id || null;
+    const currentSettings = get().settings;
+    const nextSettings =
+      projectSettings.ok && ['pt-BR', 'en'].includes(projectSettings.language)
+        ? { ...currentSettings, language: projectSettings.language as LocalePreference }
+        : currentSettings;
+    if (nextSettings !== currentSettings) writeSettings(nextSettings);
     set({
       pages,
       sections,
@@ -399,7 +533,9 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       hasFiles: !!tree.hasFiles,
       hasBrain: !!tree.hasBrain,
       canBootstrapBrain: !!tree.canBootstrapBrain,
-      expandedPageIds: pages.filter((p) => p.path === 'brain/index.md' || (p.sectionId === 'brain' && !p.parentId)).map((p) => p.id),
+      reportModules,
+      settings: nextSettings,
+      expandedPageIds: pages.filter((p) => p.path === 'brain/index.md' || p.id === 'virtual/reports' || (p.sectionId === 'brain' && !p.parentId)).map((p) => p.id),
       _hasHydrated: true,
     });
     if (firstPageId) void get().loadPage(firstPageId);
@@ -408,6 +544,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   loadPage: async (id) => {
     const page = get().pages.find((p) => p.id === id);
     if (!page || page.loaded) return;
+    if (page.kind && page.kind !== 'file') return;
     const file = await apiFetch(get().token, `/api/project/file?path=${encodeURIComponent(page.path)}`);
     if (!file.ok) {
       set((state) => ({
@@ -446,6 +583,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
 
   savePage: async (id, options = {}) => {
     const page = get().pages.find((p) => p.id === id);
+    if (page?.kind && page.kind !== 'file') return false;
     if (!page || page.readOnly || page.saving) return false;
     if (!page.dirty) return true;
     set((state) => ({
@@ -580,6 +718,35 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     if (created) set({ activePageId: created.id });
     return created?.id || null;
   },
+  openReportPage: (report) => {
+    if (!report.path.startsWith('relatorios/')) return null;
+    const existing = get().pages.find((p) => p.path === report.path);
+    if (existing) {
+      set({ activePageId: existing.id });
+      void get().loadPage(existing.id);
+      return existing.slug;
+    }
+    const page: Page = {
+      ...pageFromSummary(
+        {
+          path: report.path,
+          title: report.title || report.path,
+          hash: report.hash || null,
+          readOnly: false,
+          icon: '📊',
+        },
+        'relatorios',
+        get().pages.length,
+        null
+      ),
+      inline: true,
+      readOnly: false,
+      width: 'lg',
+    };
+    set((state) => ({ pages: [...state.pages, page], activePageId: page.id }));
+    void get().loadPage(page.id);
+    return page.slug;
+  },
   updatePage: (id, updates) =>
     set((s) => ({
       pages: s.pages.map((p) => {
@@ -626,7 +793,9 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     })),
   deleteFile: async (id) => {
     const page = get().pages.find((p) => p.id === id);
-    if (!page || page.saving) return false;
+    if (page?.kind && page.kind !== 'file') return false;
+    if (page?.path.startsWith('relatorios/')) return false;
+    if (!page || page.saving || page.readOnly) return false;
     if (page.dirty) {
       set((state) => ({
         pages: state.pages.map((p) => (p.id === id ? { ...p, saveError: 'dirty-file' } : p)),
@@ -675,6 +844,12 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     set((s) => {
       const settings = { ...s.settings, ...updates };
       writeSettings(settings);
+      if (updates.language && ['pt-BR', 'en'].includes(updates.language) && s.token) {
+        void apiFetch(s.token, '/api/project/settings', {
+          method: 'PATCH',
+          body: JSON.stringify({ language: updates.language }),
+        });
+      }
       return { settings };
     }),
   turnIntoDatabase: () => {},

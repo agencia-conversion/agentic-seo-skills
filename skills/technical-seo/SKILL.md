@@ -21,8 +21,9 @@ Do not use this skill for keyword research, SERP competitor analysis, content dr
 - The LLM may explain, group, translate, and prioritize deterministic findings, but it must never alter pass/fail, severity, score, page type, extracted facts, JSON values, or generated repair suggestions.
 - Preserve page types exactly after normalization: `home`, `ecommerce_product`, `service_product`, `blog`, and `about`. Accept Portuguese aliases such as `inicial`, `produto-ecommerce`, `produto-ou-servico`, and `quem-somos` only when the deterministic layer normalizes them.
 - Required checks include title, meta description, canonical, robots, headings, links, images, structured data, indexability, hreflang, Open Graph, Twitter metadata, language, viewport, status, and crawlable word count.
+- Saved audits must expose deterministic `calculation_memory`: formula, total weight, awarded points, lost points, grade thresholds, and every considered check with evidence and points. Do not change weights or severities while improving presentation.
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, schema validation results, Core Web Vitals, HTTP status, rendering behavior, or proof.
-- Keep raw audit inputs and extracted evidence in `project/audits/<slug>/sources/`; write reports under `project/audits/<slug>/` (`report.yaml`, optional `report.md`).
+- Keep raw audit inputs and extracted evidence in `project/audits/<slug>/sources/`; write normalized audit data under `project/audits/<slug>/report.yaml`; write the human-facing Companion report under `project/relatorios/technical-seo/<slug>/report.md`.
 - Keep sources separate from synthesis. Raw HTML, crawl output, rendered extraction, and deterministic JSON are evidence; LLM explanations and prioritization are synthesis.
 - Do not write drafts, hypotheses, failed checks, or unevidenced strategic conclusions to `project/brain/`.
 - Authorial brain pages require a source-backed `tipo: decisao` entry in `project/brain/log.md`. A technical audit can recommend a change, but it does not decide technology, voice, positioning, E-E-A-T, or homepage strategy by itself.
@@ -119,6 +120,13 @@ audit:
   score: 0
   score_source: deterministic
   deterministic_json_preserved: true
+  calculation_memory:
+    formula: round(sum(points_awarded) / sum(weight) * 100)
+    total_weight: 0
+    points_awarded: 0
+    lost_points: 0
+    grade_thresholds: {}
+    checks: []
   checks:
     passed: []
     failed: []
@@ -153,7 +161,7 @@ When the user provides existing JSON, include it unchanged under `deterministic_
 
 ### Default delivery
 
-After producing the YAML/JSON audit above, also render a branded HTML report at `project/audits/<slug>/report.html` via `scripts/lib/html-report.mjs`. Pass a `{ title, subtitle, generatedAt, sections }` struct — never handcraft HTML. Then ask the user a short consent line in Portuguese ("Posso abrir no browser para você ver o relatório?"). On consent, open the web companion (`project-browser`) pointing at `project/audits/<slug>/` so the user can navigate the audit visually. Conversational previews and quick clarifications stay in chat as prose.
+After producing the YAML/JSON audit above, also render an editable, human-first Companion Markdown report at `project/relatorios/technical-seo/<slug>/report.md`. Use the project language from `project/.agentic-seo/project.json.language` unless the execution has an explicit language override; v1 report copy supports `pt-BR` and `en`. Do not put `# <title>` in the body because the Companion title comes from frontmatter. Use structured fences (`agentic-kpis`, `agentic-chart`, `agentic-table`) for the score chart, lost-points chart, severity/status visualization, and visible "Memória de cálculo" / "Calculation memory" table; new fence bodies must be YAML with `version: 1`, not JSON. Write an executive reading first, put "Meta e indexabilidade" / "Meta and indexability" before priorities and appendices, keep technical depth in a human-readable appendix, translate status/severity labels, and turn deterministic evidence into readable sentences such as "Foram encontrados 8 exemplos de H2..." instead of raw JSON/object dumps. Use friendly check names for all visible rows, including image alt text, product commerce signals, product image, product trust, service offer clarity, service supporting links, article schema, blog depth, blog H2 structure, blog author/date signals, organization schema, organization identity, and contact/trust signals. Keep the source audit in `source_artifact` and `project/audits/<slug>/report.yaml`. Return `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver o relatório?" }`, then ask that exact consent line in chat before opening any browser. Conversational previews and quick clarifications stay in chat as prose.
 
 ## Examples
 

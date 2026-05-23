@@ -55,6 +55,15 @@ for (const required of [
   "provider decision",
   "Avoid presenting blocked downstream deliverables as complete",
   "stop at the first missing gate",
+  "report_md",
+  "browser_prompt",
+  "Posso abrir o Web Companion para você ver o relatório?",
+  "agentic-kpis",
+  "project/relatorios/",
+  "human-first",
+  "raw JSON/object dumps",
+  "project/.agentic-seo/project.json.language",
+  "v1 supports `pt-BR` and `en`",
 ]) {
   assert.ok(skill.includes(required), `missing runtime rule: ${required}`);
 }

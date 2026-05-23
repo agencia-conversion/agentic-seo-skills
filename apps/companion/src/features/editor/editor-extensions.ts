@@ -13,8 +13,11 @@ import {
 import { CollapsibleHeading } from './collapsible-heading';
 import { PageMention } from './page-mention-extension';
 import { RawMarkdown } from './raw-markdown-extension';
+import { ReportBlock } from './report-block-extension';
+import type { ReportScoreResult } from './report-block-data';
+import type { SupportedLocale } from '@/lib/i18n';
 
-export const getExtensions = () => [
+export const getExtensions = (options: { onReportScoreRecalculated?: (result: ReportScoreResult) => void; locale?: SupportedLocale } = {}) => [
   StarterKit.configure({
     horizontalRule: false,
     heading: false,
@@ -91,5 +94,9 @@ export const getExtensions = () => [
     scrollTreshold: 50,
   }),
   PageMention,
+  ReportBlock.configure({
+    onScoreRecalculated: options.onReportScoreRecalculated || null,
+    locale: options.locale || 'pt-BR',
+  }),
   RawMarkdown,
 ];

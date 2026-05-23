@@ -4,7 +4,7 @@
 
 Current state is checkpointed in `docs/refactor-status.md`. Read that file before continuing structural refactor work.
 
-**Project Subfolders.** Skill artifacts live under one folder per dimension per slug: `project/contents/<slug>/`, `project/keywords/<seed>/`, `project/audits/<slug>/`, `project/clusters/<seed>/`, `project/eeat/<slug>/`. The brain (`project/brain/`) is the only authorial knowledge layer; changes must be logged as decisions with evidence. See `AGENTS.md` § Brain Rules → Project Subfolders.
+**Project Subfolders.** Skill artifacts live under one folder per dimension per slug: `project/contents/<slug>/`, `project/keywords/<seed>/`, `project/audits/<slug>/`, `project/clusters/<seed>/`, `project/eeat/<slug>/`. Canonical report pages live under `project/relatorios/<module>/<run-slug>/report.md`, render in the Web Companion, and are editable human presentation artifacts; structured report fences use YAML `version: 1` for new reports, with JSON only as legacy compatibility. Raw evidence stays in `source_artifact` plus module evidence folders. The brain (`project/brain/`) is the only authorial knowledge layer; changes must be logged as decisions with evidence. See `AGENTS.md` § Brain Rules → Project Subfolders.
 
 ## Size & Language Budgets
 
