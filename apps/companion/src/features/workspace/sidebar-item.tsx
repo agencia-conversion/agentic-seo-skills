@@ -10,6 +10,7 @@ import { SortablePageList } from './sortable-page-list';
 import { ConfirmModal } from '@/components/confirm-modal';
 import { showToast } from '@/components/toast';
 import { useI18n } from '@/components/i18n-provider';
+import { displayPageTitle } from '@/lib/page-display';
 
 interface SidebarItemProps {
   page: Page;
@@ -61,7 +62,7 @@ function SidebarItemImpl({
     () => [...childPages].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
     [childPages]
   );
-  const displayTitle = page.path === 'brain/index.md' ? 'Brain' : page.title || t('common.untitled');
+  const displayTitle = displayPageTitle(page, t);
   const canDelete = page.kind === 'file' && !page.readOnly && page.path !== 'brain/log.md' && !page.path.startsWith('relatorios/');
 
   const handleOpen = (e: React.MouseEvent) => {

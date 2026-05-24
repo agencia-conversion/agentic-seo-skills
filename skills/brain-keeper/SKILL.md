@@ -91,12 +91,32 @@ area: "<slug da área editorial em brain/editorial.md>"
 
 `area:` must match an existing section slug in `brain/editorial.md`. If the area does not exist, create or propose the section with a logged `tipo: decisao` first.
 
+## Conteúdo consumível (no-gap rule)
+
+Hard rule. Brain pages, conteúdos públicos e logs são consumidos por outros agentes (Claude Code, sub-agents Agentic SEO, futuras sessões). Cada arquivo precisa ser auto-suficiente quando lido fora do contexto que o gerou.
+
+**Nunca deixar placeholders, `gap`, `<preencher>`, `TODO`, "a confirmar", "a definir", `[?]`, células vazias de tabela ou estruturas declaradas sem conteúdo.** Se a evidência não está disponível, faça uma das três coisas, nessa ordem:
+
+1. Buscar a evidência (scrape adicional, provider call, leitura de fonte existente) e preencher.
+2. Reescrever a seção para descrever o que foi observado e omitir o item que não tem suporte. Não escrever "não foi observado X" como linha solta. Quando o item não cabe, ele simplesmente não entra.
+3. Mover o item para `log.md` como `tipo: decisao` explicando a omissão e o critério para reintroduzir o item depois. O arquivo autoral em si fica limpo.
+
+Estruturas obrigatórias do schema brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) podem omitir subseções inteiras quando não há base. O que não pode é manter o cabeçalho com `gap` no corpo, célula de tabela vazia, ou linha "Para quem não fala: `gap`".
+
+Aplicar a regra em:
+- Brain pages.
+- Conteúdos publicados em `conteudos/`.
+- Workbench drafts que vão virar publicação.
+- Reports do Web Companion (`relatorios/<module>/<run-slug>/report.md`).
+
+Logs (`log.md`) podem citar lacunas observadas como `tipo: lint` ou `tipo: decisao`, com critério para reintroduzir.
+
 ## Lint mínimo
 
 Run before declaring done:
 
 - Every wikilink `[[...]]` resolves to a file in `brain/` or to a real anchor in an existing brain page.
-- Every factual claim in an authorial page cites a source or has a `gap` note.
+- Every factual claim in an authorial page cites a source. No `gap`, `TODO`, `<preencher>`, `[?]`, "a confirmar", "a definir" left in brain pages or `conteudos/`.
 - No `area:` in `conteudos/**/*.md` references a section slug that does not exist in `brain/editorial.md`.
 - No two log entries share the same `## YYYY-MM-DD - <título>` heading.
 - pt-BR text preserves accents.

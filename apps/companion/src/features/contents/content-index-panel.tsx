@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { VirtualPageShell } from '@/features/workspace/virtual-page-shell';
 import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from '@/hooks/use-page-path';
+import { Select } from '@/components/select';
+import { useI18n } from '@/components/i18n-provider';
 
 interface ContentRow {
   id: string;
@@ -31,6 +33,7 @@ interface FilterOption {
 export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string | null }) {
   const router = useRouter();
   const pagePath = usePagePath();
+  const { t } = useI18n();
   const token = useWorkspace((s) => s.token);
   const pages = useWorkspace((s) => s.pages);
   const setActivePage = useWorkspace((s) => s.setActivePage);
@@ -92,75 +95,73 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
   }, [origin, page, query, token, topicCluster]);
 
   return (
-    <VirtualPageShell title="Conteúdos">
-      <div className="mb-4 flex flex-col gap-3">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-notion-text-muted">
-            {loading ? 'Carregando conteúdos...' : `${total} conteúdo${total === 1 ? '' : 's'}`}
-          </div>
-          <label className="flex h-9 min-w-[240px] items-center gap-2 rounded-md border border-notion-border px-3 text-sm">
-            <Search className="h-4 w-4 text-notion-text-muted" />
-            <input
-              value={query}
-              onChange={(event) => {
-                setPage(1);
-                setQuery(event.target.value);
-              }}
-              placeholder="Buscar conteúdos"
-              className="w-full bg-transparent outline-none placeholder:text-notion-text-muted"
-            />
-          </label>
+    <VirtualPageShell title={t('project.contents')}>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="text-sm text-notion-text-muted">
+          {loading
+            ? t('contentIndex.loading')
+            : t(total === 1 ? 'contentIndex.countOne' : 'contentIndex.countOther', { count: total })}
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <select
-            value={origin}
+        <label className="flex h-9 min-w-[200px] flex-1 items-center gap-2 rounded-md border border-notion-border px-3 text-sm">
+          <Search className="h-4 w-4 text-notion-text-muted" />
+          <input
+            value={query}
             onChange={(event) => {
               setPage(1);
-              setOrigin(event.target.value);
+              setQuery(event.target.value);
             }}
-            className="h-9 rounded-md border border-notion-border bg-background px-3 text-sm text-notion-text outline-none"
-          >
-            <option value="">Todas as origens</option>
-            {origins.map((item) => (
-              <option key={item.id} value={item.id}>
-                {originLabel(item.id)} ({item.count})
-              </option>
-            ))}
-          </select>
-          <select
-            value={topicCluster}
-            onChange={(event) => {
-              setPage(1);
-              setTopicCluster(event.target.value);
-            }}
-            className="h-9 rounded-md border border-notion-border bg-background px-3 text-sm text-notion-text outline-none"
-          >
-            <option value="">Todos os Topic Clusters</option>
-            {topicClusters.map((item) => (
-              <option key={item.id} value={item.id}>
-                {(item.title || item.id) === '__none__' ? 'Sem cluster' : item.title || item.id} ({item.count})
-              </option>
-            ))}
-          </select>
-        </div>
+            placeholder={t('contentIndex.searchPlaceholder')}
+            className="w-full bg-transparent outline-none placeholder:text-notion-text-muted"
+          />
+        </label>
+        <Select
+          value={origin}
+          onChange={(value) => {
+            setPage(1);
+            setOrigin(value);
+          }}
+          options={[
+            { value: '', label: t('contentIndex.allOrigins') },
+            ...origins.map((item) => ({
+              value: item.id,
+              label: `${originLabel(t, item.id)} (${item.count})`,
+            })),
+          ]}
+          triggerClassName="h-9 rounded-md border border-notion-border bg-background px-3"
+        />
+        <Select
+          value={topicCluster}
+          onChange={(value) => {
+            setPage(1);
+            setTopicCluster(value);
+          }}
+          options={[
+            { value: '', label: t('contentIndex.allTopicClusters') },
+            ...topicClusters.map((item) => ({
+              value: item.id,
+              label: `${(item.title || item.id) === '__none__' ? t('contentIndex.noTopicCluster') : item.title || item.id} (${item.count})`,
+            })),
+          ]}
+          triggerClassName="h-9 rounded-md border border-notion-border bg-background px-3"
+        />
       </div>
 
       <div className="overflow-hidden rounded-md border border-notion-border">
         <table className="w-full table-fixed border-collapse text-sm">
           <thead className="bg-notion-sidebar text-left text-xs uppercase text-notion-text-muted">
             <tr>
-              <th className="px-3 py-2 font-medium">Conteúdo</th>
-              <th className="hidden w-32 px-3 py-2 font-medium md:table-cell">Origem</th>
-              <th className="hidden w-48 px-3 py-2 font-medium lg:table-cell">Topic Cluster</th>
-              <th className="hidden w-36 px-3 py-2 font-medium xl:table-cell">Área</th>
-              <th className="w-28 px-3 py-2 font-medium">Status</th>
+              <th className="px-3 py-2 font-medium">{t('contentIndex.columnContent')}</th>
+              <th className="hidden w-32 px-3 py-2 font-medium md:table-cell">{t('contentIndex.columnOrigin')}</th>
+              <th className="hidden w-48 px-3 py-2 font-medium lg:table-cell">{t('contentIndex.columnTopicCluster')}</th>
+              <th className="hidden w-36 px-3 py-2 font-medium xl:table-cell">{t('contentIndex.columnArea')}</th>
+              <th className="w-28 px-3 py-2 font-medium">{t('contentIndex.columnStatus')}</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-3 py-8 text-center text-sm text-notion-text-muted">
-                  Nenhum conteúdo encontrado.
+                  {t('contentIndex.emptyState')}
                 </td>
               </tr>
             )}
@@ -169,7 +170,7 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
                 key={row.id}
                 role="button"
                 tabIndex={0}
-                aria-label={`Abrir conteúdo ${row.title}`}
+                aria-label={t('contentIndex.openAria', { title: row.title })}
                 onClick={() => openRow(row)}
                 onKeyDown={(event) => {
                   if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -185,19 +186,19 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
                   </div>
                   <div className="mt-0.5 line-clamp-1 text-xs text-notion-text-muted">{row.excerpt || row.path}</div>
                   <div className="mt-1 flex flex-wrap gap-1 text-[11px] text-notion-text-muted md:hidden">
-                    <span>{originLabel(row.origin)}</span>
+                    <span>{originLabel(t, row.origin)}</span>
                     <span>·</span>
-                    <span>{row.topicClusterTitle || 'Sem cluster'}</span>
+                    <span>{row.topicClusterTitle || t('contentIndex.noTopicCluster')}</span>
                   </div>
                 </td>
-                <td className="hidden px-3 py-2 text-notion-text-muted md:table-cell">{originLabel(row.origin)}</td>
+                <td className="hidden px-3 py-2 text-notion-text-muted md:table-cell">{originLabel(t, row.origin)}</td>
                 <td className="hidden px-3 py-2 text-notion-text-muted lg:table-cell">
-                  <span className="line-clamp-2 break-words">{row.topicClusterTitle || 'Sem cluster'}</span>
+                  <span className="line-clamp-2 break-words">{row.topicClusterTitle || t('contentIndex.noTopicCluster')}</span>
                 </td>
                 <td className="hidden px-3 py-2 text-notion-text-muted xl:table-cell">
-                  <span className="line-clamp-2 break-words">{row.area || '-'}</span>
+                  <span className="line-clamp-2 break-words">{row.area || t('common.dateUnknown')}</span>
                 </td>
-                <td className="px-3 py-2 text-xs text-notion-text-muted">{statusLabel(row.status)}</td>
+                <td className="px-3 py-2 text-xs text-notion-text-muted">{statusLabel(t, row.status)}</td>
               </tr>
             ))}
           </tbody>
@@ -205,16 +206,14 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm text-notion-text-muted">
-        <span>
-          Página {page} de {totalPages}
-        </span>
+        <span>{t('common.pagination', { current: page, total: totalPages })}</span>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setPage((value) => Math.max(1, value - 1))}
             disabled={page <= 1}
             className="rounded-md border border-notion-border p-1.5 disabled:opacity-40"
-            aria-label="Página anterior"
+            aria-label={t('common.previousPage')}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -223,7 +222,7 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
             onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
             disabled={page >= totalPages}
             className="rounded-md border border-notion-border p-1.5 disabled:opacity-40"
-            aria-label="Próxima página"
+            aria-label={t('common.nextPage')}
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -233,16 +232,18 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
   );
 }
 
-function originLabel(value: string) {
-  if (value === 'blog') return 'Blog';
-  if (value === 'linkedin') return 'LinkedIn';
-  if (value === 'podcast') return 'Podcast';
-  if (value === 'outros') return 'Outros';
-  return value || '-';
+type Translator = (key: string, vars?: Record<string, string | number>) => string;
+
+function originLabel(t: Translator, value: string) {
+  if (value === 'blog') return t('contentIndex.origin.blog');
+  if (value === 'linkedin') return t('contentIndex.origin.linkedin');
+  if (value === 'podcast') return t('contentIndex.origin.podcast');
+  if (value === 'outros') return t('contentIndex.origin.outros');
+  return value || t('common.dateUnknown');
 }
 
-function statusLabel(value: string) {
-  if (value === 'published') return 'Publicado';
-  if (value === 'draft') return 'Rascunho';
-  return value || '-';
+function statusLabel(t: Translator, value: string) {
+  if (value === 'published') return t('contentIndex.statusPublished');
+  if (value === 'draft') return t('contentIndex.statusDraft');
+  return value || t('common.dateUnknown');
 }

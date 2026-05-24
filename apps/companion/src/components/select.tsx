@@ -17,6 +17,8 @@ interface SelectProps {
   options: SelectOption[];
   placeholder?: string;
   className?: string;
+  triggerClassName?: string;
+  disabled?: boolean;
   renderValue?: (option: SelectOption | undefined) => React.ReactNode;
 }
 
@@ -26,6 +28,8 @@ export function Select({
   options,
   placeholder = 'Select…',
   className,
+  triggerClassName,
+  disabled,
   renderValue,
 }: SelectProps) {
   const [open, setOpen] = useState(false);
@@ -112,11 +116,16 @@ export function Select({
       <button
         ref={triggerRef}
         type="button"
+        disabled={disabled}
         onClick={(e) => {
           e.stopPropagation();
+          if (disabled) return;
           setOpen((v) => !v);
         }}
-        className="flex items-center gap-1.5 bg-transparent border-none outline-none text-sm text-notion-text hover:bg-notion-hover rounded px-2 py-1 cursor-pointer transition-colors"
+        className={cn(
+          'flex items-center gap-1.5 bg-transparent border-none outline-none text-sm text-notion-text hover:bg-notion-hover rounded px-2 py-1 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+          triggerClassName
+        )}
       >
         <span className="truncate">
           {renderValue

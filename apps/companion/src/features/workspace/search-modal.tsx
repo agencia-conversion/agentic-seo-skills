@@ -64,7 +64,7 @@ export function SearchModal() {
                   placeholder={t('searchModal.placeholder')} 
                   className="flex-1 bg-transparent border-none outline-none text-sm text-notion-text placeholder:text-notion-text-muted"
                 />
-                <div className="text-[10px] font-medium text-notion-text-muted bg-notion-active px-1.5 py-0.5 rounded border border-notion-border">ESC</div>
+                <div className="text-[10px] font-medium text-notion-text-muted bg-notion-active px-1.5 py-0.5 rounded border border-notion-border">{t('searchModal.escape')}</div>
               </div>
 
               <Command.List className="max-h-[350px] overflow-y-auto p-2 scrollbar-hide">

@@ -22,7 +22,7 @@ export function resolveMentionHydration(
 ): MentionHydrationState {
   if (!pageId) {
     return {
-      text: '@unknown',
+      text: 'unknown',
       broken: true,
       title: 'This page is unavailable',
       slug: null,
@@ -33,7 +33,7 @@ export function resolveMentionHydration(
   const page = pages.find((candidate) => candidate.id === pageId);
   if (!page || page.trashed) {
     return {
-      text: page?.title ? `@${page.title}` : '@removed',
+      text: page?.title ? page.title : 'removed',
       broken: true,
       title: 'This page is unavailable',
       slug: null,
@@ -44,7 +44,7 @@ export function resolveMentionHydration(
   const anchorClean = String(anchor || '').trim();
   const label = String(alias || anchorClean || page.title || 'Untitled').trim();
   return {
-    text: `${page.icon ? `${page.icon} ` : ''}@${label}`,
+    text: `${page.icon ? `${page.icon} ` : ''}${label}`,
     broken: false,
     title: anchorClean ? `${page.title || 'Untitled'}#${anchorClean}` : page.title || 'Untitled',
     slug: page.slug,

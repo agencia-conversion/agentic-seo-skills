@@ -22,7 +22,7 @@ O brandbook narrativo (aposto, parágrafo, frase-marca, público, canais) vive e
 ## Mapa do brain
 
 - [[identidade]] — quem somos, público, posicionamento, canais
-- [[voz]] — princípios editoriais
+- [[voz]] — tom de voz e princípios editoriais
 - [[tecnologia]] — stack e SEO técnico
 - [[editorial]] — áreas de conteúdo
 - [[topic-clusters]] — clusters semânticos

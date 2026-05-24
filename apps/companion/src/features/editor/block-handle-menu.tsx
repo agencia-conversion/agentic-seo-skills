@@ -16,6 +16,7 @@ import {
   Trash2,
   Palette,
 } from 'lucide-react';
+import { useI18n } from '@/components/i18n-provider';
 
 interface BlockHandleMenuProps {
   editorRef: React.RefObject<any>;
@@ -28,6 +29,7 @@ interface MenuPosition {
 }
 
 export function BlockHandleMenu({ editorRef }: BlockHandleMenuProps) {
+  const { t } = useI18n();
   const [menu, setMenu] = useState<MenuPosition | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -123,15 +125,15 @@ export function BlockHandleMenu({ editorRef }: BlockHandleMenuProps) {
   };
 
   const turnItems = [
-    { label: 'Text', icon: <Type className="w-3.5 h-3.5" />, onClick: () => turnInto('p') },
-    { label: 'Heading 1', icon: <Heading1 className="w-3.5 h-3.5" />, onClick: () => turnInto(1) },
-    { label: 'Heading 2', icon: <Heading2 className="w-3.5 h-3.5" />, onClick: () => turnInto(2) },
-    { label: 'Heading 3', icon: <Heading3 className="w-3.5 h-3.5" />, onClick: () => turnInto(3) },
-    { label: 'Bullet List', icon: <List className="w-3.5 h-3.5" />, onClick: () => turnInto('bullet') },
-    { label: 'Numbered List', icon: <ListOrdered className="w-3.5 h-3.5" />, onClick: () => turnInto('ordered') },
-    { label: 'To-do List', icon: <ListTodo className="w-3.5 h-3.5" />, onClick: () => turnInto('todo') },
-    { label: 'Quote', icon: <Quote className="w-3.5 h-3.5" />, onClick: () => turnInto('quote') },
-    { label: 'Divider', icon: <Minus className="w-3.5 h-3.5" />, onClick: () => turnInto('divider') },
+    { label: t('blockMenu.text'), icon: <Type className="w-3.5 h-3.5" />, onClick: () => turnInto('p') },
+    { label: t('blockMenu.heading1'), icon: <Heading1 className="w-3.5 h-3.5" />, onClick: () => turnInto(1) },
+    { label: t('blockMenu.heading2'), icon: <Heading2 className="w-3.5 h-3.5" />, onClick: () => turnInto(2) },
+    { label: t('blockMenu.heading3'), icon: <Heading3 className="w-3.5 h-3.5" />, onClick: () => turnInto(3) },
+    { label: t('blockMenu.bulletList'), icon: <List className="w-3.5 h-3.5" />, onClick: () => turnInto('bullet') },
+    { label: t('blockMenu.numberedList'), icon: <ListOrdered className="w-3.5 h-3.5" />, onClick: () => turnInto('ordered') },
+    { label: t('blockMenu.todoList'), icon: <ListTodo className="w-3.5 h-3.5" />, onClick: () => turnInto('todo') },
+    { label: t('blockMenu.quote'), icon: <Quote className="w-3.5 h-3.5" />, onClick: () => turnInto('quote') },
+    { label: t('blockMenu.divider'), icon: <Minus className="w-3.5 h-3.5" />, onClick: () => turnInto('divider') },
   ];
 
   return createPortal(
@@ -142,7 +144,7 @@ export function BlockHandleMenu({ editorRef }: BlockHandleMenuProps) {
       onClick={(e) => e.stopPropagation()}
     >
       <div className="px-3 py-1 text-[10px] font-semibold text-notion-text-muted uppercase tracking-wider">
-        Turn into
+        {t('blockMenu.turnInto')}
       </div>
       {turnItems.map((it) => (
         <button
@@ -160,14 +162,14 @@ export function BlockHandleMenu({ editorRef }: BlockHandleMenuProps) {
         className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-notion-text hover:bg-notion-hover text-left cursor-pointer"
       >
         <Copy className="w-3.5 h-3.5" />
-        <span>Duplicate</span>
+        <span>{t('blockMenu.duplicate')}</span>
       </button>
       <button
         onClick={del}
         className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-red-500 hover:bg-red-500/10 text-left cursor-pointer"
       >
         <Trash2 className="w-3.5 h-3.5" />
-        <span>Delete</span>
+        <span>{t('blockMenu.delete')}</span>
       </button>
     </div>,
     document.body
