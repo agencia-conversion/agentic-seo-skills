@@ -8,7 +8,7 @@ export function displayPageTitle(page: Page, t: Translator): string {
   }
   if (page.id === 'virtual/contents') return t('project.contents');
   if (page.id === 'virtual/workbench') return t('project.workbench');
-  if (page.id === 'virtual/reports') return t('project.reports');
+  if (page.id === 'virtual/analyses') return t('project.reports');
   return page.title || t('common.untitled');
 }
 

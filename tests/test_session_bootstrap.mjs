@@ -29,8 +29,8 @@ try {
   assert.match(specific.additionalContext, /AGENTS\.md/);
   assert.match(specific.additionalContext, /report_md/);
   assert.match(specific.additionalContext, /browser_prompt/);
-  assert.match(specific.additionalContext, /Posso abrir o Web Companion para você ver o relatório\?/);
-  assert.match(specific.additionalContext, /project\/relatorios\//);
+  assert.match(specific.additionalContext, /Posso abrir o Web Companion para você ver a análise\?/);
+  assert.match(specific.additionalContext, /project\/analises\//);
   assert.match(specific.additionalContext, /humanos primeiro/);
   assert.match(specific.additionalContext, /project\/\.agentic-seo\/project\.json\.language/);
   assert.match(specific.additionalContext, /JSON bruto/);

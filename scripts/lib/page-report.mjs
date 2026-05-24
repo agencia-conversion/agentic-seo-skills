@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 import * as fs from "node:fs";
 import * as path from "node:path";
+import sharedModules from "../../shared/report-modules.js";
 
-export const REPORT_BROWSER_PROMPT_MESSAGE = "Posso abrir o Web Companion para você ver o relatório?";
+const {
+  REPORT_BROWSER_PROMPT_MESSAGE: SHARED_PROMPT,
+  REPORT_MODULE_IDS: SHARED_IDS,
+  REPORT_DIR_NAME: SHARED_DIR,
+} = sharedModules;
 
-export const REPORT_MODULE_IDS = new Set([
-  "technical-seo",
-  "internal-links",
-  "seo-analysis",
-  "keyword-research",
-  "serp-extract",
-  "backlink-analysis",
-  "topic-cluster",
-  "eeat",
-]);
+export const REPORT_BROWSER_PROMPT_MESSAGE = SHARED_PROMPT;
+
+export const REPORT_DIR_NAME = SHARED_DIR;
+
+export const REPORT_MODULE_IDS = new Set(SHARED_IDS);
 
 export function reportLocale(value) {
   const normalized = String(value || "").trim().toLowerCase();
@@ -39,7 +39,7 @@ export function slugifyReport(value) {
 
 export function reportMarkdownPath(projectDir, moduleId, runSlug) {
   if (!REPORT_MODULE_IDS.has(moduleId)) throw new Error(`Unsupported report module: ${moduleId}`);
-  return path.join(projectDir, "relatorios", moduleId, slugifyReport(runSlug), "report.md");
+  return path.join(projectDir, REPORT_DIR_NAME, moduleId, slugifyReport(runSlug), "report.md");
 }
 
 export function browserPrompt(reportMd, projectDir) {
@@ -70,7 +70,7 @@ function formatLogFileRefs(files) {
     if (
       normalized.startsWith("workbench/") ||
       normalized.startsWith("artifacts/") ||
-      normalized.startsWith("relatorios/") ||
+      normalized.startsWith(`${REPORT_DIR_NAME}/`) ||
       normalized.startsWith("../") ||
       normalized.startsWith("sources/") ||
       normalized.startsWith("audits/") ||

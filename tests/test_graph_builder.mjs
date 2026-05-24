@@ -32,6 +32,15 @@ for (const name of ['graph-builder', 'backlink-index', 'project-files']) {
   if (existsSync(js)) renameSync(js, mjs);
 }
 const fs = await import('node:fs');
+function patchSharedImport(file) {
+  fs.writeFileSync(
+    file,
+    fs.readFileSync(file, 'utf8').replaceAll("from '../../../../shared/report-modules'", "from '../../shared/report-modules.js'")
+  );
+}
+for (const name of ['graph-builder', 'backlink-index', 'project-files']) {
+  patchSharedImport(join(outDir, `${name}.mjs`));
+}
 fs.writeFileSync(
   join(outDir, 'graph-builder.mjs'),
   fs

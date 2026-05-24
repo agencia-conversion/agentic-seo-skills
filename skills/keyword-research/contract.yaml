@@ -1,0 +1,23 @@
+version: 1
+module: keyword-research
+canonical_path: "${report_dir}/keyword-research/${run_slug}/report.md"
+source_artifact_pattern: "keywords/${run_slug}/report.yaml"
+required_frontmatter: []
+required_sections:
+  - id: executive_summary
+    headings: ["Resumo executivo", "Executive summary"]
+  - id: keywords
+    headings: ["Keywords"]
+  - id: note
+    headings: ["Nota", "Note"]
+required_tables:
+  - id: keywords
+    section:
+      headings: ["Keywords"]
+    min_rows: 1
+    columns:
+      - key: keyword
+      - key: volume
+      - key: cpc
+      - key: competition
+        aliases: ["competicao"]

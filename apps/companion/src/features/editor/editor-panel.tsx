@@ -32,6 +32,7 @@ import {
   Underline,
   X,
 } from 'lucide-react';
+import { REPORT_DIR_NAME } from '../../../../../shared/report-modules';
 import { useWorkspace } from '../workspace/store';
 import { cn } from '@/lib/utils';
 import { useClickOutside } from '@/hooks/use-click-outside';
@@ -299,7 +300,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   ]);
 
   const handleReportScoreRecalculated = useCallback((result: ReportScoreResult) => {
-    if (!activePage?.path.startsWith('relatorios/')) return;
+    if (!activePage?.path.startsWith(`${REPORT_DIR_NAME}/`)) return;
     updatePage(activePage.id, {
       frontmatter: {
         ...(activePage.frontmatter || {}),
@@ -467,7 +468,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                           setShowMenu(false);
                         }}
                       />
-                      {!activePage.readOnly && activePage.path !== 'brain/log.md' && !activePage.path.startsWith('relatorios/') && (
+                      {!activePage.readOnly && activePage.path !== 'brain/log.md' && !activePage.path.startsWith(`${REPORT_DIR_NAME}/`) && (
                         <MenuAction
                           icon={<Trash2 className="w-4 h-4" />}
                           label={t('common.delete')}

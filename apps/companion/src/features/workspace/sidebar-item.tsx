@@ -3,6 +3,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronRight, Copy, FileText, MoreHorizontal, Star, StarOff, Trash2 } from 'lucide-react';
+import { REPORT_DIR_NAME } from '../../../../../shared/report-modules';
 import { Page, useWorkspace } from './store';
 import { cn } from '@/lib/utils';
 import { usePagePath } from '@/hooks/use-page-path';
@@ -62,8 +63,8 @@ function SidebarItemImpl({
     () => [...childPages].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
     [childPages]
   );
+  const canDelete = page.kind === 'file' && !page.readOnly && page.path !== 'brain/log.md' && !page.path.startsWith(`${REPORT_DIR_NAME}/`);
   const displayTitle = displayPageTitle(page, t);
-  const canDelete = page.kind === 'file' && !page.readOnly && page.path !== 'brain/log.md' && !page.path.startsWith('relatorios/');
 
   const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();

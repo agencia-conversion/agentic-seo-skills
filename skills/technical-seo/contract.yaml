@@ -1,0 +1,41 @@
+version: 1
+module: technical-seo
+canonical_path: "${report_dir}/technical-seo/${run_slug}/report.md"
+source_artifact_pattern: "audits/${run_slug}/report.yaml"
+required_frontmatter: []
+required_sections:
+  - id: executive_summary
+    headings: ["Resumo executivo", "Executive summary"]
+  - id: meta_indexability
+    headings: ["Meta e indexabilidade", "Meta and indexability"]
+  - id: fix_priorities
+    headings: ["Prioridades de correção", "Fix priorities"]
+  - id: calculation_memory
+    headings: ["Apêndice: memória de cálculo", "Appendix: calculation memory"]
+required_tables:
+  - id: meta_indexability
+    section:
+      headings: ["Meta e indexabilidade", "Meta and indexability"]
+    min_rows: 1
+    columns:
+      - key: signal
+        aliases: ["sinal"]
+      - key: value
+        aliases: ["valor"]
+  - id: calculation_memory
+    section:
+      headings: ["Apêndice: memória de cálculo", "Appendix: calculation memory"]
+    min_rows: 1
+    columns:
+      - key: check
+      - key: severity
+        aliases: ["severidade"]
+      - key: status
+      - key: weight
+        aliases: ["peso"]
+      - key: points
+        aliases: ["pontos"]
+      - key: loss
+        aliases: ["perda"]
+      - key: human_evidence
+        aliases: ["evidencia_humana"]

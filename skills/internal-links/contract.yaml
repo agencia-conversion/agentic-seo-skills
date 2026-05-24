@@ -1,0 +1,45 @@
+version: 1
+module: internal-links
+canonical_path: "${report_dir}/internal-links/${run_slug}/report.md"
+source_artifact_pattern: "audits/internal-links-${run_slug}/report.yaml"
+required_frontmatter: []
+required_sections:
+  - id: executive_summary
+    headings: ["Resumo executivo", "Executive summary"]
+  - id: recommendations
+    headings: ["Recomendações", "Recommendations"]
+  - id: blocked_candidates
+    headings: ["Candidatos bloqueados", "Blocked candidates"]
+  - id: limitations
+    headings: ["Limitações", "Limitations"]
+required_tables:
+  - id: recommendations
+    section:
+      headings: ["Recomendações", "Recommendations"]
+    min_rows: 1
+    min_complete_rows: 1
+    columns:
+      - key: source_url
+        aliases: ["fonte", "source"]
+      - key: target_url
+        aliases: ["destino", "target"]
+      - key: anchor_text
+        aliases: ["anchor"]
+      - key: before
+        aliases: ["antes"]
+      - key: after
+        aliases: ["depois"]
+      - key: status
+      - key: action
+        aliases: ["acao_recomendada", "recommended_action"]
+    row_required_fields:
+      - key: source_url
+        aliases: ["fonte", "source"]
+      - key: target_url
+        aliases: ["destino", "target"]
+      - key: anchor_text
+        aliases: ["anchor"]
+      - key: before
+        aliases: ["antes"]
+      - key: after
+        aliases: ["depois"]

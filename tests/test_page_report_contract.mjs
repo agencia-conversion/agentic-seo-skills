@@ -39,9 +39,9 @@ function bypassArgs(reason) {
 
 function assertReport(result, moduleId) {
   assert.ok(result.report_md, `${moduleId} missing report_md`);
-  assert.ok(result.report_md.startsWith(join("relatorios", moduleId)), `${moduleId} report path mismatch`);
+  assert.ok(result.report_md.startsWith(join("analises", moduleId)), `${moduleId} report path mismatch`);
   assert.equal(result.browser_prompt?.recommended, true);
-  assert.equal(result.browser_prompt.message, "Posso abrir o Web Companion para você ver o relatório?");
+  assert.equal(result.browser_prompt.message, "Posso abrir o Web Companion para você ver a análise?");
   assert.equal(existsSync(join(projectDir, result.report_md)), true, `${moduleId} report file missing`);
   assert.equal(result.report_html, undefined, `${moduleId} returned report_html`);
   const text = readFileSync(join(projectDir, result.report_md), "utf8");

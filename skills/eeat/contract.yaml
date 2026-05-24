@@ -1,0 +1,24 @@
+version: 1
+module: eeat
+canonical_path: "${report_dir}/eeat/${run_slug}/report.md"
+source_artifact_pattern: "workbench/eeat/${run_slug}/report.json"
+required_frontmatter:
+  - score
+required_sections:
+  - id: executive_summary
+    headings: ["Resumo executivo", "Executive summary"]
+  - id: pillar_assessment
+    headings: ["Avaliação por pilar", "Score por pilar", "Pillar assessment", "Pillar scores"]
+  - id: prioritized_gaps
+    headings: ["Lacunas priorizadas", "Issues priorizadas", "Prioritized gaps", "Prioritized issues"]
+  - id: limitations
+    headings: ["Limitações", "Limitations"]
+required_tables:
+  - id: pillar_assessment
+    section:
+      headings: ["Avaliação por pilar", "Score por pilar", "Pillar assessment", "Pillar scores"]
+    min_rows: 4
+    columns:
+      - key: pillar
+        aliases: ["pilar"]
+      - key: score

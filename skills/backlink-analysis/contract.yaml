@@ -1,0 +1,24 @@
+version: 1
+module: backlink-analysis
+canonical_path: "${report_dir}/backlink-analysis/${run_slug}/report.md"
+source_artifact_pattern: "audits/backlinks-${run_slug}/report.yaml"
+required_frontmatter: []
+required_sections:
+  - id: executive_summary
+    headings: ["Resumo executivo", "Executive summary"]
+  - id: comparison
+    headings: ["Comparativo", "Comparison"]
+  - id: backlink_sample
+    headings: ["Amostra de backlinks", "Backlink sample"]
+required_tables:
+  - id: comparison
+    section:
+      headings: ["Comparativo", "Comparison"]
+    min_rows: 1
+    columns:
+      - key: target
+      - key: backlinks
+      - key: referring_domains
+        aliases: ["dominios_ref", "ref_domains"]
+      - key: rank
+      - key: spam

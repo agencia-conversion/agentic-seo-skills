@@ -31,6 +31,14 @@ for (const name of ['agentic-query', 'project-files']) {
   if (existsSync(js)) renameSync(js, mjs);
 }
 const fs = await import('node:fs');
+function patchSharedImport(file) {
+  fs.writeFileSync(
+    file,
+    fs.readFileSync(file, 'utf8').replaceAll("from '../../../../shared/report-modules'", "from '../../shared/report-modules.js'")
+  );
+}
+patchSharedImport(join(outDir, 'agentic-query.mjs'));
+patchSharedImport(join(outDir, 'project-files.mjs'));
 fs.writeFileSync(
   join(outDir, 'agentic-query.mjs'),
   fs

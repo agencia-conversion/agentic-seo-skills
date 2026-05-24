@@ -175,4 +175,3 @@ export function WorkbenchIndexPanel() {
     </VirtualPageShell>
   );
 }
-

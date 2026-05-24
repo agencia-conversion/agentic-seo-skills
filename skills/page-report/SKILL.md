@@ -17,7 +17,7 @@ Do not use this skill for public content drafts, approval handoffs, inline chat 
 
 ## Critical Points
 
-- The canonical report path is `project/relatorios/<module>/<run-slug>/report.md`.
+- The canonical report path is `project/analises/<module>/<run-slug>/report.md`.
 - The report is the editable human presentation layer. Raw evidence, normalized YAML/JSON, logs, and operational artifacts stay in `sources/`, `audits/`, `keywords/`, `clusters/`, `eeat/`, or `workbench/`.
 - Frontmatter must include `title`, `slug`, `report_type`, `generated_at`, `status`, `source_artifact`, and `summary`; include `score` only when the module has a real score.
 - Do not write `# <title>` in the Markdown body. The Companion renders the title from frontmatter.
@@ -25,15 +25,17 @@ Do not use this skill for public content drafts, approval handoffs, inline chat 
 - New visual fences must be YAML with `version: 1`: `agentic-kpis`, `agentic-chart`, and `agentic-table`. JSON fences are legacy read compatibility only.
 - Tables must use stable lower-snake ASCII `key` values. User-facing `label` values may be translated or edited without changing keys.
 - Calculation tables must mark columns with `role: weight`, `role: points`, and `role: loss` so score recalculation survives label edits.
+- Each report-producing module has `skills/<module>/contract.yaml` and `templates/analises/<module>/report-skeleton.md`; keep required H2 sections and table keys from the skeleton.
+- Before declaring a manual report done, run `npm run validate:reports -- --module=<module> --slug=<run-slug>` or use `scripts/lib/report-writer.mjs`, which refuses invalid reports before writing.
 - Never paste raw provider JSON, object arrays, `[object Object]`, internal IDs, or snake_case evidence into the visual body. Convert evidence into natural language and readable tables.
-- Always return `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver o relatório?", open_with: "project-browser" }`.
+- Always return `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`.
 - Register the generated report in `project/brain/log.md` as `tipo: decisao` unless a more specific log type is required.
 
 ## Framework
 
 ### 1. Build The Source Artifact
 
-Write the module's authoritative machine-readable artifact first. It may be YAML or JSON, but it must remain outside `project/relatorios/` and be referenced by frontmatter `source_artifact`.
+Write the module's authoritative machine-readable artifact first. It may be YAML or JSON, but it must remain outside `project/analises/` and be referenced by frontmatter `source_artifact`.
 
 ### 2. Render The Human Page
 

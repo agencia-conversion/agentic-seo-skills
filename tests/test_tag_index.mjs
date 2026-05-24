@@ -33,6 +33,14 @@ const pfMjs = join(outDir, 'project-files.mjs');
 if (existsSync(pfJs)) renameSync(pfJs, pfMjs);
 // Patch import in tag-index.mjs to use .mjs extension.
 const fs = await import('node:fs');
+function patchSharedImport(file) {
+  fs.writeFileSync(
+    file,
+    fs.readFileSync(file, 'utf8').replaceAll("from '../../../../shared/report-modules'", "from '../../shared/report-modules.js'")
+  );
+}
+patchSharedImport(mjsFile);
+patchSharedImport(pfMjs);
 fs.writeFileSync(
   mjsFile,
   fs.readFileSync(mjsFile, 'utf8').replace("from './project-files'", "from './project-files.mjs'")

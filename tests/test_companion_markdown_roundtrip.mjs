@@ -211,7 +211,7 @@ assert.match(reportBlockDataSource, /JSON\.parse/);
 assert.match(reportBlockDataSource, /calculateScoreFromTable/);
 
 const pageWidthSource = readFileSync("apps/companion/src/features/workspace/page-width.ts", "utf8");
-assert.match(pageWidthSource, /relatorios\//);
+assert.match(pageWidthSource, /REPORT_DIR_NAME/);
 assert.match(pageWidthSource, /return 'lg'/);
 
 const globalCssSource = readFileSync("apps/companion/src/app/globals.css", "utf8");

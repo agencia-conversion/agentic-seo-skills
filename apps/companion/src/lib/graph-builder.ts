@@ -2,8 +2,9 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { buildBacklinkIndex, type LinkKind } from './backlink-index';
 import { parseFrontmatter } from './project-files';
+import { REPORT_DIR_NAME } from '../../../../shared/report-modules';
 
-export type GraphSection = 'brain' | 'conteudos' | 'workbench' | 'relatorios' | 'other';
+export type GraphSection = 'brain' | 'conteudos' | 'workbench' | 'analises' | 'other';
 
 export interface GraphNode {
   id: string;
@@ -33,7 +34,7 @@ function sectionFor(path: string): GraphSection {
   if (path.startsWith('brain/')) return 'brain';
   if (path.startsWith('conteudos/')) return 'conteudos';
   if (path.startsWith('workbench/')) return 'workbench';
-  if (path.startsWith('relatorios/')) return 'relatorios';
+  if (path.startsWith(`${REPORT_DIR_NAME}/`)) return 'analises';
   return 'other';
 }
 

@@ -28,6 +28,11 @@ assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
 const jsFile = join(outDir, 'backlink-index.js');
 const mjsFile = join(outDir, 'backlink-index.mjs');
 if (existsSync(jsFile)) renameSync(jsFile, mjsFile);
+const fs = await import('node:fs');
+fs.writeFileSync(
+  mjsFile,
+  fs.readFileSync(mjsFile, 'utf8').replaceAll("from '../../../../shared/report-modules'", "from '../../shared/report-modules.js'")
+);
 
 const { buildBacklinkIndex, backlinksFor, outgoingFor, brokenList, resolveWikilinkTarget } = await import(`../${mjsFile}`);
 

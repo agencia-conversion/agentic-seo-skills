@@ -211,7 +211,7 @@ When projection is requested, regenerate `project/brain/topic-clusters.md` from 
 
 ### Default delivery
 
-Follow the shared `page-report` contract. The module-specific source artifact is `project/clusters/<seed-slug>/cluster.json`; the Companion page is `project/relatorios/topic-cluster/<seed-slug>/report.md`. Present pillar/support decisions, intent, evidence gaps, and provenance in human-readable prose and tables with friendly field names; never paste raw cluster JSON, SERP JSON, or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analises/topic-cluster/report-skeleton.md`. The module-specific source artifact is `project/clusters/<seed-slug>/cluster.json`; the Companion page is `project/analises/topic-cluster/<seed-slug>/report.md`. Present one pillar plus support pages, intent, evidence gaps, and provenance in human-readable prose and tables with friendly field names; never paste raw cluster JSON, SERP JSON, or object arrays into the visual report body.
 
 ## Examples
 

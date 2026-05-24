@@ -1,8 +1,9 @@
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { parseFrontmatter } from './project-files';
+import { REPORT_DIR_NAME } from '../../../../shared/report-modules';
 
-const SCAN_ROOTS = ['brain', 'conteudos', 'workbench', 'relatorios'] as const;
+const SCAN_ROOTS = ['brain', 'conteudos', 'workbench', REPORT_DIR_NAME] as const;
 const INLINE_TAG_RE = /(?:^|\s)#([a-z0-9][a-z0-9-_/]*)/gi;
 const TAG_NORMALIZER = /[^a-z0-9-_/]/g;
 
