@@ -1,0 +1,27 @@
+version: 1
+module: seo-analysis
+canonical_path: "${report_dir}/seo-analysis/${run_slug}/report.md"
+source_artifact_pattern: "audits/seo-analysis-${run_slug}/report.yaml"
+required_frontmatter: []
+required_sections:
+  - id: executive_summary
+    headings: ["Resumo executivo", "Executive summary"]
+  - id: top_results
+    headings: ["Top resultados", "Top results"]
+  - id: gaps_hypotheses
+    headings: ["Lacunas e hipóteses", "Gaps and hypotheses"]
+  - id: limitations
+    headings: ["Limitações", "Limitations"]
+required_tables:
+  - id: top_results
+    section:
+      headings: ["Top resultados", "Top results"]
+    min_rows: 0
+    columns:
+      - key: position
+        aliases: ["posicao"]
+      - key: title
+        aliases: ["titulo"]
+      - key: domain
+        aliases: ["dominio"]
+      - key: url

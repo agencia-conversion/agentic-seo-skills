@@ -1,0 +1,43 @@
+version: 1
+module: topic-cluster
+canonical_path: "${report_dir}/topic-cluster/${run_slug}/report.md"
+source_artifact_pattern: "clusters/${run_slug}/cluster.json"
+required_frontmatter: []
+required_sections:
+  - id: executive_summary
+    headings: ["Resumo executivo", "Executive summary"]
+  - id: pillar
+    headings: ["Pilar", "Pillar"]
+  - id: supports
+    headings: ["Supports", "Suportes"]
+  - id: provenance
+    headings: ["Apêndice: proveniência", "Appendix: provenance"]
+required_tables:
+  - id: pillar
+    section:
+      headings: ["Pilar", "Pillar"]
+    min_rows: 1
+    columns:
+      - key: role
+        aliases: ["papel"]
+      - key: slug
+      - key: keyword
+      - key: volume
+      - key: intent
+        aliases: ["intencao"]
+  - id: supports
+    section:
+      headings: ["Supports", "Suportes"]
+    min_rows: 3
+    min_rows_overrides:
+      - source_path: "data_provenance.hypothesis_only"
+        equals: true
+        min_rows: 0
+    columns:
+      - key: role
+        aliases: ["papel"]
+      - key: slug
+      - key: keyword
+      - key: volume
+      - key: intent
+        aliases: ["intencao"]

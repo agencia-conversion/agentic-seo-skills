@@ -1,3 +1,4 @@
+import { REPORT_DIR_NAME } from '@shared/report-modules';
 import { TranslationKey } from '@/lib/i18n';
 import { Page, PageWidth } from './store';
 
@@ -41,11 +42,11 @@ export function resolvePageWidth(
   if (!pageId) return defaultWidth;
   let current: Page | undefined = pages.find((p) => p.id === pageId);
   while (current) {
-    if (current.path?.startsWith('relatorios/') && current.width === 'full') return 'lg';
+    if (current.path?.startsWith(`${REPORT_DIR_NAME}/`) && current.width === 'full') return 'lg';
     if (current.width) return current.width;
     if (!current.parentId) break;
     current = pages.find((p) => p.id === current!.parentId);
   }
-  if (pages.find((p) => p.id === pageId)?.path?.startsWith('relatorios/') && defaultWidth === 'full') return 'lg';
+  if (pages.find((p) => p.id === pageId)?.path?.startsWith(`${REPORT_DIR_NAME}/`) && defaultWidth === 'full') return 'lg';
   return defaultWidth;
 }

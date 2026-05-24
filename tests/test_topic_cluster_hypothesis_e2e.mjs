@@ -23,8 +23,8 @@ try {
   assert.equal(cluster.seed, "agentic seo");
   assert.equal(cluster.status, "hypothesis");
   assert.equal(cluster.browser_prompt.recommended, true);
-  assert.equal(cluster.browser_prompt.message, "Posso abrir o Web Companion para você ver o relatório?");
-  assert.equal(cluster.report_md, path.join("relatorios", "topic-cluster", "agentic-seo", "report.md"));
+  assert.equal(cluster.browser_prompt.message, "Posso abrir o Web Companion para você ver a análise?");
+  assert.equal(cluster.report_md, path.join("analises", "topic-cluster", "agentic-seo", "report.md"));
   assert.ok(existsSync(path.join(PROJECT_DIR, cluster.report_md)));
   assert.equal(existsSync(path.join(PROJECT_DIR, "clusters", "agentic-seo", "report.html")), false);
   assert.equal(cluster.data_provenance.hypothesis_only, true);

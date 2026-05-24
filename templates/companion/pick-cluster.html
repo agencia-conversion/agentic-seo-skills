@@ -217,14 +217,14 @@
     btn.classList.remove("warn");
 
     if (isHyp) {
-      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>relatório JSON</strong> (sem brain, modo hipótese)</span>`;
+      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>análise JSON</strong> (sem brain, modo hipótese)</span>`;
       btn.textContent = "Salvar como hipótese";
       btn.classList.add("warn");
     } else if (keptCount >= 3) {
-      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>brain/topic-clusters.md + relatório JSON</strong></span>`;
+      summary.innerHTML = `<span><strong>${keptCount}/${total}</strong> supporting mantidas</span><span>destino: <strong>brain/topic-clusters.md + análise JSON</strong></span>`;
       btn.textContent = "Salvar cluster (rascunho no brain)";
     } else {
-      summary.innerHTML = `<span class="alert"><strong>${keptCount}/${total}</strong> mantidas — mínimo 3 para entrar no brain</span><span>destino atual: <strong>relatório JSON</strong> com status <code>needs-supporting</code></span>`;
+      summary.innerHTML = `<span class="alert"><strong>${keptCount}/${total}</strong> mantidas — mínimo 3 para entrar no brain</span><span>destino atual: <strong>análise JSON</strong> com status <code>needs-supporting</code></span>`;
       btn.textContent = "Salvar como needs-supporting (sem brain)";
     }
   }

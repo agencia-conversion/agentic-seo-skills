@@ -12,7 +12,7 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { usePagePath } from '@/hooks/use-page-path';
 import { projectSlugMatches } from '@/lib/project-slugs';
 import { useI18n } from '@/components/i18n-provider';
-import { ReportModulePanel } from '@/features/reports/report-module-panel';
+import { AnalysesIndexPanel } from '@/features/analyses/analyses-index-panel';
 import { ContentIndexPanel } from '@/features/contents/content-index-panel';
 import { WorkbenchIndexPanel } from '@/features/workbench/workbench-index-panel';
 
@@ -113,8 +113,8 @@ export default function ProjectPage() {
           <WorkbenchIndexPanel />
         ) : activePage?.kind === 'contentIndex' ? (
           <ContentIndexPanel topicClusterId={activePage.contentTopicClusterId} />
-        ) : activePage?.kind === 'reportIndex' || activePage?.kind === 'reportModule' ? (
-          <ReportModulePanel moduleId={activePage.reportModuleId} />
+        ) : activePage?.kind === 'analysisIndex' ? (
+          <AnalysesIndexPanel moduleId={activePage.reportModuleId} />
         ) : (
           <EditorPanel />
         )}

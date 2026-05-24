@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
     listReports({
       projectRoot: projectRoot(),
       moduleId,
+      status: req.nextUrl.searchParams.get('status') || '',
       page: Number(req.nextUrl.searchParams.get('page') || 1),
       pageSize: Number(req.nextUrl.searchParams.get('pageSize') || 25),
       query: req.nextUrl.searchParams.get('query') || '',

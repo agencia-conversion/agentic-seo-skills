@@ -65,7 +65,6 @@ const PROJECT_DIR = resolveProjectDir();
 const TEMPLATES_DIR = path.join(ROOT, "templates", "project");
 const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
 const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
-const REPORT_BROWSER_PROMPT_MESSAGE = "Posso abrir o Web Companion para você ver o relatório?";
 const REQUIRED_BRAIN_PAGES = [
     "index.md",
     "identidade.md",
@@ -84,16 +83,11 @@ const AUTHORIAL_BRAIN_PAGES = new Set([
     "topic-clusters.md",
 ]);
 const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "outros"]);
-const REPORT_MODULE_IDS = [
-    "technical-seo",
-    "internal-links",
-    "seo-analysis",
-    "keyword-research",
-    "serp-extract",
-    "backlink-analysis",
-    "topic-cluster",
-    "eeat",
-];
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sharedReportModules = require("../../shared/report-modules.js");
+const REPORT_MODULE_IDS = sharedReportModules.REPORT_MODULE_IDS;
+const REPORT_DIR_NAME = sharedReportModules.REPORT_DIR_NAME;
+const REPORT_BROWSER_PROMPT_MESSAGE = sharedReportModules.REPORT_BROWSER_PROMPT_MESSAGE;
 function nowIso() {
     return new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
 }
@@ -209,7 +203,7 @@ function reportRunSlug(value) {
     return slugify(value).slice(0, 96);
 }
 function reportMarkdownPath(projectDir, moduleId, runSlug) {
-    return path.join(projectDir, "relatorios", moduleId, reportRunSlug(runSlug), "report.md");
+    return path.join(projectDir, REPORT_DIR_NAME, moduleId, reportRunSlug(runSlug), "report.md");
 }
 function browserPrompt(reportMd, projectDir) {
     return {
@@ -226,7 +220,7 @@ function attachReportPrompt(data, reportMd, projectDir) {
         browser_prompt: browserPrompt(reportMd, projectDir),
     };
 }
-function writeMarkdownReport(file, payload) {
+function renderMarkdownReportContent(payload) {
     const rendered = (0, node_child_process_1.spawnSync)(process.execPath, [path.join(ROOT, "scripts", "lib", "markdown-report.mjs")], {
         cwd: ROOT,
         encoding: "utf8",
@@ -237,11 +231,38 @@ function writeMarkdownReport(file, payload) {
         throw new CliError(`Markdown report failed: ${rendered.error.message}`);
     if (rendered.status !== 0)
         throw new CliError(`Markdown report failed: ${rendered.stderr || rendered.stdout || "unknown error"}`);
-    writeText(file, rendered.stdout);
+    return rendered.stdout;
+}
+function writeMarkdownReportOrThrow(projectDir, reportMd, payload) {
+    const rel = path.relative(projectDir, reportMd).replace(/\\/g, "/");
+    const parts = rel.split("/");
+    const markdown = renderMarkdownReportContent(payload);
+    const sourceArtifact = payload.sourceArtifact || payload.source_artifact;
+    const writer = (0, node_child_process_1.spawnSync)(process.execPath, [
+        path.join(ROOT, "scripts", "lib", "report-writer.mjs"),
+        "--project",
+        projectDir,
+        "--module",
+        parts[1],
+        "--slug",
+        parts[2],
+        "--source-artifact",
+        String(sourceArtifact || ""),
+        "--no-log",
+    ], {
+        cwd: ROOT,
+        encoding: "utf8",
+        input: markdown,
+        maxBuffer: 20 * 1024 * 1024,
+    });
+    if (writer.error)
+        throw new CliError(`Report writer failed: ${writer.error.message}`);
+    if (writer.status !== 0)
+        throw new CliError(`Report writer failed: ${writer.stderr || writer.stdout || "unknown error"}`);
 }
 function completeReportWorkflow(data, options) {
     const locale = reportLocale(options.payload.locale || projectSettings(options.projectDir).language);
-    writeMarkdownReport(options.reportMd, { locale, ...options.payload });
+    writeMarkdownReportOrThrow(options.projectDir, options.reportMd, { locale, ...options.payload });
     const reportRel = path.relative(options.projectDir, options.reportMd);
     const files = Array.from(new Set([...options.files, reportRel]));
     appendLog(options.eventType, options.title, files, options.summary, options.approval || "not-required");
@@ -376,7 +397,7 @@ function formatLogFileRefs(files) {
         return "n/a";
     return files.map((f) => {
         const normalized = f.replace(/\\/g, "/").replace(/\.md$/, "");
-        if (normalized.startsWith("workbench/") || normalized.startsWith("artifacts/") || normalized.startsWith("relatorios/") || normalized.startsWith("../") || normalized.startsWith("sources/") || normalized.includes("."))
+        if (normalized.startsWith("workbench/") || normalized.startsWith("artifacts/") || normalized.startsWith(`${REPORT_DIR_NAME}/`) || normalized.startsWith("../") || normalized.startsWith("sources/") || normalized.includes("."))
             return f;
         return `[[${normalized}]]`;
     }).join(", ");
@@ -1636,6 +1657,20 @@ function textSnippet(text, needles, locale) {
     const suffix = end < clean.length ? "..." : "";
     return `${prefix}${clean.slice(start, end)}${suffix}`;
 }
+function textBeforeAfter(text, needle) {
+    const clean = text.replace(/\s+/g, " ").trim();
+    const term = String(needle || "").trim();
+    if (!clean || !term)
+        return { before: "", after: "" };
+    const lower = clean.toLowerCase();
+    const index = lower.indexOf(term.toLowerCase());
+    if (index === -1)
+        return { before: clean.slice(0, 120), after: clean.slice(120, 260) };
+    return {
+        before: clean.slice(Math.max(0, index - 140), index).trim(),
+        after: clean.slice(index + term.length, Math.min(clean.length, index + term.length + 180)).trim(),
+    };
+}
 function uniqueInternalLinkKey(page, index) {
     return String(page.id || page.url || page.path || page.title || `page-${index + 1}`);
 }
@@ -1700,6 +1735,7 @@ function buildInternalLinksReport(input, args, projectDir) {
             blocked.push({ source_url: url, reason: reportText(locale, "Já existe link para o destino.", "A link to the target already exists."), evidence });
         }
         else if (matchedTerm) {
+            const context = textBeforeAfter(text, matchedTerm);
             recommendations.push({
                 id: `il-${String(recommendations.length + 1).padStart(2, "0")}`,
                 direction: "inbound",
@@ -1708,7 +1744,10 @@ function buildInternalLinksReport(input, args, projectDir) {
                 source_title: normalized.title,
                 target_url: targetUrl.href,
                 target_title: targetPage?.title || topic,
+                anchor_text: matchedTerm,
                 suggested_anchor: matchedTerm,
+                before: context.before,
+                after: context.after,
                 evidence,
                 action: reportText(locale, `Adicionar um link contextual para ${targetPath} usando "${matchedTerm}" como âncora, se o parágrafo continuar natural.`, `Add a contextual link to ${targetPath} using "${matchedTerm}" as anchor if the paragraph still reads naturally.`),
             });
@@ -1761,11 +1800,12 @@ function buildInternalLinksReportPayload(report, localeInput) {
     const recommendations = report.recommendations || [];
     const blocked = report.blocked_candidates || [];
     const recommendationRows = recommendations.map((item) => [
-        item.source_title || item.source_url,
-        item.target_title || report.target?.title || unavailable(locale),
-        item.suggested_anchor || unavailable(locale),
+        item.source_url || item.source_title || unavailable(locale),
+        item.target_url || report.target?.url || unavailable(locale),
+        item.anchor_text || item.suggested_anchor || unavailable(locale),
+        item.before || unavailable(locale),
+        item.after || unavailable(locale),
         statusLabel(item.status, locale),
-        item.evidence || unavailable(locale),
         item.action || unavailable(locale),
     ]);
     const blockedRows = blocked.map((item) => [
@@ -1795,7 +1835,7 @@ function buildInternalLinksReportPayload(report, localeInput) {
             }],
         sections: [
             { heading: reportText(locale, "Resumo executivo", "Executive summary"), body_markdown: reportText(locale, `Foram analisadas **${(report.pages_analyzed || []).length} páginas** para encontrar links internos até **${report.target?.path || report.target?.url}**. O relatório encontrou **${recommendations.length} oportunidades** que precisam de revisão humana antes de aplicação.`, `Analyzed **${(report.pages_analyzed || []).length} pages** to find internal links to **${report.target?.path || report.target?.url}**. The report found **${recommendations.length} opportunities** that need human review before applying.`) },
-            { heading: reportText(locale, "Oportunidades recomendadas", "Recommended opportunities"), body_markdown: recommendationRows.length ? reportTable([reportText(locale, "Fonte", "Source"), reportText(locale, "Destino", "Target"), "Anchor", "Status", reportText(locale, "Evidência", "Evidence"), reportText(locale, "Ação recomendada", "Recommended action")], recommendationRows, locale) : reportText(locale, "Nenhuma oportunidade recomendada com a evidência atual.", "No recommended opportunity with the current evidence.") },
+            { heading: reportText(locale, "Recomendações", "Recommendations"), body_markdown: recommendationRows.length ? reportTable([{ key: "source_url", label: reportText(locale, "Fonte", "Source") }, { key: "target_url", label: reportText(locale, "Destino", "Target") }, { key: "anchor_text", label: "Anchor" }, { key: "before", label: reportText(locale, "Antes", "Before") }, { key: "after", label: reportText(locale, "Depois", "After") }, { key: "status", label: "Status" }, { key: "action", label: reportText(locale, "Ação recomendada", "Recommended action") }], recommendationRows, locale) : reportText(locale, "Nenhuma oportunidade recomendada com a evidência atual.", "No recommended opportunity with the current evidence.") },
             { heading: reportText(locale, "Candidatos bloqueados", "Blocked candidates"), body_markdown: blockedRows.length ? reportTable([reportText(locale, "Fonte", "Source"), reportText(locale, "Motivo", "Reason"), reportText(locale, "Evidência", "Evidence")], blockedRows, locale) : reportText(locale, "Nenhum candidato bloqueado.", "No blocked candidate.") },
             { heading: reportText(locale, "Limitações", "Limitations"), body_markdown: humanList(report.limitations || [], locale) },
         ],
@@ -1844,6 +1884,20 @@ function provenanceRows(provenance, locale) {
 function buildTopicClusterReportPayload(cluster, localeInput) {
     const locale = reportLocale(localeInput || cluster.language);
     const supports = cluster.supporting_pages || [];
+    const pillarRows = cluster.pillar ? [[
+            cluster.pillar.role || "pillar",
+            cluster.pillar.slug || "",
+            cluster.pillar.keyword_principal?.keyword || "",
+            cluster.pillar.keyword_principal?.volume ?? unavailable(locale),
+            cluster.pillar.serp_intent || unavailable(locale),
+        ]] : [];
+    const supportRows = supports.map((page) => [
+        page.role || "support",
+        page.slug || "",
+        page.keyword_principal?.keyword || "",
+        page.keyword_principal?.volume ?? unavailable(locale),
+        page.serp_intent || unavailable(locale),
+    ]);
     const pages = [cluster.pillar, ...supports].filter(Boolean);
     return {
         title: `Topic cluster — ${cluster.seed}`,
@@ -1866,7 +1920,8 @@ function buildTopicClusterReportPayload(cluster, localeInput) {
             }],
         sections: [
             { heading: reportText(locale, "Resumo executivo", "Executive summary"), body_markdown: reportText(locale, `O cluster para **${cluster.seed}** contém **${supports.length} páginas de suporte**. A tabela abaixo separa papel, keyword principal e intenção observada, preservando a proveniência em apêndice.`, `The cluster for **${cluster.seed}** contains **${supports.length} support pages**. The table below separates role, primary keyword, and observed intent, with provenance preserved in the appendix.`) },
-            { heading: reportText(locale, "Páginas do cluster", "Cluster pages"), body_markdown: reportTable([reportText(locale, "Papel", "Role"), "Slug", "Keyword", "Volume", reportText(locale, "Intenção", "Intent")], pages.map((page) => [page.role || "pillar", page.slug || "", page.keyword_principal?.keyword || "", page.keyword_principal?.volume ?? unavailable(locale), page.serp_intent || unavailable(locale)])) },
+            { heading: reportText(locale, "Pilar", "Pillar"), body_markdown: reportTable([{ key: "role", label: reportText(locale, "Papel", "Role") }, { key: "slug", label: "Slug" }, { key: "keyword", label: "Keyword" }, { key: "volume", label: "Volume" }, { key: "intent", label: reportText(locale, "Intenção", "Intent") }], pillarRows, locale) },
+            { heading: "Supports", body_markdown: reportTable([{ key: "role", label: reportText(locale, "Papel", "Role") }, { key: "slug", label: "Slug" }, { key: "keyword", label: "Keyword" }, { key: "volume", label: "Volume" }, { key: "intent", label: reportText(locale, "Intenção", "Intent") }], supportRows, locale) },
             { heading: reportText(locale, "Apêndice: proveniência", "Appendix: provenance"), body_markdown: reportTable([reportText(locale, "Fonte", "Source"), "Provider", reportText(locale, "Volume/contagem", "Volume/count"), reportText(locale, "Observação", "Note")], provenanceRows(cluster.data_provenance || {}, locale)) },
         ],
     };
@@ -2307,12 +2362,12 @@ async function commandProjectInit(args) {
     const language = args.language || "pt-BR";
     const market = args.market || "Brasil";
     const country = args.country || market;
-    for (const dir of ["brain", "conteudos", "web", "sources", "workbench", "artifacts", "audits", "keywords", "clusters", "eeat", "relatorios", ".agentic-seo"])
+    for (const dir of ["brain", "conteudos", "web", "sources", "workbench", "artifacts", "audits", "keywords", "clusters", "eeat", REPORT_DIR_NAME, ".agentic-seo"])
         mkdirp(path.join(p, dir));
     for (const origem of PUBLIC_CONTENT_ORIGENS)
         mkdirp(path.join(p, "conteudos", origem));
     for (const moduleId of REPORT_MODULE_IDS)
-        mkdirp(path.join(p, "relatorios", moduleId));
+        mkdirp(path.join(p, REPORT_DIR_NAME, moduleId));
     copyDir(path.join(TEMPLATES_DIR, "brain"), path.join(p, "brain"));
     copyDir(path.join(TEMPLATES_DIR, "conteudos"), path.join(p, "conteudos"));
     writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });

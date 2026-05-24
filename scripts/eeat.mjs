@@ -11,6 +11,7 @@ import { buildReport } from "./lib/eeat/build-report.mjs";
 import { renderMarkdown } from "./lib/eeat/render.mjs";
 import { renderMarkdownReport } from "./lib/markdown-report.mjs";
 import { appendReportLog, attachReportPrompt, reportMarkdownPath } from "./lib/page-report.mjs";
+import { writeReportOrThrow } from "./lib/report-writer.mjs";
 import YAML from "yaml";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -255,7 +256,14 @@ const SUBCOMMANDS = {
     const body = renderMarkdown(report);
     writeJson(outJson, report);
     writeText(outMd, body);
-    writeText(companionMd, renderCompanionReport(report));
+    writeReportOrThrow({
+      projectDir: proj,
+      moduleId: "eeat",
+      runSlug: report.run_id,
+      markdown: renderCompanionReport(report),
+      sourceArtifactPath: outJson,
+      appendLog: false,
+    });
     appendReportLog(proj, {
       title: `E-E-A-T ${report.run_id}`,
       files: [path.relative(proj, outJson), path.relative(proj, outMd), path.relative(proj, companionMd)],
@@ -286,7 +294,14 @@ const SUBCOMMANDS = {
     writeJson(reportPath, report);
     writeText(path.join(runDir, "report.md"), body);
     const companionMd = companionReportPath(proj, report.run_id);
-    writeText(companionMd, renderCompanionReport(report));
+    writeReportOrThrow({
+      projectDir: proj,
+      moduleId: "eeat",
+      runSlug: report.run_id,
+      markdown: renderCompanionReport(report),
+      sourceArtifactPath: reportPath,
+      appendLog: false,
+    });
     appendReportLog(proj, {
       title: `E-E-A-T ${report.run_id}`,
       files: [path.relative(proj, reportPath), path.relative(proj, path.join(runDir, "report.md")), path.relative(proj, companionMd)],

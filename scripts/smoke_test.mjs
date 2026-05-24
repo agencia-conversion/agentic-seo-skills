@@ -46,7 +46,7 @@ function dataforseoBypassArgs(reason) {
 function assertReportContract(result, label) {
   if (!result.report_md) throw new Error(`${label} did not return report_md`);
   if (!result.browser_prompt?.recommended) throw new Error(`${label} did not recommend browser prompt`);
-  if (result.browser_prompt.message !== "Posso abrir o Web Companion para você ver o relatório?") throw new Error(`${label} returned unexpected browser prompt`);
+  if (result.browser_prompt.message !== "Posso abrir o Web Companion para você ver a análise?") throw new Error(`${label} returned unexpected browser prompt`);
   if (!fs.existsSync(path.join(PROJECT_DIR, result.report_md))) throw new Error(`${label} report_md file is missing`);
   if (result.report_html) throw new Error(`${label} returned legacy report_html`);
   const log = fs.readFileSync(path.join(PROJECT_DIR, "brain", "log.md"), "utf8");

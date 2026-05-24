@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { docToMarkdown, markdownToDoc } from '@/lib/markdown';
 import { LocalePreference } from '@/lib/i18n';
 import { projectPageSlug } from '@/lib/project-slugs';
+import { REPORT_DIR_NAME } from '@shared/report-modules';
 
 const SIDEBAR_STORAGE_KEY = 'agentic-seo:companion:sidebar';
 const DEFAULT_SIDEBAR_WIDTH = 300;
@@ -98,7 +99,7 @@ export interface Page {
   readOnly: boolean;
   requiresApproval: boolean;
   sourceMode: boolean;
-  kind?: 'file' | 'reportIndex' | 'reportModule' | 'contentIndex' | 'workbenchIndex';
+  kind?: 'file' | 'analysisIndex' | 'contentIndex' | 'workbenchIndex';
   reportModuleId?: string;
   contentTopicClusterId?: string;
 }
@@ -245,7 +246,7 @@ function iconForPath(path: string) {
   if (path.startsWith('conteudos/linkedin/')) return '💼';
   if (path.startsWith('conteudos/podcast/')) return '🎧';
   if (path.startsWith('conteudos/')) return '✍️';
-  if (path.startsWith('relatorios/')) return '📊';
+  if (path.startsWith(`${REPORT_DIR_NAME}/`)) return '📊';
   return '📝';
 }
 
@@ -267,7 +268,7 @@ function pageFromSummary(item: any, sectionId: string, sortOrder: number, parent
     sortOrder,
     updatedAt: Date.now(),
     createdAt: Date.now(),
-    width: item.path?.startsWith('relatorios/') ? 'lg' : null,
+    width: item.path?.startsWith(`${REPORT_DIR_NAME}/`) ? 'lg' : null,
     path: item.path,
     sectionId,
     hash: item.hash || null,
@@ -304,7 +305,7 @@ function virtualPage({
   icon: string;
   parentId: string | null;
   sortOrder: number;
-  kind: 'reportIndex' | 'reportModule' | 'contentIndex' | 'workbenchIndex';
+  kind: 'analysisIndex' | 'contentIndex' | 'workbenchIndex';
   sectionId?: string;
   reportModuleId?: string;
   contentTopicClusterId?: string;
@@ -530,31 +531,18 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     }
     const reportModules: ReportModuleSummary[] = Array.isArray(reportIndex.modules) ? reportIndex.modules : [];
     if (brainSection && reportModules.length > 0) {
-      const reportsRootId = 'virtual/reports';
+      const analysesRootId = 'virtual/analyses';
       pages.push(
         virtualPage({
-          id: reportsRootId,
-          title: 'Relatórios',
+          id: analysesRootId,
+          title: 'Análises',
           icon: '📊',
           parentId: null,
           sortOrder: brainSection.pageIds.length,
-          kind: 'reportIndex',
+          kind: 'analysisIndex',
         })
       );
-      brainSection.pageIds.push(reportsRootId);
-      reportModules.forEach((module, index) => {
-        pages.push(
-          virtualPage({
-            id: `virtual/reports/${module.id}`,
-            title: module.title,
-            icon: '📈',
-            parentId: reportsRootId,
-            sortOrder: index,
-            kind: 'reportModule',
-            reportModuleId: module.id,
-          })
-        );
-      });
+      brainSection.pageIds.push(analysesRootId);
       for (const module of reportModules) {
         try {
           const list = await apiFetch(token, `/api/project/reports?module=${encodeURIComponent(module.id)}&page=1&pageSize=100`);
@@ -568,7 +556,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
                   readOnly: false,
                   icon: '📊',
                 },
-                'relatorios',
+                REPORT_DIR_NAME,
                 pages.length,
                 null
               ),
@@ -616,7 +604,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       reportModules,
       settings: nextSettings,
       expandedPageIds: pages
-        .filter((p) => p.path === 'brain/index.md' || p.id === 'virtual/reports' || p.id === 'virtual/contents' || p.id === 'virtual/workbench' || (p.sectionId === 'brain' && !p.parentId))
+        .filter((p) => p.path === 'brain/index.md' || p.id === 'virtual/analyses' || p.id === 'virtual/contents' || p.id === 'virtual/workbench' || (p.sectionId === 'brain' && !p.parentId))
         .map((p) => p.id),
       _hasHydrated: true,
     });
@@ -801,7 +789,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     return created?.id || null;
   },
   openReportPage: (report) => {
-    if (!report.path.startsWith('relatorios/')) return null;
+    if (!report.path.startsWith(`${REPORT_DIR_NAME}/`)) return null;
     const existing = get().pages.find((p) => p.path === report.path);
     if (existing) {
       set({ activePageId: existing.id });
@@ -817,7 +805,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
           readOnly: false,
           icon: '📊',
         },
-        'relatorios',
+        REPORT_DIR_NAME,
         get().pages.length,
         null
       ),
@@ -876,7 +864,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   deleteFile: async (id) => {
     const page = get().pages.find((p) => p.id === id);
     if (page?.kind && page.kind !== 'file') return false;
-    if (page?.path.startsWith('relatorios/')) return false;
+    if (page?.path.startsWith(`${REPORT_DIR_NAME}/`)) return false;
     if (!page || page.saving || page.readOnly) return false;
     if (page.dirty) {
       set((state) => ({

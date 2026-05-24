@@ -2,7 +2,11 @@ import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSy
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
+import sharedReportModules from "../../shared/report-modules.js";
 import { appendLogEntry, parseFrontmatter } from "./brain-page.mjs";
+
+const { REPORT_DIR_NAME, REPORT_MODULE_IDS } = sharedReportModules;
+const REPORT_PATH_RE = new RegExp(`^${REPORT_DIR_NAME}\\/[A-Za-z0-9._-]+\\/[A-Za-z0-9._/-]+\\/report\\.md$`);
 
 export const AUTHORIAL_BRAIN_PAGES = new Set([
   "brain/index.md",
@@ -23,16 +27,7 @@ const BRAIN_PAGE_ORDER = [
   "brain/log.md",
 ];
 const CONTENT_ORIGINS = new Set(["blog", "linkedin", "podcast", "outros"]);
-const REPORT_MODULES = new Set([
-  "technical-seo",
-  "internal-links",
-  "seo-analysis",
-  "keyword-research",
-  "serp-extract",
-  "backlink-analysis",
-  "topic-cluster",
-  "eeat",
-]);
+const REPORT_MODULES = new Set(REPORT_MODULE_IDS);
 const SUPPORTED_PROJECT_LANGUAGES = new Set(["pt-BR", "en"]);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const BRAIN_TEMPLATE_DIR = join(ROOT, "templates", "project", "brain");
@@ -115,11 +110,11 @@ export function validateProjectFileRel(rawPath, { write = false } = {}) {
     /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^conteudos\/(blog|linkedin|podcast|outros)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel) ||
-    /^relatorios\/[A-Za-z0-9._-]+\/[A-Za-z0-9._/-]+\/report\.md$/.test(rel);
+    REPORT_PATH_RE.test(rel);
   if (rel.includes("\\") || !safe || !allowed) {
     return { ok: false, reason: "path-not-allowed" };
   }
-  if (rel.startsWith("relatorios/")) {
+  if (rel.startsWith(`${REPORT_DIR_NAME}/`)) {
     if (!REPORT_MODULES.has(parts[1])) return { ok: false, reason: "path-not-allowed" };
   }
   if (write && rel === "brain/log.md") return { ok: false, reason: "read-only-log" };
@@ -129,7 +124,7 @@ export function validateProjectFileRel(rawPath, { write = false } = {}) {
 function resolveAllowedFile(projectRoot, rel) {
   const root = normalizeProjectRoot(projectRoot);
   const filePath = resolve(root, rel);
-  const allowedRoots = ["brain", "conteudos", "workbench", "relatorios"].map((dir) => resolve(root, dir));
+  const allowedRoots = ["brain", "conteudos", "workbench", REPORT_DIR_NAME].map((dir) => resolve(root, dir));
   if (!allowedRoots.some((allowedRoot) => filePath === allowedRoot || filePath.startsWith(`${allowedRoot}${sep}`))) {
     throw new Error("path escaped project root");
   }
@@ -681,7 +676,7 @@ function frontmatterFieldsForPath(rel, incoming, existing, title) {
       title: String(incoming.title || title || existing.title || titleFromFile(rel, existing)).trim(),
     };
   }
-  if (rel.startsWith("relatorios/")) {
+  if (rel.startsWith(`${REPORT_DIR_NAME}/`)) {
     return {
       ...existing,
       ...incoming,
@@ -705,7 +700,7 @@ function normalizeHeadingTitle(value) {
 }
 
 function stripDuplicateReportHeading(rel, body, title) {
-  if (!rel.startsWith("relatorios/")) return body;
+  if (!rel.startsWith(`${REPORT_DIR_NAME}/`)) return body;
   const match = String(body || "").match(/^\s*#\s+([^\n\r]+)\s*(?:\r?\n|$)/);
   if (!match) return body;
   if (normalizeHeadingTitle(match[1]) !== normalizeHeadingTitle(title)) return body;
@@ -755,15 +750,15 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
   writeFileSync(filePath, finalText, "utf8");
   const uiSaved = hasUiChange ? savePageUi(root, validation.rel, ui || {}) : false;
 
-  if (validation.rel.startsWith("brain/") || validation.rel.startsWith("relatorios/")) {
+  if (validation.rel.startsWith("brain/") || validation.rel.startsWith(`${REPORT_DIR_NAME}/`)) {
     const logFile = join(root, "brain", "log.md");
-    const isReport = validation.rel.startsWith("relatorios/");
+    const isReport = validation.rel.startsWith(`${REPORT_DIR_NAME}/`);
     appendLogEntry(logFile, {
       date: today,
       tipo: "decisao",
-      titulo: isReport ? "Relatório editado no Companion" : `${basename(validation.rel, ".md")} editado no Companion`,
+      titulo: isReport ? "Análise editada no Companion" : `${basename(validation.rel, ".md")} editado no Companion`,
       escopo: validation.rel,
-      decisao: `${isReport ? "Relatório" : validation.rel} editado no Companion Web${approverClean ? ` por ${approverClean}` : ""}.`,
+      decisao: `${isReport ? "Análise" : validation.rel} editado${isReport ? "a" : ""} no Companion Web${approverClean ? ` por ${approverClean}` : ""}.`,
       evidencia: validation.rel,
       aprovador: approverClean || "agent",
       aprovado_em: null,
@@ -780,7 +775,7 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
     hash: sha256(next),
     requiresApproval: false,
     uiSaved,
-    logAppended: validation.rel.startsWith("brain/") || validation.rel.startsWith("relatorios/"),
+    logAppended: validation.rel.startsWith("brain/") || validation.rel.startsWith(`${REPORT_DIR_NAME}/`),
   };
 }
 
@@ -828,7 +823,7 @@ export function deleteProjectFile({ projectRoot, fileRel, expectedHash, dirty = 
   if (dirty) return { ok: false, reason: "dirty-file" };
   const validation = validateProjectFileRel(fileRel);
   if (!validation.ok) return { ok: false, reason: validation.reason };
-  if (validation.rel.startsWith("relatorios/")) return { ok: false, reason: "report-delete-not-allowed" };
+  if (validation.rel.startsWith(`${REPORT_DIR_NAME}/`)) return { ok: false, reason: "report-delete-not-allowed" };
   if (validation.rel === "brain/log.md") return { ok: false, reason: "read-only-log" };
   const { root, filePath } = resolveAllowedFile(projectRoot, validation.rel);
   if (!existsSync(filePath)) return { ok: false, reason: "file-not-found" };

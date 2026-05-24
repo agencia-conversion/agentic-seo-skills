@@ -2,6 +2,7 @@
 
 import { ChevronRight, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { REPORT_DIR_NAME } from '@shared/report-modules';
 import { Page, useWorkspace } from './store';
 import { usePagePath } from '@/hooks/use-page-path';
 import { cn } from '@/lib/utils';
@@ -9,16 +10,13 @@ import { cn } from '@/lib/utils';
 function rootCrumbFor(page: Page, pages: Page[]) {
   if (page.sectionId === 'brain') return pages.find((item) => item.path === 'brain/index.md') || null;
   if (page.path.startsWith('conteudos/')) return pages.find((item) => item.id === 'virtual/contents') || null;
-  if (page.path.startsWith('relatorios/')) return pages.find((item) => item.id === 'virtual/reports') || null;
+  if (page.path.startsWith(`${REPORT_DIR_NAME}/`)) return pages.find((item) => item.id === 'virtual/analyses') || null;
   if (page.path.startsWith('workbench/')) return pages.find((item) => item.id === 'virtual/workbench') || null;
   return null;
 }
 
 function contextCrumbFor(page: Page, pages: Page[]) {
-  if (page.path.startsWith('relatorios/')) {
-    const moduleId = page.path.split('/')[1];
-    return pages.find((item) => item.id === `virtual/reports/${moduleId}`) || null;
-  }
+  if (page.path.startsWith(`${REPORT_DIR_NAME}/`)) return null;
   if (page.path.startsWith('conteudos/')) {
     const clusterId = page.frontmatter?.topic_cluster || page.frontmatter?.topicCluster || page.frontmatter?.cluster;
     return clusterId ? pages.find((item) => item.id === `virtual/contents/${clusterId}`) || null : null;
