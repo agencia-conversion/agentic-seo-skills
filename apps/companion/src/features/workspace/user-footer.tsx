@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronUp, Folder, Settings as SettingsIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/components/i18n-provider';
 
 export function UserFooter({
   projectName,
@@ -13,6 +14,7 @@ export function UserFooter({
   projectRoot: string;
   onSettings: () => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -39,7 +41,7 @@ export function UserFooter({
         </div>
         <div className="min-w-0 flex-1">
           <span className="block text-sm text-notion-text truncate leading-tight">{projectName}</span>
-          <span className="block text-[10px] text-notion-text-muted truncate leading-tight">Local files</span>
+          <span className="block text-[10px] text-notion-text-muted truncate leading-tight">{t('project.localFiles')}</span>
         </div>
         <ChevronUp className={cn('w-3.5 h-3.5 text-notion-text-muted transition-transform shrink-0', !open && 'rotate-180')} />
       </button>
@@ -58,7 +60,7 @@ export function UserFooter({
             className="w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer transition-colors text-notion-text"
           >
             <SettingsIcon className="w-3.5 h-3.5" />
-            <span className="flex-1 text-left">Preferências</span>
+            <span className="flex-1 text-left">{t('project.preferences')}</span>
             <span className="text-[10px] text-notion-text-muted/60 font-mono">⌘,</span>
           </button>
         </div>

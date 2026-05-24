@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { VirtualPageShell } from '@/features/workspace/virtual-page-shell';
 import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from '@/hooks/use-page-path';
+import { useI18n } from '@/components/i18n-provider';
 
 interface WorkbenchRow {
   id: string;
@@ -20,6 +21,13 @@ interface WorkbenchRow {
 export function WorkbenchIndexPanel() {
   const router = useRouter();
   const pagePath = usePagePath();
+  const { t, formatDate: fmtDate } = useI18n();
+  const formatUpdated = (value: string) => {
+    if (!value) return t('common.dateUnknown');
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return fmtDate(parsed);
+  };
   const token = useWorkspace((s) => s.token);
   const pages = useWorkspace((s) => s.pages);
   const setActivePage = useWorkspace((s) => s.setActivePage);
@@ -65,12 +73,14 @@ export function WorkbenchIndexPanel() {
   }, [page, query, token]);
 
   return (
-    <VirtualPageShell title="Workbench">
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <VirtualPageShell title={t('project.workbench')}>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="text-sm text-notion-text-muted">
-          {loading ? 'Carregando arquivos...' : `${total} arquivo${total === 1 ? '' : 's'}`}
+          {loading
+            ? t('workbenchIndex.loading')
+            : t(total === 1 ? 'workbenchIndex.countOne' : 'workbenchIndex.countOther', { count: total })}
         </div>
-        <label className="flex h-9 min-w-[240px] items-center gap-2 rounded-md border border-notion-border px-3 text-sm">
+        <label className="flex h-9 min-w-[200px] flex-1 items-center gap-2 rounded-md border border-notion-border px-3 text-sm">
           <Search className="h-4 w-4 text-notion-text-muted" />
           <input
             value={query}
@@ -78,7 +88,7 @@ export function WorkbenchIndexPanel() {
               setPage(1);
               setQuery(event.target.value);
             }}
-            placeholder="Buscar no Workbench"
+            placeholder={t('workbenchIndex.searchPlaceholder')}
             className="w-full bg-transparent outline-none placeholder:text-notion-text-muted"
           />
         </label>
@@ -88,18 +98,18 @@ export function WorkbenchIndexPanel() {
         <table className="w-full table-fixed border-collapse text-sm">
           <thead className="bg-notion-sidebar text-left text-xs uppercase text-notion-text-muted">
             <tr>
-              <th className="px-3 py-2 font-medium">Arquivo</th>
-              <th className="hidden w-44 px-3 py-2 font-medium md:table-cell">Pasta</th>
-              <th className="hidden w-40 px-3 py-2 font-medium lg:table-cell">Atualizado</th>
-              <th className="hidden w-28 px-3 py-2 font-medium xl:table-cell">Frontmatter</th>
-              <th className="w-48 px-3 py-2 font-medium">Caminho</th>
+              <th className="px-3 py-2 font-medium">{t('workbenchIndex.columnFile')}</th>
+              <th className="hidden w-44 px-3 py-2 font-medium md:table-cell">{t('workbenchIndex.columnFolder')}</th>
+              <th className="hidden w-40 px-3 py-2 font-medium lg:table-cell">{t('workbenchIndex.columnUpdated')}</th>
+              <th className="hidden w-28 px-3 py-2 font-medium xl:table-cell">{t('workbenchIndex.columnFrontmatter')}</th>
+              <th className="w-48 px-3 py-2 font-medium">{t('workbenchIndex.columnPath')}</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-3 py-8 text-center text-sm text-notion-text-muted">
-                  Nenhum arquivo encontrado.
+                  {t('workbenchIndex.emptyState')}
                 </td>
               </tr>
             )}
@@ -108,7 +118,7 @@ export function WorkbenchIndexPanel() {
                 key={row.id}
                 role="button"
                 tabIndex={0}
-                aria-label={`Abrir arquivo ${row.title}`}
+                aria-label={t('workbenchIndex.openAria', { title: row.title })}
                 onClick={() => openRow(row)}
                 onKeyDown={(event) => {
                   if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -128,7 +138,7 @@ export function WorkbenchIndexPanel() {
                 <td className="hidden px-3 py-2 text-notion-text-muted md:table-cell">
                   <span className="line-clamp-2 break-words">{row.folder}</span>
                 </td>
-                <td className="hidden px-3 py-2 text-notion-text-muted lg:table-cell">{formatDate(row.updated)}</td>
+                <td className="hidden px-3 py-2 text-notion-text-muted lg:table-cell">{formatUpdated(row.updated)}</td>
                 <td className="hidden px-3 py-2 text-notion-text-muted xl:table-cell">{row.frontmatter}</td>
                 <td className="px-3 py-2 text-xs text-notion-text-muted">
                   <span className="line-clamp-2 break-words">{row.path}</span>
@@ -140,16 +150,14 @@ export function WorkbenchIndexPanel() {
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm text-notion-text-muted">
-        <span>
-          Página {page} de {totalPages}
-        </span>
+        <span>{t('common.pagination', { current: page, total: totalPages })}</span>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setPage((value) => Math.max(1, value - 1))}
             disabled={page <= 1}
             className="rounded-md border border-notion-border p-1.5 disabled:opacity-40"
-            aria-label="Página anterior"
+            aria-label={t('common.previousPage')}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -158,7 +166,7 @@ export function WorkbenchIndexPanel() {
             onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
             disabled={page >= totalPages}
             className="rounded-md border border-notion-border p-1.5 disabled:opacity-40"
-            aria-label="Próxima página"
+            aria-label={t('common.nextPage')}
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -166,11 +174,4 @@ export function WorkbenchIndexPanel() {
       </div>
     </VirtualPageShell>
   );
-}
-
-function formatDate(value: string) {
-  if (!value) return '-';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString();
 }

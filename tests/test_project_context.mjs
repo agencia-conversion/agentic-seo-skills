@@ -28,7 +28,7 @@ assert.ok(brainIndex.includes('title: "Context test"'));
 
 const expectedBrainTitles = {
   "identidade.md": "Identidade",
-  "voz.md": "Voz",
+  "voz.md": "Tom de Voz",
   "tecnologia.md": "Tecnologia",
   "editorial.md": "Editorial",
   "topic-clusters.md": "Topic clusters",

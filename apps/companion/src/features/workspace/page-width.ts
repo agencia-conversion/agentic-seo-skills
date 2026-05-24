@@ -1,4 +1,4 @@
-import { REPORT_DIR_NAME } from '@shared/report-modules';
+import { REPORT_DIR_NAME } from '../../../../../shared/report-modules';
 import { TranslationKey } from '@/lib/i18n';
 import { Page, PageWidth } from './store';
 

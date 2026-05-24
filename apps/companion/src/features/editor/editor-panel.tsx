@@ -22,7 +22,6 @@ import {
   Italic,
   Link2,
   Maximize2,
-  Menu,
   MoreHorizontal,
   Save,
   Settings,
@@ -33,7 +32,7 @@ import {
   Underline,
   X,
 } from 'lucide-react';
-import { REPORT_DIR_NAME } from '@shared/report-modules';
+import { REPORT_DIR_NAME } from '../../../../../shared/report-modules';
 import { useWorkspace } from '../workspace/store';
 import { cn } from '@/lib/utils';
 import { useClickOutside } from '@/hooks/use-click-outside';
@@ -51,10 +50,14 @@ import { getPageWidthOptions, resolvePageWidth, widthToClass } from '../workspac
 import { usePagePath } from '@/hooks/use-page-path';
 import { MentionPopup } from './mention-popup';
 import { MentionChipHydrator } from './mention-chip-hydrator';
+import { AgenticQueryHydrator } from './agentic-query-hydrator';
+import { MermaidHydrator } from './mermaid-hydrator';
 import { FrontmatterDrawer } from './frontmatter-drawer';
+import { LinkedMentionsPanel } from './linked-mentions-panel';
 import { useI18n } from '@/components/i18n-provider';
 import { ConfirmModal } from '@/components/confirm-modal';
 import { BreadcrumbTrail } from '../workspace/breadcrumb-trail';
+import { WorkspaceHeader } from '../workspace/workspace-header';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
   ssr: false,
@@ -78,6 +81,57 @@ interface EditorPanelProps {
 type InternalLinkContext =
   | { mode: 'editor'; from: number; to: number; alias?: string }
   | { mode: 'source'; from: number; to: number; alias?: string };
+
+function applyLinkSubmit(editor: any, selectedText: string, submit: { text: string; href: string; pageId?: string | null }) {
+  const chain = editor.chain().focus();
+  if (submit.pageId) {
+    chain
+      .insertContent([
+        {
+          type: 'pageMention',
+          attrs: {
+            pageId: submit.pageId,
+            alias: submit.text && submit.text !== selectedText ? submit.text : null,
+          },
+        },
+        { type: 'text', text: ' ' },
+      ])
+      .run();
+    return;
+  }
+  if (!submit.href) {
+    chain.unsetLink().run();
+    return;
+  }
+  if (submit.text && submit.text !== selectedText) {
+    chain
+      .insertContent({
+        type: 'text',
+        text: submit.text,
+        marks: [{ type: 'link', attrs: { href: submit.href } }],
+      })
+      .run();
+  } else {
+    chain.setLink({ href: submit.href }).run();
+  }
+}
+
+export function matchSourcePath(href: string): string | null {
+  if (!href) return null;
+  const candidates: string[] = [];
+  if (/^sources\//.test(href)) candidates.push(href);
+  if (/^\.{1,2}\/sources\//.test(href)) candidates.push(href.replace(/^\.{1,2}\//, ''));
+  if (/^\/project\/sources\//.test(href)) candidates.push(href.replace(/^\/project\//, ''));
+  if (typeof window !== 'undefined' && href.startsWith(window.location.origin)) {
+    const rel = href.slice(window.location.origin.length);
+    if (rel.startsWith('/project/sources/')) candidates.push(rel.replace(/^\/project\//, ''));
+  }
+  for (const candidate of candidates) {
+    const cleaned = candidate.split(/[?#]/)[0];
+    if (cleaned.startsWith('sources/') && !cleaned.includes('..')) return cleaned;
+  }
+  return null;
+}
 
 function pageLinkLabel(path: string) {
   return path.split('/').pop()?.replace(/\.md$/, '') || path;
@@ -117,8 +171,6 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const effectivePageId = pageId || activePageId;
   const pages = useWorkspace((s) => s.pages);
   const activePage = useWorkspace((s) => s.pages.find((p) => p.id === effectivePageId));
-  const sidebarCollapsed = useWorkspace((s) => s.sidebarCollapsed);
-  const toggleSidebar = useWorkspace((s) => s.toggleSidebar);
   const updatePage = useWorkspace((s) => s.updatePage);
   const savePage = useWorkspace((s) => s.savePage);
   const deleteFile = useWorkspace((s) => s.deleteFile);
@@ -210,9 +262,9 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     const ok = await savePage(activePage.id, { notes: silent ? 'autosave no companion Noteon local' : 'salvo no companion Noteon local', silent });
     if (ok) {
       setLastSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-      if (!silent) showToast('Arquivo salvo.', 'success');
+      if (!silent) showToast(t('editorToasts.fileSaved'), 'success');
     } else if (!silent) {
-      showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || 'Falha ao salvar.', 'error');
+      showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || t('editorToasts.saveFailed'), 'error');
     }
   }, [activePage, isReadOnly, savePage]);
 
@@ -255,7 +307,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
         score: result.score,
       },
     });
-    showToast(`Score recalculado: ${result.score}/100`, 'success');
+    showToast(t('editorToasts.scoreRecalculated', { score: result.score }), 'success');
   }, [activePage?.frontmatter, activePage?.id, activePage?.path, updatePage]);
 
   if (!mounted) return <div className="flex-1 bg-background" />;
@@ -272,7 +324,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     activePage.content && typeof activePage.content === 'object' && 'type' in activePage.content
       ? (activePage.content as JSONContent)
       : (INITIAL_DOC as JSONContent);
-  const suggestionItems: SuggestionItem[] = buildSuggestionItems();
+  const suggestionItems: SuggestionItem[] = buildSuggestionItems(t);
 
   const statusLabel = activePage.saving
     ? t('editor.saving')
@@ -301,7 +353,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
 
   const insertInternalLink = (mentionPageId: string) => {
     if (isReadOnly) {
-      showToast('Esta página é somente leitura.', 'error');
+      showToast(t('editorToasts.pageReadOnly'), 'error');
       return;
     }
     const context = linkContextRef.current;
@@ -341,7 +393,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
       event.preventDefault();
       if (isReadOnly) {
-        showToast('Esta página é somente leitura.', 'error');
+        showToast(t('editorToasts.pageReadOnly'), 'error');
         return;
       }
       const alias = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
@@ -370,108 +422,101 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   return (
     <div className={cn('flex-1 flex flex-col h-full bg-background overflow-hidden relative', isModal && 'rounded-lg overflow-y-auto')}>
       {!isModal && (
-        <header className="h-12 px-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-20 select-none">
-          <div className="flex items-center gap-2 overflow-hidden mr-4 text-sm text-notion-text-muted">
-            <button
-              onClick={toggleSidebar}
-              className="p-1.5 hover:bg-notion-hover rounded text-notion-text-muted hover:text-notion-text transition-colors shrink-0"
-              aria-label={sidebarCollapsed ? t('editor.expandSidebar') : t('sidebar.collapse')}
-              title={sidebarCollapsed ? t('editor.expandSidebar') : t('sidebar.collapse')}
-            >
-              <Menu className="w-4 h-4" />
-            </button>
-            <BreadcrumbTrail activePage={activePage} />
-          </div>
-          <div className="flex items-center gap-1 text-notion-text-muted relative" ref={menuRef}>
-            <span className={cn('text-[11px] mr-1', activePage.saveError ? 'text-red-500' : 'text-notion-text-muted')}>
-              {statusLabel}
-            </span>
-            {!isReadOnly && (
+        <WorkspaceHeader
+          left={<BreadcrumbTrail activePage={activePage} />}
+          rightRef={menuRef}
+          right={
+            <>
+              <span className={cn('text-[11px] mr-1', activePage.saveError ? 'text-red-500' : 'text-notion-text-muted')}>
+                {statusLabel}
+              </span>
+              {!isReadOnly && (
+                <HeaderButton
+                  icon={activePage.saving ? <div className="w-3.5 h-3.5 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+                  onClick={() => void handleSave()}
+                  ariaLabel={t('common.save')}
+                />
+              )}
               <HeaderButton
-                icon={activePage.saving ? <div className="w-3.5 h-3.5 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-                onClick={() => void handleSave()}
-                ariaLabel={t('common.save')}
+                icon={<Star className={cn('w-4 h-4', activePage.favorite && 'fill-amber-400 text-amber-400')} />}
+                onClick={() => toggleFavorite(activePage.id)}
+                ariaLabel={activePage.favorite ? t('sidebar.removeFavorite') : t('sidebar.addFavorite')}
               />
-            )}
-            <HeaderButton
-              icon={<Star className={cn('w-4 h-4', activePage.favorite && 'fill-amber-400 text-amber-400')} />}
-              onClick={() => toggleFavorite(activePage.id)}
-              ariaLabel={activePage.favorite ? t('sidebar.removeFavorite') : t('sidebar.addFavorite')}
-            />
-            <div className="relative">
-              <HeaderButton icon={<MoreHorizontal className="w-4 h-4" />} onClick={() => setShowMenu(!showMenu)} ariaLabel={t('editor.more')} />
-              <AnimatePresence>
-                {showMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute right-0 top-full mt-2 w-60 bg-background border border-notion-border rounded-md shadow-lg z-50 py-1 overflow-hidden"
-                  >
-                    <MenuAction
-                      icon={<Check className="w-4 h-4" />}
-                      label={activePage.sourceMode ? t('editor.visualEditor') : t('editor.markdownSource')}
-                      onClick={() => {
-                        setSourceMode(activePage.id, !activePage.sourceMode);
-                        setShowMenu(false);
-                      }}
-                    />
-                    <MenuAction
-                      icon={<FileText className="w-4 h-4" />}
-                      label={t('editor.frontmatter')}
-                      onClick={() => {
-                        setShowFrontmatterDrawer(true);
-                        setShowMenu(false);
-                      }}
-                    />
-                    {!activePage.readOnly && activePage.path !== 'brain/log.md' && !activePage.path.startsWith(`${REPORT_DIR_NAME}/`) && (
+              <div className="relative">
+                <HeaderButton icon={<MoreHorizontal className="w-4 h-4" />} onClick={() => setShowMenu(!showMenu)} ariaLabel={t('editor.more')} />
+                <AnimatePresence>
+                  {showMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="absolute right-0 top-full mt-2 w-60 bg-background border border-notion-border rounded-md shadow-lg z-50 py-1 overflow-hidden"
+                    >
                       <MenuAction
-                        icon={<Trash2 className="w-4 h-4" />}
-                        label={t('common.delete')}
-                        destructive
+                        icon={<Check className="w-4 h-4" />}
+                        label={activePage.sourceMode ? t('editor.visualEditor') : t('editor.markdownSource')}
                         onClick={() => {
-                          setShowDeleteConfirm(true);
+                          setSourceMode(activePage.id, !activePage.sourceMode);
                           setShowMenu(false);
                         }}
                       />
-                    )}
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowWidthSub((v) => !v)}
-                        className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-notion-text"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Maximize2 className="w-4 h-4" />
-                          {t('pageWidth.pageWidth')}
-                        </span>
-                        <span className="text-[10px] text-notion-text-muted uppercase">{activePage.width || t('pageWidth.auto')}</span>
-                      </button>
-                      {showWidthSub && (
-                        <div className="absolute left-full top-0 ml-1 w-64 bg-background border border-notion-border rounded-md shadow-lg py-1 z-[60]">
-                          {pageWidthOptions.map((opt) => (
-                            <WidthMenuItem
-                              key={opt.value}
-                              active={activePage.width === opt.value}
-                              label={opt.label}
-                              description={opt.description}
-                              onClick={() => {
-                                updatePage(activePage.id, { width: opt.value });
-                                setShowWidthSub(false);
-                                setShowMenu(false);
-                              }}
-                            />
-                          ))}
-                        </div>
+                      <MenuAction
+                        icon={<FileText className="w-4 h-4" />}
+                        label={t('editor.frontmatter')}
+                        onClick={() => {
+                          setShowFrontmatterDrawer(true);
+                          setShowMenu(false);
+                        }}
+                      />
+                      {!activePage.readOnly && activePage.path !== 'brain/log.md' && !activePage.path.startsWith(`${REPORT_DIR_NAME}/`) && (
+                        <MenuAction
+                          icon={<Trash2 className="w-4 h-4" />}
+                          label={t('common.delete')}
+                          destructive
+                          onClick={() => {
+                            setShowDeleteConfirm(true);
+                            setShowMenu(false);
+                          }}
+                        />
                       )}
-                    </div>
-                    <div className="h-px bg-notion-border my-1" />
-                    <div className="px-3 py-1.5 text-[10px] text-notion-text-muted truncate">{activePage.path}</div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </header>
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowWidthSub((v) => !v)}
+                          className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-notion-text"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Maximize2 className="w-4 h-4" />
+                            {t('pageWidth.pageWidth')}
+                          </span>
+                          <span className="text-[10px] text-notion-text-muted uppercase">{activePage.width || t('pageWidth.auto')}</span>
+                        </button>
+                        {showWidthSub && (
+                          <div className="absolute left-full top-0 ml-1 w-64 bg-background border border-notion-border rounded-md shadow-lg py-1 z-[60]">
+                            {pageWidthOptions.map((opt) => (
+                              <WidthMenuItem
+                                key={opt.value}
+                                active={activePage.width === opt.value}
+                                label={opt.label}
+                                description={opt.description}
+                                onClick={() => {
+                                  updatePage(activePage.id, { width: opt.value });
+                                  setShowWidthSub(false);
+                                  setShowMenu(false);
+                                }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="h-px bg-notion-border my-1" />
+                      <div className="px-3 py-1.5 text-[10px] text-notion-text-muted truncate">{activePage.path}</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          }
+        />
       )}
 
       <div className="flex-1 overflow-y-auto scrollbar-hide relative pb-32">
@@ -572,7 +617,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                       type="button"
                       onClick={() => updatePage(activePage.id, { icon: null })}
                       className="absolute -top-1.5 -right-1.5 p-0.5 bg-background border border-notion-border rounded-full opacity-0 group-hover/icon-container:opacity-100 transition-opacity shadow-sm hover:bg-notion-hover cursor-pointer"
-                      aria-label="Remover ícone"
+                      aria-label={t('editor2.removeIcon')}
                     >
                       <X className="w-3 h-3 text-notion-text-muted" />
                     </button>
@@ -651,6 +696,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               onReportScoreRecalculated={handleReportScoreRecalculated}
             />
           )}
+          {!isModal && activePage.path && <LinkedMentionsPanel pagePath={activePage.path} />}
         </div>
       </div>
 
@@ -709,6 +755,7 @@ function TiptapEditorSurface({
   onOpenInternalLinkPicker: (clientRect: Pick<DOMRect, 'left' | 'bottom'> | { left: number; bottom: number }, query?: string) => void;
   onReportScoreRecalculated: (result: ReportScoreResult) => void;
 }) {
+  const { t } = useI18n();
   useEffect(() => {
     (window as any).__noteblockSlashItems = (query: string) => {
       if (!query) return suggestionItems;
@@ -739,21 +786,56 @@ function TiptapEditorSurface({
       attributes: {
         class: cn('prose prose-zinc dark:prose-invert max-w-none focus:outline-none', isModal ? 'min-h-[300px]' : 'min-h-[500px]'),
       },
+      handleClickOn: (_view, _pos, _node, _nodePos, event) => {
+        const target = (event.target as HTMLElement | null)?.closest?.('a');
+        if (!target || !(target instanceof HTMLAnchorElement)) return false;
+        const href = target.getAttribute('href') || '';
+        if (!href) return false;
+        const sourcePath = matchSourcePath(href);
+        if (sourcePath) {
+          if (event.metaKey || event.ctrlKey) {
+            window.open(target.href, '_blank', 'noopener,noreferrer');
+          } else {
+            event.preventDefault();
+            useWorkspace.getState().openSourceViewer(sourcePath);
+          }
+          return true;
+        }
+        if (/^https?:\/\//i.test(href) || /^mailto:/i.test(href)) {
+          event.preventDefault();
+          window.open(href, '_blank', 'noopener,noreferrer');
+          return true;
+        }
+        return false;
+      },
       handleKeyDown: (view, event) => {
         const mod = event.metaKey || event.ctrlKey;
         if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
           event.preventDefault();
           if (isReadOnly) {
-            showToast('Esta página é somente leitura.', 'error');
+            showToast(t('editorToasts.pageReadOnly'), 'error');
             return true;
           }
           const { selection } = view.state;
-          const alias = selection.empty ? '' : view.state.doc.textBetween(selection.from, selection.to, ' ');
+          if (!selection.empty) {
+            const ed = editorInstanceRef.current;
+            const selectedText = view.state.doc.textBetween(selection.from, selection.to, ' ');
+            const existing = (ed?.getAttributes('link') || {}) as { href?: string };
+            useWorkspace.getState().openLinkEditor(
+              { text: selectedText, href: existing.href || '' },
+              (submit) => {
+                if (!ed) return;
+                applyLinkSubmit(ed, selectedText, submit);
+              }
+            );
+            return true;
+          }
+          const alias = '';
           linkContextRef.current = {
             mode: 'editor',
             from: selection.from,
             to: selection.to,
-            alias: alias.trim() || undefined,
+            alias: undefined,
           };
           onOpenInternalLinkPicker(view.coordsAtPos(selection.from), alias);
           return true;
@@ -779,7 +861,7 @@ function TiptapEditorSurface({
             event.preventDefault();
             const { selection } = view.state;
             view.dispatch(view.state.tr.delete(selection.from - 1, selection.from));
-            showToast('AI local ainda não está habilitada neste companion.', 'error');
+            showToast(t('editorToasts.aiUnavailable'), 'error');
             lastPlusTimeRef.current = 0;
             return true;
           }
@@ -797,6 +879,8 @@ function TiptapEditorSurface({
   return (
     <div id={`noteblock-editor-${pageId}`} className="noteblock-editor relative group/editor">
       <MentionChipHydrator editorRootId={`noteblock-editor-${pageId}`} />
+      <AgenticQueryHydrator editorRootId={`noteblock-editor-${pageId}`} />
+      <MermaidHydrator editorRootId={`noteblock-editor-${pageId}`} />
       {editor && (
         <BubbleMenu
           editor={editor}
@@ -823,8 +907,13 @@ function TiptapEditorSurface({
           <BubbleBtn
             editor={editor}
             onSelect={(ed) => {
-              const url = window.prompt('URL');
-              if (url) ed.chain().focus().setLink({ href: url }).run();
+              const { from, to } = ed.state.selection;
+              const selectedText = ed.state.doc.textBetween(from, to, ' ');
+              const existing = ed.getAttributes('link') as { href?: string };
+              useWorkspace.getState().openLinkEditor(
+                { text: selectedText, href: existing.href || '' },
+                (submit) => applyLinkSubmit(ed, selectedText, submit)
+              );
             }}
             label="Link"
           >

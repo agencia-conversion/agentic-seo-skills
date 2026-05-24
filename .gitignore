@@ -22,6 +22,7 @@ __pycache__/
 
 # Runtime/user data produced while testing the plugin locally.
 .agentic-seo/
+!apps/companion/e2e/fixtures/sample-project/.agentic-seo/
 project/*
 !project/.gitkeep
 
@@ -35,7 +36,18 @@ experiments/
 artifacts/
 reports/generated/
 
+# Playwright artifacts
+apps/companion/test-results/
+apps/companion/playwright-report/
+apps/companion/blob-report/
+apps/companion/playwright/.cache/
+apps/companion/e2e/.tmp-fixture/
+
+# Obsidian vault hidden config (Obsidian compat)
+project/.obsidian/
+
 # Locally installed external skills and lockfile.
 .agents/
 .claude/
 skills-lock.json
+.gstack/

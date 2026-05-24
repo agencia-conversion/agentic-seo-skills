@@ -7,6 +7,7 @@ import { ListingColumn, ListingPanel } from '@/components/listing/listing-panel'
 import { useListingState } from '@/components/listing/use-listing-state';
 import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from '@/hooks/use-page-path';
+import { useI18n } from '@/components/i18n-provider';
 
 interface ContentRow {
   id: string;
@@ -32,6 +33,7 @@ interface FilterOption {
 export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string | null }) {
   const router = useRouter();
   const pagePath = usePagePath();
+  const { t } = useI18n();
   const token = useWorkspace((s) => s.token);
   const pages = useWorkspace((s) => s.pages);
   const setActivePage = useWorkspace((s) => s.setActivePage);
@@ -55,7 +57,7 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
     () => [
       {
         id: 'content',
-        header: 'Conteúdo',
+        header: t('contentIndex.columnContent'),
         render: (row) => (
           <>
             <div className="flex min-w-0 items-center gap-2 text-notion-text">
@@ -64,39 +66,39 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
             </div>
             <div className="mt-0.5 line-clamp-1 text-xs text-notion-text-muted">{row.excerpt || row.path}</div>
             <div className="mt-1 flex flex-wrap gap-1 text-[11px] text-notion-text-muted md:hidden">
-              <span>{originLabel(row.origin)}</span>
+              <span>{originLabel(t, row.origin)}</span>
               <span>·</span>
-              <span>{row.topicClusterTitle || 'Sem cluster'}</span>
+              <span>{row.topicClusterTitle || t('contentIndex.noTopicCluster')}</span>
             </div>
           </>
         ),
       },
       {
         id: 'origin',
-        header: 'Origem',
+        header: t('contentIndex.columnOrigin'),
         className: 'hidden w-32 md:table-cell',
-        render: (row) => <span className="text-notion-text-muted">{originLabel(row.origin)}</span>,
+        render: (row) => <span className="text-notion-text-muted">{originLabel(t, row.origin)}</span>,
       },
       {
         id: 'topicCluster',
-        header: 'Topic Cluster',
+        header: t('contentIndex.columnTopicCluster'),
         className: 'hidden w-48 lg:table-cell',
-        render: (row) => <span className="line-clamp-2 break-words text-notion-text-muted">{row.topicClusterTitle || 'Sem cluster'}</span>,
+        render: (row) => <span className="line-clamp-2 break-words text-notion-text-muted">{row.topicClusterTitle || t('contentIndex.noTopicCluster')}</span>,
       },
       {
         id: 'area',
-        header: 'Área',
+        header: t('contentIndex.columnArea'),
         className: 'hidden w-36 xl:table-cell',
-        render: (row) => <span className="line-clamp-2 break-words text-notion-text-muted">{row.area || '-'}</span>,
+        render: (row) => <span className="line-clamp-2 break-words text-notion-text-muted">{row.area || t('common.dateUnknown')}</span>,
       },
       {
         id: 'status',
-        header: 'Status',
+        header: t('contentIndex.columnStatus'),
         className: 'w-28',
-        render: (row) => <span className="text-xs text-notion-text-muted">{statusLabel(row.status)}</span>,
+        render: (row) => <span className="text-xs text-notion-text-muted">{statusLabel(t, row.status)}</span>,
       },
     ],
-    []
+    [t]
   );
 
   const openRow = (row: ContentRow) => {
@@ -138,60 +140,62 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
 
   return (
     <ListingPanel
-      title="Conteúdos"
+      title={t('project.contents')}
       loading={loading}
-      loadingLabel="Carregando conteúdos..."
-      countLabel={`${total} conteúdo${total === 1 ? '' : 's'}`}
+      loadingLabel={t('contentIndex.loading')}
+      countLabel={t(total === 1 ? 'contentIndex.countOne' : 'contentIndex.countOther', { count: total })}
       query={query}
-      queryPlaceholder="Buscar conteúdos"
+      queryPlaceholder={t('contentIndex.searchPlaceholder')}
       filters={[
         {
           id: 'origin',
-          label: 'Origem',
+          label: t('contentIndex.columnOrigin'),
           value: filters.origin,
-          allLabel: 'Todas as origens',
+          allLabel: t('contentIndex.allOrigins'),
           options: origins,
           onChange: (value) => {
             setFilter('origin', value);
           },
-          formatOption: (item) => `${originLabel(item.id)} (${item.count})`,
+          formatOption: (item) => `${originLabel(t, item.id)} (${item.count})`,
         },
         {
           id: 'topicCluster',
-          label: 'Topic Cluster',
+          label: t('contentIndex.columnTopicCluster'),
           value: filters.topicCluster,
-          allLabel: 'Todos os Topic Clusters',
+          allLabel: t('contentIndex.allTopicClusters'),
           options: topicClusters,
           onChange: (value) => {
             setFilter('topicCluster', value);
           },
-          formatOption: (item) => `${(item.title || item.id) === '__none__' ? 'Sem cluster' : item.title || item.id} (${item.count})`,
+          formatOption: (item) => `${(item.title || item.id) === '__none__' ? t('contentIndex.noTopicCluster') : item.title || item.id} (${item.count})`,
         },
       ]}
       rows={rows}
       columns={columns}
       page={page}
       totalPages={totalPages}
-      emptyText="Nenhum conteúdo encontrado."
+      emptyText={t('contentIndex.emptyState')}
       onQueryChange={setQuery}
       onPageChange={setPage}
       onOpenRow={openRow}
       getRowKey={(row) => row.id}
-      getRowLabel={(row) => `Abrir conteúdo ${row.title}`}
+      getRowLabel={(row) => t('contentIndex.openAria', { title: row.title })}
     />
   );
 }
 
-function originLabel(value: string) {
-  if (value === 'blog') return 'Blog';
-  if (value === 'linkedin') return 'LinkedIn';
-  if (value === 'podcast') return 'Podcast';
-  if (value === 'outros') return 'Outros';
-  return value || '-';
+type Translator = (key: string, vars?: Record<string, string | number>) => string;
+
+function originLabel(t: Translator, value: string) {
+  if (value === 'blog') return t('contentIndex.origin.blog');
+  if (value === 'linkedin') return t('contentIndex.origin.linkedin');
+  if (value === 'podcast') return t('contentIndex.origin.podcast');
+  if (value === 'outros') return t('contentIndex.origin.outros');
+  return value || t('common.dateUnknown');
 }
 
-function statusLabel(value: string) {
-  if (value === 'published') return 'Publicado';
-  if (value === 'draft') return 'Rascunho';
-  return value || '-';
+function statusLabel(t: Translator, value: string) {
+  if (value === 'published') return t('contentIndex.statusPublished');
+  if (value === 'draft') return t('contentIndex.statusDraft');
+  return value || t('common.dateUnknown');
 }

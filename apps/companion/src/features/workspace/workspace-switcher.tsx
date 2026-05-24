@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, Folder, Settings as SettingsIcon } from 'lucide-react';
 import { useWorkspace } from './store';
+import { useI18n } from '@/components/i18n-provider';
 
 export function WorkspaceSwitcher() {
+  const { t } = useI18n();
   const projectName = useWorkspace((s) => s.projectName);
   const projectRoot = useWorkspace((s) => s.projectRoot);
   const [open, setOpen] = useState(false);
@@ -27,14 +29,14 @@ export function WorkspaceSwitcher() {
         title={projectRoot}
       >
         <Folder className="h-3.5 w-3.5 shrink-0 text-notion-text-muted" />
-        <span className="truncate flex-1 whitespace-nowrap">{projectName || 'Projeto local'}</span>
+        <span className="truncate flex-1 whitespace-nowrap">{projectName || t('project.localProject')}</span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-notion-text-muted" />
       </button>
 
       {open && (
         <div className="absolute top-full left-0 mt-1 w-72 bg-background border border-notion-border rounded-md shadow-lg z-50 p-1">
           <div className="px-2 py-1 text-[10px] text-notion-text-muted uppercase tracking-wider">
-            Projeto local
+            {t('project.localProject')}
           </div>
           <div className="w-full flex items-center gap-2 px-2 py-1.5 rounded bg-notion-active/40 text-sm text-left">
             <ProjectIcon />
@@ -53,7 +55,7 @@ export function WorkspaceSwitcher() {
               className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-notion-hover text-sm text-notion-text-muted hover:text-notion-text cursor-pointer"
             >
               <SettingsIcon className="w-3.5 h-3.5" />
-              <span>Preferências locais</span>
+              <span>{t('project.localPreferences')}</span>
             </button>
           </div>
         </div>

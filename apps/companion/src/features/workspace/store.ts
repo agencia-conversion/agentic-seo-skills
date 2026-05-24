@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { docToMarkdown, markdownToDoc } from '@/lib/markdown';
 import { LocalePreference } from '@/lib/i18n';
 import { projectPageSlug } from '@/lib/project-slugs';
-import { REPORT_DIR_NAME } from '@shared/report-modules';
+import { REPORT_DIR_NAME } from '../../../../../shared/report-modules';
 
 const SIDEBAR_STORAGE_KEY = 'agentic-seo:companion:sidebar';
 const DEFAULT_SIDEBAR_WIDTH = 300;
@@ -99,7 +99,7 @@ export interface Page {
   readOnly: boolean;
   requiresApproval: boolean;
   sourceMode: boolean;
-  kind?: 'file' | 'analysisIndex' | 'contentIndex' | 'workbenchIndex';
+  kind?: 'file' | 'analysisIndex' | 'contentIndex' | 'workbenchIndex' | 'brainEmpty';
   reportModuleId?: string;
   contentTopicClusterId?: string;
 }
@@ -118,6 +118,10 @@ interface WorkspaceState {
   sidebarCollapsed: boolean;
   sidebarWidth: number;
   expandedPageIds: string[];
+  settingsOpen: boolean;
+  settingsTab: 'general' | 'credentials';
+  sourceViewerPath: string | null;
+  linkEditor: { open: boolean; initial: { text: string; href: string }; onSubmit: ((value: { text: string; href: string; pageId?: string | null }) => void) | null };
   templates: Template[];
   settings: {
     usageLimit: number;
@@ -135,6 +139,12 @@ interface WorkspaceState {
   setSidebarCollapsed: (collapsed: boolean) => void;
   setSidebarWidth: (width: number) => void;
   toggleExpandPage: (id: string) => void;
+  openSettings: (tab?: 'general' | 'credentials') => void;
+  closeSettings: () => void;
+  openSourceViewer: (path: string) => void;
+  closeSourceViewer: () => void;
+  openLinkEditor: (initial: { text: string; href: string }, onSubmit: (value: { text: string; href: string; pageId?: string | null }) => void) => void;
+  closeLinkEditor: () => void;
   reorderPages: (parentId: string | null, orderedIds: string[]) => void;
   addPage: (parentId?: string | null, type?: 'doc' | 'database', options?: { setActive?: boolean; initialTitle?: string }) => string;
   createWorkbenchFile: (title?: string) => Promise<string | null>;
@@ -305,7 +315,7 @@ function virtualPage({
   icon: string;
   parentId: string | null;
   sortOrder: number;
-  kind: 'analysisIndex' | 'contentIndex' | 'workbenchIndex';
+  kind: 'analysisIndex' | 'contentIndex' | 'workbenchIndex' | 'brainEmpty';
   sectionId?: string;
   reportModuleId?: string;
   contentTopicClusterId?: string;
@@ -445,6 +455,10 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   sidebarCollapsed: readSidebarPreference().collapsed ?? false,
   sidebarWidth: readSidebarPreference().width ?? DEFAULT_SIDEBAR_WIDTH,
   expandedPageIds: [],
+  settingsOpen: false,
+  settingsTab: 'general',
+  sourceViewerPath: null,
+  linkEditor: { open: false, initial: { text: '', href: '' }, onSubmit: null },
   templates: [],
   settings: readInitialSettings(),
   _hasHydrated: false,
@@ -461,13 +475,10 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     const pages: Page[] = [];
     const sections: ProjectSection[] = [];
     let brainSection: ProjectSection | null = null;
-    let hasContentSurface = false;
-    let hasWorkbenchSurface = false;
     for (const section of tree.sections || []) {
       const pageIds: string[] = [];
       const items = section.items || [];
       if (section.id === 'conteudos') {
-        hasContentSurface = hasContentSurface || items.length > 0;
         items.forEach((item: any, index: number) => {
           pages.push({
             ...pageFromSummary(item, section.id, index, null),
@@ -477,12 +488,8 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
         continue;
       }
       if (section.id === 'workbench') {
-        hasWorkbenchSurface = hasWorkbenchSurface || items.length > 0;
         items.forEach((item: any, index: number) => {
-          pages.push({
-            ...pageFromSummary(item, section.id, index, null),
-            inline: true,
-          });
+          pages.push(pageFromSummary(item, section.id, index, 'virtual/workbench'));
         });
         continue;
       }
@@ -501,13 +508,26 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     const contentTopicClusters: ContentTopicClusterSummary[] = Array.isArray(contentIndex.topicClusters)
       ? contentIndex.topicClusters.filter((cluster: any) => cluster?.id && cluster.id !== '__none__')
       : [];
-    hasContentSurface = hasContentSurface || contentTopicClusters.length > 0;
-    if (brainSection && hasContentSurface) {
+    if (brainSection && !tree.hasBrain) {
+      const brainEmptyId = 'virtual/brain-empty';
+      pages.push(
+        virtualPage({
+          id: brainEmptyId,
+          title: 'Brain',
+          icon: '🧠',
+          parentId: null,
+          sortOrder: brainSection.pageIds.length,
+          kind: 'brainEmpty',
+        })
+      );
+      brainSection.pageIds.push(brainEmptyId);
+    }
+    if (brainSection) {
       const contentsRootId = 'virtual/contents';
       pages.push(
         virtualPage({
           id: contentsRootId,
-          title: 'Conteúdos',
+          title: 'Content',
           icon: '🗂️',
           parentId: null,
           sortOrder: brainSection.pageIds.length,
@@ -571,7 +591,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
         }
       }
     }
-    if (brainSection && hasWorkbenchSurface) {
+    if (brainSection) {
       const workbenchRootId = 'virtual/workbench';
       pages.push(
         virtualPage({
@@ -754,6 +774,13 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
         ? s.expandedPageIds.filter((x) => x !== id)
         : [...s.expandedPageIds, id],
     })),
+  openSettings: (tab = 'general') => set({ settingsOpen: true, settingsTab: tab }),
+  closeSettings: () => set({ settingsOpen: false, settingsTab: 'general' }),
+  openSourceViewer: (path) => set({ sourceViewerPath: path }),
+  closeSourceViewer: () => set({ sourceViewerPath: null }),
+  openLinkEditor: (initial, onSubmit) => set({ linkEditor: { open: true, initial, onSubmit } }),
+  closeLinkEditor: () =>
+    set({ linkEditor: { open: false, initial: { text: '', href: '' }, onSubmit: null } }),
   reorderPages: (_parentId, orderedIds) =>
     set((s) => ({
       pages: s.pages.map((p) => {

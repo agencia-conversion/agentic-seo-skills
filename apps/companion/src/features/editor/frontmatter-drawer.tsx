@@ -5,6 +5,15 @@ import { Lock, Settings, X } from 'lucide-react';
 import type { Page } from '../workspace/store';
 import { parseFrontmatterText, useWorkspace } from '../workspace/store';
 import { cn } from '@/lib/utils';
+import { Select } from '@/components/select';
+import { useI18n } from '@/components/i18n-provider';
+
+const ORIGEM_OPTIONS = [
+  { value: 'blog', label: 'blog' },
+  { value: 'linkedin', label: 'linkedin' },
+  { value: 'podcast', label: 'podcast' },
+  { value: 'outros', label: 'outros' },
+];
 
 const CONTENT_FIELDS = ['title', 'slug', 'published_at', 'source_url', 'origem', 'area'];
 const BRAIN_FIELDS = ['title', 'updated'];
@@ -18,6 +27,7 @@ export function FrontmatterDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const updatePage = useWorkspace((s) => s.updatePage);
 
   useEffect(() => {
@@ -63,12 +73,12 @@ export function FrontmatterDrawer({
       <header className="h-12 px-4 border-b border-notion-border flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <Settings className="w-4 h-4 text-notion-text-muted shrink-0" />
-          <strong className="text-sm text-notion-text truncate">Metadados</strong>
+          <strong className="text-sm text-notion-text truncate">{t('frontmatterDrawer.title')}</strong>
         </div>
         <button
           onClick={onClose}
           className="p-1.5 rounded hover:bg-notion-hover text-notion-text-muted hover:text-notion-text cursor-pointer"
-          aria-label="Fechar metadados"
+          aria-label={t('frontmatterDrawer.close')}
         >
           <X className="w-4 h-4" />
         </button>
@@ -78,14 +88,14 @@ export function FrontmatterDrawer({
         {isBrainRestricted && (
           <div className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 flex gap-2">
             <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-            <span>Brain autoral: apenas o título é editável; updated é automático ao salvar.</span>
+            <span>{t('frontmatterDrawer.brainNotice')}</span>
           </div>
         )}
 
         {isLog && (
           <div className="rounded-md border border-notion-border bg-notion-active/60 px-3 py-2 text-xs text-notion-text-muted flex gap-2">
             <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-            <span>Log é somente leitura.</span>
+            <span>{t('frontmatterDrawer.logReadOnly')}</span>
           </div>
         )}
 
@@ -104,7 +114,7 @@ export function FrontmatterDrawer({
 
         {extraFields.length > 0 && (
           <div className="pt-2 border-t border-notion-border space-y-3">
-            <div className="text-[10px] uppercase tracking-wider text-notion-text-muted">Campos bloqueados</div>
+            <div className="text-[10px] uppercase tracking-wider text-notion-text-muted">{t('frontmatterDrawer.blockedFields')}</div>
             {extraFields.map((field) => (
               <FieldControl
                 key={field}
@@ -119,8 +129,8 @@ export function FrontmatterDrawer({
 
         <div className="pt-2 border-t border-notion-border space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-notion-text">YAML source</label>
-            {!canEditYaml && <span className="text-[10px] text-notion-text-muted">bloqueado</span>}
+            <label className="text-xs font-medium text-notion-text">{t('frontmatterDrawer.yamlSource')}</label>
+            {!canEditYaml && <span className="text-[10px] text-notion-text-muted">{t('frontmatterDrawer.blocked')}</span>}
           </div>
           <textarea
             value={page.frontmatterText}
@@ -155,17 +165,14 @@ function FieldControl({
     <label className="block space-y-1.5">
       <span className="text-xs font-medium text-notion-text-muted">{field}</span>
       {select ? (
-        <select
+        <Select
           value={value || 'outros'}
+          onChange={onChange}
           disabled={readOnly}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-md border border-notion-border bg-background px-2.5 py-1.5 text-sm text-notion-text outline-none disabled:bg-notion-active/40 disabled:text-notion-text-muted"
-        >
-          <option value="blog">blog</option>
-          <option value="linkedin">linkedin</option>
-          <option value="podcast">podcast</option>
-          <option value="outros">outros</option>
-        </select>
+          options={ORIGEM_OPTIONS}
+          className="w-full"
+          triggerClassName="w-full justify-between rounded-md border border-notion-border bg-background px-2.5 py-1.5 disabled:bg-notion-active/40 disabled:text-notion-text-muted"
+        />
       ) : (
         <input
           value={value}

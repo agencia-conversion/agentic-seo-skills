@@ -15,6 +15,8 @@ import { useI18n } from '@/components/i18n-provider';
 import { AnalysesIndexPanel } from '@/features/analyses/analyses-index-panel';
 import { ContentIndexPanel } from '@/features/contents/content-index-panel';
 import { WorkbenchIndexPanel } from '@/features/workbench/workbench-index-panel';
+import { SourceViewerModal } from '@/features/sources/source-viewer-modal';
+import { LinkEditModal } from '@/features/editor/link-edit-modal';
 
 const EditorPanel = dynamic(() => import('@/features/editor/editor-panel').then((mod) => mod.EditorPanel), {
   ssr: false,
@@ -92,24 +94,15 @@ export default function ProjectPage() {
     );
   }
 
-  if (pages.length === 0) {
-    return (
-      <div className="flex h-screen bg-background overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 flex flex-col h-full overflow-hidden">
-          <EmptyWorkspace />
-        </main>
-        <SearchModal />
-        <ToastContainer />
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        {activePage?.kind === 'workbenchIndex' ? (
+        {pages.length === 0 ? (
+          <EmptyWorkspace />
+        ) : activePage?.kind === 'brainEmpty' ? (
+          <BrainBootstrapPanel />
+        ) : activePage?.kind === 'workbenchIndex' ? (
           <WorkbenchIndexPanel />
         ) : activePage?.kind === 'contentIndex' ? (
           <ContentIndexPanel topicClusterId={activePage.contentTopicClusterId} />
@@ -121,6 +114,50 @@ export default function ProjectPage() {
       </main>
       <SearchModal />
       <ToastContainer />
+      <SourceViewerModal />
+      <LinkEditModal />
+    </div>
+  );
+}
+
+function BrainBootstrapPanel() {
+  const { t } = useI18n();
+  const router = useRouter();
+  const pagePath = usePagePath();
+  const bootstrapBrain = useWorkspace((s) => s.bootstrapBrain);
+  const [busy, setBusy] = useState(false);
+
+  const createBrain = async () => {
+    setBusy(true);
+    try {
+      const id = await bootstrapBrain();
+      const created = useWorkspace.getState().pages.find((p) => p.id === id);
+      if (created) router.push(pagePath(created.slug));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex items-center justify-center px-6 py-10">
+      <div className="max-w-lg text-center">
+        <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-md bg-notion-active text-notion-text">
+          <Brain className="h-5 w-5" />
+        </div>
+        <h1 className="text-2xl font-semibold text-notion-text">{t('brainBootstrap.title')}</h1>
+        <p className="mt-2 text-sm leading-6 text-notion-text-muted">{t('brainBootstrap.description')}</p>
+        <div className="mt-6 flex items-center justify-center">
+          <button
+            type="button"
+            onClick={createBrain}
+            disabled={busy}
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-notion-text px-4 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+          >
+            <Brain className="h-4 w-4" />
+            {busy ? t('common.loading') : t('emptyWorkspace.createBrain')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

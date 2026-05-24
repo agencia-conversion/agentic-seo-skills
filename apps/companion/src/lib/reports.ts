@@ -6,7 +6,7 @@ import {
   REPORT_DIR_NAME,
   REPORT_MODULES as SHARED_REPORT_MODULES,
   reportModuleLabel,
-} from '@shared/report-modules';
+} from '../../../../shared/report-modules';
 
 export { REPORT_DIR_NAME };
 

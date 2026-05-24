@@ -3773,7 +3773,7 @@ function contentVoiceContext(projectDir: string): AnyRecord {
   return {
     path: fs.existsSync(voicePath) ? path.relative(projectDir, voicePath) : null,
     filled,
-    title: cleanFrontmatterValue(voiceFm.title) || "Voz",
+    title: cleanFrontmatterValue(voiceFm.title) || "Tom de Voz",
     updated: cleanFrontmatterValue(voiceFm.updated),
   };
 }

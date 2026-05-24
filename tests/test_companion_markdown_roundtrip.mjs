@@ -12,6 +12,7 @@ const compiled = spawnSync(
   [
     "tsc",
     "apps/companion/src/lib/markdown.ts",
+    "apps/companion/src/lib/inline-markdown.ts",
     "--target",
     "ES2022",
     "--module",
@@ -30,12 +31,16 @@ assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
 const jsFile = join(outDir, "lib", "markdown.js");
 const mjsFile = join(outDir, "lib", "markdown.mjs");
 if (existsSync(jsFile)) renameSync(jsFile, mjsFile);
+const inlineJs = join(outDir, "lib", "inline-markdown.js");
+const inlineMjs = join(outDir, "lib", "inline-markdown.mjs");
+if (existsSync(inlineJs)) renameSync(inlineJs, inlineMjs);
 const dataJsFile = join(outDir, "features", "editor", "report-block-data.js");
 const dataMjsFile = join(outDir, "features", "editor", "report-block-data.mjs");
 if (existsSync(dataJsFile)) renameSync(dataJsFile, dataMjsFile);
 const markdownSource = readFileSync(mjsFile, "utf8")
   .replace("../features/editor/report-block-data.js", "../features/editor/report-block-data.mjs")
-  .replace("../features/editor/report-block-data", "../features/editor/report-block-data.mjs");
+  .replace("../features/editor/report-block-data", "../features/editor/report-block-data.mjs")
+  .replace(/from ['"]\.\/inline-markdown(?:\.js)?['"]/, 'from "./inline-markdown.mjs"');
 writeFileSync(mjsFile, markdownSource);
 
 const { markdownToDoc, docToMarkdown } = await import(`../${mjsFile}`);
@@ -59,11 +64,41 @@ const markdown = `# Título
 
 Conteúdo com acentuação: página, análise e aprovação. Veja [[voz]], [[voz|tom editorial]], [[editorial#SEO estratégico]] e [[editorial#SEO estratégico|SEO estratégico]].
 
+Inline: link para [conversion](https://conversion.com.br/), código \`gap\` inline, **negrito** e *itálico*.
+
+Evidência: ver [cases](sources/conversion-com-br/cases.html) e dump bruto.
+
+URL nua: https://conversion.com.br/blog/backlinks/ vira link automaticamente.
+
 | A | B |
 |---|---|
 | 1 | 2 |
 
 <!-- comentário preservado -->
+
+> [!warning] Atenção
+> Este é um aviso editorial.
+
+> [!tip]
+> Dica curta sem título.
+
+![[voz]]
+
+![[editorial#SEO estratégico|área SEO]]
+
+\`\`\`mermaid
+flowchart TD
+  A[Marca] --> B[Voz]
+\`\`\`
+
+\`\`\`agentic-query
+version: 1
+from: "conteudos/blog"
+where:
+  status: "draft"
+sort: updated desc
+limit: 10
+\`\`\`
 
 \`\`\`agentic-kpis
 version: 1
@@ -97,6 +132,17 @@ assert.match(JSON.stringify(doc), /reportBlock/);
 assert.match(JSON.stringify(doc), /"type":"table"/);
 assert.match(JSON.stringify(doc), /"agenticReport":true/);
 assert.match(JSON.stringify(doc), /"hidden":true/);
+// M2: callout, embed, mermaid nodes
+assert.match(JSON.stringify(doc), /"type":"callout"/);
+assert.match(JSON.stringify(doc), /"calloutType":"warning"/);
+assert.match(JSON.stringify(doc), /"title":"Atenção"/);
+assert.match(JSON.stringify(doc), /"calloutType":"tip"/);
+assert.match(JSON.stringify(doc), /"type":"pageEmbed"/);
+assert.match(JSON.stringify(doc), /"type":"mermaid"/);
+assert.match(JSON.stringify(doc), /flowchart TD/);
+// M3: agentic-query node
+assert.match(JSON.stringify(doc), /"type":"agenticQuery"/);
+assert.match(JSON.stringify(doc), /from: \\"conteudos\/blog\\"/);
 
 const out = docToMarkdown(doc, resolver);
 assert.match(out, /página, análise e aprovação/);
@@ -104,6 +150,22 @@ assert.match(out, /\[\[voz\]\]/);
 assert.match(out, /\[\[voz\|tom editorial\]\]/);
 assert.match(out, /\[\[editorial#SEO estratégico\]\]/);
 assert.match(out, /\[\[editorial#SEO estratégico\|SEO estratégico\]\]/);
+assert.match(out, /\[conversion\]\(https:\/\/conversion\.com\.br\/\)/);
+assert.match(out, /`gap`/);
+assert.match(out, /\*\*negrito\*\*/);
+assert.match(out, /\*itálico\*/);
+assert.match(out, /\[cases\]\(sources\/conversion-com-br\/cases\.html\)/);
+assert.match(out, /https:\/\/conversion\.com\.br\/blog\/backlinks\/ vira link automaticamente/);
+const autolinkNode = doc.content
+  .flatMap((block) => block.content || [])
+  .find((node) => node.text && node.text.startsWith('https://conversion.com.br/blog/backlinks'));
+assert.ok(autolinkNode, 'autolink node should exist');
+assert.ok((autolinkNode.marks || []).some((m) => m.type === 'link' && m.attrs.href.startsWith('https://conversion.com.br/blog/backlinks')), 'autolink should have link mark');
+const docJson = JSON.stringify(doc);
+assert.match(docJson, /"type":"link"/);
+assert.match(docJson, /"type":"code"/);
+assert.match(docJson, /"type":"bold"/);
+assert.match(docJson, /"type":"italic"/);
 assert.match(out, /\| A \| B \|/);
 assert.match(out, /<!-- comentário preservado -->/);
 assert.match(out, /```agentic-kpis/);
@@ -112,6 +174,17 @@ assert.match(out, /```agentic-table/);
 assert.match(out, /version: 1/);
 assert.match(out, /items:/);
 assert.match(out, /"title": "Score"/);
+// M2: callout, embed, mermaid serialization
+assert.match(out, /> \[!warning\] Atenção/);
+assert.match(out, /> Este é um aviso editorial\./);
+assert.match(out, /> \[!tip\]/);
+assert.match(out, /!\[\[voz\]\]/);
+assert.match(out, /!\[\[editorial#SEO estratégico\|área SEO\]\]/);
+assert.match(out, /```mermaid/);
+assert.match(out, /flowchart TD/);
+// M3: agentic-query serialization
+assert.match(out, /```agentic-query/);
+assert.match(out, /from: "conteudos\/blog"/);
 
 const reportBlockSource = readFileSync("apps/companion/src/features/editor/report-block-extension.tsx", "utf8");
 const editorExtensionSource = readFileSync("apps/companion/src/features/editor/editor-extensions.ts", "utf8");

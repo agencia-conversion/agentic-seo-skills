@@ -1,9 +1,9 @@
 ---
-title: "Voz"
+title: "Tom de Voz"
 updated: "<YYYY-MM-DD>"
 ---
 
-# Voz
+# Tom de Voz
 
 <!--
 Princípios editoriais específicos deste projeto. A regra editorial dura
