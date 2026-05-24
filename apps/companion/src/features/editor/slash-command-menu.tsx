@@ -83,6 +83,7 @@ export function SlashCommandMenu() {
         <button
           type="button"
           key={item.title}
+          data-testid={item.testId}
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => (window as any).__noteblockSlashCommand?.(item)}
           className={`flex w-full items-center space-x-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-notion-hover ${

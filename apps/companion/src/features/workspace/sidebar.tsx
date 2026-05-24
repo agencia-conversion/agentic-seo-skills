@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Search, Star } from 'lucide-react';
+import { Hash, Network, Search, Star, Unlink2 } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useWorkspace } from './store';
 import { SortablePageList } from './sortable-page-list';
 import { SettingsModal } from './settings-modal';
@@ -10,6 +11,7 @@ import { NoteblockBrand } from '@/components/noteblock-brand';
 import { NewPageButton } from './new-page-button';
 import { UserFooter } from './user-footer';
 import { useI18n } from '@/components/i18n-provider';
+import { cn } from '@/lib/utils';
 
 export function Sidebar() {
   const { t } = useI18n();
@@ -31,6 +33,46 @@ export function Sidebar() {
   const closeSettings = useWorkspace((s) => s.closeSettings);
   const resizeStartRef = useRef<{ x: number; w: number } | null>(null);
   const mobileAutoCollapsedRef = useRef(false);
+  const token = useWorkspace((s) => s.token);
+  const router = useRouter();
+  const pathname = usePathname();
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+  const shortcutChord = isMac ? '⌘⇧' : 'Ctrl+Shift+';
+
+  const tools = useMemo(
+    () => (token
+      ? [
+          {
+            id: 'graph',
+            href: `/project/${token}/graph`,
+            label: t('tools.graph'),
+            hint: t('tools.graphHint'),
+            icon: Network,
+            shortcut: `${shortcutChord}G`,
+            testId: 'sidebar-tool-graph',
+          },
+          {
+            id: 'tags',
+            href: `/project/${token}/tags`,
+            label: t('tools.tags'),
+            hint: t('tools.tagsHint'),
+            icon: Hash,
+            shortcut: `${shortcutChord}T`,
+            testId: 'sidebar-tool-tags',
+          },
+          {
+            id: 'broken-links',
+            href: `/project/${token}/broken-links`,
+            label: t('tools.brokenLinks'),
+            hint: t('tools.brokenLinksHint'),
+            icon: Unlink2,
+            shortcut: `${shortcutChord}B`,
+            testId: 'sidebar-tool-broken-links',
+          },
+        ]
+      : []),
+    [token, t, shortcutChord]
+  );
 
   const handleResizeMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -154,6 +196,49 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto pt-4 pb-10 scrollbar-hide">
+        {tools.length > 0 && (
+          <div className="mb-4" data-testid="sidebar-tools">
+            <div className="px-3 mb-2">
+              <span className="text-[11px] font-semibold text-notion-text-muted uppercase tracking-wider px-1">
+                {t('tools.heading')}
+              </span>
+            </div>
+            <div className="space-y-[1px] px-1">
+              {tools.map((tool) => {
+                const Icon = tool.icon;
+                const active = pathname === tool.href;
+                return (
+                  <button
+                    key={tool.id}
+                    data-testid={tool.testId}
+                    data-active={active ? 'true' : 'false'}
+                    onClick={() => router.push(tool.href)}
+                    title={`${tool.hint} · ${tool.shortcut}`}
+                    aria-label={tool.label}
+                    className={cn(
+                      'group w-full flex items-center gap-2.5 px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer',
+                      active
+                        ? 'bg-notion-active text-notion-text'
+                        : 'text-notion-text/80 hover:bg-notion-hover hover:text-notion-text'
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        'w-4 h-4 shrink-0',
+                        active ? 'text-notion-text' : 'text-notion-text-muted group-hover:text-notion-text'
+                      )}
+                    />
+                    <span className="truncate">{tool.label}</span>
+                    <span className="ml-auto text-[10px] text-notion-text-muted font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                      {tool.shortcut}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {favoritePages.length > 0 && (
           <div className="mb-4">
             <div className="px-3 mb-2">

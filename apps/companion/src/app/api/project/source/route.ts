@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   if (!result.ok) {
     return NextResponse.json({ ok: false, reason: result.reason }, { status: result.status });
   }
-  return new NextResponse(result.body, {
+  return new NextResponse(new Uint8Array(result.body), {
     status: 200,
     headers: {
       'content-type': result.contentType,

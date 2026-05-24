@@ -12,6 +12,10 @@ import {
   Code,
   Image as ImageIcon,
   Text,
+  MessageSquareWarning,
+  Workflow,
+  Layers,
+  Sparkles,
 } from 'lucide-react';
 
 export interface SuggestionItem {
@@ -20,9 +24,12 @@ export interface SuggestionItem {
   icon: React.ReactNode;
   searchTerms?: string[];
   command: (ctx: { editor: any; range: any }) => void;
+  testId?: string;
 }
 
-export const buildSuggestionItems = (): SuggestionItem[] => [
+type Translator = (key: string, vars?: Record<string, string | number>) => string;
+
+export const buildSuggestionItems = (t?: Translator): SuggestionItem[] => [
   {
     title: 'Text',
     description: 'Plain text block.',
@@ -121,6 +128,67 @@ export const buildSuggestionItems = (): SuggestionItem[] => [
     command: ({ editor, range }) => {
       const url = window.prompt('Image URL');
       if (url) editor.chain().focus().deleteRange(range).setImage({ src: url }).run();
+    },
+  },
+  {
+    title: t ? t('slashMenu.callout') : 'Callout',
+    description: t ? t('slashMenu.calloutDesc') : 'Highlighted note, tip, warning, or quote.',
+    icon: <MessageSquareWarning className="w-4 h-4" />,
+    searchTerms: ['callout', 'admonition', 'alert', 'note', 'warning', 'tip', 'aviso', 'nota'],
+    testId: 'slash-item-callout',
+    command: ({ editor, range }) => {
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({
+          type: 'callout',
+          attrs: { calloutType: 'note', title: '' },
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }],
+        })
+        .run();
+    },
+  },
+  {
+    title: t ? t('slashMenu.mermaid') : 'Mermaid diagram',
+    description: t ? t('slashMenu.mermaidDesc') : 'Flowchart, sequence, or ER diagram.',
+    icon: <Workflow className="w-4 h-4" />,
+    searchTerms: ['mermaid', 'diagram', 'flowchart', 'fluxograma', 'sequence', 'er'],
+    testId: 'slash-item-mermaid',
+    command: ({ editor, range }) => {
+      const seed = 'flowchart TD\n  A[Start] --> B[End]';
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({ type: 'mermaid', attrs: { source: seed } })
+        .run();
+    },
+  },
+  {
+    title: t ? t('slashMenu.embed') : 'Embed page',
+    description: t ? t('slashMenu.embedDesc') : 'Inline transclusion of another page.',
+    icon: <Layers className="w-4 h-4" />,
+    searchTerms: ['embed', 'transclusion', 'include', 'transcricao', 'transcrição'],
+    testId: 'slash-item-embed',
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertContent('![[').run();
+    },
+  },
+  {
+    title: t ? t('slashMenu.query') : 'Agentic query',
+    description: t ? t('slashMenu.queryDesc') : 'Live query over project frontmatter.',
+    icon: <Sparkles className="w-4 h-4" />,
+    searchTerms: ['query', 'dataview', 'filter', 'busca', 'pesquisa', 'agentic'],
+    testId: 'slash-item-query',
+    command: ({ editor, range }) => {
+      const seed = 'version: 1\nfrom: "brain"\nsort: title asc\nlimit: 10\n';
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({ type: 'agenticQuery', attrs: { source: seed } })
+        .run();
     },
   },
 ];

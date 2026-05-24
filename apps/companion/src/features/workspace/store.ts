@@ -120,7 +120,7 @@ interface WorkspaceState {
   settingsOpen: boolean;
   settingsTab: 'general' | 'credentials';
   sourceViewerPath: string | null;
-  linkEditor: { open: boolean; initial: { text: string; href: string }; onSubmit: ((value: { text: string; href: string }) => void) | null };
+  linkEditor: { open: boolean; initial: { text: string; href: string }; onSubmit: ((value: { text: string; href: string; pageId?: string | null }) => void) | null };
   templates: Template[];
   settings: {
     usageLimit: number;
@@ -142,7 +142,7 @@ interface WorkspaceState {
   closeSettings: () => void;
   openSourceViewer: (path: string) => void;
   closeSourceViewer: () => void;
-  openLinkEditor: (initial: { text: string; href: string }, onSubmit: (value: { text: string; href: string }) => void) => void;
+  openLinkEditor: (initial: { text: string; href: string }, onSubmit: (value: { text: string; href: string; pageId?: string | null }) => void) => void;
   closeLinkEditor: () => void;
   reorderPages: (parentId: string | null, orderedIds: string[]) => void;
   addPage: (parentId?: string | null, type?: 'doc' | 'database', options?: { setActive?: boolean; initialTitle?: string }) => string;

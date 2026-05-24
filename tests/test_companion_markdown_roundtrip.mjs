@@ -76,6 +76,30 @@ URL nua: https://conversion.com.br/blog/backlinks/ vira link automaticamente.
 
 <!-- comentário preservado -->
 
+> [!warning] Atenção
+> Este é um aviso editorial.
+
+> [!tip]
+> Dica curta sem título.
+
+![[voz]]
+
+![[editorial#SEO estratégico|área SEO]]
+
+\`\`\`mermaid
+flowchart TD
+  A[Marca] --> B[Voz]
+\`\`\`
+
+\`\`\`agentic-query
+version: 1
+from: "conteudos/blog"
+where:
+  status: "draft"
+sort: updated desc
+limit: 10
+\`\`\`
+
 \`\`\`agentic-kpis
 version: 1
 items:
@@ -108,6 +132,17 @@ assert.match(JSON.stringify(doc), /reportBlock/);
 assert.match(JSON.stringify(doc), /"type":"table"/);
 assert.match(JSON.stringify(doc), /"agenticReport":true/);
 assert.match(JSON.stringify(doc), /"hidden":true/);
+// M2: callout, embed, mermaid nodes
+assert.match(JSON.stringify(doc), /"type":"callout"/);
+assert.match(JSON.stringify(doc), /"calloutType":"warning"/);
+assert.match(JSON.stringify(doc), /"title":"Atenção"/);
+assert.match(JSON.stringify(doc), /"calloutType":"tip"/);
+assert.match(JSON.stringify(doc), /"type":"pageEmbed"/);
+assert.match(JSON.stringify(doc), /"type":"mermaid"/);
+assert.match(JSON.stringify(doc), /flowchart TD/);
+// M3: agentic-query node
+assert.match(JSON.stringify(doc), /"type":"agenticQuery"/);
+assert.match(JSON.stringify(doc), /from: \\"conteudos\/blog\\"/);
 
 const out = docToMarkdown(doc, resolver);
 assert.match(out, /página, análise e aprovação/);
@@ -139,6 +174,17 @@ assert.match(out, /```agentic-table/);
 assert.match(out, /version: 1/);
 assert.match(out, /items:/);
 assert.match(out, /"title": "Score"/);
+// M2: callout, embed, mermaid serialization
+assert.match(out, /> \[!warning\] Atenção/);
+assert.match(out, /> Este é um aviso editorial\./);
+assert.match(out, /> \[!tip\]/);
+assert.match(out, /!\[\[voz\]\]/);
+assert.match(out, /!\[\[editorial#SEO estratégico\|área SEO\]\]/);
+assert.match(out, /```mermaid/);
+assert.match(out, /flowchart TD/);
+// M3: agentic-query serialization
+assert.match(out, /```agentic-query/);
+assert.match(out, /from: "conteudos\/blog"/);
 
 const reportBlockSource = readFileSync("apps/companion/src/features/editor/report-block-extension.tsx", "utf8");
 const editorExtensionSource = readFileSync("apps/companion/src/features/editor/editor-extensions.ts", "utf8");

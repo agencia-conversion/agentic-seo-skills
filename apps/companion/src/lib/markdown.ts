@@ -19,6 +19,15 @@ function textNode(text: string): JsonNode {
   return { type: 'text', text };
 }
 
+function splitWikilinkTarget(raw: string) {
+  const target = raw.trim();
+  const hashIndex = target.indexOf('#');
+  if (hashIndex === -1) return { pageTarget: target, anchor: null as string | null };
+  const pageTarget = target.slice(0, hashIndex).trim();
+  const anchor = target.slice(hashIndex + 1).trim();
+  return { pageTarget, anchor: anchor || null };
+}
+
 function inlineNodes(text: string, resolver?: MentionResolver): JsonNode[] {
   const parsed = parseInline(text, resolver);
   return parsed.map(toJsonNode).filter((node) => !(node.type === 'text' && node.text === ''));
@@ -35,6 +44,29 @@ function toJsonNode(node: InlineNode): JsonNode {
     );
   }
   return out;
+}
+
+const EMBED_LINE_RE = /^\s*!\[\[([^\]\n|]+)(?:\|([^\]\n]+))?\]\]\s*$/;
+const CALLOUT_HEAD_RE = /^\s*>\s*\[!([a-zA-Z]+)\](?:\s+(.*))?$/;
+const CALLOUT_BODY_RE = /^\s*>\s?(.*)$/;
+
+function embedLineMatch(line: string) {
+  const m = line.match(EMBED_LINE_RE);
+  if (!m) return null;
+  const { pageTarget, anchor } = splitWikilinkTarget(m[1]);
+  return { pageTarget, anchor, alias: m[2]?.trim() || null };
+}
+
+function calloutHeadMatch(line: string) {
+  const m = line.match(CALLOUT_HEAD_RE);
+  if (!m) return null;
+  return { type: m[1].toLowerCase(), title: m[2]?.trim() || null };
+}
+
+function calloutBodyMatch(line: string) {
+  const m = line.match(CALLOUT_BODY_RE);
+  if (!m) return null;
+  return m[1];
 }
 
 function paragraph(text: string, resolver?: MentionResolver): JsonNode {
@@ -156,9 +188,29 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
         content.push(reportTableNode(body, resolver));
       } else if (/^agentic-(kpis|chart)$/.test(language)) {
         content.push({ type: 'reportBlock', attrs: { kind: language, data: body } });
+      } else if (language === 'mermaid') {
+        content.push({ type: 'mermaid', attrs: { source: body } });
+      } else if (language === 'agentic-query') {
+        content.push({ type: 'agenticQuery', attrs: { source: body } });
       } else {
         content.push({ type: 'codeBlock', attrs: { language: language || null }, content: [textNode(body)] });
       }
+      continue;
+    }
+
+    const embed = embedLineMatch(line);
+    if (embed) {
+      const pageId = embed.pageTarget ? resolver?.findPageId(embed.pageTarget) : null;
+      if (pageId) {
+        content.push({
+          type: 'pageEmbed',
+          attrs: { pageId, anchor: embed.anchor, alias: embed.alias },
+        });
+      } else {
+        // Unresolved embed — keep as raw markdown so the reference is visible and roundtrips.
+        content.push(raw(line));
+      }
+      i++;
       continue;
     }
 
@@ -222,6 +274,29 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
         i++;
       }
       content.push({ type: 'orderedList', content: items });
+      continue;
+    }
+
+    const calloutHead = /^\s*>\s*\[!/.test(line) ? calloutHeadMatch(line) : null;
+    if (calloutHead) {
+      const bodyLines: string[] = [];
+      i++;
+      while (i < lines.length) {
+        const next = lines[i];
+        if (!/^\s*>/.test(next)) break;
+        const body = calloutBodyMatch(next);
+        bodyLines.push(body ?? '');
+        i++;
+      }
+      const bodyText = bodyLines.join('\n').trim();
+      const bodyContent: JsonNode[] = bodyText
+        ? bodyText.split(/\n{2,}/).map((p) => paragraph(p.replace(/\n/g, ' '), resolver))
+        : [{ type: 'paragraph', content: [] }];
+      content.push({
+        type: 'callout',
+        attrs: { calloutType: calloutHead.type, title: calloutHead.title },
+        content: bodyContent,
+      });
       continue;
     }
 
@@ -368,6 +443,29 @@ export function docToMarkdown(doc: any, resolver?: MentionResolver): string {
     } else if (node.type === 'blockquote') {
       const text = (node.content || []).map((child) => paragraphText(child, resolver)).join('\n');
       out.push(text.split('\n').map((line) => `> ${line}`).join('\n'));
+    } else if (node.type === 'callout') {
+      const calloutType = String(node.attrs?.calloutType || 'note').toLowerCase();
+      const title = String(node.attrs?.title || '').trim();
+      const head = title ? `> [!${calloutType}] ${title}` : `> [!${calloutType}]`;
+      const bodyText = (node.content || [])
+        .map((child) => paragraphText(child, resolver))
+        .filter((line) => line.length)
+        .join('\n');
+      const bodyLines = bodyText ? bodyText.split('\n').map((line) => `> ${line}`) : [];
+      out.push([head, ...bodyLines].join('\n'));
+    } else if (node.type === 'pageEmbed') {
+      const pageId = String(node.attrs?.pageId || '');
+      const label = resolver?.labelForPageId(pageId) || pageId || 'page';
+      const anchor = String(node.attrs?.anchor || '').trim();
+      const alias = String(node.attrs?.alias || '').trim();
+      const target = anchor ? `${label}#${anchor}` : label;
+      out.push(alias ? `![[${target}|${alias}]]` : `![[${target}]]`);
+    } else if (node.type === 'mermaid') {
+      const source = String(node.attrs?.source || '').replace(/\s+$/, '');
+      out.push(`\`\`\`mermaid\n${source}\n\`\`\``);
+    } else if (node.type === 'agenticQuery') {
+      const source = String(node.attrs?.source || '').replace(/\s+$/, '');
+      out.push(`\`\`\`agentic-query\n${source}\n\`\`\``);
     } else {
       out.push(paragraphText(node, resolver));
     }
