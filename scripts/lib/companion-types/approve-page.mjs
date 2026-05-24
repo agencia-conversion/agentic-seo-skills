@@ -21,6 +21,7 @@ const AUTHORIAL_BRAIN_PAGES = new Set([
   "brain/tecnologia.md",
   "brain/editorial.md",
   "brain/topic-clusters.md",
+  "brain/revisao.md",
 ]);
 
 function parseArgs(argv) {
