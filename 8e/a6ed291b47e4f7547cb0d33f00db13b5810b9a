@@ -1,0 +1,113 @@
+apps/companion/src/lib/page-display.ts
+  s_3342d1275698f0::t_3e1176b143af8b 1-17
+apps/companion/src/features/credentials/dataforseo-modal.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 1-8
+apps/companion/src/lib/source-files.ts
+  s_3342d1275698f0::t_3e1176b143af8b 1-55
+tests/test_companion_project_browser.mjs
+  s_3342d1275698f0::t_3e1176b143af8b 61,275,288,298
+apps/companion/src/lib/i18n.ts
+  s_3342d1275698f0::t_3e1176b143af8b 42-49,74-78,99-101,104,136-277,531-538,563-567,588-590,593,625-766
+apps/companion/src/features/workspace/user-footer.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 6,17,44,63
+apps/companion/AGENTS.md
+  s_3342d1275698f0::t_3e1176b143af8b 1-83
+apps/companion/src/features/workbench/workbench-index-panel.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 9,24-30,76-77,79-81,83,91,101-105,112,121,141,153,160,169
+apps/companion/src/features/workspace/store.ts
+  s_3342d1275698f0::t_4b9dda26dd864c 123,145
+  s_3342d1275698f0::t_3e1176b143af8b 101,120-122,141-144,146,317,457-460,491,510-524,529,557,606,789-795
+templates/project/brain/index.md
+  s_3342d1275698f0::t_3e1176b143af8b 25
+src/commands/runtime.ts
+  s_3342d1275698f0::t_3e1176b143af8b 3719
+tests/test_companion_mention_hydration.mjs
+  s_3342d1275698f0::t_3e1176b143af8b 32,45,51,55,61,65,71
+apps/companion/src/features/workspace/sidebar.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 30-33,109,111-117,119,293,296
+apps/companion/src/features/editor/mention-hydration.ts
+  s_3342d1275698f0::t_3e1176b143af8b 25,36,47
+apps/companion/src/features/workspace/search-modal.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 100
+apps/companion/src/features/editor/link-edit-modal.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 1-234
+apps/companion/src/features/credentials/dataforseo-credentials-form.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 1-145
+tests/test_project_context.mjs
+  s_3342d1275698f0::t_3e1176b143af8b 31
+.gitignore
+  s_3342d1275698f0::t_3e1176b143af8b 53
+apps/companion/src/features/workspace/settings-modal.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 3,5,7,13,15-25,30,40,44-50,55-60,68,79-95,101-106,108-117,119-123
+apps/companion/src/lib/inline-markdown.ts
+  s_3342d1275698f0::t_3e1176b143af8b 1-186
+apps/companion/src/app/globals.css
+  s_3342d1275698f0::t_3e1176b143af8b 426-451
+apps/companion/src/features/workspace/breadcrumb-trail.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 8-9,54,59,62,70,80
+apps/companion/src/app/api/credentials/dataforseo/route.ts
+  s_3342d1275698f0::t_3e1176b143af8b 1-27
+apps/companion/src/app/page.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 1-4,6,10-11
+apps/companion/src/features/workspace/sidebar-item.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 13,65
+apps/companion/src/features/reports/report-module-panel.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 9,25-31,76,100-101,103-105,107,115,125-129,136,146,162-164,174,181,190
+apps/companion/src/components/select.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 20-21,31-32,119,122,125-128
+apps/companion/src/features/workspace/workspace-switcher.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 6,9,32,39,58
+tests/test_companion_mention_no_at.mjs
+  s_3342d1275698f0::t_3e1176b143af8b 1-59
+apps/companion/src/features/contents/content-index-panel.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 9-10,36,98-103,105-108,111,113-146,153-157,164,173,189,191,194,196,199,201,209,216,225,235-242,245-248
+tests/test_companion_approve_briefing.mjs
+  s_3342d1275698f0::t_3e1176b143af8b 26,72,128
+docs/specs/companion-links-and-sources.md
+  s_3342d1275698f0::t_3e1176b143af8b 1-92
+apps/companion/src/lib/project-files.ts
+  s_3342d1275698f0::t_3e1176b143af8b 493-494,690
+skills/brain-keeper/SKILL.md
+  s_3342d1275698f0::t_3e1176b143af8b 94-113,119
+templates/project/brain/voz.md
+  s_3342d1275698f0::t_3e1176b143af8b 2,6
+apps/companion/src/app/api/project/source/route.ts
+  s_3342d1275698f0::t_280a60559104a8 15
+  s_3342d1275698f0::t_3e1176b143af8b 1-14,16-24
+dist/commands/runtime.js
+  s_3342d1275698f0::t_3e1176b143af8b 3743
+tests/test_companion_source_route.mjs
+  s_3342d1275698f0::t_3e1176b143af8b 1-82
+apps/companion/src/features/sources/source-viewer-modal.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 1-80
+apps/companion/src/app/project/[token]/[[...slug]]/page.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 18-19,101-105,117-160
+apps/companion/src/features/editor/block-handle-menu.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 19,32,128-136,147,165,172
+tests/test_companion_markdown_roundtrip.mjs
+  s_3342d1275698f0::t_3e1176b143af8b 15,34-36,42-43,67-72,153-168
+AGENTS.md
+  s_3342d1275698f0::t_3e1176b143af8b 91-98,137
+apps/companion/src/lib/credentials.ts
+  s_3342d1275698f0::t_3e1176b143af8b 1-127
+apps/companion/src/features/editor/editor-panel.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 84-134,264,266,309,355,395,619,757,788-809,815,819-832,837,863,909-915
+apps/companion/src/features/editor/frontmatter-drawer.tsx
+  s_3342d1275698f0::t_3e1176b143af8b 8-16,30,76,81,91,98,117,132-133,168,170,172-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "8ea6ed291b47e4f7547cb0d33f00db13b5810b9a",
+  "prompts": {},
+  "sessions": {
+    "s_3342d1275698f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5b99-0137-7bb2-aed0-4a04d9082f81",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
