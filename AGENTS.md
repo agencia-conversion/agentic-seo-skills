@@ -134,7 +134,7 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 | Companion reports | `project/relatorios/<module>/<run-slug>/` | `report.md` |
 | Brain (authorial) | `project/brain/` | direct edits allowed when recorded as `tipo: decisao` in `brain/log.md` |
 
-Skills read the brain for context (identidade, voz, tecnologia, editorial) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`.
+Skills read the brain for context (identidade, tom de voz, tecnologia, editorial) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`.
 
 ## Browser Handoff
 

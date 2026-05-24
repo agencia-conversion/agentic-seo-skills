@@ -74,7 +74,7 @@ const messages = {
     brainBootstrap: {
       title: 'Brain not created yet',
       description:
-        'The Brain is the authorial layer of the project (identity, voice, technology, editorial, clusters). Create it to start writing.',
+        'The Brain is the authorial layer of the project (identity, tone of voice, technology, editorial, clusters). Create it to start writing.',
     },
     deleteFile: {
       title: 'Move file to trash?',
@@ -497,7 +497,7 @@ const messages = {
     brainBootstrap: {
       title: 'Brain ainda não foi criado',
       description:
-        'O Brain é a camada autoral do projeto (identidade, voz, tecnologia, editorial, clusters). Crie para começar a escrever.',
+        'O Brain é a camada autoral do projeto (identidade, tom de voz, tecnologia, editorial, clusters). Crie para começar a escrever.',
     },
     deleteFile: {
       title: 'Mover arquivo para a lixeira?',
