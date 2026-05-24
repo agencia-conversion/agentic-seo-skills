@@ -1,0 +1,230 @@
+templates/project/brain/index.md
+  s_1f7664b674f745::t_bfed3b6d926191 25
+tests/test_graph_builder.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 1-34,44-151
+  s_1f7664b674f745::t_5300c630f629f7 35-43
+templates/project/brain/voz.md
+  s_1f7664b674f745::t_bfed3b6d926191 2,6
+src/commands/runtime.ts
+  s_1f7664b674f745::t_bfed3b6d926191 3776
+apps/companion/e2e/fixtures/sample-project/brain/topic-clusters.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-8
+apps/companion/e2e/slash-menu.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-75
+apps/companion/src/features/editor/agentic-query-extension.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-52
+docs/specs/companion-links-and-sources.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-92
+apps/companion/src/lib/reports.ts
+  s_1f7664b674f745::t_258e8dc189ab37 9
+docs/obsidian-vault.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-67
+apps/companion/e2e/fixtures/sample-project/brain/identidade.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-26
+apps/companion/e2e/graph.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-49
+apps/companion/e2e/global-setup.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-9
+apps/companion/src/features/editor/linked-mentions-panel.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-206
+tests/test_companion_approve_briefing.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 26,72,128
+tests/test_companion_mention_no_at.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 1-59
+apps/companion/src/features/workspace/workspace-header.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-63
+tests/test_agentic_query.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 1-33,42-180
+  s_1f7664b674f745::t_5300c630f629f7 34-41
+apps/companion/src/lib/project-files.ts
+  s_1f7664b674f745::t_bfed3b6d926191 485-486,682
+  s_1f7664b674f745::t_258e8dc189ab37 4
+apps/companion/src/app/project/[token]/tags/page.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-180
+apps/companion/src/features/sources/source-viewer-modal.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-80
+apps/companion/src/features/workspace/user-footer.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 6,17,44,63
+apps/companion/playwright.config.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-40
+dist/commands/runtime.js
+  s_1f7664b674f745::t_bfed3b6d926191 3798
+tests/test_companion_project_browser.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 61,275,288,298
+apps/companion/e2e/markdown-extensions.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-43
+apps/companion/src/features/editor/page-embed-extension.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-83
+apps/companion/src/features/workspace/breadcrumb-trail.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 9-10,52,57,60,68,78
+  s_1f7664b674f745::t_258e8dc189ab37 5
+apps/companion/src/lib/graph-builder.ts
+  s_1f7664b674f745::t_240c63de4def60 7,37
+  s_1f7664b674f745::t_258e8dc189ab37 5
+  s_1f7664b674f745::t_bfed3b6d926191 1-4,6,8-36,38-128
+apps/companion/e2e/backlinks.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-78
+tests/test_companion_mention_hydration.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 32,45,51,55,61,65,71
+apps/companion/src/app/project/[token]/broken-links/page.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-157
+apps/companion/src/features/editor/editor-extensions.ts
+  s_1f7664b674f745::t_bfed3b6d926191 14-17,156-159
+apps/companion/src/lib/page-display.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-10,12-17
+  s_1f7664b674f745::t_240c63de4def60 11
+apps/companion/src/features/editor/callout-extension.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-73
+.gitignore
+  s_1f7664b674f745::t_bfed3b6d926191 25,39-48,53
+apps/companion/src/app/api/project/tags/route.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-16
+apps/companion/src/app/api/project/backlinks/route.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-40
+apps/companion/src/app/globals.css
+  s_1f7664b674f745::t_bfed3b6d926191 426-451
+apps/companion/src/lib/markdown.ts
+  s_1f7664b674f745::t_bfed3b6d926191 6,8,15,32-44,46-69,73,77,88,93,97,116,124,140,152,160,188,191-194,201-216,233,280-302,332,334-341,343-356,360,446-468
+apps/companion/src/features/editor/editor-commands.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 15-18,27,30-32,133-191
+apps/companion/src/lib/i18n.ts
+  s_1f7664b674f745::t_46332bc6a5cba8 43,104,181-185,190-191,532,593,670-673,679-680
+  s_1f7664b674f745::t_bfed3b6d926191 42,44-49,74-78,99-101,136-180,186-189,192-277,430-495,531,533-538,563-567,588-590,625-669,674-678,681-766,919-983
+apps/companion/src/lib/backlink-index.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-2,4,6-412
+  s_1f7664b674f745::t_258e8dc189ab37 3
+  s_1f7664b674f745::t_240c63de4def60 5
+apps/companion/src/features/workspace/settings-modal.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 3,5,7,13,15-25,30,40,44-50,55-60,68,79-95,101-106,108-117,119-123
+apps/companion/src/app/project/[token]/[[...slug]]/page.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 18-19,101-105,117-160
+apps/companion/src/app/api/credentials/dataforseo/route.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-27
+apps/companion/e2e/visual-screenshots.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-96
+apps/companion/src/features/editor/link-edit-modal.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-234
+AGENTS.md
+  s_1f7664b674f745::t_bfed3b6d926191 91-98,137
+apps/companion/src/components/select.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 20-21,31-32,119,122,125-128
+tests/test_tag_index.mjs
+  s_1f7664b674f745::t_5300c630f629f7 36-43
+  s_1f7664b674f745::t_bfed3b6d926191 1-35,44-149
+apps/companion/src/lib/agentic-query.ts
+  s_1f7664b674f745::t_240c63de4def60 7
+  s_1f7664b674f745::t_bfed3b6d926191 1-4,6,8-232
+  s_1f7664b674f745::t_258e8dc189ab37 5
+apps/companion/package.json
+  s_1f7664b674f745::t_bfed3b6d926191 8-10,35,42,51,53
+apps/companion/e2e/keyboard-shortcuts.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-47
+apps/companion/src/app/api/project/query/route.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-17
+apps/companion/src/app/api/project/broken-links/route.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-27
+apps/companion/e2e/test-constants.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-7
+apps/companion/e2e/fixtures/sample-project/brain/voz.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-12
+apps/companion/src/features/workspace/workspace-switcher.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 6,9,32,39,58
+apps/companion/src/lib/credentials.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-127
+apps/companion/src/app/page.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-4,6,10-11
+apps/companion/e2e/fixtures/sample-project/brain/index.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-28
+apps/companion/src/features/editor/mermaid-hydrator.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-114
+apps/companion/src/features/editor/agentic-query-hydrator.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-214
+apps/companion/src/features/editor/mermaid-extension.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-50
+apps/companion/e2e/tags.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-39
+apps/companion/src/features/editor/slash-command-menu.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 86
+apps/companion/e2e/discoverability.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-68
+apps/companion/e2e/fixtures/sample-project/.agentic-seo/project.json
+  s_1f7664b674f745::t_bfed3b6d926191 1-8
+apps/companion/src/hooks/use-keyboard-shortcuts.ts
+  s_1f7664b674f745::t_bfed3b6d926191 58-81
+apps/companion/src/lib/source-files.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-55
+apps/companion/src/features/credentials/dataforseo-modal.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-8
+apps/companion/src/features/workspace/virtual-page-shell.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 7,14-16
+tests/test_project_context.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 31
+apps/companion/e2e/fixtures/sample-project/brain/editorial.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-8
+tests/test_backlink_index.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 1-30,36-226
+  s_1f7664b674f745::t_5300c630f629f7 31-35
+apps/companion/src/app/api/project/graph/route.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-12
+apps/companion/src/lib/tag-index.ts
+  s_1f7664b674f745::t_258e8dc189ab37 4
+  s_1f7664b674f745::t_240c63de4def60 6
+  s_1f7664b674f745::t_bfed3b6d926191 1-3,5,7-199
+tests/test_companion_source_route.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 1-82
+apps/companion/src/features/editor/block-handle-menu.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 19,32,128-136,147,165,172
+apps/companion/e2e/fixtures/sample-project/brain/log.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-24
+apps/companion/src/lib/inline-markdown.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-186
+skills/brain-keeper/SKILL.md
+  s_1f7664b674f745::t_bfed3b6d926191 94-113,119
+apps/companion/src/features/editor/frontmatter-drawer.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 8-16,30,76,81,91,98,117,132-133,168,170,172-175
+apps/companion/src/features/workspace/search-modal.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 5-6,17,25-56,100,108-135
+apps/companion/AGENTS.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-83
+apps/companion/src/app/project/[token]/graph/page.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-10,12-41,43-45,47-248
+  s_1f7664b674f745::t_240c63de4def60 11,42,46
+apps/companion/src/features/credentials/dataforseo-credentials-form.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 1-145
+apps/companion/e2e/obsidian-compat.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-65
+apps/companion/src/features/editor/mention-hydration.ts
+  s_1f7664b674f745::t_bfed3b6d926191 25,36,47
+apps/companion/src/features/workspace/page-width.ts
+  s_1f7664b674f745::t_258e8dc189ab37 1
+apps/companion/src/features/workspace/sidebar.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 4-5,14,30-33,36-75,109,111-117,119,199-241,293,296
+tests/test_companion_markdown_roundtrip.mjs
+  s_1f7664b674f745::t_bfed3b6d926191 15,34-36,42-43,67-72,79-102,135-145,153-168,177-187
+apps/companion/src/app/api/project/source/route.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-24
+apps/companion/e2e/agentic-query.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-58
+apps/companion/e2e/live-renders.spec.ts
+  s_1f7664b674f745::t_bfed3b6d926191 1-36
+apps/companion/src/features/workbench/workbench-index-panel.tsx
+  s_1f7664b674f745::t_bfed3b6d926191 9,24-30,76-77,79-81,83,91,101-105,112,121,141,153,160,169
+apps/companion/e2e/fixtures/sample-project/brain/tecnologia.md
+  s_1f7664b674f745::t_bfed3b6d926191 1-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "789662a6325ff7eef5282b47d8b6d332643fb394",
+  "prompts": {},
+  "sessions": {
+    "s_1f7664b674f745": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5b99-b8c4-7541-92e1-fbebe3734079",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
