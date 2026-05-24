@@ -13,12 +13,16 @@ test.describe('Markdown extensions (callout, embed, mermaid)', () => {
     await expect(callout).toContainText('brain de fixture');
   });
 
-  test('Identidade page renders mermaid fence as a code block', async ({ page }) => {
+  test('Identidade page renders mermaid fence (source preserved + SVG hydrated)', async ({ page }) => {
     await page.goto(`/project/${TOKEN}/brain-identidade`);
     await page.waitForSelector('[data-mermaid]', { timeout: 20_000 });
     const mermaid = page.locator('[data-mermaid]');
     await expect(mermaid).toBeVisible();
-    await expect(mermaid).toContainText('flowchart TD');
+    // Source preserved on data-source attribute (round-trips back to markdown)
+    const source = await mermaid.getAttribute('data-source');
+    expect(source).toContain('flowchart TD');
+    // After M4, hydrator renders an SVG
+    await page.waitForSelector('[data-mermaid-result] svg', { timeout: 20_000 });
   });
 
   test('Index page renders pageEmbed card with the embed marker', async ({ page }) => {

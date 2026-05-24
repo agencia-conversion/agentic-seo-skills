@@ -55,6 +55,30 @@ export function useKeyboardShortcuts() {
         window.dispatchEvent(new CustomEvent('noteblock:open-settings'));
         return;
       }
+
+      // Cmd+Shift+G — open graph view
+      // Cmd+Shift+T — open tags index
+      // Cmd+Shift+B — open broken links
+      if (e.shiftKey && !e.altKey) {
+        const token = useWorkspace.getState().token;
+        if (!token) return;
+        const key = e.key.toLowerCase();
+        if (key === 'g') {
+          e.preventDefault();
+          router.push(`/project/${token}/graph`);
+          return;
+        }
+        if (key === 't') {
+          e.preventDefault();
+          router.push(`/project/${token}/tags`);
+          return;
+        }
+        if (key === 'b') {
+          e.preventDefault();
+          router.push(`/project/${token}/broken-links`);
+          return;
+        }
+      }
     };
 
     document.addEventListener('keydown', handler);

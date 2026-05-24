@@ -50,6 +50,8 @@ import { getPageWidthOptions, resolvePageWidth, widthToClass } from '../workspac
 import { usePagePath } from '@/hooks/use-page-path';
 import { MentionPopup } from './mention-popup';
 import { MentionChipHydrator } from './mention-chip-hydrator';
+import { AgenticQueryHydrator } from './agentic-query-hydrator';
+import { MermaidHydrator } from './mermaid-hydrator';
 import { FrontmatterDrawer } from './frontmatter-drawer';
 import { LinkedMentionsPanel } from './linked-mentions-panel';
 import { useI18n } from '@/components/i18n-provider';
@@ -272,7 +274,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     activePage.content && typeof activePage.content === 'object' && 'type' in activePage.content
       ? (activePage.content as JSONContent)
       : (INITIAL_DOC as JSONContent);
-  const suggestionItems: SuggestionItem[] = buildSuggestionItems();
+  const suggestionItems: SuggestionItem[] = buildSuggestionItems(t);
 
   const statusLabel = activePage.saving
     ? t('editor.saving')
@@ -798,6 +800,8 @@ function TiptapEditorSurface({
   return (
     <div id={`noteblock-editor-${pageId}`} className="noteblock-editor relative group/editor">
       <MentionChipHydrator editorRootId={`noteblock-editor-${pageId}`} />
+      <AgenticQueryHydrator editorRootId={`noteblock-editor-${pageId}`} />
+      <MermaidHydrator editorRootId={`noteblock-editor-${pageId}`} />
       {editor && (
         <BubbleMenu
           editor={editor}

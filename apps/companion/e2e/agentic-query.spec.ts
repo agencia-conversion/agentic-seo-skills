@@ -44,12 +44,15 @@ columns: [title]
     expect(body.items?.length || 0).toBe(0);
   });
 
-  test('Index page renders agentic-query Tiptap node', async ({ page }) => {
+  test('Index page renders agentic-query Tiptap node with source preserved', async ({ page }) => {
     await page.goto(`/project/${TOKEN}/brain-index`);
     await page.waitForSelector('[data-agentic-query]', { timeout: 20_000 });
     const block = page.locator('[data-agentic-query]');
     await expect(block).toBeVisible();
-    await expect(block).toContainText('from: "brain"');
-    await expect(block).toContainText('sort: title asc');
+    // After M4, the hydrator replaces the inner content with a live table.
+    // Source is preserved on the data-source attribute (round-trips to markdown).
+    const source = await block.getAttribute('data-source');
+    expect(source).toContain('from: "brain"');
+    expect(source).toContain('sort: title asc');
   });
 });

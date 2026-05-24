@@ -2,8 +2,8 @@
 
 import { Command } from 'cmdk';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, FileText, Database, Plus } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
+import { Search, FileText, Database, Plus, Network, Hash, Unlink2 } from 'lucide-react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useWorkspace } from './store';
 import { useRouter } from 'next/navigation';
 import { useClickOutside, useEscapeKey } from '@/hooks/use-click-outside';
@@ -14,12 +14,45 @@ export function SearchModal() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const { pages, createWorkbenchFile } = useWorkspace();
+  const token = useWorkspace((s) => s.token);
   const router = useRouter();
   const pagePath = usePagePath();
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEscapeKey(() => setOpen(false));
   useClickOutside(modalRef, () => setOpen(false));
+
+  const navigationItems = useMemo(
+    () => (token
+      ? [
+          {
+            id: 'nav-graph',
+            label: t('tools.graph'),
+            hint: t('tools.graphHint'),
+            href: `/project/${token}/graph`,
+            icon: Network,
+            testId: 'search-nav-graph',
+          },
+          {
+            id: 'nav-tags',
+            label: t('tools.tags'),
+            hint: t('tools.tagsHint'),
+            href: `/project/${token}/tags`,
+            icon: Hash,
+            testId: 'search-nav-tags',
+          },
+          {
+            id: 'nav-broken-links',
+            label: t('tools.brokenLinks'),
+            hint: t('tools.brokenLinksHint'),
+            href: `/project/${token}/broken-links`,
+            icon: Unlink2,
+            testId: 'search-nav-broken-links',
+          },
+        ]
+      : []),
+    [token, t]
+  );
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -71,6 +104,35 @@ export function SearchModal() {
                 <Command.Empty className="py-6 text-center text-sm text-notion-text-muted">
                   {t('searchModal.noPages')}
                 </Command.Empty>
+
+                {navigationItems.length > 0 && (
+                  <Command.Group
+                    heading={t('navigation.heading')}
+                    className="px-2 pb-2 text-[11px] font-semibold text-notion-text-muted tracking-wider"
+                  >
+                    {navigationItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Command.Item
+                          key={item.id}
+                          value={`${item.label} ${item.hint}`}
+                          data-testid={item.testId}
+                          onSelect={() => {
+                            router.push(item.href);
+                            setOpen(false);
+                          }}
+                          className="flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer hover:bg-notion-hover aria-selected:bg-notion-hover transition-colors text-sm text-notion-text normal-case"
+                        >
+                          <Icon className="w-4 h-4 text-notion-text-muted" />
+                          <span className="truncate">{item.label}</span>
+                          <span className="ml-auto text-[10px] text-notion-text-muted truncate hidden sm:inline">
+                            {item.hint}
+                          </span>
+                        </Command.Item>
+                      );
+                    })}
+                  </Command.Group>
+                )}
 
                 <Command.Group heading={t('common.pages')} className="px-2 pb-2 text-[11px] font-semibold text-notion-text-muted tracking-wider">
                   {pages.filter((p) => !p.trashed).map(page => (
