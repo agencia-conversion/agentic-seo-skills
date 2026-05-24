@@ -1,0 +1,65 @@
+apps/companion/src/features/editor/editor-panel.tsx
+  s_b9b96783817814::t_c6f3346febced5 53-54
+  s_b9b96783817814::t_08db3eed40a44c 804
+  s_b9b96783817814::t_65d2c4563d9764 803
+  s_b9b96783817814::t_cb2b5977a0c030 277
+apps/companion/e2e/slash-menu.spec.ts
+  s_b9b96783817814::t_1477d38f249c44 50-52,62-64
+  s_b9b96783817814::t_960163b816a049 1-49,53-61,65-75
+apps/companion/e2e/live-renders.spec.ts
+  s_b9b96783817814::t_db7b4f823972d4 1-36
+apps/companion/src/features/workspace/search-modal.tsx
+  s_b9b96783817814::t_e1e234b08dafc4 5-6
+  s_b9b96783817814::t_af9c7606c8be54 17,25-55
+  s_b9b96783817814::t_b06bfb49364ad6 108-136
+apps/companion/src/features/workspace/sidebar.tsx
+  s_b9b96783817814::t_6dddbaa17aa901 33-72
+  s_b9b96783817814::t_6101092a50c37a 189-231
+  s_b9b96783817814::t_7fe6cb75ed6e97 4-5,14
+apps/companion/src/features/editor/agentic-query-hydrator.tsx
+  s_b9b96783817814::t_943984a604f24f 1-92,94-96,98-214
+  s_b9b96783817814::t_16c2d745c379e0 93,97
+apps/companion/src/features/editor/editor-commands.tsx
+  s_b9b96783817814::t_721733ca1316a0 15-18,27,30-32
+  s_b9b96783817814::t_b73a12e1ea55ef 133-193
+apps/companion/e2e/discoverability.spec.ts
+  s_b9b96783817814::t_07e8738d2f8b72 58-59,61-62
+  s_b9b96783817814::t_8ef4d70640f4e7 43-45,47-49
+  s_b9b96783817814::t_7b86b5f1de7838 63
+  s_b9b96783817814::t_0eade496f82e7f 1-42,46,50-57,60,64-66
+apps/companion/src/features/editor/mermaid-hydrator.tsx
+  s_b9b96783817814::t_1399574f420b11 1-114
+apps/companion/e2e/markdown-extensions.spec.ts
+  s_b9b96783817814::t_072260060ef042 16,21-25
+apps/companion/package.json
+  s_b9b96783817814::t_0ea1bf470ae099 42
+apps/companion/src/features/editor/slash-command-menu.tsx
+  s_b9b96783817814::t_3a2aad0a5626ef 86
+apps/companion/src/hooks/use-keyboard-shortcuts.ts
+  s_b9b96783817814::t_c9c760a36ecbe7 58-81
+apps/companion/e2e/agentic-query.spec.ts
+  s_b9b96783817814::t_44e8bac152ffae 47,52-56
+apps/companion/e2e/visual-screenshots.spec.ts
+  s_b9b96783817814::t_c470824bd29e23 1-96
+apps/companion/src/lib/i18n.ts
+  s_b9b96783817814::t_81404f7fd44c60 271-336
+  s_b9b96783817814::t_297bb1600b3a3a 601-666
+apps/companion/e2e/keyboard-shortcuts.spec.ts
+  s_b9b96783817814::t_1baed3b7176cb3 1-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "2899576b955a062ec743fb38036db0af1e5666b3",
+  "prompts": {},
+  "sessions": {
+    "s_b9b96783817814": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7fabcb3-41f4-4837-a494-03c48f72eb52",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
