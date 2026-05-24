@@ -32,6 +32,7 @@ test.describe('Graph view', () => {
     await page.waitForSelector('[data-testid="graph-canvas"]', { timeout: 20_000 });
     await expect(page.locator('[data-testid="graph-counts"]')).toBeVisible();
     await expect(page.locator('[data-testid="graph-header"]')).toHaveCSS('border-bottom-width', '1px');
+    await expect(page.locator('[data-testid="graph-filters"]')).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     const sidebarToggle = page.locator('[data-testid="graph-header"] [data-testid="workspace-sidebar-toggle"]');
     await expect(sidebarToggle).toBeVisible();
     await expect(page.locator('[data-testid="sidebar-tools"]')).toBeVisible();

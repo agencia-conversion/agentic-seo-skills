@@ -147,7 +147,7 @@ export default function GraphPage() {
               'line-color': '#cbd5e1',
               'target-arrow-color': '#cbd5e1',
               'target-arrow-shape': 'triangle',
-              'arrow-scale': 0.38,
+              'arrow-scale': 0.19,
               'curve-style': 'bezier',
               opacity: 0.28,
             },
@@ -158,7 +158,7 @@ export default function GraphPage() {
               'line-style': 'dashed',
               'line-color': '#fca5a5',
               'target-arrow-color': '#fca5a5',
-              'arrow-scale': 0.45,
+              'arrow-scale': 0.225,
               opacity: 0.45,
             },
           },
@@ -216,7 +216,7 @@ export default function GraphPage() {
         )}
 
         <div className="flex-1 flex overflow-hidden">
-          <aside className="w-44 border-r border-notion-border p-3 space-y-2" data-testid="graph-filters">
+          <aside className="w-44 border-r border-notion-border bg-notion-sidebar/60 p-3 space-y-2" data-testid="graph-filters">
             <div className="text-[10px] uppercase font-semibold tracking-wider text-notion-text-muted">Seções</div>
             {data?.sections.map((s) => (
               <button
