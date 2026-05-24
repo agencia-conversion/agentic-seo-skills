@@ -1,0 +1,79 @@
+skills/agentic-seo/SKILL.md
+  s_fd1ab7b3685afc::t_a5d08a1695b2f9 41
+  s_fd1ab7b3685afc::t_b4873622039ec7 83
+  s_fd1ab7b3685afc::t_b85f422a0ab167 53
+skills/content-seo/SKILL.md
+  s_fd1ab7b3685afc::t_5c8923f5d039bc 27
+  s_fd1ab7b3685afc::t_ab64db1714038f 142,144,148-153
+  s_fd1ab7b3685afc::t_13c504ae3540cd 197
+  s_fd1ab7b3685afc::t_dca28d26970f99 239-251
+  s_fd1ab7b3685afc::t_e98a50a07bf65c 209,214,216
+skills/project-init/evals/fixture.md
+  s_fd1ab7b3685afc::t_6799da0245c34a 15
+skills/start/SKILL.md
+  s_fd1ab7b3685afc::t_d4a745c1742151 58
+skills/content-seo/evals/fixture-revisao.md
+  s_fd1ab7b3685afc::t_2d276018db14e6 1-30
+agents/content-seo.md
+  s_fd1ab7b3685afc::t_fe52e9445e5034 20
+skills/project-init/SKILL.md
+  s_fd1ab7b3685afc::t_5720d89b97c35a 176
+  s_fd1ab7b3685afc::t_4f35d9071c470c 165
+  s_fd1ab7b3685afc::t_6581d0e4885e3f 96
+  s_fd1ab7b3685afc::t_17a1597def240e 131
+  s_fd1ab7b3685afc::t_c594cefd96326f 22
+skills/content-seo/evals/fixture.md
+  s_fd1ab7b3685afc::t_cc0587258d6cbf 12
+  s_fd1ab7b3685afc::t_c34bdbefe87c4b 20
+tests/test_brain_review_protocol.mjs
+  s_fd1ab7b3685afc::t_50a53a77d8d271 34-35
+tests/test_project_context.mjs
+  s_fd1ab7b3685afc::t_7d07b67ee0f79e 35
+  s_fd1ab7b3685afc::t_013e9e6c51eb07 44
+scripts/lib/companion-types/approve-page.mjs
+  s_fd1ab7b3685afc::t_1193de0f5cb2dd 24
+apps/companion/src/lib/project-files.ts
+  s_fd1ab7b3685afc::t_454297c6de4a12 13,23
+AGENTS.md
+  s_fd1ab7b3685afc::t_55b908033ff716 70,74
+  s_fd1ab7b3685afc::t_044b51765a09fb 117
+  s_fd1ab7b3685afc::t_9aab3e3e3a5fd3 139
+  s_fd1ab7b3685afc::t_bdabe9dfc827f9 102-103
+templates/project/brain/revisao.md
+  s_fd1ab7b3685afc::t_cfae22023a0725 1-80
+dist/commands/runtime.js
+  s_fd1ab7b3685afc::t_a12fe141800b1b 75,85,3535
+skills/brain-keeper/SKILL.md
+  s_fd1ab7b3685afc::t_ffa695a83e4659 30
+  s_fd1ab7b3685afc::t_61ffdd1665a6f5 101
+  s_fd1ab7b3685afc::t_3540fbeb61b460 10
+  s_fd1ab7b3685afc::t_b0c995a1a1323c 48
+  s_fd1ab7b3685afc::t_5afb7e498a1c20 46,50,52
+tests/test_companion_project_browser.mjs
+  s_fd1ab7b3685afc::t_3ed524b443c4e1 31
+scripts/lib/project-browser-files.mjs
+  s_fd1ab7b3685afc::t_d498430d95f6de 18,28
+apps/companion/src/features/workspace/store.ts
+  s_fd1ab7b3685afc::t_231ae7425b14df 253
+src/commands/runtime.ts
+  s_fd1ab7b3685afc::t_72b978ff005652 3515
+  s_fd1ab7b3685afc::t_5f03c616f232bc 36,46
+agents/brain-keeper.md
+  s_fd1ab7b3685afc::t_856f658ac1ba87 11,15-16,23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "81697ed78137e78f1bb229e08af1c7198c2e1949",
+  "prompts": {},
+  "sessions": {
+    "s_fd1ab7b3685afc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "28d331a1-0654-4c6b-b551-632468a466b4",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
