@@ -50,3 +50,4 @@ project/.obsidian/
 .agents/
 .claude/
 skills-lock.json
+.gstack/

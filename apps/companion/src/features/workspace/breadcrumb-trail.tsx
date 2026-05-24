@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Page, useWorkspace } from './store';
 import { usePagePath } from '@/hooks/use-page-path';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/components/i18n-provider';
+import { displayPageTitle } from '@/lib/page-display';
 
 function rootCrumbFor(page: Page, pages: Page[]) {
   if (page.sectionId === 'brain') return pages.find((item) => item.path === 'brain/index.md') || null;
@@ -49,13 +51,15 @@ function parentChain(page: Page, pages: Page[]) {
 export function BreadcrumbTrail({ activePage }: { activePage: Page }) {
   const router = useRouter();
   const pagePath = usePagePath();
+  const { t } = useI18n();
   const pages = useWorkspace((s) => s.pages);
   const crumbs = parentChain(activePage, pages);
 
   return (
-    <nav className="flex min-w-0 items-center gap-1 overflow-hidden text-sm text-notion-text-muted" aria-label="Breadcrumb">
+    <nav className="flex min-w-0 items-center gap-1 overflow-hidden text-sm text-notion-text-muted" aria-label={t('breadcrumb.label')}>
       {crumbs.map((crumb, index) => {
         const isCurrent = crumb.id === activePage.id;
+        const title = displayPageTitle(crumb, t);
         return (
           <div key={crumb.id} className="flex min-w-0 items-center gap-1">
             {index > 0 && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-notion-text-muted/70" aria-hidden="true" />}
@@ -63,7 +67,7 @@ export function BreadcrumbTrail({ activePage }: { activePage: Page }) {
               type="button"
               onClick={() => router.push(pagePath(crumb.slug))}
               aria-current={isCurrent ? 'page' : undefined}
-              aria-label={isCurrent ? `Página atual: ${crumb.title}` : `Abrir ${crumb.title}`}
+              aria-label={t(isCurrent ? 'breadcrumb.currentAria' : 'breadcrumb.openAria', { title })}
               className={cn(
                 'flex min-w-0 items-center gap-1.5 rounded px-2 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-notion-text/10',
                 isCurrent ? 'text-notion-text' : 'hover:bg-notion-hover hover:text-notion-text'
@@ -73,7 +77,7 @@ export function BreadcrumbTrail({ activePage }: { activePage: Page }) {
                 {crumb.icon || <FileText className="h-[18px] w-[18px]" />}
               </span>
               <span className={cn('truncate font-medium', isCurrent ? 'max-w-[360px]' : 'max-w-[220px]')}>
-                {crumb.path === 'brain/index.md' ? 'Brain' : crumb.title || 'Sem título'}
+                {title}
               </span>
             </button>
           </div>

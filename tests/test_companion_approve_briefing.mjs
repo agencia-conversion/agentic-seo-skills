@@ -23,7 +23,7 @@ const contextEvidence = {
   ],
   voice_evidence: {
     path: "brain/voz.md",
-    title: "Voz",
+    title: "Tom de Voz",
     filled: true,
     updated: "2026-05-05",
     content_hash_sha256: "def456",
@@ -69,7 +69,7 @@ const baseBrief = {
     ],
     outline_capacity: { target_words: 2000, min_h2_sections: 4, planned_h2_sections: 4, planned_words: 2000, can_support_target: true, iterations: [] },
   },
-  voice_context: { path: "brain/voz.md", filled: true, title: "Voz", updated: "2026-05-05" },
+  voice_context: { path: "brain/voz.md", filled: true, title: "Tom de Voz", updated: "2026-05-05" },
   approval: { phase: "briefing", mode: "handoff", status: "pending", aprovador: null, aprovado_em: null, decided_at: null, notes: null },
   draft_status: "briefing",
 };
@@ -125,7 +125,7 @@ function writeJsonBrief(name, override = {}) {
 
 {
   const draftVoice = { ...contextEvidence, voice_evidence: { ...contextEvidence.voice_evidence, filled: false } };
-  const file = writeBrief("voice-draft.brief.yaml", { context_evidence: draftVoice, voice_context: { path: "brain/voz.md", filled: false, title: "Voz" } });
+  const file = writeBrief("voice-draft.brief.yaml", { context_evidence: draftVoice, voice_context: { path: "brain/voz.md", filled: false, title: "Tom de Voz" } });
   const ctx = buildContext({ projectRoot, briefPath: file });
   const accepted = await handleSubmit({ decision: "ready", approver: "Diego", notes: "" }, ctx);
   assert.equal(accepted.ok, true);

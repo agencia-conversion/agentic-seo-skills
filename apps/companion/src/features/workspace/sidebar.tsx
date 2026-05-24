@@ -27,7 +27,10 @@ export function Sidebar() {
   const projectRoot = useWorkspace((s) => s.projectRoot);
 
   const [isResizing, setIsResizing] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const settingsOpen = useWorkspace((s) => s.settingsOpen);
+  const settingsTab = useWorkspace((s) => s.settingsTab);
+  const openSettings = useWorkspace((s) => s.openSettings);
+  const closeSettings = useWorkspace((s) => s.closeSettings);
   const resizeStartRef = useRef<{ x: number; w: number } | null>(null);
   const mobileAutoCollapsedRef = useRef(false);
   const token = useWorkspace((s) => s.token);
@@ -103,10 +106,17 @@ export function Sidebar() {
   }, [isResizing, setSidebarWidth]);
 
   useEffect(() => {
-    const openHandler = () => setIsSettingsOpen(true);
+    const openHandler = () => openSettings();
     window.addEventListener('noteblock:open-settings', openHandler);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('openDataForSeo') === '1') {
+      params.delete('openDataForSeo');
+      const next = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (next ? `?${next}` : ''));
+      openSettings('credentials');
+    }
     return () => window.removeEventListener('noteblock:open-settings', openHandler);
-  }, []);
+  }, [openSettings]);
 
   useEffect(() => {
     if (mobileAutoCollapsedRef.current || sidebarCollapsed) return;
@@ -280,10 +290,10 @@ export function Sidebar() {
       </nav>
 
       <div className="px-3 py-2 border-t border-notion-border">
-        <UserFooter projectName={projectName} projectRoot={projectRoot} onSettings={() => setIsSettingsOpen(true)} />
+        <UserFooter projectName={projectName} projectRoot={projectRoot} onSettings={() => openSettings()} />
       </div>
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsModal isOpen={settingsOpen} initialTab={settingsTab} onClose={closeSettings} />
       <div
         onMouseDown={handleResizeMouseDown}
         className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-notion-border transition-colors"

@@ -88,6 +88,14 @@ Brain pages: `title`, `updated`. No `status`, `judgment_level`, `pillar`, `owner
 
 Public content (`conteudos/<origem>/<slug>.md`): `title`, `slug`, `published_at`, `source_url`, `origem` (`blog | linkedin | podcast | outros`), `area` (slug que existe como seção em `brain/editorial.md`).
 
+### Consumível (no-gap)
+
+Brain pages, conteúdos e reports são lidos por outros agentes em outras sessões. Cada arquivo precisa ser auto-suficiente.
+
+- Nunca deixar `gap`, `<preencher>`, `TODO`, "a confirmar", "a definir", `[?]`, células vazias ou cabeçalhos sem corpo em arquivos do brain, `conteudos/` ou `relatorios/`.
+- Se a evidência falta: buscar mais (scrape, provider call, fonte existente), reescrever a seção sem o item, ou mover o pendente para `brain/log.md` como `tipo: decisao` com critério de reintroduzir. O arquivo autoral fica limpo.
+- Estruturas obrigatórias podem omitir subseções inteiras quando não há base. O que não pode é cabeçalho com `gap` no corpo.
+
 ### Brain-first protocol
 
 - Mudança em arquivo autoral do brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) pode ser aplicada diretamente quando a evidência e a decisão forem registradas em `brain/log.md` como `tipo: decisao` com `aprovador: agent` ou nome humano.
@@ -126,7 +134,7 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 | Companion reports | `project/relatorios/<module>/<run-slug>/` | `report.md` |
 | Brain (authorial) | `project/brain/` | direct edits allowed when recorded as `tipo: decisao` in `brain/log.md` |
 
-Skills read the brain for context (identidade, voz, tecnologia, editorial) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`.
+Skills read the brain for context (identidade, tom de voz, tecnologia, editorial) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`.
 
 ## Browser Handoff
 

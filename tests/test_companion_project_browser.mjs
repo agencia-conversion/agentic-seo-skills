@@ -58,7 +58,7 @@ title: "Tom de Voz"
 updated: "2026-05-07"
 ---
 
-# Voz
+# Tom de Voz
 
 Conteúdo com acentuação: página, análise, aprovação.
 `,
@@ -272,7 +272,7 @@ const stale = saveProjectFile({
   fileRel: "brain/voz.md",
   expectedHash: file.hash,
   title: "Tom de Voz",
-  body: "# Voz\n\nTexto novo.",
+  body: "# Tom de Voz\n\nTexto novo.",
   approver: "Diego Ivo",
 });
 assert.equal(stale.ok, false);
@@ -285,7 +285,7 @@ const savedWithoutApprover = saveProjectFile({
   fileRel: "brain/voz.md",
   expectedHash: fresh.hash,
   title: "Tom de Voz",
-  body: "# Voz\n\nTexto novo com conteúdo e evidência.",
+  body: "# Tom de Voz\n\nTexto novo com conteúdo e evidência.",
 });
 assert.equal(savedWithoutApprover.ok, true);
 
@@ -295,7 +295,7 @@ const saved = saveProjectFile({
   fileRel: "brain/voz.md",
   expectedHash: freshAfterAgentSave.hash,
   title: "Tom de Voz Revisado",
-  body: "# Voz\n\nTexto novo com conteúdo e evidência.",
+  body: "# Tom de Voz\n\nTexto novo com conteúdo e evidência.",
   approver: "Diego Ivo",
   notes: "aprovado no companion",
 });

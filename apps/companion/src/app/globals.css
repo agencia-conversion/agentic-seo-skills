@@ -423,3 +423,29 @@ button, a, select, [role="button"] { cursor: pointer !important; }
   opacity: 0.5;
   text-decoration-line: line-through;
 }
+
+/* External-link icon. Wikilinks and source-viewer links are excluded. */
+.ProseMirror a[href^="http"]::after,
+.ProseMirror a[href^="mailto:"]::after {
+  content: "";
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-left: 2px;
+  vertical-align: -1px;
+  background-color: currentColor;
+  opacity: 0.55;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/><polyline points='15 3 21 3 21 9'/><line x1='10' y1='14' x2='21' y2='3'/></svg>") no-repeat center / contain;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/><polyline points='15 3 21 3 21 9'/><line x1='10' y1='14' x2='21' y2='3'/></svg>") no-repeat center / contain;
+}
+.ProseMirror a[href*="/sources/"]::after,
+.ProseMirror a[href^="sources/"]::after,
+.ProseMirror a[href^="./sources/"]::after,
+.ProseMirror a[href^="../sources/"]::after {
+  /* Internal source viewer — different glyph to signal "opens in modal". */
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M9 9h6v6H9z'/></svg>") no-repeat center / contain;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M9 9h6v6H9z'/></svg>") no-repeat center / contain;
+}
+.ProseMirror a {
+  cursor: pointer;
+}
