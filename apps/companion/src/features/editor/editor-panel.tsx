@@ -51,6 +51,7 @@ import { usePagePath } from '@/hooks/use-page-path';
 import { MentionPopup } from './mention-popup';
 import { MentionChipHydrator } from './mention-chip-hydrator';
 import { FrontmatterDrawer } from './frontmatter-drawer';
+import { LinkedMentionsPanel } from './linked-mentions-panel';
 import { useI18n } from '@/components/i18n-provider';
 import { ConfirmModal } from '@/components/confirm-modal';
 import { BreadcrumbTrail } from '../workspace/breadcrumb-trail';
@@ -650,6 +651,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
               onReportScoreRecalculated={handleReportScoreRecalculated}
             />
           )}
+          {!isModal && activePage.path && <LinkedMentionsPanel pagePath={activePage.path} />}
         </div>
       </div>
 
