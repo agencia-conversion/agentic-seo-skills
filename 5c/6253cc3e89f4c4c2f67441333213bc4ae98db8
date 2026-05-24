@@ -1,0 +1,21 @@
+apps/companion/e2e/graph.spec.ts
+  s_3342d1275698f0::t_4dab188d702384 35
+apps/companion/src/app/project/[token]/graph/page.tsx
+  s_3342d1275698f0::t_89c4363b4ea5b8 150,161,219
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "5c6253cc3e89f4c4c2f67441333213bc4ae98db8",
+  "prompts": {},
+  "sessions": {
+    "s_3342d1275698f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5b99-0137-7bb2-aed0-4a04d9082f81",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
