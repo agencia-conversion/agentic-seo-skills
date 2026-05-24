@@ -1,0 +1,40 @@
+templates/project/brain/index.md
+  s_1805d51a6b0558::t_37e0e5db44db41 25
+dist/commands/runtime.js
+  s_1805d51a6b0558::t_9e0aa5dd7d86e3 3743
+apps/companion/src/lib/i18n.ts
+  s_1805d51a6b0558::t_37e0e5db44db41 77,500
+tests/test_companion_approve_briefing.mjs
+  s_1805d51a6b0558::t_37e0e5db44db41 26,72,128
+templates/project/brain/voz.md
+  s_1805d51a6b0558::t_37e0e5db44db41 2,6
+tests/test_companion_mention_hydration.mjs
+  s_1805d51a6b0558::t_37e0e5db44db41 32
+  s_1805d51a6b0558::t_6eb8a6ecf341af 45,51,55,61,65,71
+tests/test_companion_project_browser.mjs
+  s_1805d51a6b0558::t_37e0e5db44db41 61,275,288,298
+AGENTS.md
+  s_1805d51a6b0558::t_37e0e5db44db41 137
+tests/test_project_context.mjs
+  s_1805d51a6b0558::t_37e0e5db44db41 31
+src/commands/runtime.ts
+  s_1805d51a6b0558::t_37e0e5db44db41 3719
+tests/test_companion_mention_no_at.mjs
+  s_1805d51a6b0558::t_37e0e5db44db41 41,45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "592bad59cad361f5b53b4cc40f444f55a032c0b9",
+  "prompts": {},
+  "sessions": {
+    "s_1805d51a6b0558": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5b2c-9f55-7142-a53c-fc8d49bf662a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
