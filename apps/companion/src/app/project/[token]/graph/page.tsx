@@ -119,16 +119,16 @@ export default function GraphPage() {
             style: {
               'background-color': ((ele: any) => SECTION_COLORS[ele.data('section') as GraphSection] || '#9ca3af') as any,
               label: 'data(label)',
-              'font-size': 4.5,
+              'font-size': 2,
               color: '#1c1c1e',
               'text-valign': 'bottom',
               'text-halign': 'center',
-              'text-margin-y': 2 as any,
+              'text-margin-y': 1 as any,
               'text-background-color': '#ffffff',
-              'text-background-opacity': 0.7,
-              'text-background-padding': 1 as any,
-              width: 14,
-              height: 14,
+              'text-background-opacity': 0.78,
+              'text-background-padding': 0.5 as any,
+              width: 10,
+              height: 10,
             },
           },
           {
@@ -143,12 +143,13 @@ export default function GraphPage() {
           {
             selector: 'edge',
             style: {
-              width: 1,
+              width: 0.35,
               'line-color': '#cbd5e1',
               'target-arrow-color': '#cbd5e1',
               'target-arrow-shape': 'triangle',
+              'arrow-scale': 0.38,
               'curve-style': 'bezier',
-              opacity: 0.6,
+              opacity: 0.28,
             },
           },
           {
@@ -157,6 +158,8 @@ export default function GraphPage() {
               'line-style': 'dashed',
               'line-color': '#fca5a5',
               'target-arrow-color': '#fca5a5',
+              'arrow-scale': 0.45,
+              opacity: 0.45,
             },
           },
         ],
@@ -190,7 +193,10 @@ export default function GraphPage() {
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        <header className="h-12 px-4 flex items-center gap-3 sticky top-0 bg-background/80 backdrop-blur-md z-20 select-none">
+        <header
+          data-testid="graph-header"
+          className="h-12 px-4 flex items-center gap-3 sticky top-0 bg-background/80 backdrop-blur-md z-20 select-none border-b border-notion-border"
+        >
           <button
             onClick={() => router.back()}
             className="p-1.5 rounded hover:bg-notion-hover text-notion-text-muted hover:text-notion-text transition-colors"

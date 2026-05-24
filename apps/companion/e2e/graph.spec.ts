@@ -31,6 +31,7 @@ test.describe('Graph view', () => {
     await page.goto(`/project/${TOKEN}/graph`);
     await page.waitForSelector('[data-testid="graph-canvas"]', { timeout: 20_000 });
     await expect(page.locator('[data-testid="graph-counts"]')).toBeVisible();
+    await expect(page.locator('[data-testid="graph-header"]')).toHaveCSS('border-bottom-width', '1px');
     const brainToggle = page.locator('[data-testid="graph-section-toggle"][data-section="brain"]');
     await expect(brainToggle).toBeVisible();
     await expect(brainToggle).toHaveAttribute('data-active', 'true');
