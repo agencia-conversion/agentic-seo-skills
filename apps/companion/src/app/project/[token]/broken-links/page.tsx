@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { Sidebar } from '@/features/workspace/sidebar';
+import { WorkspaceHeader } from '@/features/workspace/workspace-header';
 import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from '@/hooks/use-page-path';
 import { useI18n } from '@/components/i18n-provider';
@@ -75,23 +76,21 @@ export default function BrokenLinksPage() {
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        <header className="h-12 px-4 flex items-center gap-3 sticky top-0 bg-background/80 backdrop-blur-md z-20 select-none">
-          <button
-            onClick={() => router.back()}
-            className="p-1.5 rounded hover:bg-notion-hover text-notion-text-muted hover:text-notion-text transition-colors"
-            aria-label={t('common.back') || 'Voltar'}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <h1 className="text-sm font-medium text-notion-text">
-            {t('brokenLinks.title') || 'Links quebrados'}
-          </h1>
-          {data && (
-            <span data-testid="broken-total" className="text-xs text-notion-text-muted">
-              ({data.total})
-            </span>
-          )}
-        </header>
+        <WorkspaceHeader
+          bordered
+          left={
+            <>
+              <h1 className="text-sm font-medium text-notion-text">
+                {t('brokenLinks.title') || 'Links quebrados'}
+              </h1>
+              {data && (
+                <span data-testid="broken-total" className="text-xs text-notion-text-muted">
+                  ({data.total})
+                </span>
+              )}
+            </>
+          }
+        />
 
         <div className="flex-1 overflow-y-auto px-12 md:px-16 py-10 max-w-3xl mx-auto w-full">
           {loading && !data && (

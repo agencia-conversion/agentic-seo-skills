@@ -22,7 +22,6 @@ import {
   Italic,
   Link2,
   Maximize2,
-  Menu,
   MoreHorizontal,
   Save,
   Settings,
@@ -57,6 +56,7 @@ import { LinkedMentionsPanel } from './linked-mentions-panel';
 import { useI18n } from '@/components/i18n-provider';
 import { ConfirmModal } from '@/components/confirm-modal';
 import { BreadcrumbTrail } from '../workspace/breadcrumb-trail';
+import { WorkspaceHeader } from '../workspace/workspace-header';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
   ssr: false,
@@ -119,8 +119,6 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   const effectivePageId = pageId || activePageId;
   const pages = useWorkspace((s) => s.pages);
   const activePage = useWorkspace((s) => s.pages.find((p) => p.id === effectivePageId));
-  const sidebarCollapsed = useWorkspace((s) => s.sidebarCollapsed);
-  const toggleSidebar = useWorkspace((s) => s.toggleSidebar);
   const updatePage = useWorkspace((s) => s.updatePage);
   const savePage = useWorkspace((s) => s.savePage);
   const deleteFile = useWorkspace((s) => s.deleteFile);
@@ -372,108 +370,101 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   return (
     <div className={cn('flex-1 flex flex-col h-full bg-background overflow-hidden relative', isModal && 'rounded-lg overflow-y-auto')}>
       {!isModal && (
-        <header className="h-12 px-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-md z-20 select-none">
-          <div className="flex items-center gap-2 overflow-hidden mr-4 text-sm text-notion-text-muted">
-            <button
-              onClick={toggleSidebar}
-              className="p-1.5 hover:bg-notion-hover rounded text-notion-text-muted hover:text-notion-text transition-colors shrink-0"
-              aria-label={sidebarCollapsed ? t('editor.expandSidebar') : t('sidebar.collapse')}
-              title={sidebarCollapsed ? t('editor.expandSidebar') : t('sidebar.collapse')}
-            >
-              <Menu className="w-4 h-4" />
-            </button>
-            <BreadcrumbTrail activePage={activePage} />
-          </div>
-          <div className="flex items-center gap-1 text-notion-text-muted relative" ref={menuRef}>
-            <span className={cn('text-[11px] mr-1', activePage.saveError ? 'text-red-500' : 'text-notion-text-muted')}>
-              {statusLabel}
-            </span>
-            {!isReadOnly && (
+        <WorkspaceHeader
+          left={<BreadcrumbTrail activePage={activePage} />}
+          rightRef={menuRef}
+          right={
+            <>
+              <span className={cn('text-[11px] mr-1', activePage.saveError ? 'text-red-500' : 'text-notion-text-muted')}>
+                {statusLabel}
+              </span>
+              {!isReadOnly && (
+                <HeaderButton
+                  icon={activePage.saving ? <div className="w-3.5 h-3.5 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+                  onClick={() => void handleSave()}
+                  ariaLabel={t('common.save')}
+                />
+              )}
               <HeaderButton
-                icon={activePage.saving ? <div className="w-3.5 h-3.5 border-2 border-notion-text/20 border-t-notion-text rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
-                onClick={() => void handleSave()}
-                ariaLabel={t('common.save')}
+                icon={<Star className={cn('w-4 h-4', activePage.favorite && 'fill-amber-400 text-amber-400')} />}
+                onClick={() => toggleFavorite(activePage.id)}
+                ariaLabel={activePage.favorite ? t('sidebar.removeFavorite') : t('sidebar.addFavorite')}
               />
-            )}
-            <HeaderButton
-              icon={<Star className={cn('w-4 h-4', activePage.favorite && 'fill-amber-400 text-amber-400')} />}
-              onClick={() => toggleFavorite(activePage.id)}
-              ariaLabel={activePage.favorite ? t('sidebar.removeFavorite') : t('sidebar.addFavorite')}
-            />
-            <div className="relative">
-              <HeaderButton icon={<MoreHorizontal className="w-4 h-4" />} onClick={() => setShowMenu(!showMenu)} ariaLabel={t('editor.more')} />
-              <AnimatePresence>
-                {showMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute right-0 top-full mt-2 w-60 bg-background border border-notion-border rounded-md shadow-lg z-50 py-1 overflow-hidden"
-                  >
-                    <MenuAction
-                      icon={<Check className="w-4 h-4" />}
-                      label={activePage.sourceMode ? t('editor.visualEditor') : t('editor.markdownSource')}
-                      onClick={() => {
-                        setSourceMode(activePage.id, !activePage.sourceMode);
-                        setShowMenu(false);
-                      }}
-                    />
-                    <MenuAction
-                      icon={<FileText className="w-4 h-4" />}
-                      label={t('editor.frontmatter')}
-                      onClick={() => {
-                        setShowFrontmatterDrawer(true);
-                        setShowMenu(false);
-                      }}
-                    />
-                    {!activePage.readOnly && activePage.path !== 'brain/log.md' && !activePage.path.startsWith('relatorios/') && (
+              <div className="relative">
+                <HeaderButton icon={<MoreHorizontal className="w-4 h-4" />} onClick={() => setShowMenu(!showMenu)} ariaLabel={t('editor.more')} />
+                <AnimatePresence>
+                  {showMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="absolute right-0 top-full mt-2 w-60 bg-background border border-notion-border rounded-md shadow-lg z-50 py-1 overflow-hidden"
+                    >
                       <MenuAction
-                        icon={<Trash2 className="w-4 h-4" />}
-                        label={t('common.delete')}
-                        destructive
+                        icon={<Check className="w-4 h-4" />}
+                        label={activePage.sourceMode ? t('editor.visualEditor') : t('editor.markdownSource')}
                         onClick={() => {
-                          setShowDeleteConfirm(true);
+                          setSourceMode(activePage.id, !activePage.sourceMode);
                           setShowMenu(false);
                         }}
                       />
-                    )}
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowWidthSub((v) => !v)}
-                        className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-notion-text"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Maximize2 className="w-4 h-4" />
-                          {t('pageWidth.pageWidth')}
-                        </span>
-                        <span className="text-[10px] text-notion-text-muted uppercase">{activePage.width || t('pageWidth.auto')}</span>
-                      </button>
-                      {showWidthSub && (
-                        <div className="absolute left-full top-0 ml-1 w-64 bg-background border border-notion-border rounded-md shadow-lg py-1 z-[60]">
-                          {pageWidthOptions.map((opt) => (
-                            <WidthMenuItem
-                              key={opt.value}
-                              active={activePage.width === opt.value}
-                              label={opt.label}
-                              description={opt.description}
-                              onClick={() => {
-                                updatePage(activePage.id, { width: opt.value });
-                                setShowWidthSub(false);
-                                setShowMenu(false);
-                              }}
-                            />
-                          ))}
-                        </div>
+                      <MenuAction
+                        icon={<FileText className="w-4 h-4" />}
+                        label={t('editor.frontmatter')}
+                        onClick={() => {
+                          setShowFrontmatterDrawer(true);
+                          setShowMenu(false);
+                        }}
+                      />
+                      {!activePage.readOnly && activePage.path !== 'brain/log.md' && !activePage.path.startsWith('relatorios/') && (
+                        <MenuAction
+                          icon={<Trash2 className="w-4 h-4" />}
+                          label={t('common.delete')}
+                          destructive
+                          onClick={() => {
+                            setShowDeleteConfirm(true);
+                            setShowMenu(false);
+                          }}
+                        />
                       )}
-                    </div>
-                    <div className="h-px bg-notion-border my-1" />
-                    <div className="px-3 py-1.5 text-[10px] text-notion-text-muted truncate">{activePage.path}</div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </header>
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowWidthSub((v) => !v)}
+                          className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-notion-text"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Maximize2 className="w-4 h-4" />
+                            {t('pageWidth.pageWidth')}
+                          </span>
+                          <span className="text-[10px] text-notion-text-muted uppercase">{activePage.width || t('pageWidth.auto')}</span>
+                        </button>
+                        {showWidthSub && (
+                          <div className="absolute left-full top-0 ml-1 w-64 bg-background border border-notion-border rounded-md shadow-lg py-1 z-[60]">
+                            {pageWidthOptions.map((opt) => (
+                              <WidthMenuItem
+                                key={opt.value}
+                                active={activePage.width === opt.value}
+                                label={opt.label}
+                                description={opt.description}
+                                onClick={() => {
+                                  updatePage(activePage.id, { width: opt.value });
+                                  setShowWidthSub(false);
+                                  setShowMenu(false);
+                                }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="h-px bg-notion-border my-1" />
+                      <div className="px-3 py-1.5 text-[10px] text-notion-text-muted truncate">{activePage.path}</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          }
+        />
       )}
 
       <div className="flex-1 overflow-y-auto scrollbar-hide relative pb-32">

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 import { Sidebar } from '@/features/workspace/sidebar';
+import { WorkspaceHeader } from '@/features/workspace/workspace-header';
 import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from '@/hooks/use-page-path';
 import { useI18n } from '@/components/i18n-provider';
@@ -193,25 +193,21 @@ export default function GraphPage() {
     <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        <header
-          data-testid="graph-header"
-          className="h-12 px-4 flex items-center gap-3 sticky top-0 bg-background/80 backdrop-blur-md z-20 select-none border-b border-notion-border"
-        >
-          <button
-            onClick={() => router.back()}
-            className="p-1.5 rounded hover:bg-notion-hover text-notion-text-muted hover:text-notion-text transition-colors"
-            aria-label={t('common.back') || 'Voltar'}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <h1 className="text-sm font-medium text-notion-text">{t('graph.title') || 'Graph view'}</h1>
-          {data && (
-            <span data-testid="graph-counts" className="text-xs text-notion-text-muted">
-              {data.nodes.length} nós · {data.edges.length} arestas
-              {data.totalBroken > 0 && ` · ${data.totalBroken} quebrados`}
-            </span>
-          )}
-        </header>
+        <WorkspaceHeader
+          dataTestId="graph-header"
+          bordered
+          left={
+            <>
+              <h1 className="text-sm font-medium text-notion-text">{t('graph.title') || 'Graph view'}</h1>
+              {data && (
+                <span data-testid="graph-counts" className="text-xs text-notion-text-muted">
+                  {data.nodes.length} nós · {data.edges.length} arestas
+                  {data.totalBroken > 0 && ` · ${data.totalBroken} quebrados`}
+                </span>
+              )}
+            </>
+          }
+        />
 
         {error && (
           <div data-testid="graph-error" className="m-4 rounded-md bg-red-500/10 border border-red-500/30 text-red-500 px-4 py-3 text-sm">
@@ -229,7 +225,7 @@ export default function GraphPage() {
                 data-section={s.id}
                 data-active={activeSections.has(s.id) ? 'true' : 'false'}
                 onClick={() => toggleSection(s.id)}
-                className="w-full flex items-center justify-between text-xs px-2 py-1 rounded hover:bg-notion-hover"
+                className="w-full flex items-center justify-between gap-3 text-xs px-2 py-1 rounded hover:bg-notion-hover"
               >
                 <span className="flex items-center gap-2">
                   <span
@@ -240,7 +236,7 @@ export default function GraphPage() {
                     {s.id}
                   </span>
                 </span>
-                <span className="text-[10px] text-notion-text-muted tabular-nums">{s.count}</span>
+                <span className="ml-auto text-[10px] text-notion-text-muted tabular-nums">{s.count}</span>
               </button>
             ))}
           </aside>
