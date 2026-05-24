@@ -15,3 +15,14 @@ Mapa do brain:
 Embed da frase-marca:
 
 ![[identidade#Frase-marca]]
+
+Query viva:
+
+```agentic-query
+version: 1
+from: "brain"
+sort: title asc
+limit: 5
+columns: [title]
+render: table
+```

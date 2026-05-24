@@ -194,6 +194,8 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
         content.push({ type: 'reportBlock', attrs: { kind: language, data: body } });
       } else if (language === 'mermaid') {
         content.push({ type: 'mermaid', attrs: { source: body } });
+      } else if (language === 'agentic-query') {
+        content.push({ type: 'agenticQuery', attrs: { source: body } });
       } else {
         content.push({ type: 'codeBlock', attrs: { language: language || null }, content: [textNode(body)] });
       }
@@ -450,6 +452,9 @@ export function docToMarkdown(doc: any, resolver?: MentionResolver): string {
     } else if (node.type === 'mermaid') {
       const source = String(node.attrs?.source || '').replace(/\s+$/, '');
       out.push(`\`\`\`mermaid\n${source}\n\`\`\``);
+    } else if (node.type === 'agenticQuery') {
+      const source = String(node.attrs?.source || '').replace(/\s+$/, '');
+      out.push(`\`\`\`agentic-query\n${source}\n\`\`\``);
     } else {
       out.push(paragraphText(node, resolver));
     }

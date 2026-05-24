@@ -14,6 +14,7 @@ import { PageMention } from './page-mention-extension';
 import { PageEmbed } from './page-embed-extension';
 import { Callout } from './callout-extension';
 import { Mermaid } from './mermaid-extension';
+import { AgenticQuery } from './agentic-query-extension';
 import { RawMarkdown } from './raw-markdown-extension';
 import { ReportBlock } from './report-block-extension';
 import { SlashCommand } from './slash-command-extension';
@@ -155,6 +156,7 @@ export const getExtensions = (options: { onReportScoreRecalculated?: (result: Re
   PageEmbed,
   Callout,
   Mermaid,
+  AgenticQuery,
   SlashCommand,
   ReportBlock.configure({
     onScoreRecalculated: options.onReportScoreRecalculated || null,
