@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TEST_TOKEN } from '../playwright.config';
+import { TEST_TOKEN } from './test-constants';
 
 const TOKEN = TEST_TOKEN;
 

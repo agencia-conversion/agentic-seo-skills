@@ -1,16 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-import { cpSync, rmSync } from 'node:fs';
-import { resolve } from 'node:path';
-
-const PORT = 3030;
-const TOKEN = 'e2e-test-token-12345';
-const FIXTURE_SOURCE = resolve(__dirname, 'e2e', 'fixtures', 'sample-project');
-const PROJECT_ROOT = resolve(__dirname, 'e2e', '.tmp-fixture');
-const PLUGIN_ROOT = resolve(__dirname, '..', '..');
-
-// Reset fixture on every run so autosave/log mutations don't leak between runs.
-rmSync(PROJECT_ROOT, { recursive: true, force: true });
-cpSync(FIXTURE_SOURCE, PROJECT_ROOT, { recursive: true });
+import { TEST_TOKEN, TEST_PORT, PROJECT_ROOT, PLUGIN_ROOT } from './e2e/test-constants';
 
 export default defineConfig({
   testDir: './e2e',
@@ -20,12 +9,13 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? 'github' : 'list',
   timeout: 30_000,
+  globalSetup: require.resolve('./e2e/global-setup'),
   use: {
-    baseURL: `http://127.0.0.1:${PORT}`,
+    baseURL: `http://127.0.0.1:${TEST_PORT}`,
     actionTimeout: 5_000,
     trace: 'retain-on-failure',
     extraHTTPHeaders: {
-      'x-companion-token': TOKEN,
+      'x-companion-token': TEST_TOKEN,
     },
   },
   projects: [
@@ -35,18 +25,16 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --port 3030 --hostname 127.0.0.1',
+    command: `npm run dev -- --port ${TEST_PORT} --hostname 127.0.0.1`,
     cwd: __dirname,
-    url: `http://127.0.0.1:${PORT}/api/project/tree?token=${TOKEN}`,
+    url: `http://127.0.0.1:${TEST_PORT}/api/project/tree?token=${TEST_TOKEN}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
-      AGENTIC_SEO_COMPANION_TOKEN: TOKEN,
+      AGENTIC_SEO_COMPANION_TOKEN: TEST_TOKEN,
       AGENTIC_SEO_PROJECT_ROOT: PROJECT_ROOT,
       AGENTIC_SEO_PLUGIN_ROOT: PLUGIN_ROOT,
       NODE_ENV: 'development',
     },
   },
 });
-
-export const TEST_TOKEN = TOKEN;

@@ -11,4 +11,7 @@ Mapa do brain:
 - [[voz]] — princípios editoriais
 - [[fantasma]] — link quebrado proposital
 - [[topic-clusters|clusters]] — alias
-- ![[identidade#Frase-marca]] — embed
+
+Embed da frase-marca:
+
+![[identidade#Frase-marca]]
