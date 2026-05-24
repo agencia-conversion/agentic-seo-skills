@@ -490,8 +490,8 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
       items: orderedBrain.map((rel) => readSummary(root, rel, ui)).filter(Boolean) as ProjectTreeItem[],
     },
   ];
-  if (contentItems.length || existsSync(join(root, 'conteudos'))) sections.push({ id: 'conteudos', title: 'Conteúdos', items: contentItems });
-  if (workbenchItems.length) sections.push({ id: 'workbench', title: 'Workbench', items: workbenchItems });
+  sections.push({ id: 'conteudos', title: 'Content', items: contentItems });
+  sections.push({ id: 'workbench', title: 'Workbench', items: workbenchItems });
 
   return {
     ok: true,
@@ -687,7 +687,7 @@ function uniqueRel(root: string, rel: string) {
 export function createProjectFile({
   projectRoot,
   kind = 'workbench',
-  title = 'Nova página',
+  title = 'New page',
 }: {
   projectRoot?: string;
   kind?: 'workbench' | 'content';

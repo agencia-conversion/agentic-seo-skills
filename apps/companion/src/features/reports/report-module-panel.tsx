@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useWorkspace } from '@/features/workspace/store';
 import { VirtualPageShell } from '@/features/workspace/virtual-page-shell';
 import { usePagePath } from '@/hooks/use-page-path';
+import { useI18n } from '@/components/i18n-provider';
 
 interface ReportRow {
   id: string;
@@ -21,6 +22,13 @@ interface ReportRow {
 export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
   const router = useRouter();
   const pagePath = usePagePath();
+  const { t, formatDate: fmtDate } = useI18n();
+  const formatReportDate = (value: string | null) => {
+    if (!value) return t('common.dateUnknown');
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return fmtDate(parsed);
+  };
   const token = useWorkspace((s) => s.token);
   const modules = useWorkspace((s) => s.reportModules);
   const openReportPage = useWorkspace((s) => s.openReportPage);
@@ -65,7 +73,7 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
 
   if (!moduleId) {
     return (
-      <VirtualPageShell title="Relatórios">
+      <VirtualPageShell title={t('project.reports')}>
         <div className="grid gap-2">
           {modules.map((module) => (
             <button
@@ -89,12 +97,14 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <VirtualPageShell title={activeModule?.title || 'Relatórios'}>
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <VirtualPageShell title={activeModule?.title || t('project.reports')}>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="text-sm text-notion-text-muted">
-          {loading ? 'Carregando relatórios...' : `${total} relatório${total === 1 ? '' : 's'}`}
+          {loading
+            ? t('reportModule.loading')
+            : t(total === 1 ? 'reportModule.countOne' : 'reportModule.countOther', { count: total })}
         </div>
-        <label className="flex h-9 min-w-[240px] items-center gap-2 rounded-md border border-notion-border px-3 text-sm">
+        <label className="flex h-9 min-w-[200px] flex-1 items-center gap-2 rounded-md border border-notion-border px-3 text-sm">
           <Search className="h-4 w-4 text-notion-text-muted" />
           <input
             value={query}
@@ -102,7 +112,7 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
               setPage(1);
               setQuery(event.target.value);
             }}
-            placeholder="Buscar relatórios"
+            placeholder={t('reportModule.searchPlaceholder')}
             className="w-full bg-transparent outline-none placeholder:text-notion-text-muted"
           />
         </label>
@@ -112,18 +122,18 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
         <table className="w-full border-collapse text-sm">
           <thead className="bg-notion-sidebar text-left text-xs uppercase text-notion-text-muted">
             <tr>
-              <th className="px-3 py-2 font-medium">Relatório</th>
-              <th className="hidden px-3 py-2 font-medium md:table-cell">Data</th>
-              <th className="hidden px-3 py-2 font-medium lg:table-cell">Status</th>
-              <th className="hidden px-3 py-2 font-medium lg:table-cell">Score</th>
-              <th className="px-3 py-2 font-medium">Fonte</th>
+              <th className="px-3 py-2 font-medium">{t('reportModule.columnReport')}</th>
+              <th className="hidden px-3 py-2 font-medium md:table-cell">{t('reportModule.columnDate')}</th>
+              <th className="hidden px-3 py-2 font-medium lg:table-cell">{t('reportModule.columnStatus')}</th>
+              <th className="hidden px-3 py-2 font-medium lg:table-cell">{t('reportModule.columnScore')}</th>
+              <th className="px-3 py-2 font-medium">{t('reportModule.columnSource')}</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-3 py-8 text-center text-sm text-notion-text-muted">
-                  Nenhum relatório encontrado.
+                  {t('reportModule.emptyState')}
                 </td>
               </tr>
             )}
@@ -133,7 +143,7 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
                   key={row.id}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Abrir relatório ${row.title}`}
+                  aria-label={t('reportModule.openAria', { title: row.title })}
                   onClick={() => openRow(row)}
                   onKeyDown={(event) => {
                     if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -149,9 +159,9 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
                     </div>
                     {row.summary && <div className="mt-0.5 line-clamp-1 text-xs text-notion-text-muted">{row.summary}</div>}
                   </td>
-                  <td className="hidden whitespace-nowrap px-3 py-2 text-notion-text-muted md:table-cell">{formatDate(row.generatedAt)}</td>
-                  <td className="hidden px-3 py-2 text-notion-text-muted lg:table-cell">{row.status || 'ready'}</td>
-                  <td className="hidden px-3 py-2 text-notion-text-muted lg:table-cell">{row.score ?? '-'}</td>
+                  <td className="hidden whitespace-nowrap px-3 py-2 text-notion-text-muted md:table-cell">{formatReportDate(row.generatedAt)}</td>
+                  <td className="hidden px-3 py-2 text-notion-text-muted lg:table-cell">{row.status || t('reportModule.defaultStatus')}</td>
+                  <td className="hidden px-3 py-2 text-notion-text-muted lg:table-cell">{row.score ?? t('common.dateUnknown')}</td>
                   <td className="max-w-[220px] truncate px-3 py-2 text-xs text-notion-text-muted">{row.sourceArtifact || row.path}</td>
                 </tr>
               );
@@ -161,16 +171,14 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
       </div>
 
       <div className="mt-4 flex items-center justify-between text-sm text-notion-text-muted">
-        <span>
-          Página {page} de {totalPages}
-        </span>
+        <span>{t('common.pagination', { current: page, total: totalPages })}</span>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setPage((value) => Math.max(1, value - 1))}
             disabled={page <= 1}
             className="rounded-md border border-notion-border p-1.5 disabled:opacity-40"
-            aria-label="Página anterior"
+            aria-label={t('common.previousPage')}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -179,7 +187,7 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
             onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
             disabled={page >= totalPages}
             className="rounded-md border border-notion-border p-1.5 disabled:opacity-40"
-            aria-label="Próxima página"
+            aria-label={t('common.nextPage')}
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -187,11 +195,4 @@ export function ReportModulePanel({ moduleId }: { moduleId?: string }) {
       </div>
     </VirtualPageShell>
   );
-}
-
-function formatDate(value: string | null) {
-  if (!value) return '-';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString();
 }

@@ -39,3 +39,4 @@ reports/generated/
 .agents/
 .claude/
 skills-lock.json
+.gstack/

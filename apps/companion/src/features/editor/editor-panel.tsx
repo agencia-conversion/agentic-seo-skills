@@ -78,6 +78,57 @@ type InternalLinkContext =
   | { mode: 'editor'; from: number; to: number; alias?: string }
   | { mode: 'source'; from: number; to: number; alias?: string };
 
+function applyLinkSubmit(editor: any, selectedText: string, submit: { text: string; href: string; pageId?: string | null }) {
+  const chain = editor.chain().focus();
+  if (submit.pageId) {
+    chain
+      .insertContent([
+        {
+          type: 'pageMention',
+          attrs: {
+            pageId: submit.pageId,
+            alias: submit.text && submit.text !== selectedText ? submit.text : null,
+          },
+        },
+        { type: 'text', text: ' ' },
+      ])
+      .run();
+    return;
+  }
+  if (!submit.href) {
+    chain.unsetLink().run();
+    return;
+  }
+  if (submit.text && submit.text !== selectedText) {
+    chain
+      .insertContent({
+        type: 'text',
+        text: submit.text,
+        marks: [{ type: 'link', attrs: { href: submit.href } }],
+      })
+      .run();
+  } else {
+    chain.setLink({ href: submit.href }).run();
+  }
+}
+
+export function matchSourcePath(href: string): string | null {
+  if (!href) return null;
+  const candidates: string[] = [];
+  if (/^sources\//.test(href)) candidates.push(href);
+  if (/^\.{1,2}\/sources\//.test(href)) candidates.push(href.replace(/^\.{1,2}\//, ''));
+  if (/^\/project\/sources\//.test(href)) candidates.push(href.replace(/^\/project\//, ''));
+  if (typeof window !== 'undefined' && href.startsWith(window.location.origin)) {
+    const rel = href.slice(window.location.origin.length);
+    if (rel.startsWith('/project/sources/')) candidates.push(rel.replace(/^\/project\//, ''));
+  }
+  for (const candidate of candidates) {
+    const cleaned = candidate.split(/[?#]/)[0];
+    if (cleaned.startsWith('sources/') && !cleaned.includes('..')) return cleaned;
+  }
+  return null;
+}
+
 function pageLinkLabel(path: string) {
   return path.split('/').pop()?.replace(/\.md$/, '') || path;
 }
@@ -209,9 +260,9 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     const ok = await savePage(activePage.id, { notes: silent ? 'autosave no companion Noteon local' : 'salvo no companion Noteon local', silent });
     if (ok) {
       setLastSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-      if (!silent) showToast('Arquivo salvo.', 'success');
+      if (!silent) showToast(t('editorToasts.fileSaved'), 'success');
     } else if (!silent) {
-      showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || 'Falha ao salvar.', 'error');
+      showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || t('editorToasts.saveFailed'), 'error');
     }
   }, [activePage, isReadOnly, savePage]);
 
@@ -254,7 +305,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
         score: result.score,
       },
     });
-    showToast(`Score recalculado: ${result.score}/100`, 'success');
+    showToast(t('editorToasts.scoreRecalculated', { score: result.score }), 'success');
   }, [activePage?.frontmatter, activePage?.id, activePage?.path, updatePage]);
 
   if (!mounted) return <div className="flex-1 bg-background" />;
@@ -300,7 +351,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
 
   const insertInternalLink = (mentionPageId: string) => {
     if (isReadOnly) {
-      showToast('Esta página é somente leitura.', 'error');
+      showToast(t('editorToasts.pageReadOnly'), 'error');
       return;
     }
     const context = linkContextRef.current;
@@ -340,7 +391,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
     if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
       event.preventDefault();
       if (isReadOnly) {
-        showToast('Esta página é somente leitura.', 'error');
+        showToast(t('editorToasts.pageReadOnly'), 'error');
         return;
       }
       const alias = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
@@ -571,7 +622,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                       type="button"
                       onClick={() => updatePage(activePage.id, { icon: null })}
                       className="absolute -top-1.5 -right-1.5 p-0.5 bg-background border border-notion-border rounded-full opacity-0 group-hover/icon-container:opacity-100 transition-opacity shadow-sm hover:bg-notion-hover cursor-pointer"
-                      aria-label="Remover ícone"
+                      aria-label={t('editor2.removeIcon')}
                     >
                       <X className="w-3 h-3 text-notion-text-muted" />
                     </button>
@@ -708,6 +759,7 @@ function TiptapEditorSurface({
   onOpenInternalLinkPicker: (clientRect: Pick<DOMRect, 'left' | 'bottom'> | { left: number; bottom: number }, query?: string) => void;
   onReportScoreRecalculated: (result: ReportScoreResult) => void;
 }) {
+  const { t } = useI18n();
   useEffect(() => {
     (window as any).__noteblockSlashItems = (query: string) => {
       if (!query) return suggestionItems;
@@ -738,21 +790,56 @@ function TiptapEditorSurface({
       attributes: {
         class: cn('prose prose-zinc dark:prose-invert max-w-none focus:outline-none', isModal ? 'min-h-[300px]' : 'min-h-[500px]'),
       },
+      handleClickOn: (_view, _pos, _node, _nodePos, event) => {
+        const target = (event.target as HTMLElement | null)?.closest?.('a');
+        if (!target || !(target instanceof HTMLAnchorElement)) return false;
+        const href = target.getAttribute('href') || '';
+        if (!href) return false;
+        const sourcePath = matchSourcePath(href);
+        if (sourcePath) {
+          if (event.metaKey || event.ctrlKey) {
+            window.open(target.href, '_blank', 'noopener,noreferrer');
+          } else {
+            event.preventDefault();
+            useWorkspace.getState().openSourceViewer(sourcePath);
+          }
+          return true;
+        }
+        if (/^https?:\/\//i.test(href) || /^mailto:/i.test(href)) {
+          event.preventDefault();
+          window.open(href, '_blank', 'noopener,noreferrer');
+          return true;
+        }
+        return false;
+      },
       handleKeyDown: (view, event) => {
         const mod = event.metaKey || event.ctrlKey;
         if (mod && event.key.toLowerCase() === 'k' && !event.altKey && !event.shiftKey) {
           event.preventDefault();
           if (isReadOnly) {
-            showToast('Esta página é somente leitura.', 'error');
+            showToast(t('editorToasts.pageReadOnly'), 'error');
             return true;
           }
           const { selection } = view.state;
-          const alias = selection.empty ? '' : view.state.doc.textBetween(selection.from, selection.to, ' ');
+          if (!selection.empty) {
+            const ed = editorInstanceRef.current;
+            const selectedText = view.state.doc.textBetween(selection.from, selection.to, ' ');
+            const existing = (ed?.getAttributes('link') || {}) as { href?: string };
+            useWorkspace.getState().openLinkEditor(
+              { text: selectedText, href: existing.href || '' },
+              (submit) => {
+                if (!ed) return;
+                applyLinkSubmit(ed, selectedText, submit);
+              }
+            );
+            return true;
+          }
+          const alias = '';
           linkContextRef.current = {
             mode: 'editor',
             from: selection.from,
             to: selection.to,
-            alias: alias.trim() || undefined,
+            alias: undefined,
           };
           onOpenInternalLinkPicker(view.coordsAtPos(selection.from), alias);
           return true;
@@ -778,7 +865,7 @@ function TiptapEditorSurface({
             event.preventDefault();
             const { selection } = view.state;
             view.dispatch(view.state.tr.delete(selection.from - 1, selection.from));
-            showToast('AI local ainda não está habilitada neste companion.', 'error');
+            showToast(t('editorToasts.aiUnavailable'), 'error');
             lastPlusTimeRef.current = 0;
             return true;
           }
@@ -822,8 +909,13 @@ function TiptapEditorSurface({
           <BubbleBtn
             editor={editor}
             onSelect={(ed) => {
-              const url = window.prompt('URL');
-              if (url) ed.chain().focus().setLink({ href: url }).run();
+              const { from, to } = ed.state.selection;
+              const selectedText = ed.state.doc.textBetween(from, to, ' ');
+              const existing = ed.getAttributes('link') as { href?: string };
+              useWorkspace.getState().openLinkEditor(
+                { text: selectedText, href: existing.href || '' },
+                (submit) => applyLinkSubmit(ed, selectedText, submit)
+              );
             }}
             label="Link"
           >

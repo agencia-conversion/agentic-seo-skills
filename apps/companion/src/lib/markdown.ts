@@ -3,58 +3,46 @@ import {
   parseReportBlockPayload,
   serializeReportBlockPayload,
 } from '../features/editor/report-block-data';
+import { parseInline, serializeInline, type InlineNode, type InlineResolver } from './inline-markdown';
 
-interface MentionResolver {
-  findPageId: (target: string) => string | null;
-  labelForPageId: (pageId: string) => string;
-}
+type MentionResolver = InlineResolver;
 
 type JsonNode = {
   type: string;
   attrs?: Record<string, any>;
   content?: JsonNode[];
   text?: string;
+  marks?: Array<{ type: string; attrs?: Record<string, any> }>;
 };
 
 function textNode(text: string): JsonNode {
   return { type: 'text', text };
 }
 
-function splitWikilinkTarget(raw: string) {
-  const target = raw.trim();
-  const hashIndex = target.indexOf('#');
-  if (hashIndex === -1) return { pageTarget: target, anchor: null as string | null };
-  const pageTarget = target.slice(0, hashIndex).trim();
-  const anchor = target.slice(hashIndex + 1).trim();
-  return { pageTarget, anchor: anchor || null };
+function inlineNodes(text: string, resolver?: MentionResolver): JsonNode[] {
+  const parsed = parseInline(text, resolver);
+  return parsed.map(toJsonNode).filter((node) => !(node.type === 'text' && node.text === ''));
 }
 
-function inlineNodes(text: string, resolver?: MentionResolver): JsonNode[] {
-  const nodes: JsonNode[] = [];
-  const re = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
-  let last = 0;
-  for (const match of text.matchAll(re)) {
-    if (match.index! > last) nodes.push(textNode(text.slice(last, match.index)));
-    const { pageTarget, anchor } = splitWikilinkTarget(match[1]);
-    const alias = match[2]?.trim();
-    const pageId = pageTarget ? resolver?.findPageId(pageTarget) : null;
-    if (pageId) {
-      nodes.push({ type: 'pageMention', attrs: { pageId, anchor, alias: alias || null } });
-    } else {
-      nodes.push(textNode(match[0]));
-    }
-    last = match.index! + match[0].length;
+function toJsonNode(node: InlineNode): JsonNode {
+  if (node.type === 'pageMention') return { type: 'pageMention', attrs: node.attrs };
+  const out: JsonNode = { type: 'text', text: node.text };
+  if (node.marks && node.marks.length) {
+    out.marks = node.marks.map((mark) =>
+      mark.type === 'link'
+        ? { type: 'link', attrs: { ...mark.attrs } }
+        : { type: mark.type }
+    );
   }
-  if (last < text.length) nodes.push(textNode(text.slice(last)));
-  return nodes.length ? nodes : [textNode('')];
+  return out;
 }
 
 function paragraph(text: string, resolver?: MentionResolver): JsonNode {
-  return { type: 'paragraph', content: inlineNodes(text, resolver).filter((n) => n.text !== '') };
+  return { type: 'paragraph', content: inlineNodes(text, resolver) };
 }
 
 function heading(level: number, text: string, resolver?: MentionResolver): JsonNode {
-  return { type: 'heading', attrs: { level }, content: inlineNodes(text, resolver).filter((n) => n.text !== '') };
+  return { type: 'heading', attrs: { level }, content: inlineNodes(text, resolver) };
 }
 
 function raw(text: string, attrs: Record<string, any> = {}): JsonNode {
@@ -65,16 +53,16 @@ function isRawLine(line: string) {
   return /^\s*<!--/.test(line) || /^\s*\|.*\|\s*$/.test(line);
 }
 
-function cellTextNodes(value: unknown): JsonNode[] {
+function cellTextNodes(value: unknown, resolver?: MentionResolver): JsonNode[] {
   const text = String(value ?? '');
   const paragraphs = text.split('\n');
   return paragraphs.map((part) => ({
     type: 'paragraph',
-    content: part ? [textNode(part)] : [],
+    content: part ? inlineNodes(part, resolver) : [],
   }));
 }
 
-function reportTableNode(body: string): JsonNode {
+function reportTableNode(body: string, resolver?: MentionResolver): JsonNode {
   const payload = parseReportBlockPayload(body) || {};
   const table = normalizeTable(payload);
   const columns = table.columns.length ? table.columns : [{ key: 'c0', label: 'Coluna 1' }];
@@ -93,7 +81,7 @@ function reportTableNode(body: string): JsonNode {
         content: columns.map((column) => ({
           type: 'tableHeader',
           attrs: { colspan: 1, rowspan: 1, colwidth: null },
-          content: cellTextNodes(column.label),
+          content: cellTextNodes(column.label, resolver),
         })),
       },
       ...rows.map((row) => ({
@@ -101,7 +89,7 @@ function reportTableNode(body: string): JsonNode {
         content: columns.map((_column, index) => ({
           type: 'tableCell',
           attrs: { colspan: 1, rowspan: 1, colwidth: null },
-          content: cellTextNodes(row[index] ?? ''),
+          content: cellTextNodes(row[index] ?? '', resolver),
         })),
       })),
     ],
@@ -117,7 +105,7 @@ function isPipeSeparator(line: string) {
   return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
 }
 
-function pipeTableNode(lines: string[]): JsonNode {
+function pipeTableNode(lines: string[], resolver?: MentionResolver): JsonNode {
   const headers = splitPipeRow(lines[0]);
   const rows = lines.slice(2).map(splitPipeRow);
   return {
@@ -129,7 +117,7 @@ function pipeTableNode(lines: string[]): JsonNode {
         content: headers.map((cell) => ({
           type: 'tableHeader',
           attrs: { colspan: 1, rowspan: 1, colwidth: null },
-          content: cellTextNodes(cell),
+          content: cellTextNodes(cell, resolver),
         })),
       },
       ...rows.map((row) => ({
@@ -137,7 +125,7 @@ function pipeTableNode(lines: string[]): JsonNode {
         content: headers.map((_header, index) => ({
           type: 'tableCell',
           attrs: { colspan: 1, rowspan: 1, colwidth: null },
-          content: cellTextNodes(row[index] ?? ''),
+          content: cellTextNodes(row[index] ?? '', resolver),
         })),
       })),
     ],
@@ -165,7 +153,7 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
       const language = fence[1].trim();
       const body = block.slice(1, -1).join('\n');
       if (language === 'agentic-table') {
-        content.push(reportTableNode(body));
+        content.push(reportTableNode(body, resolver));
       } else if (/^agentic-(kpis|chart)$/.test(language)) {
         content.push({ type: 'reportBlock', attrs: { kind: language, data: body } });
       } else {
@@ -190,7 +178,7 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
       while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) {
         block.push(lines[i++]);
       }
-      content.push(pipeTableNode(block));
+      content.push(pipeTableNode(block, resolver));
       continue;
     }
 
@@ -266,20 +254,35 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
   return { type: 'doc', content: content.length ? content : [{ type: 'paragraph' }] };
 }
 
-function textFromInline(node: JsonNode, resolver?: MentionResolver): string {
-  if (node.type === 'text') return node.text || '';
+function toInlineNode(node: JsonNode): InlineNode {
   if (node.type === 'pageMention') {
-    const label = resolver?.labelForPageId(node.attrs?.pageId) || node.attrs?.pageId || 'page';
-    const anchor = String(node.attrs?.anchor || '').trim();
-    const target = anchor ? `${label}#${anchor}` : label;
-    const alias = String(node.attrs?.alias || '').trim();
-    return alias ? `[[${target}|${alias}]]` : `[[${target}]]`;
+    return {
+      type: 'pageMention',
+      attrs: {
+        pageId: String(node.attrs?.pageId || ''),
+        anchor: node.attrs?.anchor ? String(node.attrs.anchor) : null,
+        alias: node.attrs?.alias ? String(node.attrs.alias) : null,
+      },
+    };
   }
-  return (node.content || []).map((child) => textFromInline(child, resolver)).join('');
+  const marks: any[] = (node.marks || []).map((m) => {
+    if (m.type === 'link') {
+      return { type: 'link', attrs: { href: String(m.attrs?.href || ''), title: m.attrs?.title ?? null } };
+    }
+    return { type: m.type };
+  });
+  return { type: 'text', text: node.text || '', ...(marks.length ? { marks } : {}) } as InlineNode;
+}
+
+function inlineChildren(node: JsonNode): InlineNode[] {
+  const children = node.content || [];
+  return children
+    .filter((child) => child.type === 'text' || child.type === 'pageMention')
+    .map(toInlineNode);
 }
 
 function paragraphText(node: JsonNode, resolver?: MentionResolver) {
-  return (node.content || []).map((child) => textFromInline(child, resolver)).join('');
+  return serializeInline(inlineChildren(node), resolver);
 }
 
 function tableCellText(node: JsonNode, resolver?: MentionResolver) {
