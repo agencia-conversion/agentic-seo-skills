@@ -1,0 +1,28 @@
+package.json
+  s_20275d5c898ec3::t_dee1680bd951eb 30-32
+  s_20275d5c898ec3::t_c296ed771289d1 18-21
+scripts/project-sync.mjs
+  s_20275d5c898ec3::t_c296ed771289d1 1-66,68-74,76,83-104,106-152
+  s_20275d5c898ec3::t_5b595179af4b3e 67,75,77-82
+  s_20275d5c898ec3::t_805ab7d668ba7f 105
+docs/project-persistence.md
+  s_20275d5c898ec3::t_c296ed771289d1 1-34
+AGENTS.md
+  s_20275d5c898ec3::t_c296ed771289d1 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "e0514b4bf78197ff52899cb655ce12175ee95250",
+  "prompts": {},
+  "sessions": {
+    "s_20275d5c898ec3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5bf6-1687-7d92-b068-dc59ae34fccb",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
