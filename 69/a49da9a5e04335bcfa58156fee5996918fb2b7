@@ -1,0 +1,237 @@
+dist/commands/runtime.js
+  s_1f7664b674f745::t_e679939865dbe7 90
+  s_1f7664b674f745::t_c49e0fa3c3aec0 223,234-261,265,1660-1673,1738,1747,1749-1750,1803-1807,1838,1887-1900,1923-1924
+  s_eaea9bd3b8f58a::t_a589add9614402 86-89,206,400,2365,2370
+scripts/lib/report-contract.mjs
+  s_1f7664b674f745::t_003ffd3805f13e 107-126,172,217,226-233,289
+  s_1f7664b674f745::t_139beeb3941860 1-106,127-171,173-216,218-225,234-288,290-345
+apps/companion/tsconfig.json
+  s_eaea9bd3b8f58a::t_2dba6a502b4fdb 22-23
+skills/keyword-research/contract.yaml
+  s_1f7664b674f745::t_458cd235afce64 1-23
+skills/serp-extract/contract.yaml
+  s_1f7664b674f745::t_458cd235afce64 1-16,18-25
+  s_1f7664b674f745::t_13ea51911d7c5e 17
+templates/analises/topic-cluster/report-skeleton.md
+  s_1f7664b674f745::t_35a84421d765a2 1-61,76-80
+  s_1f7664b674f745::t_37ff9202ae1781 62-75
+src/commands/runtime.ts
+  s_1f7664b674f745::t_87cab383a188b7 1687-1699,1759,1768,1770-1771,1824-1828,1859
+  s_eaea9bd3b8f58a::t_d4f8da7c3404fd 408
+  s_eaea9bd3b8f58a::t_8aa9cb1acbb0b7 2375
+  s_eaea9bd3b8f58a::t_68a8e5e49d6e5b 2373
+  s_1f7664b674f745::t_bf167adfba25ab 1907-1920,1943-1944
+  s_1f7664b674f745::t_168d261f267fe3 51,55
+  s_eaea9bd3b8f58a::t_ed7d56c0d6a3c0 47-50,52-54
+  s_eaea9bd3b8f58a::t_0e77ddfa5377f8 187
+  s_1f7664b674f745::t_93ba2a07c242a8 207,216-242,259
+skills/technical-seo/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 26,164
+skills/backlink-analysis/contract.yaml
+  s_1f7664b674f745::t_458cd235afce64 1-24
+scripts/session-bootstrap.mjs
+  s_1f7664b674f745::t_28d4413f857869 52-53
+  s_1f7664b674f745::t_51eef8dd3ea067 55,57-58
+scripts/lib/report-writer.mjs
+  s_1f7664b674f745::t_28762574a4a592 1-110
+skills/agentic-seo/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 24,30,52
+  s_1f7664b674f745::t_090921eeed05a7 28
+templates/companion/pick-cluster.html
+  s_1f7664b674f745::t_51eef8dd3ea067 220,224,227
+apps/companion/src/components/listing/listing-pagination.tsx
+  s_1f7664b674f745::t_247583d38141e3 1-41
+skills/page-report/SKILL.md
+  s_1f7664b674f745::t_f2937327ecc17f 28-29
+  s_1f7664b674f745::t_090921eeed05a7 31
+  s_1f7664b674f745::t_51eef8dd3ea067 20,38
+apps/companion/src/lib/project-files.ts
+  s_eaea9bd3b8f58a::t_18927d41141110 105,287
+  s_eaea9bd3b8f58a::t_86baa947111c84 26
+  s_eaea9bd3b8f58a::t_f28b90af08df44 628,630
+  s_eaea9bd3b8f58a::t_e220435e0fd491 103
+  s_1f7664b674f745::t_beddada0bd804d 634,636
+  s_eaea9bd3b8f58a::t_96e0dbd40755e1 338
+  s_eaea9bd3b8f58a::t_dbac3ed74c4e04 4
+  s_eaea9bd3b8f58a::t_e05a2ce6e69c46 653
+  s_eaea9bd3b8f58a::t_b5b6466c0e1e05 733
+  s_eaea9bd3b8f58a::t_2c611db8adafe0 115
+scripts/lib/project-browser-files.mjs
+  s_eaea9bd3b8f58a::t_10b4c749019124 113
+  s_eaea9bd3b8f58a::t_6527fe93dee470 703
+  s_eaea9bd3b8f58a::t_eff00e2365938f 30
+  s_eaea9bd3b8f58a::t_568ae2f8909663 826
+  s_eaea9bd3b8f58a::t_cbed55284b13dd 778
+  s_1f7664b674f745::t_beddada0bd804d 759,761
+  s_eaea9bd3b8f58a::t_a72a6088bca961 753,755
+  s_eaea9bd3b8f58a::t_f3144e7005be14 679
+  s_eaea9bd3b8f58a::t_269d21d498aac0 117,127
+  s_eaea9bd3b8f58a::t_a9c8d7403d5a4b 5,8-9
+tests/test_session_bootstrap.mjs
+  s_1f7664b674f745::t_51eef8dd3ea067 33
+  s_1f7664b674f745::t_28d4413f857869 32
+skills/technical-seo/contract.yaml
+  s_1f7664b674f745::t_458cd235afce64 1-41
+skills/internal-links/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 170
+apps/companion/src/app/api/project/analyses/route.ts
+  s_1f7664b674f745::t_69747455b2f70d 1-20
+apps/companion/src/app/api/project/reports/route.ts
+  s_1f7664b674f745::t_11e5f97bb1e777 16
+apps/companion/src/components/listing/listing-filters.tsx
+  s_1f7664b674f745::t_247583d38141e3 1-47,50,52-69
+  s_1f7664b674f745::t_a05be7872749fa 48-49,51
+apps/companion/src/features/contents/content-index-panel.tsx
+  s_1f7664b674f745::t_d8ea76f5972d5c 4,6,54-100,140-150,152-154,156-161,163-165,167-175,177-181
+  s_1f7664b674f745::t_73d0835d7372db 7,39-44,114-116,137,151,155,162,166,176
+templates/analises/eeat/report-skeleton.md
+  s_1f7664b674f745::t_35a84421d765a2 1-24,42-65
+  s_1f7664b674f745::t_bf9544e8a59869 25-41
+apps/companion/src/features/workspace/breadcrumb-trail.tsx
+  s_eaea9bd3b8f58a::t_3ff946713351e4 5
+  s_1f7664b674f745::t_913954d0b3d575 13,19
+tests/test_technical_seo.mjs
+  s_1f7664b674f745::t_51eef8dd3ea067 30
+  s_1f7664b674f745::t_28d4413f857869 28
+apps/companion/src/components/listing/use-listing-state.ts
+  s_1f7664b674f745::t_4dc9f28508385b 17,29,36,48,57
+  s_1f7664b674f745::t_73d0835d7372db 1-16,18-28,30-35,37-47,49-56,58-73
+apps/companion/src/components/listing/listing-panel.tsx
+  s_1f7664b674f745::t_247583d38141e3 1-8,11-70
+  s_1f7664b674f745::t_043681d18abb9d 9-10
+skills/backlink-analysis/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 173
+AGENTS.md
+  s_1f7664b674f745::t_51eef8dd3ea067 113,126
+tests/test_topic_cluster_hypothesis_e2e.mjs
+  s_1f7664b674f745::t_51eef8dd3ea067 27
+  s_1f7664b674f745::t_28d4413f857869 26
+shared/report-modules.js
+  s_eaea9bd3b8f58a::t_9f84f170535ffe 1-2,5,7-34
+  s_1f7664b674f745::t_aa1d6f35ef7fb3 3-4
+  s_1f7664b674f745::t_090921eeed05a7 6
+templates/analises/seo-analysis/report-skeleton.md
+  s_1f7664b674f745::t_35a84421d765a2 1-48
+skills/internal-links/contract.yaml
+  s_1f7664b674f745::t_458cd235afce64 1-45
+tests/test_companion_markdown_roundtrip.mjs
+  s_eaea9bd3b8f58a::t_ffa718001463b1 141
+scripts/lib/page-report.mjs
+  s_eaea9bd3b8f58a::t_7660765015ffcb 4,6-10,12-16
+  s_eaea9bd3b8f58a::t_b6777cab3a16d6 42
+  s_eaea9bd3b8f58a::t_c4686906964e16 73
+templates/analises/keyword-research/report-skeleton.md
+  s_1f7664b674f745::t_35a84421d765a2 1-44
+tests/test_agentic_seo_skill.mjs
+  s_1f7664b674f745::t_51eef8dd3ea067 62
+  s_1f7664b674f745::t_28d4413f857869 60
+apps/companion/src/app/project/[token]/[[...slug]]/page.tsx
+  s_1f7664b674f745::t_bda3105ce8de5c 15,116-117
+tests/test_companion_project_browser.mjs
+  s_1f7664b674f745::t_51eef8dd3ea067 50,164,166,176,178,188-190,338,341-342,345,347-348,353-354,359
+  s_1f7664b674f745::t_beddada0bd804d 349,356
+skills/eeat/contract.yaml
+  s_1f7664b674f745::t_458cd235afce64 1-16,18,21-22
+  s_1f7664b674f745::t_5eecc0c326a6ef 17,19-20,23-24
+templates/analises/internal-links/report-skeleton.md
+  s_1f7664b674f745::t_35a84421d765a2 1-57
+apps/companion/src/lib/reports.ts
+  s_eaea9bd3b8f58a::t_a58d4b59d59f6b 61
+  s_eaea9bd3b8f58a::t_1c4b28ac7c0f70 5-9,11,13-18
+  s_1f7664b674f745::t_487022266dc60a 39-42,68,70,74-75,83,92,106,113,118-125,127-132,135,140-141,143-155,161-163
+  s_eaea9bd3b8f58a::t_64f665035e3f85 45-46
+scripts/eeat.mjs
+  s_1f7664b674f745::t_b3e64b4f55b29a 14,259-266,297-304
+skills/serp-extract/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 170
+skills/seo-analysis/contract.yaml
+  s_1f7664b674f745::t_458cd235afce64 1-18,20-27
+  s_1f7664b674f745::t_b3c4631e462d71 19
+skills/eeat/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 173
+skills/project-init/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 59-67,117
+apps/companion/src/features/workspace/store.ts
+  s_1f7664b674f745::t_36250ba7e61bce 102,308
+  s_eaea9bd3b8f58a::t_4c83282d36d2c2 249
+  s_eaea9bd3b8f58a::t_d3f9b89d4657cb 5
+  s_eaea9bd3b8f58a::t_8ddb6958c6fa1d 271
+  s_eaea9bd3b8f58a::t_0607384fe24520 559
+  s_eaea9bd3b8f58a::t_f5b32e258aacb1 792
+  s_1f7664b674f745::t_42e6f875218eb2 534,537-538,542,545,607
+  s_eaea9bd3b8f58a::t_f23ec4a96a7fd3 808
+  s_eaea9bd3b8f58a::t_337cb0da1eade0 867
+templates/analises/serp-extract/report-skeleton.md
+  s_1f7664b674f745::t_35a84421d765a2 1-44
+tests/test_page_report_contract.mjs
+  s_1f7664b674f745::t_090921eeed05a7 44
+  s_1f7664b674f745::t_51eef8dd3ea067 42
+shared/report-modules.d.ts
+  s_eaea9bd3b8f58a::t_78f1580465127b 2-14
+  s_eaea9bd3b8f58a::t_bfd7840fbe75d3 1
+tests/test_module_report_contract.mjs
+  s_1f7664b674f745::t_51eef8dd3ea067 13
+  s_1f7664b674f745::t_974910e2679462 1-12,14-124
+skills/seo-analysis/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 162
+skills/topic-cluster/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 214
+apps/companion/src/features/workspace/sidebar-item.tsx
+  s_eaea9bd3b8f58a::t_a3242576cbb70f 66
+  s_eaea9bd3b8f58a::t_cfa312c4010322 6
+skills/topic-cluster/contract.yaml
+  s_1f7664b674f745::t_852cc48917d479 32-35
+  s_1f7664b674f745::t_458cd235afce64 1-31,36-43
+CLAUDE.md
+  s_1f7664b674f745::t_51eef8dd3ea067 7
+scripts/smoke_test.mjs
+  s_1f7664b674f745::t_28d4413f857869 49
+skills/keyword-research/SKILL.md
+  s_1f7664b674f745::t_51eef8dd3ea067 144
+docs/refactor-status.md
+  s_1f7664b674f745::t_51eef8dd3ea067 7,27,67,69
+package.json
+  s_1f7664b674f745::t_7349694fc1687d 15-17
+templates/analises/backlink-analysis/report-skeleton.md
+  s_1f7664b674f745::t_35a84421d765a2 1-47
+apps/companion/src/components/listing/listing-table.tsx
+  s_1f7664b674f745::t_247583d38141e3 1-73
+templates/analises/technical-seo/report-skeleton.md
+  s_1f7664b674f745::t_35a84421d765a2 1-71
+apps/companion/src/features/workspace/page-width.ts
+  s_eaea9bd3b8f58a::t_299605d1bfa67b 1
+  s_eaea9bd3b8f58a::t_4840344f6477e0 45,50
+scripts/review_reports.mjs
+  s_1f7664b674f745::t_17264b15f254c8 3-18,21,24-34
+apps/companion/src/features/analyses/analyses-index-panel.tsx
+  s_1f7664b674f745::t_cbdf4681e96a64 4,6,11,14-15,22-23,26-32,43,45-46,49,52,58,63,66-67,78-81,83-145,148-158,160-162,164-169,171-173,175-183,185-189,199-205
+  s_1f7664b674f745::t_73d0835d7372db 7,37-42,54-56,76,159,163,170,174,184
+apps/companion/src/features/editor/editor-panel.tsx
+  s_eaea9bd3b8f58a::t_5fc9159d7ca332 36
+  s_eaea9bd3b8f58a::t_2714f3bc30f017 427
+  s_eaea9bd3b8f58a::t_b7e86afe2124db 251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "69a49da9a5e04335bcfa58156fee5996918fb2b7",
+  "prompts": {},
+  "sessions": {
+    "s_1f7664b674f745": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5b99-b8c4-7541-92e1-fbebe3734079",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    },
+    "s_eaea9bd3b8f58a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1c83e9ba-80eb-43a6-a607-eb63c3407b43",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
