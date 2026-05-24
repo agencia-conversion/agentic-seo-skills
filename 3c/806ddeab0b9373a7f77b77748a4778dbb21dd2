@@ -1,0 +1,29 @@
+apps/companion/src/app/project/[token]/graph/page.tsx
+  s_b9b96783817814::t_c247a27d560e96 126
+  s_3342d1275698f0::t_2fe48621dfc53d 122
+  s_b9b96783817814::t_fe9c1ac50d1ca2 129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "3c806ddeab0b9373a7f77b77748a4778dbb21dd2",
+  "prompts": {},
+  "sessions": {
+    "s_3342d1275698f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5b99-0137-7bb2-aed0-4a04d9082f81",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    },
+    "s_b9b96783817814": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7fabcb3-41f4-4837-a494-03c48f72eb52",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
