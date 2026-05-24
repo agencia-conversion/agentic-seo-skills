@@ -1,0 +1,36 @@
+apps/companion/src/app/project/[token]/broken-links/page.tsx
+  s_3342d1275698f0::t_00bc214671b293 5,7,79-93
+apps/companion/src/features/editor/editor-panel.tsx
+  s_3342d1275698f0::t_be68138f93ba47 59,373-377,465-467
+  s_3342d1275698f0::t_403e7924f67144 378-387,389-391,393-402,404-405,407,411-428,430-464
+apps/companion/e2e/graph.spec.ts
+  s_3342d1275698f0::t_d8e599d5b3a1db 35-41
+apps/companion/src/features/workspace/workspace-header.tsx
+  s_3342d1275698f0::t_11dc90aeadb086 1-63
+apps/companion/src/features/workspace/virtual-page-shell.tsx
+  s_3342d1275698f0::t_6b133051ff6ba9 7,14-16
+apps/companion/src/app/project/[token]/graph/page.tsx
+  s_3342d1275698f0::t_e51164f0811b99 6,196,198-210
+  s_3342d1275698f0::t_6479f7d8f2ab1f 197
+  s_3342d1275698f0::t_ac8da2ab2289c6 228,239
+apps/companion/e2e/discoverability.spec.ts
+  s_3342d1275698f0::t_3b081c42f0d4fb 1,6-11,14,21,30,38,45,59
+apps/companion/src/app/project/[token]/tags/page.tsx
+  s_3342d1275698f0::t_56f02a53edfb11 5,7,87-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "380ba7fa045895b579ec7c84eb3d85d6112b7e4e",
+  "prompts": {},
+  "sessions": {
+    "s_3342d1275698f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5b99-0137-7bb2-aed0-4a04d9082f81",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
