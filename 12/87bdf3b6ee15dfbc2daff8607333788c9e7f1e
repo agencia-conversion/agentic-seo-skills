@@ -1,0 +1,71 @@
+apps/companion/src/features/editor/editor-extensions.ts
+  s_b9b96783817814::t_18b68e79c9d4a9 155-157
+  s_b9b96783817814::t_2a78771ddb5369 14-16
+apps/companion/src/features/editor/mermaid-extension.ts
+  s_b9b96783817814::t_e84b003ca9d516 1-50
+docs/obsidian-vault.md
+  s_b9b96783817814::t_d986deb619f315 1-60,62-67
+  s_b9b96783817814::t_ae8229ba82d580 61
+apps/companion/e2e/fixtures/sample-project/brain/identidade.md
+  s_b9b96783817814::t_674f3c82886e3c 4-6,16-26
+apps/companion/e2e/fixtures/sample-project/brain/voz.md
+  s_b9b96783817814::t_8ce545396cd91f 4,10-12
+apps/companion/e2e/global-setup.ts
+  s_b9b96783817814::t_2bdfea717387be 1-9
+apps/companion/playwright.config.ts
+  s_b9b96783817814::t_45a511cc365e9e 2,12,14,18,28,30,34
+tests/test_companion_markdown_roundtrip.mjs
+  s_b9b96783817814::t_4f206dafad6daa 138-145
+  s_b9b96783817814::t_dd7211a3c228c4 68-82
+  s_b9b96783817814::t_d7388ffa57abf8 115-122
+apps/companion/e2e/fixtures/sample-project/brain/index.md
+  s_b9b96783817814::t_b8a170a69907eb 14-17
+apps/companion/src/lib/tag-index.ts
+  s_b9b96783817814::t_a149abf313bcf6 1-198
+package.json
+  s_b9b96783817814::t_c0533d5b9b3006 15
+apps/companion/e2e/backlinks.spec.ts
+  s_b9b96783817814::t_c9f68a3eea9eec 2
+apps/companion/e2e/markdown-extensions.spec.ts
+  s_b9b96783817814::t_289f7be4fea337 2
+  s_b9b96783817814::t_8bcd48c3345dae 1,3-39
+apps/companion/src/features/editor/page-embed-extension.ts
+  s_b9b96783817814::t_689ecdd1b00663 1-83
+apps/companion/e2e/tags.spec.ts
+  s_b9b96783817814::t_8420e758813e66 1,3-39
+  s_b9b96783817814::t_769033a7b5f0da 2
+apps/companion/src/lib/markdown.ts
+  s_b9b96783817814::t_1bcffc301cbe80 34-35,53-73
+  s_b9b96783817814::t_a90866118f5da1 195-196,203-215
+  s_b9b96783817814::t_6e7d460e288db7 433-452
+  s_b9b96783817814::t_d55915fede6b5b 282-304
+apps/companion/e2e/test-constants.ts
+  s_b9b96783817814::t_b732cddecaa586 1-7
+tests/test_tag_index.mjs
+  s_b9b96783817814::t_fe7e44b095e0c9 1-141
+apps/companion/src/features/editor/callout-extension.ts
+  s_b9b96783817814::t_b848aa746a5167 1-73
+apps/companion/src/app/api/project/tags/route.ts
+  s_b9b96783817814::t_3a81997555b8cd 1-16
+apps/companion/e2e/obsidian-compat.spec.ts
+  s_b9b96783817814::t_3732841d1eacb1 2
+  s_b9b96783817814::t_62eeb1aae16ae3 1,3-65
+apps/companion/src/app/project/[token]/tags/page.tsx
+  s_b9b96783817814::t_d5438fca428914 1-181
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "1287bdf3b6ee15dfbc2daff8607333788c9e7f1e",
+  "prompts": {},
+  "sessions": {
+    "s_b9b96783817814": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7fabcb3-41f4-4837-a494-03c48f72eb52",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
