@@ -1,0 +1,22 @@
+apps/companion/src/features/editor/editor-panel.tsx
+  s_e30d4f198a04fe::t_6cc658ae31ccf9 771
+  s_e30d4f198a04fe::t_015201aa0cc47c 828,832,836,839
+apps/companion/src/features/workspace/store.ts
+  s_e30d4f198a04fe::t_7db945dfdaa3f6 771-781
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "213057732a3832da073179c233b98db7e1a2da59",
+  "prompts": {},
+  "sessions": {
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
