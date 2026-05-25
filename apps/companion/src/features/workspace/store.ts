@@ -99,7 +99,7 @@ export interface Page {
   readOnly: boolean;
   requiresApproval: boolean;
   sourceMode: boolean;
-  kind?: 'file' | 'analysisIndex' | 'contentIndex' | 'workbenchIndex' | 'brainEmpty' | 'clusterDetail';
+  kind?: 'file' | 'analysisIndex' | 'contentIndex' | 'contentByCluster' | 'workbenchIndex' | 'brainEmpty' | 'clusterDetail';
   reportModuleId?: string;
   contentTopicClusterId?: string;
 }
@@ -328,7 +328,7 @@ function virtualPage({
   icon: string;
   parentId: string | null;
   sortOrder: number;
-  kind: 'analysisIndex' | 'contentIndex' | 'workbenchIndex' | 'brainEmpty';
+  kind: 'analysisIndex' | 'contentIndex' | 'contentByCluster' | 'workbenchIndex' | 'brainEmpty';
   sectionId?: string;
   reportModuleId?: string;
   contentTopicClusterId?: string;
@@ -553,6 +553,29 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
       })
     );
     brainSection.pageIds.push(contentsRootId);
+    try {
+      const clusterList = await apiFetch(token, '/api/project/cluster-list').catch(() => ({ ok: false, clusters: [] }));
+      const activeClusters = (clusterList.clusters || []).filter(
+        (c: { slug?: string; status?: string }) => c?.slug && c.status !== 'archived',
+      );
+      for (let idx = 0; idx < activeClusters.length; idx++) {
+        const cluster = activeClusters[idx] as { slug: string; nome?: string; icon?: string };
+        const subId = `virtual/contents-${cluster.slug}`;
+        pages.push(
+          virtualPage({
+            id: subId,
+            title: cluster.nome || cluster.slug,
+            icon: cluster.icon || '🗂️',
+            parentId: contentsRootId,
+            sortOrder: idx,
+            kind: 'contentByCluster',
+            contentTopicClusterId: cluster.slug,
+          }),
+        );
+      }
+    } catch {
+      // cluster-list opcional; sidebar funciona sem subpages
+    }
   }
   const reportModules: ReportModuleSummary[] = Array.isArray(reportIndex.modules) ? reportIndex.modules : [];
   if (brainSection && reportModules.length > 0) {

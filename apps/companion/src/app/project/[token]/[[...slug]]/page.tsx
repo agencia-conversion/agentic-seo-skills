@@ -107,6 +107,8 @@ export default function ProjectPage() {
           <WorkbenchIndexPanel />
         ) : activePage?.kind === 'contentIndex' ? (
           <ContentIndexPanel topicClusterId={activePage.contentTopicClusterId} />
+        ) : activePage?.kind === 'contentByCluster' && activePage.contentTopicClusterId ? (
+          <ContentIndexPanel topicClusterId={activePage.contentTopicClusterId} />
         ) : activePage?.kind === 'analysisIndex' ? (
           <AnalysesIndexPanel moduleId={activePage.reportModuleId} />
         ) : activePage?.kind === 'clusterDetail' && activePage.contentTopicClusterId ? (
