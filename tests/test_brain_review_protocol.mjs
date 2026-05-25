@@ -31,8 +31,8 @@ for (const tipo of ["aprovacao", "decisao", "errata", "lint", "ingestao", "publi
   assert.ok(skill.includes(tipo), `log tipo enum missing: ${tipo}`);
 }
 
-// Seven authorial brain pages
-for (const page of ["index", "identidade", "voz", "tecnologia", "editorial", "topic-clusters", "log"]) {
+// Eight canonical brain pages (seven authorial + log)
+for (const page of ["index", "identidade", "voz", "tecnologia", "editorial", "topic-clusters", "revisao", "log"]) {
   assert.ok(skill.includes(`\`${page}\``), `brain page enum missing: ${page}`);
 }
 

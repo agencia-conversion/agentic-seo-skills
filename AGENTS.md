@@ -68,10 +68,11 @@ project/
   brain/
     index.md          # mapa + dashboard curto
     identidade.md     # brandbook narrativo (aposto, parágrafo, frase-marca, público, canais)
-    voz.md            # princípios editoriais
+    voz.md            # princípios de tom e registro
     tecnologia.md     # contexto técnico observado + SEO técnico
     editorial.md      # áreas de conteúdo
     topic-clusters.md # clusters semânticos
+    revisao.md        # sede canônica das regras de revisão (universal + projeto)
     log.md            # append-only, autoral
   sources/            # raw, imutável
   conteudos/          # produto público
@@ -99,7 +100,8 @@ Brain pages, conteúdos e reports são lidos por outros agentes em outras sessõ
 
 ### Brain-first protocol
 
-- Mudança em arquivo autoral do brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) pode ser aplicada diretamente quando a evidência e a decisão forem registradas em `brain/log.md` como `tipo: decisao` com `aprovador: agent` ou nome humano.
+- Mudança em arquivo autoral do brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `index`) pode ser aplicada diretamente quando a evidência e a decisão forem registradas em `brain/log.md` como `tipo: decisao` com `aprovador: agent` ou nome humano.
+- Para `revisao.md`: estilística menor (novo termo IA-slop, novo verbo Conversion-explainer, typo recorrente) o agente aplica direto com `aprovador: agent`. Mudança de checklist (princípio novo, entrada em "Erros comuns observados", item que altera comportamento do reviewer) vai a `log.md` como `tipo: lint` e aguarda decisão humana antes de tocar a página.
 - Mudança operacional (catalogar fonte, registrar lint, registrar publicação, anotar errata) vai direto pro `log.md` com `aprovador: agent` ou nome humano.
 - O log é append-only. Erratas são novas entradas referenciando a entrada anterior, não reescrita.
 
@@ -113,7 +115,7 @@ Use Obsidian wikilinks `[[...]]` apenas para arquivos reais dentro de `brain/`. 
 
 ### Regra editorial
 
-A skill `brain-keeper` carrega a regra dura de escrita jornalística imparcial (lead na primeira frase, atribuição visível, sem opinião dissimulada, anti-IA-slop, anti-Conversion-explainer, preservação de acentos pt-BR). Particularidades do projeto vão em `brain/voz.md`.
+A sede canônica das regras de revisão é `brain/revisao.md`. A página carrega a regra editorial universal (lead na primeira frase, atribuição visível, sem opinião dissimulada, anti-IA-slop, anti-Conversion-explainer, preservação de acentos pt-BR) e particularidades do projeto que crescem com o aprendizado das revisões. Tom de voz e registro permanecem em `brain/voz.md`. A skill `brain-keeper` lê `brain/revisao.md` antes de revisar prosa e referencia a página em vez de duplicá-la.
 
 ### Public content
 
@@ -135,7 +137,7 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 | Companion reports | `project/analises/<module>/<run-slug>/` | `report.md` |
 | Brain (authorial) | `project/brain/` | direct edits allowed when recorded as `tipo: decisao` in `brain/log.md` |
 
-Skills read the brain for context (identidade, tom de voz, tecnologia, editorial) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`.
+Skills read the brain for context (identidade, tom de voz, tecnologia, editorial, revisao) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`. `content-seo` specifically loads `brain/revisao.md` during the `check` phase as the canonical seat of editorial review rules.
 
 ## Browser Handoff
 

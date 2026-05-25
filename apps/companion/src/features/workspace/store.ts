@@ -250,6 +250,7 @@ function iconForPath(path: string) {
   if (path === 'brain/tecnologia.md') return '🛠️';
   if (path === 'brain/editorial.md') return '🗂️';
   if (path === 'brain/topic-clusters.md') return '🧩';
+  if (path === 'brain/revisao.md') return '✅';
   if (path === 'brain/log.md') return '🕒';
   if (path.startsWith('brain/')) return '📄';
   if (path.startsWith('conteudos/blog/')) return '📝';
