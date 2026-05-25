@@ -1,0 +1,52 @@
+{
+  "language": "en",
+  "version": "1.0.0",
+  "accents": [],
+  "ai_slop": [
+    "crucial", "robust", "comprehensive", "nuanced", "fundamental",
+    "significant", "holistic", "synergistic", "scalable",
+    "revolutionary", "disruptive", "innovative", "leverage", "maximize",
+    "transformational", "essential", "next-gen", "next level",
+    "end-to-end", "actionable", "empower", "empowering", "seamless",
+    "cutting-edge", "world-class", "best-in-class", "game-changer",
+    "game-changing", "value-add", "value-driven"
+  ],
+  "blog_tutorial": [
+    "let's understand", "let's see", "let's explore", "let's learn",
+    "in this article", "in this post", "in this guide",
+    "as you can see", "as we saw", "as we mentioned",
+    "it's worth noting", "it's important to note", "don't forget",
+    "now that we have seen", "in other words", "simply put", "basically",
+    "you will learn", "discover how", "keep reading to find out",
+    "first and foremost", "the truth is", "the secret is",
+    "have you ever wondered"
+  ],
+  "promo_adjectives": [
+    "leader", "leading", "premier", "top", "best", "unique", "only",
+    "pioneering", "pioneer", "reference", "renowned", "recognized",
+    "award-winning", "respected", "definitive", "comprehensive",
+    "exclusive", "historic", "iconic", "legendary"
+  ],
+  "source_description": [
+    "the homepage states", "the homepage says", "the homepage claims",
+    "the homepage positions", "the homepage defends", "the homepage presents",
+    "the website states", "the website says", "the website claims",
+    "the website positions", "the website defends",
+    "the page states", "the page says", "the page declares",
+    "the page defends", "the page presents", "the page reveals",
+    "the landing states", "the landing says", "the landing defends",
+    "the blog states", "the blog says", "the blog defends",
+    "the article states", "the article says", "the article defends",
+    "the article argues", "the article claims",
+    "according to the website", "according to the homepage",
+    "according to the page", "according to the blog",
+    "as the website says", "as the homepage states",
+    "the brand presents", "the copy indicates", "the institutional material"
+  ],
+  "tecnologia_editorial_verbs": [
+    "defends", "proposes", "recommends", "preaches", "argues for",
+    "advocates", "champions", "bets on", "believes in",
+    "plans to use", "will migrate", "wants to adopt",
+    "we prefer", "we reject", "we believe"
+  ]
+}

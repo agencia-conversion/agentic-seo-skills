@@ -42,14 +42,26 @@ test.describe('Backlinks & broken links', () => {
     // Wait for store to hydrate and editor to load
     await page.waitForSelector('[data-testid="linked-mentions-panel"]', { timeout: 20_000 });
 
+    // Both sections start collapsed by default
+    const incomingSection = page.locator('[data-testid="linked-mentions-incoming"]');
+    const outgoingSection = page.locator('[data-testid="linked-mentions-outgoing"]');
+    await expect(incomingSection).toHaveAttribute('data-open', 'false');
+    await expect(outgoingSection).toHaveAttribute('data-open', 'false');
+
     // identidade is referenced 3 times: index.md (wikilink + embed) and voz.md (wikilink)
     const incoming = page.locator('[data-testid="incoming-mention"]');
     await expect(incoming).toHaveCount(3);
+
+    // Expand incoming and check visibility
+    await incomingSection.locator('summary').click();
+    await expect(incomingSection).toHaveAttribute('data-open', 'true');
     await expect(incoming.first()).toContainText(/Index|Voz/);
-    // Embed mention from index.md is one of the three
     const embedMention = page.locator('[data-testid="incoming-mention"][data-source="brain/index.md"]').nth(0);
     await expect(embedMention).toBeVisible();
 
+    // Expand outgoing and check visibility
+    await outgoingSection.locator('summary').click();
+    await expect(outgoingSection).toHaveAttribute('data-open', 'true');
     const outgoingItems = page.locator('[data-testid="outgoing-link"]');
     await expect(outgoingItems.first()).toBeVisible();
   });
@@ -58,10 +70,31 @@ test.describe('Backlinks & broken links', () => {
     await page.goto(`/project/${TOKEN}/brain-index`);
     await page.waitForSelector('[data-testid="linked-mentions-panel"]', { timeout: 20_000 });
 
+    // Outgoing section is collapsed by default; expand it before asserting on items
+    const outgoingSection = page.locator('[data-testid="linked-mentions-outgoing"]');
+    await outgoingSection.locator('summary').click();
+    await expect(outgoingSection).toHaveAttribute('data-open', 'true');
+
     const brokenFlag = page.locator('[data-testid="broken-flag"]');
     await expect(brokenFlag.first()).toBeVisible();
     const brokenLink = page.locator('[data-testid="outgoing-link"][data-broken="true"]');
     await expect(brokenLink.first()).toBeVisible();
+  });
+
+  test('Linked mentions sections start collapsed by default', async ({ page }) => {
+    await page.goto(`/project/${TOKEN}/brain-identidade`);
+    await page.waitForSelector('[data-testid="linked-mentions-panel"]', { timeout: 20_000 });
+
+    const incomingSection = page.locator('[data-testid="linked-mentions-incoming"]');
+    const outgoingSection = page.locator('[data-testid="linked-mentions-outgoing"]');
+    await expect(incomingSection).toHaveAttribute('data-open', 'false');
+    await expect(outgoingSection).toHaveAttribute('data-open', 'false');
+
+    // Summary (heading row) is visible; first item inside is not
+    await expect(incomingSection.locator('summary').first()).toBeVisible();
+    await expect(outgoingSection.locator('summary').first()).toBeVisible();
+    await expect(page.locator('[data-testid="incoming-mention"]').first()).not.toBeVisible();
+    await expect(page.locator('[data-testid="outgoing-link"]').first()).not.toBeVisible();
   });
 
   test('Broken links page lists the fantasma reference grouped by source', async ({ page }) => {
