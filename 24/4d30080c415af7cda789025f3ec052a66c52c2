@@ -1,0 +1,21 @@
+apps/companion/src/lib/project-files.ts
+  s_e30d4f198a04fe::t_2680d3ab4da26f 345-346
+apps/companion/src/features/editor/editor-panel.tsx
+  s_e30d4f198a04fe::t_dd8aef2545df9a 606,608
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "244d30080c415af7cda789025f3ec052a66c52c2",
+  "prompts": {},
+  "sessions": {
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
