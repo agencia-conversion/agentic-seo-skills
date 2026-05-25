@@ -33,6 +33,7 @@ const REQUIRED_BRAIN_PAGES = [
   "tecnologia.md",
   "editorial.md",
   "topic-clusters.md",
+  "revisao.md",
   "log.md",
 ];
 const AUTHORIAL_BRAIN_PAGES = new Set([
@@ -42,6 +43,7 @@ const AUTHORIAL_BRAIN_PAGES = new Set([
   "tecnologia.md",
   "editorial.md",
   "topic-clusters.md",
+  "revisao.md",
 ]);
 const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "outros"]);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -3510,7 +3512,7 @@ function readBrainEvidencePage(projectDir: string, rel: string): AnyRecord {
 }
 
 function buildContentContextEvidence(projectDir: string, topicSlug: string): AnyRecord {
-  const pageRels = ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md"];
+  const pageRels = ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md", "revisao.md"];
   const brainPages = pageRels.map((rel) => readBrainEvidencePage(projectDir, rel));
   const voicePage = brainPages.find((page) => page.path === "brain/voz.md") || readBrainEvidencePage(projectDir, "voz.md");
   const voiceFile = path.join(projectDir, "brain", "voz.md");

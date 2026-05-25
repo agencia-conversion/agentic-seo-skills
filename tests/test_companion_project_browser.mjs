@@ -28,7 +28,7 @@ assert.equal(emptyTree.canBootstrapBrain, true);
 
 const bootstrapped = bootstrapBrainFiles({ projectRoot: emptyProjectRoot });
 assert.equal(bootstrapped.ok, true);
-assert.equal(bootstrapped.created.length, 7);
+assert.equal(bootstrapped.created.length, 8);
 assert.ok(existsSync(join(emptyProjectRoot, "brain", "index.md")));
 assert.ok(readFileSync(join(emptyProjectRoot, "brain", "index.md"), "utf8").includes('title: "Agentic SEO"'));
 assert.match(readFileSync(join(emptyProjectRoot, "brain", "log.md"), "utf8"), /Brain criado no Companion/);

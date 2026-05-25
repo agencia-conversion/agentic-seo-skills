@@ -38,7 +38,7 @@ Conversational replies (clarifications, status checks, short factual questions) 
 Agentic SEO Skills implements Agentic SEO through six pillars:
 
 - Strategy: positioning, business goals, priorities, risks, and strategic decisions.
-- Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`).
+- Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `log`). `revisao` is the canonical seat of editorial review rules (universal + project-specific).
 - Technology: observed technical context, crawl/indexability constraints, metadata/schema evidence, analytics context, and technical SEO decisions recorded without implementing stack, CMS, deploy, or website code.
 - Technical SEO: crawlability, indexability, metadata, internal health, structured data, performance signals, and deterministic page audits.
 - Content: briefs, drafts, topical clusters, editorial artifacts, refreshes, and publication readiness.
@@ -50,7 +50,7 @@ Humans own judgment. Agents execute repeatable intelligence, extraction, formatt
 
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, case studies, or proof. Unknown metrics stay `null`, `unknown`, or blocked.
 - Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, report pages in `project/analises/`, complete non-report deliverables in `project/artifacts/`, public content in `project/conteudos/`, and authorial knowledge in `project/brain/`.
-- Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) may change directly when the agent records a `tipo: decisao` entry in `brain/log.md` with evidence, actor, and limitations.
+- Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `index`) may change directly when the agent records a `tipo: decisao` entry in `brain/log.md` with evidence, actor, and limitations. For `revisao.md`, stylistic minor additions auto-apply; checklist changes register as `tipo: lint` and wait for human approval.
 - DataForSEO is the default provider for SEO metrics, SERP evidence, and backlink data. Agentic SEO is not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
 - Do not silently fall back to WebSearch, intuition, or hypothesis-only output when DataForSEO is missing. Record the provider decision, reason, timestamp, and consequence.
 - A bypass must name the skipped step, actor, timestamp, reason, and consequence. A decision on an artifact is not acceptance of an undisclosed bypass.
@@ -80,6 +80,7 @@ Name missing gates before downstream execution. Common blockers:
 - `DataForSEO decision gate`: WebSearch, skip-data, or hypothesis-only output must record reason and consequence.
 - `Brain decision gate`: authorial brain changes must be logged as `tipo: decisao` with evidence and actor.
 - `Voice gate`: `brain/voz.md` is missing required principles before voice-backed public content. User-directed drafting may proceed as a workbench draft when the bypass is recorded.
+- `Revisao gate`: `brain/revisao.md` is missing or carries only placeholders for the project-specific sections during a content `check`. Records `revisao_backed: false` with a logged bypass; does not block promotion.
 - `Content check gate`: a brief, draft, or final public content artifact needs provenance and publication checks before publishing or promotion.
 - `Source separation gate`: raw evidence has not been captured under `project/sources/` or cited separately from synthesis.
 - `Browser handoff gate`: sensitive input, decision, or preview should be completed through a local browser flow rather than terminal-first instructions.

@@ -12,7 +12,7 @@ Project settings:
 Expected output:
 
 - Project directory structure (`brain/`, `sources/`, `conteudos/`, `artifacts/`, `workbench/`).
-- 7 brain files copied from blank templates with placeholders untouched.
+- 8 brain files copied from blank templates (index, identidade, voz, tecnologia, editorial, topic-clusters, revisao, log); placeholders untouched except for revisao.md, which carries the universal editorial review rules populated by the template.
 - 4 `_template.md` files in `conteudos/{blog,linkedin,podcast,outros}/`.
 - `.agentic-seo/project.json` metadata with `schema_version: "2.0.0"`.
 - Initial entry in `brain/log.md` with `tipo: decisao` and `aprovador: agent`.

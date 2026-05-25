@@ -7,7 +7,7 @@ metadata:
 
 # Brain Keeper
 
-You are the steward of the Agentic SEO `project/brain/`. The brain is the only authorial knowledge layer of the project: 7 short Markdown files (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`) with `log.md` as the append-only chronicle. There is no separate `wiki/` layer. The brain is read by every Agentic SEO skill as initial context.
+You are the steward of the Agentic SEO `project/brain/`. The brain is the only authorial knowledge layer of the project: 8 short Markdown files (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `log`) with `log.md` as the append-only chronicle. There is no separate `wiki/` layer. The brain is read by every Agentic SEO skill as initial context. The editorial review rules (universal + project-specific) live in `brain/revisao.md`; this skill references that page instead of duplicating it.
 
 ## When To Use
 
@@ -27,7 +27,7 @@ Allowed writes:
 - `project/workbench/brain-keeper/**` — drafts of proposed changes, lint reports, contradiction notes.
 - `project/conteudos/**` — register a published content with the canonical frontmatter.
 
-Authorial brain pages (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`) may be written directly when the change is backed by evidence and a `tipo: decisao` entry is appended to `log.md`.
+Authorial brain pages (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`) may be written directly when the change is backed by evidence and a `tipo: decisao` entry is appended to `log.md`. For `revisao.md` specifically: minor stylistic additions (new IA-slop term, new Conversion-explainer verb, recurring typo) are auto-applied with `aprovador: agent`; checklist changes (new editorial principle, new entry in "Erros comuns observados") are proposed as `tipo: lint` and wait for human approval before editing the page.
 
 Never modify existing files in `project/sources/**`. Never reuse a wikilink that points to a non-existent page. Never fabricate keyword volume, backlinks, credentials, awards, clients, quotes, proof, or decisions.
 
@@ -43,16 +43,13 @@ For operational events (source ingestion, lint result, content publication, erra
 
 ## Regra editorial
 
-Hard rule for any prose written into `brain/` or `conteudos/`. The user's project may add particularities in `brain/voz.md`, but these always apply.
+The canonical seat of editorial review rules is `brain/revisao.md`. Read that page before reviewing any prose written into `brain/` or `conteudos/`. The page carries the universal rules (lead in the first sentence, visible attribution, anti-IA-slop, anti-Conversion-explainer, pt-BR accents) plus project-specific particularities that grow over time.
 
-**Voz e estrutura.** Lead na primeira frase (o que é, para quem, por quê). Atribuição visível ("segundo X", "documento Y diz", "conforme [[log#YYYY-MM-DD ...]]"). Sujeito + verbo + objeto. Frases curtas. Sem opinião dissimulada como fato; opinião editorial vai em `editorial.md` ou em conteúdos publicados.
+If `brain/revisao.md` is missing or carries only placeholders for the project-specific sections, the universal rules embedded in the page template still apply; record `revisao_backed: false` in the review artifact and surface the limitation. Conflicts between a project-specific item and a universal rule resolve in favor of the universal rule, with a `tipo: lint` entry flagging the contradiction.
 
-**Evitar.** IA-slop ("crucial", "robust", "comprehensive", "nuanced", "fundamental", "significant"). Voz Conversion-explainer ("vamos entender", "neste artigo", "como você pode ver"). Adjetivos promocionais sem prova ("líder", "referência", "consagrado"). Em dashes em prosa pt-BR.
+## Wikilinks e Markdown links
 
-**Sempre.** Citar fonte ou marcar `gap` explicitamente. Preservar acentuação pt-BR (`página`, `conteúdo`, `análise`, `aprovação`, `não`). Wikilinks só para arquivos reais dentro de `brain/`. Markdown links para `../sources/`, `../conteudos/`, URLs externas.
-
-**Bom.** "Diego Ivo é fundador e CEO da Conversion. Em diegoivo.com escreve sobre SEO Agêntico, GEO e estratégia de longo prazo. Posição editorial registrada em [[log#2026-05-07 - Brain diegoivo.com registrado]]."
-**Ruim.** "Diego Ivo é uma referência consagrada e líder reconhecido em SEO. Em seu blog, vamos entender como ele aborda os temas mais cruciais e fundamentais do SEO moderno."
+Use Obsidian Wikilinks `[[...]]` only for real files inside `project/brain/`. Use Markdown links for `../sources/`, `../conteudos/`, and external URLs. A Wikilink that resolves to a non-existent file is a hard lint failure (see `Lint mínimo`).
 
 ## Schema do log
 
@@ -101,7 +98,7 @@ Hard rule. Brain pages, conteúdos públicos e logs são consumidos por outros a
 2. Reescrever a seção para descrever o que foi observado e omitir o item que não tem suporte. Não escrever "não foi observado X" como linha solta. Quando o item não cabe, ele simplesmente não entra.
 3. Mover o item para `log.md` como `tipo: decisao` explicando a omissão e o critério para reintroduzir o item depois. O arquivo autoral em si fica limpo.
 
-Estruturas obrigatórias do schema brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) podem omitir subseções inteiras quando não há base. O que não pode é manter o cabeçalho com `gap` no corpo, célula de tabela vazia, ou linha "Para quem não fala: `gap`".
+Estruturas obrigatórias do schema brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `index`) podem omitir subseções inteiras quando não há base. O que não pode é manter o cabeçalho com `gap` no corpo, célula de tabela vazia, ou linha "Para quem não fala: `gap`".
 
 Aplicar a regra em:
 - Brain pages.

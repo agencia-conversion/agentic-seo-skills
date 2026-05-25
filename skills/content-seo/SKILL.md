@@ -24,6 +24,7 @@ Do not use this skill for raw keyword discovery, one-keyword SERP analysis witho
 - A bypass record is not evidence. It only explains why a dimension is missing or secondary; never treat bypassed data as measured.
 - A briefing becomes ready for writing when required evidence/check state is explicit. Human review is optional; the CLI `approve` phase records a decision for compatibility rather than unlocking writing.
 - The voice gate is mandatory before voice-backed drafting. Read `project/brain/voz.md` and record path, key principles, and limitations. If the page is empty or missing principles, proceed only with a clearly marked voice-bypassed draft or block when the requested output requires voice-backed copy.
+- The revisao gate is mandatory in the `check` phase. Read `project/brain/revisao.md` and record `path`, `principles_count`, `checklist_count`, `erros_comuns_count`, `revisao_backed`. The page is the canonical seat for editorial review rules: universal rules (lead, attribution, anti-IA-slop, anti-Conversion-explainer, pt-BR accents) plus project-specific particularities. If the file is missing or carries only project-specific placeholders, mark `revisao_backed: false`, record a `gate: revisao` bypass with reason and consequence, and proceed without blocking promote. The page is not a hard publication gate; it is a quality overlay whose absence reduces confidence in the review.
 - Keep construction files in `project/workbench/content/<slug>/`; keep draft and review deliverables in `project/artifacts/contents/<slug>/`; write public content to `project/conteudos/<origem>/<slug>.md` only after checks pass. Frontmatter must follow the canonical schema (`title`, `slug`, `published_at`, `source_url`, `origem`, `area`).
 - Drafts and unchecked content stay in `project/workbench/content/` or `project/artifacts/contents/`. Never publish to `project/conteudos/` with failed or missing checks.
 - Separate raw evidence, synthesis, and human judgment. Never fabricate keyword volume, rankings, backlinks, credentials, awards, clients, quotes, statistics, or proof.
@@ -138,13 +139,18 @@ If voice principles are missing in `project/brain/voz.md`, return `status: block
 
 ### 7. Check The Draft
 
-**Check:** Does the artifact pass public-content, SEO, source, language, and publication-readiness checks?
+**Check:** Does the artifact pass public-content, SEO, source, language, revisao, and publication-readiness checks?
 
-**Strong:** "Review identity, intent fit, frontmatter-only consulted sources, unsupported claims, competitor forbidden terms, bullet count, heading spacing, pt-BR accents, deterministic word target, differentiation execution against `outline.md`, and publication readiness."
+**Strong:** "Load `project/brain/revisao.md`. Apply each item from `Princípios de revisão deste projeto`, `Checklist estilística do projeto`, and `Erros comuns observados`, recording pass/fail with evidence. Combine with identity, intent fit, frontmatter-only consulted sources, unsupported claims, competitor forbidden terms, bullet count, heading spacing, pt-BR accents, deterministic word target, and differentiation execution against `outline.md`. Write the combined result to `project/artifacts/contents/<slug>/checks.yaml`."
 
 **Weak:** "Say the article looks good because the writing is polished."
 
-Write checks to `project/artifacts/contents/<slug>/checks.yaml` or include the same schema inline when file writes are unavailable. A failed check blocks promotion. Unknown evidence stays unknown; do not patch gaps with invention.
+Write checks to `project/artifacts/contents/<slug>/checks.yaml` or include the same schema inline when file writes are unavailable. The `revisao` block of `checks.yaml` records `page_present`, `revisao_backed`, items applied, failures with evidence, and any new patterns observed during the check. A failed check blocks promotion. Unknown evidence stays unknown; do not patch gaps with invention.
+
+**Feedback consolidation.** When the check surfaces a recurring pattern not yet covered by `brain/revisao.md`, classify it:
+
+- **Stylistic minor** (new IA-slop term, new Conversion-explainer verb, recurring typo that fits an existing category): edit `brain/revisao.md` directly and append a `tipo: decisao` entry to `project/brain/log.md` with `aprovador: agent`, `escopo: brain/revisao.md`, and evidence pointing to the affected `checks.yaml`.
+- **Checklist change** (new editorial principle, new entry in "Erros comuns observados", or any change that alters reviewer behavior for future drafts): do NOT edit `brain/revisao.md`. Append a `tipo: lint` entry to `log.md` with `aprovador: agent`, `notas: aguarda decisão humana`, and the proposed item in `decisao`. The pattern stays as a proposal until a human approves; on approval, `brain-keeper` applies the edit and adds a `tipo: decisao` referencing the original lint entry.
 
 ### 8. Promote Only After Checks Pass
 
@@ -188,6 +194,7 @@ evidence_gates:
   serp: present | missing | bypassed
   top_3: present | partial | missing | bypassed
   voice: filled | missing | bypassed
+  revisao: filled | missing | bypassed
   context: present | missing
 research_artifacts:
   market_consensus: present | missing | bypassed
@@ -199,12 +206,14 @@ brain_overlay:
   voice_filled: true | false
   editorial_backed: true | false
   tecnologia_backed: true | false
+  revisao_backed: true | false
   brain_state:
     voice: missing | filled
     editorial: missing | filled
     tecnologia: missing | filled
+    revisao: missing | filled
 bypasses:
-  - gate: dataforseo | serp | top_3 | voice | research_market | research_brand
+  - gate: dataforseo | serp | top_3 | voice | research_market | research_brand | revisao
     aprovado_por: ""
     confirmation_text: ""
     reason: ""
@@ -227,6 +236,19 @@ source_policy:
 checks:
   passed: true | false | null
   failures: []
+  revisao:
+    page_present: true | false
+    revisao_backed: true | false
+    principles_checked: []
+    checklist_checked: []
+    erros_comuns_checked: []
+    failures: []
+    new_patterns_observed:
+      - kind: stylistic_minor | checklist_change
+        proposed_item: ""
+        evidence_paths: []
+        applied: true | false
+        log_entry: ""
 limitations: []
 next_action: ""
 ```
