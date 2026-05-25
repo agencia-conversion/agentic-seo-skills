@@ -8,11 +8,15 @@ export async function POST(req: NextRequest) {
   const rejected = rejectUnlessLocal(req);
   if (rejected) return rejected;
   const body = await req.json().catch(() => ({}));
+  const requested = String(body.kind || '');
+  const kind: 'workbench' | 'content' | 'brain-subpage' =
+    requested === 'content' ? 'content' : requested === 'brain-subpage' ? 'brain-subpage' : 'workbench';
   return NextResponse.json(
     createProjectFile({
       projectRoot: projectRoot(),
-      kind: body.kind === 'content' ? 'content' : 'workbench',
+      kind,
       title: body.title || 'Nova página',
+      parentPath: body.parentPath ? String(body.parentPath) : undefined,
     })
   );
 }

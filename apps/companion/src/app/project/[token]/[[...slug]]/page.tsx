@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import { Brain, FilePlus2 } from 'lucide-react';
+import { Brain, FilePlus2, Plus } from 'lucide-react';
 import { Sidebar } from '@/features/workspace/sidebar';
 import { useWorkspace } from '@/features/workspace/store';
 import { SearchModal } from '@/features/workspace/search-modal';
@@ -17,6 +17,8 @@ import { ContentIndexPanel } from '@/features/contents/content-index-panel';
 import { WorkbenchIndexPanel } from '@/features/workbench/workbench-index-panel';
 import { SourceViewerModal } from '@/features/sources/source-viewer-modal';
 import { LinkEditModal } from '@/features/editor/link-edit-modal';
+import { AddPlannedModal } from '@/features/clusters/add-planned-modal';
+import { ClusterDetailPanel } from '@/features/clusters/cluster-detail-panel';
 
 const EditorPanel = dynamic(() => import('@/features/editor/editor-panel').then((mod) => mod.EditorPanel), {
   ssr: false,
@@ -108,15 +110,45 @@ export default function ProjectPage() {
           <ContentIndexPanel topicClusterId={activePage.contentTopicClusterId} />
         ) : activePage?.kind === 'analysisIndex' ? (
           <AnalysesIndexPanel moduleId={activePage.reportModuleId} />
+        ) : activePage?.kind === 'clusterDetail' && activePage.contentTopicClusterId ? (
+          <ClusterDetailPanel clusterSlug={activePage.contentTopicClusterId} />
         ) : (
           <EditorPanel />
         )}
       </main>
+      <ClusterSubpageFab activePagePath={activePage?.path} />
       <SearchModal />
       <ToastContainer />
       <SourceViewerModal />
       <LinkEditModal />
     </div>
+  );
+}
+
+function ClusterSubpageFab({ activePagePath }: { activePagePath?: string | null }) {
+  const [open, setOpen] = useState(false);
+  if (!activePagePath || !activePagePath.startsWith('brain/topic-clusters/') || activePagePath === 'brain/topic-clusters.md') {
+    return null;
+  }
+  const clusterSlug = activePagePath.replace('brain/topic-clusters/', '').replace(/\.md$/, '');
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full bg-notion-text px-4 py-3 text-sm font-medium text-background shadow-lg hover:opacity-90"
+      >
+        <Plus className="h-4 w-4" />
+        Adicionar conteúdo planejado
+      </button>
+      <AddPlannedModal
+        clusterSlug={clusterSlug}
+        open={open}
+        onClose={() => setOpen(false)}
+        onSuccess={() => {
+          if (typeof window !== 'undefined') window.location.reload();
+        }}
+      />
+    </>
   );
 }
 

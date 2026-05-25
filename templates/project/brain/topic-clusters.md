@@ -6,25 +6,25 @@ updated: "<YYYY-MM-DD>"
 # Topic clusters
 
 <!--
-Clusters semânticos do projeto. Cada cluster é uma seção (## <Cluster
-Principal> (<slug>)) com contexto curto e tabela de subtópicos. Conteúdos
-publicados são linkados via wikilink na coluna "Conteúdo relacionado". Gaps
-explícitos viram pendências para a skill `topic-cluster` ou `content-seo`.
+Índice curto dos clusters ativos. Cada cluster ativo tem uma subpágina dedicada
+em `brain/topic-clusters/<slug>.md` (criada via handoff `approve-cluster` da skill
+`topic-cluster`). Rascunhos vivem em `../clusters/<slug>/draft.yaml` e não aparecem
+aqui até a promoção. Este índice é regenerado pelo `brain-keeper` quando há mudança
+estrutural; prosa autoral fica no painel e nas seções abaixo.
 -->
 
-## <Cluster Principal> (<slug-kebab>)
+## Painel
 
-<contexto curto: tese do cluster, audiência, intenção dominante, área editorial relacionada>
+| Indicador | Valor |
+| --- | --- |
+| Clusters ativos | 0 |
+| Conteúdos publicados | 0 |
+| Conteúdos planejados | 0 |
 
-| Subtópico | Intent | Status | Conteúdo relacionado | Gap |
-| --- | --- | --- | --- | --- |
-| <subtópico> | informational \| navigational \| transactional \| commercial | gap \| draft \| published | [[../conteudos/blog/<slug>]] | <lacuna> |
-| <subtópico> | informational | gap | | <lacuna> |
+## Clusters ativos
 
-## <Cluster Secundário> (<slug>)
+<!-- Nenhum cluster ativo. Use `topic-cluster` para criar o primeiro. -->
 
-<contexto>
+## Próximas ações
 
-| Subtópico | Intent | Status | Conteúdo relacionado | Gap |
-| --- | --- | --- | --- | --- |
-| <subtópico> | informational | gap | | <lacuna> |
+<!-- Vazio até que um cluster esteja em rascunho ou promoção. -->

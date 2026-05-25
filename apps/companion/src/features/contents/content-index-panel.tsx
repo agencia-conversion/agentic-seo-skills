@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ListingColumn, ListingPanel } from '@/components/listing/listing-panel';
 import { useListingState } from '@/components/listing/use-listing-state';
 import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from '@/hooks/use-page-path';
 import { useI18n } from '@/components/i18n-provider';
+import { AddPlannedModal } from '@/features/clusters/add-planned-modal';
 
 interface ContentRow {
   id: string;
@@ -18,6 +19,10 @@ interface ContentRow {
   area: string;
   topic_cluster: string | null;
   topicClusterTitle: string | null;
+  topic_clusters?: string[];
+  topicClusterTitles?: string[];
+  keyword?: string | null;
+  keyword_volume?: number | null;
   published_at: string;
   updated: string;
   status: string;
@@ -30,7 +35,7 @@ interface FilterOption {
   count: number;
 }
 
-export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string | null }) {
+export function ContentIndexPanel({ topicClusterId, embedded }: { topicClusterId?: string | null; embedded?: boolean }) {
   const router = useRouter();
   const pagePath = usePagePath();
   const { t } = useI18n();
@@ -38,17 +43,18 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
   const pages = useWorkspace((s) => s.pages);
   const setActivePage = useWorkspace((s) => s.setActivePage);
   const loadPage = useWorkspace((s) => s.loadPage);
-  const defaultFilters = useMemo(() => ({ origin: '', topicCluster: topicClusterId || '' }), [topicClusterId]);
+  const defaultFilters = useMemo(() => ({ topicCluster: topicClusterId || '' }), [topicClusterId]);
   const { query, debouncedQuery, filters, page, setQuery, setFilter, setPage } = useListingState({
-    filterKeys: ['origin', 'topicCluster'],
+    filterKeys: ['topicCluster'],
     defaultFilters,
     resetKey: topicClusterId || '',
   });
   const [rows, setRows] = useState<ContentRow[]>([]);
   const [total, setTotal] = useState(0);
-  const [origins, setOrigins] = useState<FilterOption[]>([]);
   const [topicClusters, setTopicClusters] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [selectedClusterForAdd, setSelectedClusterForAdd] = useState<string | null>(null);
   const pageSize = 25;
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -59,37 +65,31 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
         id: 'content',
         header: t('contentIndex.columnContent'),
         render: (row) => (
-          <>
-            <div className="flex min-w-0 items-center gap-2 text-notion-text">
-              <FileText className="h-4 w-4 shrink-0 text-notion-text-muted" />
-              <span className="truncate">{row.title}</span>
-            </div>
-            <div className="mt-0.5 line-clamp-1 text-xs text-notion-text-muted">{row.excerpt || row.path}</div>
-            <div className="mt-1 flex flex-wrap gap-1 text-[11px] text-notion-text-muted md:hidden">
-              <span>{originLabel(t, row.origin)}</span>
-              <span>·</span>
-              <span>{row.topicClusterTitle || t('contentIndex.noTopicCluster')}</span>
-            </div>
-          </>
+          <div className="flex min-w-0 items-center gap-2 text-notion-text">
+            <FileText className="h-4 w-4 shrink-0 text-notion-text-muted" />
+            <span className="truncate">{row.title}</span>
+          </div>
         ),
       },
       {
-        id: 'origin',
-        header: t('contentIndex.columnOrigin'),
-        className: 'hidden w-32 md:table-cell',
-        render: (row) => <span className="text-notion-text-muted">{originLabel(t, row.origin)}</span>,
+        id: 'keyword',
+        header: 'Keyword',
+        className: 'hidden w-48 md:table-cell',
+        render: (row) => (
+          <span className="line-clamp-2 break-words text-notion-text-muted">
+            {row.keyword
+              ? row.keyword_volume && row.keyword_volume > 0
+                ? `${row.keyword} (${row.keyword_volume})`
+                : row.keyword
+              : '—'}
+          </span>
+        ),
       },
       {
         id: 'topicCluster',
         header: t('contentIndex.columnTopicCluster'),
         className: 'hidden w-48 lg:table-cell',
-        render: (row) => <span className="line-clamp-2 break-words text-notion-text-muted">{row.topicClusterTitle || t('contentIndex.noTopicCluster')}</span>,
-      },
-      {
-        id: 'area',
-        header: t('contentIndex.columnArea'),
-        className: 'hidden w-36 xl:table-cell',
-        render: (row) => <span className="line-clamp-2 break-words text-notion-text-muted">{row.area || t('common.dateUnknown')}</span>,
+        render: (row) => <span className="line-clamp-2 break-words text-notion-text-muted">{clusterListLabel(row, t)}</span>,
       },
       {
         id: 'status',
@@ -114,7 +114,6 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
     let cancelled = false;
     const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     if (debouncedQuery.trim()) params.set('query', debouncedQuery.trim());
-    if (filters.origin) params.set('origin', filters.origin);
     if (filters.topicCluster) params.set('topicCluster', filters.topicCluster);
     setLoading(true);
     fetch(`/api/project/contents?${params}`, {
@@ -126,7 +125,6 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
         if (!data.ok) return;
         setRows(data.items || []);
         setTotal(data.total || 0);
-        setOrigins(data.origins || []);
         setTopicClusters(data.topicClusters || []);
       })
       .catch(() => {})
@@ -136,66 +134,89 @@ export function ContentIndexPanel({ topicClusterId }: { topicClusterId?: string 
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, filters.origin, filters.topicCluster, page, token]);
+  }, [debouncedQuery, filters.topicCluster, page, token]);
+
+  const availableClusters = topicClusters.filter((c) => c.id !== '__none__');
+  const defaultClusterForAdd = topicClusterId || availableClusters[0]?.id || null;
 
   return (
-    <ListingPanel
-      title={t('project.contents')}
-      loading={loading}
-      loadingLabel={t('contentIndex.loading')}
-      countLabel={t(total === 1 ? 'contentIndex.countOne' : 'contentIndex.countOther', { count: total })}
-      query={query}
-      queryPlaceholder={t('contentIndex.searchPlaceholder')}
-      filters={[
-        {
-          id: 'origin',
-          label: t('contentIndex.columnOrigin'),
-          value: filters.origin,
-          allLabel: t('contentIndex.allOrigins'),
-          options: origins,
-          onChange: (value) => {
-            setFilter('origin', value);
+    <>
+      <ListingPanel
+        title={t('project.contents')}
+        loading={loading}
+        embedded={embedded}
+        loadingLabel={t('contentIndex.loading')}
+        query={query}
+        queryPlaceholder={t('contentIndex.searchPlaceholder')}
+        filters={[
+          {
+            id: 'topicCluster',
+            label: t('contentIndex.columnTopicCluster'),
+            value: filters.topicCluster,
+            allLabel: t('contentIndex.allTopicClusters'),
+            options: topicClusters,
+            onChange: (value) => {
+              setFilter('topicCluster', value);
+            },
+            formatOption: (item) =>
+              `${(item.title || item.id) === '__none__' ? t('contentIndex.noTopicCluster') : item.title || item.id} (${item.count})`,
           },
-          formatOption: (item) => `${originLabel(t, item.id)} (${item.count})`,
-        },
-        {
-          id: 'topicCluster',
-          label: t('contentIndex.columnTopicCluster'),
-          value: filters.topicCluster,
-          allLabel: t('contentIndex.allTopicClusters'),
-          options: topicClusters,
-          onChange: (value) => {
-            setFilter('topicCluster', value);
-          },
-          formatOption: (item) => `${(item.title || item.id) === '__none__' ? t('contentIndex.noTopicCluster') : item.title || item.id} (${item.count})`,
-        },
-      ]}
-      rows={rows}
-      columns={columns}
-      page={page}
-      totalPages={totalPages}
-      emptyText={t('contentIndex.emptyState')}
-      onQueryChange={setQuery}
-      onPageChange={setPage}
-      onOpenRow={openRow}
-      getRowKey={(row) => row.id}
-      getRowLabel={(row) => t('contentIndex.openAria', { title: row.title })}
-    />
+        ]}
+        rows={rows}
+        columns={columns}
+        page={page}
+        totalPages={totalPages}
+        emptyText={t('contentIndex.emptyState')}
+        onQueryChange={setQuery}
+        onPageChange={setPage}
+        onOpenRow={openRow}
+        getRowKey={(row) => row.id}
+        getRowLabel={(row) => t('contentIndex.openAria', { title: row.title })}
+        toolbar={
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedClusterForAdd(defaultClusterForAdd);
+              setAddOpen(true);
+            }}
+            disabled={availableClusters.length === 0}
+            className="inline-flex items-center gap-2 rounded-md bg-notion-text px-3 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+          >
+            <Plus className="h-4 w-4" />
+            Adicionar conteúdo planejado
+          </button>
+        }
+      />
+      {addOpen && selectedClusterForAdd && (
+        <AddPlannedModal
+          clusterSlug={selectedClusterForAdd}
+          open={addOpen}
+          onClose={() => setAddOpen(false)}
+          clusterOptions={availableClusters.map((c) => ({ id: c.id, title: c.title || c.id }))}
+          onSelectCluster={(slug) => setSelectedClusterForAdd(slug)}
+          onSuccess={() => {
+            if (typeof window !== 'undefined') window.location.reload();
+          }}
+        />
+      )}
+    </>
   );
 }
 
 type Translator = (key: string, vars?: Record<string, string | number>) => string;
 
-function originLabel(t: Translator, value: string) {
-  if (value === 'blog') return t('contentIndex.origin.blog');
-  if (value === 'linkedin') return t('contentIndex.origin.linkedin');
-  if (value === 'podcast') return t('contentIndex.origin.podcast');
-  if (value === 'outros') return t('contentIndex.origin.outros');
-  return value || t('common.dateUnknown');
-}
-
 function statusLabel(t: Translator, value: string) {
   if (value === 'published') return t('contentIndex.statusPublished');
   if (value === 'draft') return t('contentIndex.statusDraft');
   return value || t('common.dateUnknown');
+}
+
+function clusterListLabel(row: ContentRow, t: Translator) {
+  const titles = row.topicClusterTitles && row.topicClusterTitles.length > 0
+    ? row.topicClusterTitles
+    : row.topicClusterTitle
+      ? [row.topicClusterTitle]
+      : [];
+  if (titles.length === 0) return t('contentIndex.noTopicCluster');
+  return titles.join(', ');
 }

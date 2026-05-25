@@ -38,7 +38,7 @@ Conversational replies (clarifications, status checks, short factual questions) 
 Agentic SEO Skills implements Agentic SEO through six pillars:
 
 - Strategy: positioning, business goals, priorities, risks, and strategic decisions.
-- Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `log`). `revisao` is the canonical seat of editorial review rules (universal + project-specific).
+- Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters` index + one subpage `topic-clusters/<slug>.md` per active cluster, `revisao`, `log`). `revisao` is the canonical seat of editorial review rules (universal + project-specific). Cluster operational data lives outside the brain in `project/clusters/<slug>/cluster.yaml`.
 - Technology: observed technical context, crawl/indexability constraints, metadata/schema evidence, analytics context, and technical SEO decisions recorded without implementing stack, CMS, deploy, or website code.
 - Technical SEO: crawlability, indexability, metadata, internal health, structured data, performance signals, and deterministic page audits.
 - Content: briefs, drafts, topical clusters, editorial artifacts, refreshes, and publication readiness.
@@ -101,7 +101,7 @@ Route to the narrowest skill that owns the next step:
 - `technical-seo`: run deterministic audits for metadata, canonicals, robots, headings, links, images, structured data, hreflang, indexability, viewport, status, and crawlable words.
 - `brain-keeper`: ingest sources, change brain pages with logged decisions, catalog publications, and lint brain pages.
 - `eeat`: evaluate or document experience, expertise, authoritativeness, trust, proof, authors, reviewers, and claims.
-- `topic-cluster`: organize multiple topics, pillar pages, supporting pages, and topical authority plans after evidence gates.
+- `topic-cluster`: build, refresh, or promote one Topic Cluster as a draft in `project/clusters/<slug>/draft.yaml`, then promote to brain via human handoff `approve-cluster` (writes `cluster.yaml` + `brain/topic-clusters/<slug>.md` + updates the index). Four phases: Pesquisar, Curar, Estruturar, Promover. Cluster discovery: when the user says "escrever sobre X" route the request through cluster lookup first — match X against `cluster.yaml` pilar/satelite slugs or `brain/topic-clusters/<slug>.md` prose; if no cluster covers X, propose creating a cluster before drafting content.
 - `content-seo`: create public content briefs, drafts, refreshes, rewrites, reviews, and publication artifacts.
 - `seo-skills-creator`: create, rewrite, evaluate, or improve Agentic SEO skills.
 - `seo-tools-creator`: create deterministic provider CLIs, integrations, registries, or reusable tool behavior.

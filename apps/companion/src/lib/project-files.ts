@@ -2,6 +2,7 @@ import { appendFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdir
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { REPORT_DIR_NAME, REPORT_MODULE_IDS } from '../../../../shared/report-modules';
+import { loadBrainSubpageTemplate } from './brain-templates';
 
 export const AUTHORIAL_BRAIN_PAGES = new Set([
   'brain/index.md',
@@ -10,6 +11,7 @@ export const AUTHORIAL_BRAIN_PAGES = new Set([
   'brain/tecnologia.md',
   'brain/editorial.md',
   'brain/topic-clusters.md',
+  'brain/produtos.md',
   'brain/revisao.md',
 ]);
 
@@ -20,6 +22,7 @@ const BRAIN_PAGE_ORDER = [
   'brain/tecnologia.md',
   'brain/editorial.md',
   'brain/topic-clusters.md',
+  'brain/produtos.md',
   'brain/revisao.md',
   'brain/log.md',
 ];
@@ -100,6 +103,7 @@ export function validateProjectFileRel(rawPath: unknown, { write = false } = {})
   }
   const allowed =
     /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
+    /^brain\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^conteudos\/(blog|linkedin|podcast|outros)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel) ||
     new RegExp(`^${REPORT_DIR_NAME}\\/[A-Za-z0-9._-]+\\/[A-Za-z0-9._/-]+\\/report\\.md$`).test(rel);
@@ -336,8 +340,7 @@ function normalizeHeadingTitle(value: string) {
     .toLowerCase();
 }
 
-function stripDuplicateReportHeading(rel: string, body: string, title: string) {
-  if (!rel.startsWith(`${REPORT_DIR_NAME}/`)) return body;
+function stripDuplicateTitleHeading(_rel: string, body: string, title: string) {
   const match = body.match(/^\s*#\s+([^\n\r]+)\s*(?:\r?\n|$)/);
   if (!match) return body;
   if (normalizeHeadingTitle(match[1]) !== normalizeHeadingTitle(title)) return body;
@@ -404,14 +407,19 @@ export function updateProjectSettings({ projectRoot, language }: { projectRoot?:
   return readProjectSettings({ projectRoot: root });
 }
 
-function readSummary(projectRoot: string, rel: string, ui: Record<string, any>): ProjectTreeItem | null {
+function readSummary(
+  projectRoot: string,
+  rel: string,
+  ui: Record<string, any>,
+  defaultIcons?: Map<string, string>,
+): ProjectTreeItem | null {
   const { filePath } = resolveAllowedFile(projectRoot, rel);
   if (!existsSync(filePath) || !statSync(filePath).isFile()) return null;
   const text = readFileSync(filePath, 'utf8');
   const { data: frontmatter, body } = parseFrontmatter(text);
   const title = titleFromFile(rel, frontmatter);
-  const displayBody = stripDuplicateReportHeading(rel, body, title);
-  return applyPageUi({
+  const displayBody = stripDuplicateTitleHeading(rel, body, title);
+  const summary: ProjectTreeItem = {
     path: rel,
     title,
     updated: frontmatter.updated || frontmatter.published_at || null,
@@ -419,7 +427,35 @@ function readSummary(projectRoot: string, rel: string, ui: Record<string, any>):
     requiresApproval: false,
     excerpt: displayBody.replace(/\s+/g, ' ').trim().slice(0, 180),
     hash: sha256(text),
-  }, ui);
+  };
+  if (defaultIcons && defaultIcons.has(rel)) {
+    summary.icon = defaultIcons.get(rel);
+  }
+  return applyPageUi(summary, ui);
+}
+
+function readClusterIcons(root: string): Map<string, string> {
+  const out = new Map<string, string>();
+  const clustersRoot = join(root, 'clusters');
+  if (!existsSync(clustersRoot)) return out;
+  for (const name of readdirSync(clustersRoot)) {
+    if (name.startsWith('.') || name.startsWith('_')) continue;
+    const yamlPath = join(clustersRoot, name, 'cluster.yaml');
+    if (!existsSync(yamlPath)) continue;
+    try {
+      const text = readFileSync(yamlPath, 'utf8');
+      const match = text.match(/^icon:\s*(.+)$/m);
+      const slugMatch = text.match(/^slug:\s*(.+)$/m);
+      const slug = slugMatch ? slugMatch[1].trim().replace(/^["']|["']$/g, '') : name;
+      if (match) {
+        const icon = match[1].trim().replace(/^["']|["']$/g, '');
+        if (icon) out.set(`brain/topic-clusters/${slug}.md`, icon);
+      }
+    } catch {
+      // Skip malformed cluster yaml.
+    }
+  }
+  return out;
 }
 
 function walkMarkdown(root: string, current = root): string[] {
@@ -453,7 +489,12 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
     for (const name of readdirSync(brainRoot)) {
       const rel = `brain/${name}`;
       const full = join(brainRoot, name);
-      if (!name.startsWith('.') && name.endsWith('.md') && statSync(full).isFile()) brainRels.add(rel);
+      if (name.startsWith('.') || name.startsWith('_')) continue;
+      const st = statSync(full);
+      if (st.isFile() && name.endsWith('.md')) brainRels.add(rel);
+      if (st.isDirectory()) {
+        for (const child of walkMarkdown(full)) brainRels.add(`brain/${name}/${child}`);
+      }
     }
   }
   const orderedBrain = [...brainRels].sort((a, b) => {
@@ -462,6 +503,7 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
     if (ia !== -1 || ib !== -1) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     return a.localeCompare(b, 'pt-BR');
   });
+  const clusterIcons = readClusterIcons(root);
 
   const contentItems: ProjectTreeItem[] = [];
   for (const origem of CONTENT_ORIGINS) {
@@ -474,14 +516,15 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
   const workbenchItems = walkMarkdown(join(root, 'workbench'))
     .map((child) => readSummary(root, `workbench/${child}`, ui))
     .filter(Boolean) as ProjectTreeItem[];
-  const hasFiles = orderedBrain.map((rel) => readSummary(root, rel, ui)).filter(Boolean).length + contentItems.length + workbenchItems.length > 0;
+  const brainItems = orderedBrain.map((rel) => readSummary(root, rel, ui, clusterIcons)).filter(Boolean) as ProjectTreeItem[];
+  const hasFiles = brainItems.length + contentItems.length + workbenchItems.length > 0;
   const hasBrain = canonicalBrainExists(root);
 
   const sections: ProjectTreeSection[] = [
     {
       id: 'brain',
       title: 'Brain',
-      items: orderedBrain.map((rel) => readSummary(root, rel, ui)).filter(Boolean) as ProjectTreeItem[],
+      items: brainItems,
     },
   ];
   sections.push({ id: 'conteudos', title: 'Content', items: contentItems });
@@ -542,7 +585,7 @@ export function readProjectFile({ projectRoot, fileRel }: { projectRoot?: string
   const { data: frontmatter, body, raw } = parseFrontmatter(text);
   const itemUi = pageUi(readCompanionUi(root), validation.rel);
   const title = titleFromFile(validation.rel, frontmatter);
-  const displayBody = stripDuplicateReportHeading(validation.rel, body, title);
+  const displayBody = stripDuplicateTitleHeading(validation.rel, body, title);
   return {
     ok: true,
     projectRoot: root,
@@ -682,26 +725,56 @@ export function createProjectFile({
   projectRoot,
   kind = 'workbench',
   title = 'New page',
+  parentPath,
 }: {
   projectRoot?: string;
-  kind?: 'workbench' | 'content';
+  kind?: 'workbench' | 'content' | 'brain-subpage';
   title?: string;
+  parentPath?: string;
 }) {
   const root = normalizeProjectRoot(projectRoot);
   const slug = slugFromTitle(title);
-  const rel =
-    kind === 'content'
-      ? uniqueRel(root, `conteudos/outros/${slug}.md`)
-      : uniqueRel(root, `workbench/companion/${slug}.md`);
+  let rel: string;
+  if (kind === 'content') {
+    rel = uniqueRel(root, `conteudos/outros/${slug}.md`);
+  } else if (kind === 'brain-subpage') {
+    if (!parentPath || typeof parentPath !== 'string') return { ok: false, reason: 'parent-path-required' };
+    const match = parentPath.match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
+    if (!match) return { ok: false, reason: 'parent-path-not-brain' };
+    rel = uniqueRel(root, `brain/${match[1]}/${slug}.md`);
+  } else {
+    rel = uniqueRel(root, `workbench/companion/${slug}.md`);
+  }
   const validation = validateProjectFileRel(rel, { write: true });
   if (!validation.ok) return { ok: false, reason: validation.reason };
   const { filePath } = resolveAllowedFile(root, validation.rel);
   mkdirSync(dirname(filePath), { recursive: true });
   const today = todayIso();
-  const text =
-    kind === 'content'
-      ? `---\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigem: "outros"\narea: ""\n---\n\n`
-      : `---\ntitle: ${yamlString(title)}\nupdated: ${yamlString(today)}\n---\n\n`;
+  let text: string;
+  if (kind === 'content') {
+    text = `---\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigem: "outros"\narea: ""\n---\n\n`;
+  } else if (kind === 'brain-subpage' && parentPath) {
+    const parentMatch = parentPath.match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
+    const parentSlug = parentMatch ? parentMatch[1] : '';
+    const fromTemplate = parentSlug
+      ? loadBrainSubpageTemplate(ROOT, parentSlug, {
+          title,
+          updated: today,
+          parent_slug: parentSlug,
+          parent_label: parentSlug,
+          heading: title,
+          resumo: '',
+          area: '',
+          pilar_line: '_pilar a definir_',
+          contents_table: '<!-- Tabela regenerada pela skill `topic-cluster` ao promover um cluster. -->',
+          next_actions: '- <próxima ação>',
+          provenance: 'criação manual',
+        })
+      : null;
+    text = fromTemplate ?? `---\ntitle: ${yamlString(title)}\nupdated: ${yamlString(today)}\n---\n\n# ${title}\n\n`;
+  } else {
+    text = `---\ntitle: ${yamlString(title)}\nupdated: ${yamlString(today)}\n---\n\n`;
+  }
   writeFileSync(filePath, text, 'utf8');
   const file = readProjectFile({ projectRoot: root, fileRel: rel });
   return { ...file, created: true };

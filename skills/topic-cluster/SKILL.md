@@ -1,247 +1,200 @@
 ---
 name: topic-cluster
-description: When the user wants an SEO topic cluster, topical authority map, pillar/support architecture, or content roadmap structure backed by keyword and SERP evidence. Also use when they ask to rerender or update an existing topic cluster while preserving human curation.
+description: When the user wants to build, refresh, or promote an SEO topic cluster (pilar + satélites) backed by keyword and SERP evidence. Runs in four phases — Pesquisar, Curar, Estruturar, Promover — with the cluster draft kept outside the brain until human approval.
 metadata:
-  version: 1.0.0
+  version: 2.0.0
 ---
 
 # Topic Cluster
 
-You are an SEO information architect for Agentic SEO. Your goal is to build one evidence-backed topic cluster for one seed topic, separating raw evidence from strategic judgment and preserving human curation across reruns.
+You are an SEO information architect for Agentic SEO. You build one Topic Cluster (pilar + satélites) as a working draft, separate raw evidence from strategic judgment, preserve human curation across reruns, and only ship the draft to `brain/topic-clusters/<slug>.md` after explicit human promotion.
 
 ## When To Use
 
-Use this skill when the user asks for topic clusters, topical authority, pillar pages, supporting pages, cluster architecture, SEO content roadmap structure, or a regenerated topic-cluster projection.
+Use this skill when the user asks for a topic cluster, topical authority map, pillar/support architecture, content roadmap, or asks to refresh or promote an existing cluster.
 
-Do not use this skill to write the articles, make final strategic positioning, invent keyword research, run technical audits, or publish final content. Those are separate workflows that may use the cluster after the evidence and decision/check gates are clear.
+Do not use this skill to write the articles, run technical audits, or invent keyword research. Those workflows can consume a promoted cluster as input.
 
 ## Critical Points
 
-- DataForSEO is the default source for keyword suggestions, keyword volume, and SERP evidence. Do not silently replace it with WebSearch, intuition, old drafts, or homepage-only context.
-- A DataForSEO bypass requires a recorded reason. Record actor (`agent` by default), timestamp, reason, missing dimension, and consequence: `not data-backed by DataForSEO`.
-- `hypothesis-only` mode is allowed only with a bypass record. It must emit `status: hypothesis`, use `null` for missing volumes and SERP intent, and clearly state that it is a curatable skeleton, not data-backed strategy.
-- Never fabricate keyword volume, SERP intent, rankings, backlinks, credentials, awards, clients, proof, or business impact. Unknown values stay `null` or `unknown`.
-- Separate evidence from strategic judgment. Raw provider evidence belongs under `project/sources/`; cluster drafts belong under `project/workbench/topic-cluster/`.
-- The `brain/topic-clusters.md` projection, when generated, is only an auto-generated reflection of cluster JSONs. Do not treat it as the source of truth, and do not put hypotheses or unevidenced strategic conclusions in `brain/`.
-- Preserve human curation on rerun. Keep curated titles, entities, secondary keywords, funnel stages, SERP intent, and judgment unless fresh evidence requires a change; show any changed curated field.
-- Human judgment owns strategy. An agent-created cluster is usable only to the extent its evidence, limitations, and decisions are logged.
-- Preserve the requested output language, including pt-BR accents in human-facing prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
+- DataForSEO is the default for keyword suggestions and SERP evidence. A bypass requires actor (`agent` by default), timestamp, reason, missing dimension, and consequence: `not data-backed by DataForSEO`.
+- `hypothesis-only` is allowed only with a recorded bypass. It must emit `status: hypothesis`, keep volumes/intent as `null`, and BLOCK promotion to brain.
+- Topic Clusters are the spine of the project. Each active cluster lives in `project/clusters/<slug>/cluster.yaml` (machine source of truth) plus `project/brain/topic-clusters/<slug>.md` (autoral projection). Drafts live in `project/clusters/<slug>/draft.yaml` and never touch the brain.
+- Never fabricate volume, SERP intent, rankings, backlinks, credentials, proof, business impact. Unknown values stay `null`.
+- Every keyword needs `volume_source` (`dataforseo_api | estimated | user_supplied`). Volumes without source block the cluster.
+- Promotion of a NEW cluster requires explicit human approval through the Companion `approve-cluster` handoff. Updates to an EXISTING cluster (resync table, add satellite, status change) the agent applies brain-first with a `tipo: decisao` log entry. An explicit user request is sovereign — when the user delegates promotion, record `aprovador: <user name>`.
+- Preserve human curation on reruns: titles, entities, secondary keywords, funnel stages, SERP intent, judgment.
+- The skill suggests next phases to the user; it never advances autonomously between phases without confirmation.
+- Preserve pt-BR accents in prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
 ## Framework
 
-### 1. Define The Cluster Job
+The skill runs in four phases. Suggest the next phase at the end of each one.
 
-**Check:** What seed topic, market, language, device, support-page count, and mode are requested?
+### Phase 1 — Pesquisar
 
-**Strong:** "Build a topic cluster for `seo agêntico`, Brazil, `pt-BR`, desktop, with up to 7 supporting pages and DataForSEO evidence."
+**Check:** Are DataForSEO suggestions and SERP evidence captured under `project/sources/`?
 
-**Weak:** "Build a general cluster about agentic SEO and infer the market from the topic name."
+**Inputs:** seed topic, market (default `Brazil`), language (default `pt-BR`), device (default `desktop`), depth (default `10`), `max_supports` (default `7`).
 
-If the user does not specify market details, use project defaults when they are explicit. Otherwise ask for the missing market, language, or device before making evidence claims. Common defaults are `language: pt-BR`, `location: Brazil`, `device: desktop`, `depth: 10`, and `max_supports: 7`.
+**Outputs:**
+- `project/sources/keyword-research/<stamp>-<slug>.suggestions.raw.json` and `.normalized.json`.
+- `project/sources/serp/<stamp>-cluster-<slug>.raw.json` and `.normalized.json`.
 
-### 2. Select And Record The Evidence Path
+**Modes:**
+- `dataforseo` (default) — full evidence path, volumes from `dataforseo_api`.
+- `hypothesis-only` — requires recorded bypass; volumes/intent stay `null`; status forced to `hypothesis`; blocks Phase 4.
+- `import-from-existing` — rerun seeded by `project/clusters/<slug>/cluster.yaml`; new evidence is merged, curated fields preserved.
 
-**Check:** Can DataForSEO be used for keyword suggestions and SERP evidence?
+If `keyword-research` already produced normalized output for the same seed under `project/workbench/keyword-research/`, reuse it and record the reuse instead of refetching.
 
-**Strong:** "Use DataForSEO `keyword_suggestions` for the seed and DataForSEO `serp/google/organic` batches for the pillar and selected supports; record provider, location, language, device, and timestamp."
+If DataForSEO is unavailable and no bypass is recorded, stop here. Ask the user to configure credentials (via `data-setup`) or to record an explicit bypass.
 
-**Weak:** "Use WebSearch because DataForSEO credentials are missing and continue as if the cluster is data-backed."
+**Suggest next:** propose Phase 2 with a candidate keyword pool to curate.
 
-If DataForSEO is unavailable, stop before producing a data-backed cluster. Ask for setup or record a bypass reason. A bypass record does not allow invented volume, intent, or proof.
+### Phase 2 — Curar
 
-### 3. Gather Keyword And SERP Evidence
+**Check:** Did the human curate pilar and satélites from the candidate pool?
 
-**Check:** Are raw findings stored or referenced separately from the cluster synthesis?
+Open the Companion handoff `pick-cluster-supports` with the candidate table (keyword, volume, source, intent guess, SERP hint). The human selects the pilar, up to `max_supports` satélites, and optionally overrides titles/intent/funnel.
 
-**Strong:** "Store normalized keyword suggestions under `project/sources/keyword-research/`, SERP evidence under `project/sources/serp/`, and the working cluster under `project/workbench/topic-cluster/`."
+**Output:** curation payload returned by the handoff. Persist into the working draft (Phase 3 reads it).
 
-**Weak:** "Put all keyword notes directly into `brain/topic-clusters.md` and edit it as the working draft."
+This is a hard human gate. If the user explicitly delegates the curation to the agent ("monte o cluster você mesmo"), record `aprovador: <user name>` in the future Phase 4 log and proceed with agent-curated satellites — but still write Phase 3 as draft, do not skip Phase 4.
 
-For the default path, gather keyword suggestions for the seed and SERP listings for the pillar keyword plus selected supports. SERP listing evidence is enough; do not fetch article HTML unless another workflow explicitly requires page extraction. Use the top organic results and SERP features to inform intent, but keep observations separate from judgments.
+**Suggest next:** Phase 3 — write the draft.
 
-### 4. Build The Pillar And Support Set
+### Phase 3 — Estruturar
 
-**Check:** Does the cluster organize topics by evidence, entity relevance, intent, and funnel role rather than lexical similarity alone?
+**Check:** Is the draft written to `project/clusters/<slug>/draft.yaml` and the human-readable plan to `project/clusters/<slug>/planejamento.md`?
 
-**Strong:** "Choose supports from the suggestion pool by volume and relevance, then revise titles, entities, secondary keywords, funnel stage, and intent after reading SERP evidence."
+Write both files. The draft never touches the brain.
 
-**Weak:** "Group every keyword containing the same word under one page and call it a cluster."
+`draft.yaml` schema:
 
-Create one pillar page for the seed and a support list from the suggestion pool. The pool may be sorted by available volume, but final support selection must also consider entity fit, duplicated intent, funnel coverage, and SERP pattern. Keep the full keyword pool in the artifact for auditability.
+```yaml
+slug: <kebab-slug>
+nome: "<Cluster Name>"
+area: <slug-from-brain-editorial>
+status: draft                       # draft | active | retired
+context: "<2-3 line tese do cluster>"
+pilar:
+  slug: <content-slug>
+  keyword: "<pilar keyword>"
+  volume: <int|null>
+  volume_source: dataforseo_api | estimated | user_supplied | null
+satelites:
+  - slug: <content-slug>
+    papel: satelite
+    status: planned | drafting | published
+    acao: criar | revisar | manter | avaliar
+    intent: informational | comparative | commercial | navigational | null
+    keyword: "<keyword>"
+    volume: <int|null>
+    volume_source: dataforseo_api | estimated | user_supplied | null
+    note: "<short note or null>"
+stats:
+  total_keywords: <int>
+  publicados: <int>
+  planejados: <int>
+provenance:
+  origem: <human-readable provenance>
+  drafted_at: <YYYY-MM-DD>
+  source_refs:
+    - project/sources/keyword-research/<stamp>-<slug>.normalized.json
+    - project/sources/serp/<stamp>-cluster-<slug>.normalized.json
+limitations: []
+curation_changes: []
+```
 
-### 5. Classify Intent As Judgment, Not A Metric
+On `import-from-existing` reruns, merge by slug: keep curated `title`, `entity`, `keywords_secondary`, `funnel_stage`, `serp_intent`, `judgment`, and `acao`. Report changes in `curation_changes[]`.
 
-**Check:** Is `serp_intent` derived from SERP evidence and labeled as agent judgment?
+`planejamento.md` is the legible counterpart: prose summary of tese, pillar, satellites table, gaps, next decisions. Aim for ≤ 80 lines.
 
-**Strong:** "The top results are definitions, guides, and implementation posts, so the judgment is `informational / implementation`, with evidence references to organic top 5 and SERP features."
+**Suggest next:** Phase 4 — promote.
 
-**Weak:** "The keyword contains `how to`, so intent is informational even though no SERP evidence was reviewed."
+### Phase 4 — Promover
 
-Do not auto-classify intent from keyword text alone. If SERP evidence is missing, use `serp_intent: null` and add a limitation. If the output is hypothesis-only, every intent field stays `null` until evidence or human curation fills it.
+**Check:** Is the draft fit for the brain and is a human approver available?
 
-### 6. Preserve Human Curation On Rerun
+NEW cluster (no `project/brain/topic-clusters/<slug>.md` yet): open Companion handoff `approve-cluster`. The handoff shows the rendered subpage preview, diff vs previous, and the new index entry. The human approves; the skill then:
 
-**Check:** Does a rerun merge fresh evidence without erasing curated strategic fields?
+1. Moves `draft.yaml` → `cluster.yaml` (sets `status: active`, sets `provenance.promoted_at` and `promoted_by`).
+2. Writes `project/brain/topic-clusters/<slug>.md` (autoral projection: title + resumo + pilar link + tabela de conteúdos + gaps + evidência).
+3. Updates `project/brain/topic-clusters.md` index (adds the cluster row, refreshes counts).
+4. Appends a `tipo: decisao` entry to `project/brain/log.md` with `escopo: brain/topic-clusters/<slug>.md, brain/topic-clusters.md, project/clusters/<slug>/cluster.yaml`, `aprovador: <human name>`, evidence pointing to `cluster.yaml` and `planejamento.md`.
 
-**Strong:** "The existing support `seo-tradicional-vs-seo-agentico` keeps its human-written title and funnel stage; new evidence is added under `evidence`, and any proposed title change is listed in `curation_changes`."
+EXISTING cluster (`cluster.yaml` already active): the agent may apply changes brain-first (no handoff) when the change is a resync, a satellite addition, a status change, or a metadata update. The log entry uses `aprovador: agent` and lists every brain page touched.
 
-**Weak:** "Overwrite every page title and funnel stage because the fresh keyword pool sorted differently."
+Promotion is atomic. If any of the 4 writes fails, roll back the others and report.
 
-When an existing `project/workbench/topic-cluster/<seed-slug>.json` exists, merge by page slug. Preserve curated fields for pillar and support pages: `title`, `entity`, `keywords_secondary`, `funnel_stage`, `serp_intent`, and `judgment`. Keep supports that are no longer in the fresh top-N as carry-over pages so human-added structure survives.
+`hypothesis-only` clusters BLOCK at Phase 4 with `status: blocked`, `next_action: "configure DataForSEO or accept a permanent workbench-only draft"`.
 
-### 7. Produce The Working Artifact And Optional Projection
+If the user explicitly delegates ("você mesmo aprova essa promoção"), record `aprovador: <user name>` and proceed; this is the user's sovereignty override.
 
-**Check:** Is the durable output in workbench, with the `brain/topic-clusters.md` projection generated only when allowed?
-
-**Strong:** "Write `project/workbench/topic-cluster/seo-agentico.json`; if projection is requested, regenerate `project/brain/topic-clusters.md` from all workbench cluster JSONs, mark it generated, and append a `tipo: decisao` entry in `project/brain/log.md`."
-
-**Weak:** "Write a polished strategy directly to `project/brain/topic-clusters.md` without preserving the source JSON, evidence, and decision log."
-
-The workbench JSON is the editable source of truth. The `brain/topic-clusters.md` projection may be created when the projection clearly reflects the JSONs and the decision is logged. Strategic recommendations, hypotheses, or unevidenced positioning remain in workbench or artifacts, not in brain pages.
-
-### 8. Report Completeness, Gaps, And Next Actions
-
-**Check:** Can a human see what is evidence-backed, what is curated, and what still needs evidence or decisions?
-
-**Strong:** "Report missing DataForSEO metrics, supports without SERP evidence, curation carried over from a previous run, and the next decision or evidence step."
-
-**Weak:** "Present the cluster as final because it looks complete."
-
-End with a short status summary. Name blockers and limitations plainly. If a bypass was used, repeat that the artifact is not data-backed for the skipped dimension.
+**Suggest next:** when active, propose running `content-seo` for the next planned satellite, or `topic-cluster --refresh <slug>` after time has passed.
 
 ## Output Format
 
-Write the main artifact to `project/workbench/topic-cluster/<seed-slug>.json` unless the user asks for an inline preview first. Use this structure:
+Return a YAML status block summarizing the run:
 
-Expected path conventions:
-
-- Keyword suggestions: `project/sources/keyword-research/<stamp>-<slug>.suggestions.raw.json` and `.normalized.json`.
-- SERP evidence: `project/sources/serp/<stamp>-cluster-<slug>.raw.json` and `.normalized.json`.
-- Working cluster: `project/workbench/topic-cluster/<seed-slug>.json`.
-- Optional generated projection: `project/brain/topic-clusters.md`, with a matching decision entry in `project/brain/log.md`.
-- Render-only requests regenerate the projection from existing workbench JSONs without refetching evidence.
-
-```json
-{
-  "status": "draft | hypothesis | blocked | incomplete",
-  "seed": "",
-  "seed_slug": "",
-  "market_context": {
-    "location": "Brazil",
-    "language": "pt-BR",
-    "device": "desktop",
-    "depth": 10,
-    "generated_at": ""
-  },
-  "provider": {
-    "keyword_source": "dataforseo | none",
-    "serp_source": "dataforseo | none",
-    "provider_reason": "",
-    "dataforseo_bypass": {
-      "recorded": false,
-      "registrado_por": null,
-      "confirmation_text": null,
-      "reason": null,
-      "consequence": null,
-      "timestamp": null
-    },
-    "hypothesis_only": false
-  },
-  "sources": {
-    "keyword_suggestions": [],
-    "serp": []
-  },
-  "keyword_pool": [
-    {
-      "keyword": "",
-      "volume": null,
-      "source_ref": ""
-    }
-  ],
-  "pillar": {
-    "role": "pillar",
-    "slug": "",
-    "title": "",
-    "entity": "",
-    "keyword_principal": {
-      "keyword": "",
-      "volume": null
-    },
-    "keywords_secondary": [],
-    "funnel_stage": "",
-    "serp_intent": null,
-    "judgment": "",
-    "serp_evidence": {
-      "provider": "dataforseo",
-      "organic_top": [],
-      "serp_features": []
-    }
-  },
-  "supports": [
-    {
-      "role": "support",
-      "slug": "",
-      "title": "",
-      "entity": "",
-      "keyword_principal": {
-        "keyword": "",
-        "volume": null
-      },
-      "keywords_secondary": [],
-      "funnel_stage": "",
-      "serp_intent": null,
-      "judgment": "",
-      "serp_evidence": null,
-      "curation": {
-        "preserved_from_previous_run": false,
-        "changed_fields": []
-      }
-    }
-  ],
-  "curation_changes": [],
-  "limitations": [],
-  "open_questions": [],
-  "next_actions": []
-}
+```yaml
+status: complete | blocked | ready_for_curation | ready_for_promotion
+phase: pesquisar | curar | estruturar | promover
+cluster:
+  slug: ""
+  status: draft | active | retired
+  area: ""
+  pilar_slug: ""
+artifacts:
+  draft: project/clusters/<slug>/draft.yaml
+  planejamento: project/clusters/<slug>/planejamento.md
+  cluster_yaml: project/clusters/<slug>/cluster.yaml      # after promote
+  brain_subpage: project/brain/topic-clusters/<slug>.md   # after promote
+sources:
+  keyword_suggestions: project/sources/keyword-research/<stamp>-<slug>.normalized.json
+  serp: project/sources/serp/<stamp>-cluster-<slug>.normalized.json
+evidence_gates:
+  dataforseo: present | missing | bypassed
+  serp: present | missing | bypassed
+  volume_sources: complete | partial | missing
+bypasses: []
+limitations: []
+next_action: ""
 ```
 
-If blocked by missing DataForSEO and no bypass record, return `status: blocked`, describe the gate, and do not emit a hypothesis cluster. If using `hypothesis-only` after a recorded bypass, include a pillar skeleton, an empty support list unless the user supplied curated supports, `null` volumes, `null` SERP intent, and a limitation explaining the bypass.
-
-When projection is requested, regenerate `project/brain/topic-clusters.md` from the workbench JSONs and append a `tipo: decisao` entry in `project/brain/log.md`. The projection uses one section per cluster (`## <Cluster> (<slug>)`) with a Markdown table containing `Subtópico`, `Intent`, `Status`, `Conteúdo relacionado`, `Gap`. It must identify itself as generated from workbench data.
-
-### Default delivery
-
-Follow the shared `page-report` contract and the module skeleton at `templates/analises/topic-cluster/report-skeleton.md`. The module-specific source artifact is `project/clusters/<seed-slug>/cluster.json`; the Companion page is `project/analises/topic-cluster/<seed-slug>/report.md`. Present one pillar plus support pages, intent, evidence gaps, and provenance in human-readable prose and tables with friendly field names; never paste raw cluster JSON, SERP JSON, or object arrays into the visual report body.
+`next_action` always names the next concrete step the user can take.
 
 ## Examples
 
-### Example: Data-Backed Cluster
+### Data-backed run (new cluster)
 
 Input: "Build a topic cluster for `seo agêntico` in Brazil, pt-BR."
 
-Output: "Use DataForSEO keyword suggestions and SERP batches, preserve accents in `seo agêntico`, write the working JSON to `project/workbench/topic-cluster/seo-agentico.json`, classify intent from organic top results and SERP features, and list evidence gaps separately from judgment."
+Output: "Phase 1 with DataForSEO suggestions + SERP for Brazil, pt-BR; Phase 2 opens Companion `pick-cluster-supports`; Phase 3 writes `project/clusters/seo-agentico/draft.yaml` and `planejamento.md`; Phase 4 awaits human approval via `approve-cluster` before writing to brain."
 
-### Example: Rerun With Human Curation
+### Rerun with curation preserved
 
 Input: "Refresh the `seo agêntico` cluster with current DataForSEO data."
 
-Output: "Merge fresh keyword and SERP evidence by slug, keep the curated title and funnel stage for `seo-tradicional-vs-seo-agentico`, add any proposed changes to `curation_changes`, and preserve carry-over supports that no longer appear in the top-N pool."
+Output: "Mode `import-from-existing`. Reuses curated titles, secondary keywords and funnel stages from `cluster.yaml`; reports changed fields in `curation_changes[]`; agent applies updates brain-first with `tipo: decisao` (cluster already active)."
 
-### Example: Hypothesis Skeleton
+### Hypothesis skeleton
 
-Input: "DataForSEO is unavailable. Create a hypothesis-only cluster for planning, knowing it is not data-backed."
+Input: "DataForSEO is unavailable; create a hypothesis-only cluster for planning."
 
-Output: "Record the bypass reason, set `status: hypothesis`, keep volumes and SERP intent as `null`, write only a curatable workbench skeleton, and state that the output is not data-backed strategic context."
+Output: "Record the bypass; emit `status: hypothesis`; volumes/intent stay `null`; draft remains in `project/clusters/<slug>/draft.yaml`. Phase 4 is blocked until DataForSEO is configured or the user accepts a permanent workbench draft."
 
-### Example: Weak Execution
+### Weak execution (do not do this)
 
 Input: "Make a topic cluster for `seo agêntico`."
 
-Output: "Guess high-volume keywords, infer commercial intent from keyword wording, overwrite curated page titles, and write the cluster directly to `brain/topic-clusters.md`." This is weak because it fabricates evidence, bypasses DataForSEO without a record, erases curation, and treats unevidenced strategy as brain state.
+Output: "Guess high-volume keywords, infer commercial intent from text, overwrite curated titles, write directly to `brain/topic-clusters.md`." Wrong because: fabricates evidence, bypasses DataForSEO without record, erases curation, and treats unevidenced strategy as brain state.
 
 ## Related Skills
 
-- `seo-analysis`: use when the primary task is a SERP analysis for one keyword, competitor comparison, target page gaps, or player-score interpretation.
-- `keyword-research`: use when the primary task is keyword discovery or metric collection before cluster architecture.
-- `content-seo`: use after the cluster is accepted and the user wants a content brief or draft for a specific page.
-- `agentic-seo`: use for broad, ambiguous Agentic SEO requests that need routing across multiple workflows.
+- `keyword-research`: keyword discovery before cluster architecture.
+- `seo-analysis`: SERP analysis for a single keyword, separate from cluster.
+- `content-seo`: brief/draft for a specific cluster slot after promotion.
+- `brain-keeper`: runs `cluster-sync` to reconcile cluster ↔ content frontmatters after promotions and after content `promote`.
+- `agentic-seo`: broad routing across pillars.

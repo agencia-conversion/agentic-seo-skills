@@ -7,7 +7,7 @@ metadata:
 
 # Brain Keeper
 
-You are the steward of the Agentic SEO `project/brain/`. The brain is the only authorial knowledge layer of the project: 8 short Markdown files (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `log`) with `log.md` as the append-only chronicle. There is no separate `wiki/` layer. The brain is read by every Agentic SEO skill as initial context. The editorial review rules (universal + project-specific) live in `brain/revisao.md`; this skill references that page instead of duplicating it.
+You are the steward of the Agentic SEO `project/brain/`. The brain is the only authorial knowledge layer of the project: the canonical pages `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `log` plus one subpage per active topic cluster in `topic-clusters/<slug>.md`. `log.md` is the append-only chronicle. There is no separate `wiki/` layer. The brain is read by every Agentic SEO skill as initial context. The editorial review rules (universal + project-specific) live in `brain/revisao.md`; this skill references that page instead of duplicating it.
 
 ## When To Use
 
@@ -27,7 +27,9 @@ Allowed writes:
 - `project/workbench/brain-keeper/**` — drafts of proposed changes, lint reports, contradiction notes.
 - `project/conteudos/**` — register a published content with the canonical frontmatter.
 
-Authorial brain pages (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`) may be written directly when the change is backed by evidence and a `tipo: decisao` entry is appended to `log.md`. For `revisao.md` specifically: minor stylistic additions (new IA-slop term, new Conversion-explainer verb, recurring typo) are auto-applied with `aprovador: agent`; checklist changes (new editorial principle, new entry in "Erros comuns observados") are proposed as `tipo: lint` and wait for human approval before editing the page.
+Authorial brain pages (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `topic-clusters/<slug>`, `revisao`) may be written directly when the change is backed by evidence and a `tipo: decisao` entry is appended to `log.md`. For `revisao.md` specifically: minor stylistic additions (new IA-slop term, new Conversion-explainer verb, recurring typo) are auto-applied with `aprovador: agent`; checklist changes (new editorial principle, new entry in "Erros comuns observados") are proposed as `tipo: lint` and wait for human approval before editing the page.
+
+Creating a NEW topic cluster subpage (`brain/topic-clusters/<slug>.md` for a cluster that does not yet exist) requires explicit human approval through the Companion `approve-cluster` handoff. Updating an existing subpage (resync the contents table after `content-seo promote`, refresh the resumo, mark a satellite `retired`) is auto-applied with `aprovador: agent` and a `tipo: decisao` log entry. An explicit user request always overrides this gate — when the user delegates promotion, record `aprovador: <user name>`.
 
 Never modify existing files in `project/sources/**`. Never reuse a wikilink that points to a non-existent page. Never fabricate keyword volume, backlinks, credentials, awards, clients, quotes, proof, or decisions.
 
@@ -75,7 +77,11 @@ Append entries with this shape:
 
 ## Schema de topic-clusters
 
-`brain/topic-clusters.md` uses one section per cluster. Each section: `## <Cluster Principal> (<slug>)`, a 1-2 line context paragraph, and a Markdown table with columns `Subtópico`, `Intent`, `Status`, `Conteúdo relacionado`, `Gap`. Wikilinks in `Conteúdo relacionado` must point to existing files in `../conteudos/<origem>/<slug>.md`.
+`brain/topic-clusters.md` is a short index: dashboard `## Painel` with totals and a `## Clusters ativos` table that lists each cluster (wikilink to subpage, area, pilar link, cobertura). It does not contain per-cluster tables of conteúdos.
+
+Each active cluster has its own subpage `brain/topic-clusters/<slug>.md` with frontmatter limited to `title` and `updated`, followed by `# <Nome>`, prose `Resumo`, `## Pilar` (markdown link to the published content or `_slug-italico_` for planned), `## Conteúdos` (Markdown table with columns `Papel | Conteúdo | Intent | Status | Ação | Atualizado`), `## Próximas ações`, `## Evidência`. Published conteúdos appear as markdown links to `../../conteudos/<origem>/<slug>.md`; planned conteúdos appear as `_slug-italico_` without link. Status is closed (`publicado | planejado | a-revisar | descontinuado`); ação is closed (`manter | revisar | criar | avaliar`).
+
+The cluster operational source of truth is `project/clusters/<slug>/cluster.yaml`. Draft clusters live as `project/clusters/<slug>/draft.yaml` and never touch the brain.
 
 ## Schema de conteúdo público
 
@@ -88,11 +94,14 @@ slug: "<slug-kebab-case>"
 published_at: "<YYYY-MM-DD>"
 source_url: "<url canônica>"
 origem: "blog | linkedin | podcast | outros"
-area: "<slug da área editorial em brain/editorial.md>"
+clusters:
+  - <slug-em-project/clusters/>
+papel:                     # opcional; preenche quando o papel for explícito por cluster
+  <cluster-slug>: pilar | satelite
 ---
 ```
 
-`area:` must match an existing section slug in `brain/editorial.md`. If the area does not exist, create or propose the section with a logged `tipo: decisao` first.
+`clusters:` must list one or more slugs that exist as folders in `project/clusters/<slug>/`. Empty array blocks promote. `area:` (singular) is legacy and gradually removed; treat it as a fallback when `clusters:` is missing.
 
 ## Conteúdo consumível (no-gap rule)
 
@@ -140,9 +149,14 @@ Lexical pass first (cheap, regex), semantic pass second. A `block` in the lexica
 
 - Pre-fill check: any file in `brain/` that still contains `<!-- REGRA:`, `<preencher>`, `gap`, `TODO`, `[?]`, `<YYYY-MM-DD>`, "a confirmar", "a definir" blocks with `status: blocked` and the message "template não foi preenchido".
 - Every wikilink `[[...]]` resolves to a file in `brain/` or to a real anchor in an existing brain page.
-- No `area:` in `conteudos/**/*.md` references a section slug that does not exist in `brain/editorial.md`.
+- `cluster.table.no-gap` (block): tables in `brain/topic-clusters/<slug>.md` cannot contain empty cells or placeholders. Status must be in `publicado | planejado | a-revisar | descontinuado`; ação must be in `manter | revisar | criar | avaliar`. Planned content appears as `_slug-italico_` (italic without link) — markdown links to non-existing conteúdo files are blocked.
+- `editorial.brain.cluster-cross-ref` (block): every slug in `clusters:[]` of any `conteudos/**/*.md` must exist as folder under `project/clusters/<slug>/`. Each subpage `brain/topic-clusters/<slug>.md` must correspond to a folder under `project/clusters/<slug>/`. Bidirectional consistency: a content listing cluster X must appear in the table of `brain/topic-clusters/X.md` (and vice-versa) — divergence is reported as `tipo: lint` to be reconciled by `cluster-sync`.
 - No two log entries share the same `## YYYY-MM-DD - <título>` heading.
 - Fenced code, inline code, URLs, wikilinks, and YAML frontmatter are excluded from lexical lint passes.
+
+### Comando `cluster-sync`
+
+Regenerates the contents table inside each `brain/topic-clusters/<slug>.md` from the union of (a) `clusters:[]` declared in each `project/conteudos/**/*.md` frontmatter and (b) `satelites[]` declared in the matching `project/clusters/<slug>/cluster.yaml`. Idempotent. Preserves authorial prose (resumo, próximas ações, evidência) — only the table block changes. Conflicts (frontmatter says cluster X, cluster X table omits the content) are resolved by adding the content row with `papel: satelite` and `status: published`; a `tipo: lint` entry warns about uncurated papel. Conflicts going the other way (cluster lists a content whose file does not exist) become `editorial.brain.cluster-cross-ref` blockers. Trigger: after `content-seo promote`, after `topic-cluster` Phase 4 promotion, or by explicit user request.
 
 ### Failure record
 

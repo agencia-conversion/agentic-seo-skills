@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronRight, Copy, FileText, MoreHorizontal, Star, StarOff, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy, FileText, MoreHorizontal, Plus, Star, StarOff, Trash2 } from 'lucide-react';
 import { REPORT_DIR_NAME } from '../../../../../shared/report-modules';
 import { Page, useWorkspace } from './store';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ import { ConfirmModal } from '@/components/confirm-modal';
 import { showToast } from '@/components/toast';
 import { useI18n } from '@/components/i18n-provider';
 import { displayPageTitle } from '@/lib/page-display';
+import { NewSubpageModal } from './new-subpage-modal';
 
 interface SidebarItemProps {
   page: Page;
@@ -38,6 +39,11 @@ function SidebarItemImpl({
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [newSubpageOpen, setNewSubpageOpen] = useState(false);
+  const canCreateSubpage =
+    page.path?.startsWith('brain/') &&
+    page.path.split('/').length === 2 &&
+    page.path !== 'brain/log.md';
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pagePath = usePagePath();
@@ -63,7 +69,11 @@ function SidebarItemImpl({
     () => [...childPages].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
     [childPages]
   );
-  const canDelete = page.kind === 'file' && !page.readOnly && page.path !== 'brain/log.md' && !page.path.startsWith(`${REPORT_DIR_NAME}/`);
+  const canDelete =
+    (page.kind === 'file' || page.kind === 'clusterDetail') &&
+    !page.readOnly &&
+    page.path !== 'brain/log.md' &&
+    !page.path.startsWith(`${REPORT_DIR_NAME}/`);
   const displayTitle = displayPageTitle(page, t);
 
   const handleOpen = (e: React.MouseEvent) => {
@@ -124,6 +134,19 @@ function SidebarItemImpl({
         <span className="flex-1 truncate">{displayTitle}</span>
         {page.dirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title={t('deleteFile.unsavedChanges')} />}
         <div ref={menuRef} className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity relative">
+          {canCreateSubpage && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setNewSubpageOpen(true);
+              }}
+              className="p-1 hover:bg-notion-active rounded transition-colors"
+              aria-label="Nova subpágina"
+              title="Nova subpágina"
+            >
+              <Plus className="w-3.5 h-3.5 text-notion-text-muted" />
+            </button>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -174,6 +197,14 @@ function SidebarItemImpl({
         cancelLabel={t('common.cancel')}
         destructive
       />
+      {canCreateSubpage && (
+        <NewSubpageModal
+          parentPath={page.path}
+          parentLabel={displayTitle}
+          open={newSubpageOpen}
+          onClose={() => setNewSubpageOpen(false)}
+        />
+      )}
       {isExpanded && childPages.length > 0 && (
         <SortablePageList
           pages={sortedChildren}

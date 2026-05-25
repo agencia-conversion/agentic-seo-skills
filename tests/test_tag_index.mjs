@@ -14,6 +14,7 @@ const compiled = spawnSync(
     'tsc',
     'apps/companion/src/lib/tag-index.ts',
     'apps/companion/src/lib/project-files.ts',
+    'apps/companion/src/lib/brain-templates.ts',
     '--target', 'ES2022',
     '--module', 'ES2022',
     '--moduleResolution', 'bundler',
@@ -31,6 +32,9 @@ if (existsSync(jsFile)) renameSync(jsFile, mjsFile);
 const pfJs = join(outDir, 'project-files.js');
 const pfMjs = join(outDir, 'project-files.mjs');
 if (existsSync(pfJs)) renameSync(pfJs, pfMjs);
+const btJs = join(outDir, 'brain-templates.js');
+const btMjs = join(outDir, 'brain-templates.mjs');
+if (existsSync(btJs)) renameSync(btJs, btMjs);
 // Patch import in tag-index.mjs to use .mjs extension.
 const fs = await import('node:fs');
 function patchSharedImport(file) {
@@ -44,6 +48,10 @@ patchSharedImport(pfMjs);
 fs.writeFileSync(
   mjsFile,
   fs.readFileSync(mjsFile, 'utf8').replace("from './project-files'", "from './project-files.mjs'")
+);
+fs.writeFileSync(
+  pfMjs,
+  fs.readFileSync(pfMjs, 'utf8').replace("from './brain-templates'", "from './brain-templates.mjs'")
 );
 
 const { buildTagIndex, extractFrontmatterTags, extractInlineTags } = await import(`../${mjsFile}`);

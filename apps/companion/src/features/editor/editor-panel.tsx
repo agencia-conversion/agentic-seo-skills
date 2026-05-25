@@ -76,6 +76,7 @@ const INITIAL_DOC = {
 interface EditorPanelProps {
   pageId?: string;
   isModal?: boolean;
+  slotAfterEditor?: ReactNode;
 }
 
 type InternalLinkContext =
@@ -114,6 +115,16 @@ function applyLinkSubmit(editor: any, selectedText: string, submit: { text: stri
   } else {
     chain.setLink({ href: submit.href }).run();
   }
+}
+
+export function resolveRelativeProjectPath(fromPath: string, rel: string): string {
+  if (/^https?:\/\//i.test(rel) || rel.startsWith('/')) return rel;
+  const baseSegments = fromPath.split('/').slice(0, -1);
+  for (const segment of rel.split('/')) {
+    if (segment === '..') baseSegments.pop();
+    else if (segment !== '' && segment !== '.') baseSegments.push(segment);
+  }
+  return baseSegments.join('/');
 }
 
 export function matchSourcePath(href: string): string | null {
@@ -165,7 +176,7 @@ function currentHashAnchor() {
   }
 }
 
-export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
+export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelProps) {
   const { t, locale } = useI18n();
   const activePageId = useWorkspace((s) => s.activePageId);
   const effectivePageId = pageId || activePageId;
@@ -697,6 +708,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
             />
           )}
           {!isModal && activePage.path && <LinkedMentionsPanel pagePath={activePage.path} />}
+          {slotAfterEditor}
         </div>
       </div>
 
@@ -805,6 +817,23 @@ function TiptapEditorSurface({
           event.preventDefault();
           window.open(href, '_blank', 'noopener,noreferrer');
           return true;
+        }
+        if (/\.md(?:#[^?]*)?$/i.test(href) && !href.startsWith('/')) {
+          const store = useWorkspace.getState();
+          const current = store.pages.find((p) => p.id === store.activePageId);
+          if (current) {
+            const targetPath = resolveRelativeProjectPath(current.path, href.replace(/#.*$/, ''));
+            const targetPage = store.pages.find((p) => p.path === targetPath);
+            if (targetPage) {
+              event.preventDefault();
+              store.setActivePage(targetPage.id);
+              void store.loadPage(targetPage.id);
+              if (typeof window !== 'undefined' && store.token) {
+                window.history.pushState({}, '', `/project/${store.token}/${targetPage.slug}`);
+              }
+              return true;
+            }
+          }
         }
         return false;
       },

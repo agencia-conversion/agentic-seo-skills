@@ -6,7 +6,51 @@ Brain-only model is fully shipped. The skill layer, runtime CLI, helper scripts,
 
 Public content lives in `project/conteudos/<origem>/<slug>.md`. Raw evidence stays in `project/sources/`, `project/audits/`, `project/workbench/`, or module-specific normalized files. Drafts and analysis stay in `project/workbench/`. Canonical report pages live in `project/analises/<module>/<run-slug>/report.md` as editable, human-first presentation Markdown governed by `skills/page-report/SKILL.md`, with YAML `version: 1` payloads in `agentic-*` fences; JSON fence bodies are legacy compatibility only. Complete non-report deliverables stay in `project/artifacts/`.
 
-## Layout
+## Cluster spine layout (shipped 2026-05-25)
+
+Topic Clusters são a espinha dorsal do plugin. Conteúdo vive em relação N:N com clusters; cada cluster ativo tem pasta própria em `project/clusters/<slug>/` (com `cluster.yaml` como fonte de verdade operacional e opcionalmente `draft.yaml` como rascunho) e subpágina autoral em `project/brain/topic-clusters/<slug>.md`. Skill `topic-cluster` opera em 4 fases (Pesquisar → Curar → Estruturar → Promover) com rascunho first-class. Conteúdo público declara `clusters: [<slug>, ...]` no frontmatter (substitui `area:` legado).
+
+Sidebar do Companion expõe Topic Clusters em `Brain → Topic Clusters → <Nome>`. Conteúdos aparecem como tabela única com filtros por cluster, origem, status, busca textual. Conteúdos individuais continuam acessíveis ao clicar na linha da tabela.
+
+### Decisões fixadas com o usuário em 2026-05-25
+
+1. Editorial mantém-se como camada estratégica macro (1 área : N clusters); cluster declara `area:`; conteúdo declara `clusters:[]`.
+2. Sidebar de Conteúdos vira tabela única com filtro multi-select por cluster; arquivos seguem flat em `conteudos/<origem>/<slug>.md`.
+3. Skill `topic-cluster` em 4 fases estilo content-creator, com rascunho first-class.
+4. Humano promove cluster novo via handoff Companion; agente atualiza cluster existente brain-first com log; pedido explícito do usuário é soberano.
+
+### Fases shipped
+
+- **Fase 0** — Contrato e documentação. `AGENTS.md`, `CLAUDE.md`, este arquivo atualizados.
+- **Fase 1** — `scripts/migrate-clusters.mjs` (57 linhas) + helper `scripts/lib/clusters-migration.mjs` (153 linhas). `--dry-run` escreve `project/workbench/migrations/clusters-spine/plan.yaml`.
+- **Fase 2** — Companion N:N. `scripts/lib/project-browser-files.mjs` aceita subpáginas brain, lê `cluster.json` legado + `cluster.yaml` novo, retorna `topic_clusters[]` array. `apps/companion/src/lib/contents.ts` espelhado em TS. `content-index-panel.tsx` renderiza lista de clusters por conteúdo.
+- **Fase 3** — Skill `topic-cluster/SKILL.md` reescrita em 4 fases. Templates `templates/project/clusters/cluster.yaml.example` e `planejamento.md.example`.
+- **Fase 4** — Cutover destrutivo aplicado. Tag git `pre-cluster-migration` criada; backup em `.context/backups/`. Helper `scripts/lib/clusters-apply.mjs` (237 linhas) escreve cluster.yaml, reescreve frontmatter dos 16 conteúdos, cria 5 subpáginas brain, reescreve índice, simplifica editorial.md. Idempotente.
+- **Fase 5** — `brain-keeper`, `content-seo`, `agentic-seo`, `project-init` SKILL.md atualizados. Lints `cluster.table.no-gap` e `editorial.brain.cluster-cross-ref` definidos. Comando `cluster-sync` documentado. Templates `templates/project/brain/topic-clusters.md` (novo índice) e `templates/project/brain/editorial.md` (sem `### Conteúdos publicados`) atualizados.
+- **Fase 6** — Limpeza e ship.
+
+### Rollback path
+
+Se algo escapar do refator, o rollback é:
+1. `git reset --hard pre-cluster-migration` (restaura arquivos rastreados).
+2. Restaurar `project/` do tarball mais recente em `.context/backups/project-pre-cluster-migration-*.tar.gz`.
+
+### Known debt
+
+- Handoff `approve-cluster` (template HTML) ainda não foi implementado — workflow descrito apenas na SKILL.md de `topic-cluster`. Promoção atômica fica a cargo do agente seguindo a skill.
+- Falha pré-existente em `test_pt_br_diacritics.mjs` (comentários HTML em templates `voz.md` e `identidade.md` com palavras sem acento) não é introduzida pelo refator e fica como dívida de template separada.
+- Falha pré-existente em `test_single_project_contract.mjs` (menções a `projects/` ou `project_slug` em `docs/project-persistence.md` e `docs/specs/topic-clusters-iteracao-3.md`) é dívida de documentação separada.
+
+### Iteração 5 — Spinner, markdown LLM-friendly, workbench inline (2026-05-25)
+
+- `store.ts`: `loadPage`/`savePage`/`deleteFile` aceitam `kind === 'clusterDetail'`. Itens da seção workbench passam a usar `inline: true` (sem subpáginas expandíveis na sidebar).
+- `sidebar-item.tsx`: `canDelete` aceita `clusterDetail` — menu de 3 pontos mostra "Excluir" em subpáginas de cluster.
+- `scripts/lib/clusters-apply.mjs`: `buildClusterSubpage` volta a incluir a seção `## Conteúdos` com tabela completa (`Papel | Conteúdo | Keyword | Intent | Status | Ação | Atualizado`). Exporta `updateContentsSection(filePath, entry, publishedByCluster)` que faz patch idempotente preservando prosa autoral em `## Resumo`, `## Tese editorial`, `## Pilar`, `## Próximas ações`, `## Evidência`.
+- `apps/companion/src/lib/cluster-mutations.ts`: `regenerateSubpage` usa estratégia equivalente (patch da seção `## Conteúdos`, preserva prosa).
+- `scripts/regenerate-clusters-brain.mjs`: usa `updateContentsSection` em vez de `writeBrainSubpages`. Idempotente.
+- `apps/companion/src/components/listing/listing-panel.tsx`, `content-index-panel.tsx`, `clusters/cluster-detail-panel.tsx`: novo prop `embedded` no `ListingPanel` que pula `VirtualPageShell`. `ClusterDetailPanel` passa `embedded` ao `ContentIndexPanel` embarcado para evitar header duplicado.
+
+## Layout (alvo pós-Fase 4)
 
 ```
 project/
@@ -15,19 +59,32 @@ project/
     identidade.md
     voz.md
     tecnologia.md
-    editorial.md
-    topic-clusters.md
+    editorial.md             # 5 áreas estratégicas macro
+    topic-clusters.md        # índice curto + dashboard
+    topic-clusters/
+      <slug>.md              # subpágina por cluster (uma por cluster ativo)
+    revisao.md
     log.md
   sources/
   conteudos/
-    blog/<slug>.md
+    blog/<slug>.md           # flat; sem subpasta por slug
     linkedin/<slug>.md
     podcast/<slug>.md
     outros/<slug>.md
+  clusters/
+    <slug>/
+      cluster.yaml           # ativo
+      draft.yaml             # rascunho (até promote)
+      planejamento.md
+      sources/
   analises/
     <module>/<run-slug>/report.md
   artifacts/
+    contents/<slug>/
   workbench/
+    content/<slug>/
+    topic-cluster/
+    migrations/
 ```
 
 ## CLI commands

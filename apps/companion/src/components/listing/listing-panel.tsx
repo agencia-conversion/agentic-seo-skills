@@ -27,10 +27,11 @@ export function ListingPanel<T>({
   getRowKey,
   getRowLabel,
   toolbar,
+  embedded,
 }: {
   title: string;
   loading: boolean;
-  countLabel: string;
+  countLabel?: string;
   loadingLabel: string;
   query: string;
   queryPlaceholder: string;
@@ -46,15 +47,16 @@ export function ListingPanel<T>({
   getRowKey: (row: T) => string;
   getRowLabel: (row: T) => string;
   toolbar?: ReactNode;
+  embedded?: boolean;
 }) {
-  return (
-    <VirtualPageShell title={title}>
-      <div className="mb-4 flex flex-col gap-3">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-notion-text-muted">{loading ? loadingLabel : countLabel}</div>
+  const body = (
+    <>
+      {(toolbar || loading) && (
+        <div className="mb-4 flex items-center justify-end gap-3">
+          {loading && <div className="text-sm text-notion-text-muted">{loadingLabel}</div>}
           {toolbar}
         </div>
-      </div>
+      )}
       <ListingFilters query={query} queryPlaceholder={queryPlaceholder} filters={filters} onQueryChange={onQueryChange} />
       <ListingTable
         rows={rows}
@@ -65,6 +67,8 @@ export function ListingPanel<T>({
         onOpenRow={onOpenRow}
       />
       <ListingPagination page={page} totalPages={totalPages} onPageChange={onPageChange} />
-    </VirtualPageShell>
+    </>
   );
+  if (embedded) return <div className="w-full">{body}</div>;
+  return <VirtualPageShell title={title}>{body}</VirtualPageShell>;
 }

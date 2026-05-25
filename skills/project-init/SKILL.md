@@ -66,6 +66,7 @@ project/analises/backlink-analysis/
 project/analises/topic-cluster/
 project/analises/eeat/
 project/brain/
+project/brain/topic-clusters/
 project/conteudos/
 project/conteudos/blog/
 project/conteudos/linkedin/
