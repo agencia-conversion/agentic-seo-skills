@@ -37,7 +37,8 @@ export function ContentLink({
         e.stopPropagation();
         onOpenContent?.(row.slug);
       }}
-      className="text-left text-notion-text underline-offset-2 hover:underline truncate cursor-pointer"
+      className="text-left text-sm text-notion-text underline-offset-2 hover:underline truncate cursor-pointer w-full"
+      title={row.conteudo.title}
     >
       {row.conteudo.title}
     </button>
@@ -47,10 +48,12 @@ export function ContentLink({
 export function TambemEmChips({ slugs }: { slugs: string[] }) {
   const router = useRouter();
   const token = useWorkspace((s) => s.token);
-  if (slugs.length === 0) return <span className="text-notion-text-muted">—</span>;
+  if (slugs.length === 0) return <span className="text-xs text-notion-text-muted">—</span>;
+  const visible = slugs.slice(0, 2);
+  const overflow = slugs.length - visible.length;
   return (
-    <div className="flex flex-wrap gap-1">
-      {slugs.map((slug) => (
+    <div className="flex flex-wrap items-center gap-1">
+      {visible.map((slug) => (
         <button
           key={slug}
           type="button"
@@ -58,12 +61,20 @@ export function TambemEmChips({ slugs }: { slugs: string[] }) {
             e.stopPropagation();
             if (token) router.push(`/project/${token}/brain-topic-clusters-${slug}`);
           }}
-          className="inline-flex items-center gap-0.5 rounded border border-notion-border bg-notion-active/40 px-1.5 py-0.5 text-[10px] text-notion-text-muted hover:bg-notion-hover cursor-pointer"
+          className="inline-flex max-w-[120px] items-center gap-0.5 truncate rounded border border-notion-border bg-notion-active/40 px-1.5 py-0.5 text-[10px] leading-4 text-notion-text-muted hover:bg-notion-hover cursor-pointer"
           title={`Ver cluster ${slug}`}
         >
           {slug}
         </button>
       ))}
+      {overflow > 0 && (
+        <span
+          className="text-[10px] leading-4 text-notion-text-muted"
+          title={slugs.slice(visible.length).join(', ')}
+        >
+          +{overflow}
+        </span>
+      )}
     </div>
   );
 }

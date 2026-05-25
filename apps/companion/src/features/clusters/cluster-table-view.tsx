@@ -203,7 +203,7 @@ export function ClusterTableView({ node }: any) {
     <NodeViewWrapper
       contentEditable={false}
       data-cluster-table={slug || 'unknown'}
-      className="my-6 not-prose"
+      className="my-6 not-prose -mx-12 md:-mx-16"
     >
       <div ref={wrapperRef} tabIndex={-1} className="overflow-hidden rounded-md border border-notion-border bg-background">
         <header className="flex items-center justify-between gap-2 border-b border-notion-border bg-notion-sidebar/40 px-4 py-2.5">
@@ -272,14 +272,14 @@ export function ClusterTableView({ node }: any) {
               <thead>
                 <tr className="border-b border-notion-border bg-notion-sidebar/30 text-left text-[11px] uppercase tracking-wider text-notion-text-muted">
                   <th className="px-2 py-2 w-8 font-medium" />
-                  <th className="px-3 py-2 font-medium">Papel</th>
+                  <th className="px-3 py-2 w-[88px] font-medium">Papel</th>
                   <th className="px-3 py-2 font-medium">Conteúdo</th>
-                  <th className="px-3 py-2 font-medium">Keyword (vol.)</th>
-                  <th className="px-3 py-2 font-medium">Intenção</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium">Ação</th>
-                  <th className="px-3 py-2 font-medium">Atualizado</th>
-                  <th className="px-3 py-2 font-medium">Também em</th>
+                  <th className="px-3 py-2 w-[160px] font-medium">Keyword (vol.)</th>
+                  <th className="px-3 py-2 w-[110px] font-medium">Intenção</th>
+                  <th className="px-3 py-2 w-[90px] font-medium">Status</th>
+                  <th className="px-3 py-2 w-[80px] font-medium">Ação</th>
+                  <th className="px-3 py-2 w-[100px] font-medium">Atualizado</th>
+                  <th className="px-3 py-2 w-[150px] font-medium">Também em</th>
                 </tr>
               </thead>
               <tbody>
@@ -315,6 +315,7 @@ export function ClusterTableView({ node }: any) {
                             await patchRow(slug, row.slug, 'papel', next, kind);
                             refetch();
                           }}
+
                         />
                       </td>
                       <td className="px-3 py-2 align-top max-w-[280px]">

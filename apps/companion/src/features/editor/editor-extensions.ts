@@ -54,6 +54,8 @@ export const getExtensions = (options: { onReportScoreRecalculated?: (result: Re
   StarterKit.configure({
     horizontalRule: false,
     heading: false,
+    link: false,
+    underline: false,
     bulletList: {
       HTMLAttributes: { class: 'list-disc list-outside leading-7 pl-6' },
     },
