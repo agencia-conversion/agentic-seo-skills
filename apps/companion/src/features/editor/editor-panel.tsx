@@ -768,6 +768,7 @@ function TiptapEditorSurface({
   onReportScoreRecalculated: (result: ReportScoreResult) => void;
 }) {
   const { t } = useI18n();
+  const router = useRouter();
   useEffect(() => {
     (window as any).__noteblockSlashItems = (query: string) => {
       if (!query) return suggestionItems;
@@ -824,20 +825,18 @@ function TiptapEditorSurface({
           if (current) {
             const targetPath = resolveRelativeProjectPath(current.path, href.replace(/#.*$/, ''));
             const targetPage = store.pages.find((p) => p.path === targetPath);
-            if (targetPage) {
+            if (targetPage && store.token) {
               event.preventDefault();
               store.setActivePage(targetPage.id);
               void store.loadPage(targetPage.id);
-              if (typeof window !== 'undefined' && store.token) {
-                window.history.pushState({}, '', `/project/${store.token}/${targetPage.slug}`);
-              }
+              router.push(`/project/${store.token}/${targetPage.slug}`);
               return true;
             }
             // Fallback for cluster subpages or content paths that may not yet be in store.pages.
-            if (typeof window !== 'undefined' && store.token && targetPath) {
+            if (store.token && targetPath) {
               const slug = targetPath.replace(/\.md$/, '').replace(/\//g, '-');
               event.preventDefault();
-              window.location.href = `/project/${store.token}/${slug}`;
+              router.push(`/project/${store.token}/${slug}`);
               return true;
             }
           }

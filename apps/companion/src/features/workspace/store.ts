@@ -768,6 +768,17 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       method: 'POST',
       body: JSON.stringify(payload),
     });
+    if (!result.ok && result.reason === 'file-modified') {
+      // External writer (e.g. cluster-sync regenerating sentinels) touched the file.
+      // Reload silently instead of surfacing a red error banner.
+      set((state) => ({
+        pages: state.pages.map((p) =>
+          p.id === id ? { ...p, saving: false, saveError: null, dirty: false, fileDirty: false } : p,
+        ),
+      }));
+      void get().loadPage(id);
+      return false;
+    }
     set((state) => {
       const resolverAfterSave = mentionResolver(state.pages);
       return {
