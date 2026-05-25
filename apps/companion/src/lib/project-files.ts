@@ -735,17 +735,24 @@ export function createProjectFile({
   kind = 'workbench',
   title = 'New page',
   parentPath,
+  origem,
+  clusters,
 }: {
   projectRoot?: string;
   kind?: 'workbench' | 'content' | 'brain-subpage';
   title?: string;
   parentPath?: string;
+  origem?: string;
+  clusters?: string[];
 }) {
   const root = normalizeProjectRoot(projectRoot);
   const slug = slugFromTitle(title);
+  const safeOrigem = ['blog', 'linkedin', 'podcast', 'outros'].includes(String(origem))
+    ? String(origem)
+    : 'outros';
   let rel: string;
   if (kind === 'content') {
-    rel = uniqueRel(root, `conteudos/outros/${slug}.md`);
+    rel = uniqueRel(root, `conteudos/${safeOrigem}/${slug}.md`);
   } else if (kind === 'brain-subpage') {
     if (!parentPath || typeof parentPath !== 'string') return { ok: false, reason: 'parent-path-required' };
     const match = parentPath.match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
@@ -761,7 +768,12 @@ export function createProjectFile({
   const today = todayIso();
   let text: string;
   if (kind === 'content') {
-    text = `---\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigem: "outros"\narea: ""\n---\n\n`;
+    const clusterList = Array.isArray(clusters) ? clusters.filter((c) => typeof c === 'string' && c.length > 0) : [];
+    const clustersYaml = clusterList.length
+      ? clusterList.map((c) => `  - ${yamlString(c)}`).join('\n')
+      : '';
+    const clustersBlock = clustersYaml ? `clusters:\n${clustersYaml}\n` : 'clusters: []\n';
+    text = `---\ncontract_version: 1\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigem: ${yamlString(safeOrigem)}\n${clustersBlock}---\n\n`;
   } else if (kind === 'brain-subpage' && parentPath) {
     const parentMatch = parentPath.match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
     const parentSlug = parentMatch ? parentMatch[1] : '';
