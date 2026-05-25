@@ -1,7 +1,7 @@
 "use strict";
 
 // Single source of truth for the analysis pages directory name.
-const REPORT_DIR_NAME = "analises";
+const REPORT_DIR_NAME = "analyses";
 
 const REPORT_BROWSER_PROMPT_MESSAGE = "Posso abrir o Web Companion para você ver a análise?";
 

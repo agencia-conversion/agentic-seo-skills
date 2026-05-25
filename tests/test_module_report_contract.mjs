@@ -10,7 +10,7 @@ const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-module-contract-"));
 const projectDir = join(tmp, "project");
 const artifactRel = "audits/internal-links-run-1/report.yaml";
 const artifactPath = join(projectDir, artifactRel);
-const reportPath = join(projectDir, "analises", "internal-links", "run-1", "report.md");
+const reportPath = join(projectDir, "analyses", "internal-links", "run-1", "report.md");
 const writer = resolve(root, "scripts", "lib", "report-writer.mjs");
 const reviewer = resolve(root, "scripts", "review_reports.mjs");
 

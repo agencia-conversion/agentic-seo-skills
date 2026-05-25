@@ -121,7 +121,7 @@ A sede canônica das regras de revisão é `brain/revisao.md`. A página carrega
 
 Public content lives in `project/conteudos/<origem>/<slug>.md`. Drafts and reviews stay in `project/workbench/content/<slug>/` and `project/artifacts/contents/<slug>/`. The `area:` field in the frontmatter must match a section slug in `brain/editorial.md`.
 
-Canonical report pages live in `project/analises/<module>/<run-slug>/report.md` and are displayed by the Web Companion under the virtual `Análises` section. The shared `page-report` skill owns this contract. Report pages are editable presentation Markdown with structured fences (`agentic-kpis`, `agentic-chart`, `agentic-table`); new fence payloads use YAML with `version: 1`, while JSON fence bodies are legacy compatibility only. Creation and deletion of reports stay blocked in the Companion v1. Reports must be human-first, use the project language from `project/.agentic-seo/project.json.language` (`pt-BR` and `en` fully supported in v1), keep raw evidence separate in `source_artifact` plus `sources/`, `audits/`, `workbench/`, or module-specific normalized files, and never paste raw JSON/object dumps into the visual body.
+Canonical report pages live in `project/analyses/<module>/<run-slug>/report.md` and are displayed by the Web Companion under the virtual `Análises` section. The shared `page-report` skill owns this contract. Report pages are editable presentation Markdown with structured fences (`agentic-kpis`, `agentic-chart`, `agentic-table`); new fence payloads use YAML with `version: 1`, while JSON fence bodies are legacy compatibility only. Creation and deletion of reports stay blocked in the Companion v1. Reports must be human-first, use the project language from `project/.agentic-seo/project.json.language` (`pt-BR` and `en` fully supported in v1), keep raw evidence separate in `source_artifact` plus `sources/`, `audits/`, `workbench/`, or module-specific normalized files, and never paste raw JSON/object dumps into the visual body.
 
 ### Project Subfolders
 
@@ -134,7 +134,7 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 | Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml` |
 | Topic cluster | `project/clusters/<seed-slug>/` | `sources/`, `cluster.json`, optional projection |
 | EEAT | `project/eeat/<entity-or-run-slug>/` | `sources/`, `report.md` |
-| Companion reports | `project/analises/<module>/<run-slug>/` | `report.md` |
+| Companion reports | `project/analyses/<module>/<run-slug>/` | `report.md` |
 | Brain (authorial) | `project/brain/` | direct edits allowed when recorded as `tipo: decisao` in `brain/log.md` |
 
 Skills read the brain for context (identidade, tom de voz, tecnologia, editorial, revisao) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`. `content-seo` specifically loads `brain/revisao.md` during the `check` phase as the canonical seat of editorial review rules.

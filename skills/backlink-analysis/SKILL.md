@@ -170,7 +170,7 @@ If blocked by missing provider access, missing target, or unavailable competitor
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analises/backlink-analysis/report-skeleton.md`. The module-specific source artifact is the normalized backlink YAML under `audits/`, `sources/backlinks/`, or `workbench/`; the Companion page is `project/analises/backlink-analysis/<target-slug>/report.md`. Start with the executive reading, then present backlink volume, referring domains, competitor deltas, risks, and limitations in readable tables with friendly metric names; never paste raw provider JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/backlink-analysis/report-skeleton.md`. The module-specific source artifact is the normalized backlink YAML under `audits/`, `sources/backlinks/`, or `workbench/`; the Companion page is `project/analyses/backlink-analysis/<target-slug>/report.md`. Start with the executive reading, then present backlink volume, referring domains, competitor deltas, risks, and limitations in readable tables with friendly metric names; never paste raw provider JSON or object arrays into the visual report body.
 
 ## Examples
 

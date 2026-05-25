@@ -167,7 +167,7 @@ If blocked, include the missing input, credential, fixture, or provider conditio
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analises/serp-extract/report-skeleton.md`. The module-specific source artifact is the normalized SERP YAML under `sources/serp/` or `audits/serp-<slug>/report.yaml`; the Companion page is `project/analises/serp-extract/<slug>/report.md`. Present provider, market, device, organic results, SERP features, and limitations as a readable SERP briefing with friendly field names; never paste raw provider JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/serp-extract/report-skeleton.md`. The module-specific source artifact is the normalized SERP YAML under `sources/serp/` or `audits/serp-<slug>/report.yaml`; the Companion page is `project/analyses/serp-extract/<slug>/report.md`. Present provider, market, device, organic results, SERP features, and limitations as a readable SERP briefing with friendly field names; never paste raw provider JSON or object arrays into the visual report body.
 
 ## Examples
 
