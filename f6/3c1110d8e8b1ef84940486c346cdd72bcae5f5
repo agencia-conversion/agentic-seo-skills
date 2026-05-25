@@ -1,0 +1,57 @@
+tests/test_brain_review_protocol.mjs
+  s_20275d5c898ec3::t_278b7bb69e9ecd 34-35
+agents/content-seo.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 20
+agents/brain-keeper.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 11,15-16,23
+AGENTS.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 71,75,103-104,118,140
+apps/companion/src/features/workspace/store.ts
+  s_20275d5c898ec3::t_278b7bb69e9ecd 253
+scripts/lib/project-browser-files.mjs
+  s_20275d5c898ec3::t_278b7bb69e9ecd 18,28
+skills/start/SKILL.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 58
+src/commands/runtime.ts
+  s_20275d5c898ec3::t_278b7bb69e9ecd 36,46,3515
+skills/project-init/evals/fixture.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 15
+scripts/lib/companion-types/approve-page.mjs
+  s_20275d5c898ec3::t_278b7bb69e9ecd 24
+dist/commands/runtime.js
+  s_20275d5c898ec3::t_278b7bb69e9ecd 75,85,3535
+templates/project/brain/revisao.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 1-80
+skills/project-init/SKILL.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 22,96,131,165,176
+skills/content-seo/evals/fixture.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 12,20
+skills/content-seo/SKILL.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 27,142,144,148-153,197,209,214,216,239-251
+skills/content-seo/evals/fixture-revisao.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 1-30
+tests/test_project_context.mjs
+  s_20275d5c898ec3::t_278b7bb69e9ecd 35,44
+apps/companion/src/lib/project-files.ts
+  s_20275d5c898ec3::t_278b7bb69e9ecd 13,23
+tests/test_companion_project_browser.mjs
+  s_20275d5c898ec3::t_278b7bb69e9ecd 31
+skills/agentic-seo/SKILL.md
+  s_20275d5c898ec3::t_278b7bb69e9ecd 41,53,83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "f63c1110d8e8b1ef84940486c346cdd72bcae5f5",
+  "prompts": {},
+  "sessions": {
+    "s_20275d5c898ec3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5bf6-1687-7d92-b068-dc59ae34fccb",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
