@@ -1,0 +1,190 @@
+src/lib/cluster-io.ts
+  s_e30d4f198a04fe::t_e63730e5e9dedb 1-194
+apps/companion/src/features/editor/frontmatter-drawer.tsx
+  s_e30d4f198a04fe::t_cc6e1cef302fa7 3-4,18-23,26-53,65-66,86-103,112-132,187-216,253-345
+apps/companion/src/features/clusters/cluster-detail-panel.tsx
+  s_e30d4f198a04fe::t_b46708215a5e6f 9-10
+apps/companion/src/features/editor/report-table-menu.tsx
+  s_e30d4f198a04fe::t_4fe0ec234417bf 176-181
+apps/companion/src/app/api/project/cluster/[slug]/route.ts
+  s_e30d4f198a04fe::t_b853013328f02b 1-215
+src/commands/cluster-sync.ts
+  s_e30d4f198a04fe::t_8be5254e9a1eca 300,309-314
+  s_e30d4f198a04fe::t_023a7a47b10031 375-379,384
+  s_e30d4f198a04fe::t_890fc6629cee86 324
+  s_e30d4f198a04fe::t_c1566df1d46aa1 464,466-473
+  s_e30d4f198a04fe::t_f14bdaee1048b6 1-299,301-308,315-323,325-374,380-383,385-463,465,474-594
+scripts/install-cluster-sync-hook.mjs
+  s_e30d4f198a04fe::t_0bc765124bfc1f 1-60
+apps/companion/src/features/clusters/cluster-content-modal.tsx
+  s_e30d4f198a04fe::t_01679e0849bc39 1-130
+apps/companion/src/features/editor/editor-extensions.ts
+  s_e30d4f198a04fe::t_50810df9d0fa2f 166
+  s_e30d4f198a04fe::t_4b52c76ea5b4f8 20
+apps/companion/src/app/api/project/file/route.ts
+  s_e30d4f198a04fe::t_ecb21f7e4229fd 4,23-34,36-40,47
+  s_e30d4f198a04fe::t_fc51b1ae5b0692 35,41-46,48
+templates/project/brain/topic-clusters.md
+  s_e30d4f198a04fe::t_dfffa3f7065752 2-3,7,9,11,18-20,26
+AGENTS.md
+  s_e30d4f198a04fe::t_9115a2cad4bada 138
+templates/project/clusters/planejamento.md.template
+  s_e30d4f198a04fe::t_f2df39c4d997b2 1-31
+test-results/apps-companion-e2e-cluster-8e7ae-atellite-to-pilar-via-PATCH/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-171
+test-results/apps-companion-e2e-cluster-de1b8-list-returns-sample-cluster/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-131
+apps/companion/e2e/fixtures/sample-project/conteudos/blog/sample-pilar.md
+  s_e30d4f198a04fe::t_2f4947afe7dc4b 1-13
+apps/companion/e2e/cluster-sync.spec.ts
+  s_e30d4f198a04fe::t_5cd217f5b29c0c 82-105
+  s_e30d4f198a04fe::t_f02e4dc4b1dc7a 39
+  s_e30d4f198a04fe::t_6513e1731a8f46 114,116
+  s_e30d4f198a04fe::t_af7345cff29902 141-157
+  s_e30d4f198a04fe::t_7053f9abb68923 182,187-188
+  s_e30d4f198a04fe::t_5e6f3e76088fd4 2,4-5,8-9,15,19-21,29,32,47-62,66,68-69,71,76-77
+  s_e30d4f198a04fe::t_acf8d3fcc553ae 1,3,6-7,10-14,16-18,22-28,30-31,33-38,40-46,63-64,70,74-75,78-81,190
+  s_e30d4f198a04fe::t_3b783afb7f8a33 106,177-181,183-186,189
+  s_e30d4f198a04fe::t_0bf1128d06e84c 65,67,72-73
+  s_e30d4f198a04fe::t_30599562b84ee0 158-176
+  s_e30d4f198a04fe::t_8a7eb1f39ed258 107-113,115,117-140
+apps/companion/src/features/workspace/sidebar-item.tsx
+  s_e30d4f198a04fe::t_e7ead87540b53e 135-140
+test-results/apps-companion-e2e-cluster-90c20-tle-opens-the-content-modal/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-139
+test-results/apps-companion-e2e-cluster-b0fcf-ster-slug-returns-rich-rows/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-194
+apps/companion/src/lib/cluster-mutations.ts
+  s_e30d4f198a04fe::t_b3073174146c0f 201-202,205,208,211,215
+  s_e30d4f198a04fe::t_cfa0cc4d05520b 228-406
+src/lib/cluster-render.ts
+  s_e30d4f198a04fe::t_3359fd9c84e14b 1-261,263-316
+  s_e30d4f198a04fe::t_8a1c3fa4f51acc 262
+.gitignore
+  s_e30d4f198a04fe::t_9de5d0ac526030 12,15-18
+test-results/apps-companion-e2e-cluster-76936--triggers-cluster-sync-hook/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-141
+templates/project/clusters/cluster.yaml.template
+  s_e30d4f198a04fe::t_0f98e8404bd4f1 1-42
+scripts/cluster-doctor.mjs
+  s_e30d4f198a04fe::t_a16624003c56bc 1-57
+templates/project/brain/topic-clusters/_cluster-subpage.md.template
+  s_e30d4f198a04fe::t_6649c6b088c000 1-20,22-29
+  s_e30d4f198a04fe::t_37f7dd7f45861c 21
+apps/companion/src/lib/cluster-sync-runner.ts
+  s_e30d4f198a04fe::t_9c26962e943356 1,3,5,7-13,49-51,53-54,56-87
+  s_e30d4f198a04fe::t_33643fce433d32 2,4,6,14-48,52,55,88
+apps/companion/src/features/clusters/cluster-row-api.ts
+  s_e30d4f198a04fe::t_57a8a440df3ee8 1-63
+test-results/apps-companion-e2e-cluster-5cebd-ns-both-contents-after-sync/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-175
+src/lib/cluster-types.ts
+  s_e30d4f198a04fe::t_c0158121149b78 1-127
+CLAUDE.md
+  s_e30d4f198a04fe::t_f8408b01f2f14a 9
+src/lib/cluster-labels.ts
+  s_e30d4f198a04fe::t_e34b419a5a3648 1-123
+dist/lib/cluster-labels.js
+  s_e30d4f198a04fe::t_4bd45672bb8462 1-85
+scripts/cluster-sync.mjs
+  s_e30d4f198a04fe::t_8a2addcb519014 1-24
+dist/lib/cluster-io.js
+  s_e30d4f198a04fe::t_4bd45672bb8462 1-164
+apps/companion/src/features/editor/editor-panel.tsx
+  s_e30d4f198a04fe::t_99edaef1bb81a4 836-842
+test-results/apps-companion-e2e-cluster-e3734-ditableCell-persists-to-API/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-190
+apps/companion/src/lib/markdown.ts
+  s_e30d4f198a04fe::t_48a5d262af3542 454-457
+  s_e30d4f198a04fe::t_041da201b49245 236-249
+  s_e30d4f198a04fe::t_1316e39a98d1ca 167-185,189
+apps/companion/src/lib/project-files.ts
+  s_e30d4f198a04fe::t_ea140bd56b0b00 261,263-267,274
+scripts/cluster-rename.mjs
+  s_e30d4f198a04fe::t_a9a2ae9d2ac2c4 5
+  s_e30d4f198a04fe::t_82b96ef8a1e9e2 1-4,6-59,61-92
+  s_e30d4f198a04fe::t_d8aeae43333b14 60
+apps/companion/src/features/workspace/store.ts
+  s_e30d4f198a04fe::t_ce9f7bf6a14607 728
+  s_e30d4f198a04fe::t_9771dc9895b75f 1053
+apps/companion/e2e/fixtures/sample-project/conteudos/blog/sample-satellite.md
+  s_e30d4f198a04fe::t_6ad18ab9b36c9e 1-11
+apps/companion/src/features/clusters/cluster-table-view.tsx
+  s_e30d4f198a04fe::t_025f878e71e8ee 286-287,289-294,296,298-299,311-314,316-327,329-337,339-346,348-358,360-364,366-373
+  s_e30d4f198a04fe::t_5c06a0adeffb14 3,8-19,43,65-71,73,76-85,87,98-107,109-128,148-159,161-200,203-208,215,217-221,224-243,263-264,274,288,295,297,300-310,315,328,338,347,359,376,404,406
+  s_e30d4f198a04fe::t_21ef0aef18983b 63-64,72,74-75,94-97,108,129-146
+  s_e30d4f198a04fe::t_45aeb470f00297 1-2,4,6,20-42,44-62,90-92,147,160,201-202,209-214,216,222-223,244-253,257-262,265-273,275-285,365,409-413,415-417
+  s_e30d4f198a04fe::t_af673de7142480 254-256
+  s_e30d4f198a04fe::t_132db06d035914 414
+  s_e30d4f198a04fe::t_5a8073d1325bcc 93
+  s_e30d4f198a04fe::t_197dfcc7e168b8 86,88-89
+  s_e30d4f198a04fe::t_7f364908be82f6 5,7
+  s_e30d4f198a04fe::t_97f02541a8dcfe 374-375,377-403,405,407-408
+test-results/apps-companion-e2e-cluster-6c4bb-ample-cluster-with-contents/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-188
+skills/brain-keeper/SKILL.md
+  s_e30d4f198a04fe::t_03dfe3916b7fb6 157,159-167
+  s_e30d4f198a04fe::t_99919fd22e2273 153
+tests/test_companion_markdown_roundtrip.mjs
+  s_e30d4f198a04fe::t_97df8f03b180bb 220-257
+dist/lib/cluster-render.js
+  s_e30d4f198a04fe::t_4bd45672bb8462 1-183,185-225
+  s_e30d4f198a04fe::t_8c35113eefade6 184
+skills/content-seo/SKILL.md
+  s_e30d4f198a04fe::t_ae7bcfb7bccc6d 29
+  s_e30d4f198a04fe::t_e62c0bbe57e40a 28
+scripts/cluster-retire.mjs
+  s_e30d4f198a04fe::t_7a84252fee2a5a 1-100
+apps/companion/src/features/workspace/sortable-page-list.tsx
+  s_e30d4f198a04fe::t_ea009fcbbf11ca 41
+apps/companion/src/app/api/project/cluster/[slug]/row/[contentSlug]/route.ts
+  s_e30d4f198a04fe::t_314b5ab86dea8c 1-37
+apps/companion/src/features/editor/cluster-table-extension.tsx
+  s_e30d4f198a04fe::t_0fe203d38b4664 2-3
+  s_e30d4f198a04fe::t_61e32e0e4b13d6 1,4-35
+dist/commands/cluster-sync.js
+  s_e30d4f198a04fe::t_4bd45672bb8462 1-237,239-243,250-258,260-298,302-305,307-375,377,383-488
+  s_e30d4f198a04fe::t_8c35113eefade6 238,244-249,299-301,306
+  s_e30d4f198a04fe::t_e5fe29837ba48a 259,376,378-382
+apps/companion/src/features/clusters/cluster-row-cells.tsx
+  s_e30d4f198a04fe::t_4e196e53dcbce3 1-177
+test-results/apps-companion-e2e-cluster-b5b08-enders-without-server-error/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-197
+apps/companion/src/app/api/project/cluster/[slug]/satellite/route.ts
+  s_e30d4f198a04fe::t_95b7599e822222 4,23-29
+test-results/apps-companion-e2e-cluster-029fb-e-row-appears-after-refetch/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-156
+skills/topic-cluster/SKILL.md
+  s_e30d4f198a04fe::t_fa017c15eb7bce 22
+scripts/reset-clusters.mjs
+  s_e30d4f198a04fe::t_4fdabcaef232c1 2-4,6-14,17-18,20-21,25,32,34-43,51,53,61,63,71,73-82,86-91,95-100,112-177,180-197,200-201,203-216,219-226,229-230,235,246-249,255-260,262-264,267-273,275-278,280-285,287-296,298-307,309-312
+  s_e30d4f198a04fe::t_76d8d2a95139b3 250-252
+tests/test_cluster_sync.mjs
+  s_e30d4f198a04fe::t_743b59e6157575 1-207
+dist/lib/cluster-types.js
+  s_e30d4f198a04fe::t_4bd45672bb8462 1-10
+docs/specs/topic-clusters-contract.md
+  s_e30d4f198a04fe::t_5edbe26b07e0b2 1-378
+apps/companion/src/app/api/project/cluster-list/route.ts
+  s_e30d4f198a04fe::t_30551fd43b14c8 1-49
+test-results/apps-companion-e2e-cluster-10748-usterTableView-with-rich-UI/error-context.md
+  s_e30d4f198a04fe::t_c73ff01ed004a0 1-197
+apps/companion/e2e/fixtures/sample-project/clusters/sample-cluster/cluster.yaml
+  s_e30d4f198a04fe::t_44710bf2386da2 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "ac10f9f45c0ab4d5a4b056e4128632cf52c4fb95",
+  "prompts": {},
+  "sessions": {
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
