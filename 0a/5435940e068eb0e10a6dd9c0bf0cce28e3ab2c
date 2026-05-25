@@ -1,0 +1,42 @@
+shared/ctr-curves/_schema.md
+  s_529b03f3f0def1::t_44b6d861b9bb8e 1-49,52-68
+  s_529b03f3f0def1::t_6dcb266e807b5f 50-51
+shared/ctr-curves/backlinko_2024_12.yaml
+  s_529b03f3f0def1::t_2f412c588f9a11 1-55
+shared/ctr-curves/sistrix_2020.yaml
+  s_529b03f3f0def1::t_c516f571e70cc9 1-55
+AGENTS.md
+  s_529b03f3f0def1::t_cfe3ba68ea47af 29
+tests/test_ctr_curves.mjs
+  s_529b03f3f0def1::t_a37b8fa3deea7e 57-95
+  s_529b03f3f0def1::t_0cf84a6133a8fe 1-56,96
+package.json
+  s_529b03f3f0def1::t_c3a9be7e119473 15
+shared/ctr-curves/loader.mjs
+  s_529b03f3f0def1::t_e412c715ba8101 61,65-67,69-75
+  s_529b03f3f0def1::t_2e6b133cc94b2e 1-28,31,35-44,46-60,62-64,68,76-145
+  s_529b03f3f0def1::t_d813899489bc57 29-30,32-34,45
+shared/ctr-curves/fps_2026.yaml
+  s_529b03f3f0def1::t_538551dc02d23b 1-56
+shared/ctr-curves/awr_2026_q2.placeholder.yaml
+  s_529b03f3f0def1::t_1b7402ca7d737c 1-57
+shared/ctr-curves/ahrefs_2025_12_aio_deltas.yaml
+  s_529b03f3f0def1::t_294625eddf446e 68-69
+  s_529b03f3f0def1::t_99d4b19cbf0d17 1-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "0a5435940e068eb0e10a6dd9c0bf0cce28e3ab2c",
+  "prompts": {},
+  "sessions": {
+    "s_529b03f3f0def1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "df019ed3-d1e7-4d1b-8c87-45ef6ed101cd",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
