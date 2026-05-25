@@ -1,0 +1,31 @@
+apps/companion/src/features/clusters/cluster-row-cells.tsx
+  s_e30d4f198a04fe::t_2d1bfce5455a3e 51-53,55-56,64,70-77
+  s_e30d4f198a04fe::t_b143e3a4769ba1 40-41
+apps/companion/src/features/clusters/cluster-table-view.tsx
+  s_e30d4f198a04fe::t_c122c1c2fe0b22 206
+  s_e30d4f198a04fe::t_a4a9a95bbdde20 318
+  s_e30d4f198a04fe::t_b168fd38c07348 275,277-282
+apps/companion/src/app/project/[token]/[[...slug]]/page.tsx
+  s_e30d4f198a04fe::t_12ac474a20a190 6
+apps/companion/src/features/editor/editor-extensions.ts
+  s_e30d4f198a04fe::t_eb7cc0118a1875 57-58
+apps/companion/src/features/workspace/page-width.ts
+  s_e30d4f198a04fe::t_6285a0846e1fdc 52
+  s_e30d4f198a04fe::t_6be055350f21c9 43-44,51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "8da180acc0a73f52538b808a6535018d863bdae6",
+  "prompts": {},
+  "sessions": {
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
