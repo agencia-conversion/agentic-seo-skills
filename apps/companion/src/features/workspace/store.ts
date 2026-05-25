@@ -725,7 +725,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
               frontmatterText: file.frontmatterRaw || frontmatterToText(file.frontmatter || {}),
               bodyMarkdown: file.body || '',
               sourceBody: file.body || '',
-              content: markdownToDoc(file.body || '', resolver),
+              content: markdownToDoc(file.body || '', resolver, { filePath: p.path }),
               hash: file.hash,
               icon: Object.prototype.hasOwnProperty.call(file, 'icon') ? file.icon ?? null : p.icon,
               cover: Object.prototype.hasOwnProperty.call(file, 'cover') ? file.cover ?? null : p.cover,
@@ -1050,7 +1050,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
               ...p,
               sourceMode,
               sourceBody: sourceMode ? docToMarkdown(p.content, mentionResolver(s.pages)) : p.sourceBody,
-              content: sourceMode ? p.content : markdownToDoc(p.sourceBody, mentionResolver(s.pages)),
+              content: sourceMode ? p.content : markdownToDoc(p.sourceBody, mentionResolver(s.pages), { filePath: p.path }),
             }
           : p
       ),

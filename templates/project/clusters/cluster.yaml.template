@@ -1,0 +1,42 @@
+# Topic Cluster — fonte de verdade operacional.
+# Ativo após promoção via handoff `approve-cluster`. Rascunho mora em `draft.yaml`.
+# Schema definido em docs/specs/topic-clusters-contract.md (contract_version: 1).
+
+contract_version: 1
+slug: <kebab-slug>
+nome: "<Nome do Cluster>"
+area: <slug em brain/editorial.md>
+status: active                          # drafting | proposed | active | archived
+tese: |
+  <2-3 linhas com a tese do cluster, escritas em pt-BR, sem AI-slop.>
+
+pilar:
+  slug: <content-slug-em-conteudos>
+  keyword: "<keyword do pilar>"
+  intent: informacional                 # informacional | transacional | comparativo | navegacional
+  volume: null
+  volume_source: null
+
+planned_satellites:
+  - slug: <novo-conteudo-planejado>
+    keyword: "<keyword planejada>"
+    intent: informacional
+    volume: null
+    volume_source: null
+    papel: satelite
+    note: "Gap identificado no cluster."
+
+satelite_overrides: {}                  # opcional; só quando conteúdo publicado precisa de
+                                        # display_title/keyword diferentes do título do post
+
+stats:                                  # regenerado por cluster-sync
+  publicados: 0
+  planejados: 1
+  updated: <YYYY-MM-DD>
+
+provenance:
+  created_at: <YYYY-MM-DD>
+  created_by: agent
+  decision_log: "log.md#cluster-<slug>-<YYYY-MM-DD>"
+
+evidence: []

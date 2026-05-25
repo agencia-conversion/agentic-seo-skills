@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
-import { Lock, Settings, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Lock, Plus, Settings, X } from 'lucide-react';
 import type { Page } from '../workspace/store';
 import { parseFrontmatterText, useWorkspace } from '../workspace/store';
 import { cn } from '@/lib/utils';
@@ -15,8 +15,41 @@ const ORIGEM_OPTIONS = [
   { value: 'outros', label: 'outros' },
 ];
 
-const CONTENT_FIELDS = ['title', 'slug', 'published_at', 'source_url', 'origem', 'area'];
+const PAPEL_OPTIONS = [
+  { value: 'pilar', label: 'pilar' },
+  { value: 'satelite', label: 'satelite' },
+];
+
+const CONTENT_FIELDS = ['title', 'slug', 'published_at', 'source_url', 'origem'];
 const BRAIN_FIELDS = ['title', 'updated'];
+
+interface ClusterOption {
+  slug: string;
+  nome: string;
+  icon?: string;
+  status?: string;
+}
+
+function useClusterOptions(enabled: boolean): ClusterOption[] {
+  const [options, setOptions] = useState<ClusterOption[]>([]);
+  useEffect(() => {
+    if (!enabled) return;
+    const token =
+      typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('token')
+        : null;
+    const url = token
+      ? `/api/project/cluster-list?token=${encodeURIComponent(token)}`
+      : '/api/project/cluster-list';
+    fetch(url, { headers: token ? { 'x-companion-token': token } : {} })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data.clusters)) setOptions(data.clusters);
+      })
+      .catch(() => {});
+  }, [enabled]);
+  return options;
+}
 
 export function FrontmatterDrawer({
   page,
@@ -29,6 +62,8 @@ export function FrontmatterDrawer({
 }) {
   const { t } = useI18n();
   const updatePage = useWorkspace((s) => s.updatePage);
+  const isContent = page.path.startsWith('conteudos/');
+  const clusterOptions = useClusterOptions(open && isContent);
 
   useEffect(() => {
     if (!open) return;
@@ -41,7 +76,6 @@ export function FrontmatterDrawer({
 
   if (!open) return null;
 
-  const isContent = page.path.startsWith('conteudos/');
   const isBrain = page.path.startsWith('brain/');
   const isLog = page.path === 'brain/log.md';
   const isBrainRestricted = isBrain && !isLog;
@@ -49,13 +83,51 @@ export function FrontmatterDrawer({
   const canEditYaml = canEditStructured && !isBrainRestricted;
   const frontmatter = page.frontmatter || {};
   const knownFields = isContent ? CONTENT_FIELDS : isBrain ? BRAIN_FIELDS : Object.keys(frontmatter);
-  const extraFields = Object.keys(frontmatter).filter((key) => !knownFields.includes(key));
+  const reservedKeys = new Set([
+    ...knownFields,
+    'clusters',
+    'papel',
+    'contract_version',
+    'area', // legacy, surfaced read-only
+  ]);
+  const extraFields = Object.keys(frontmatter).filter((key) => !reservedKeys.has(key));
+
+  const clustersValue: string[] = Array.isArray(frontmatter.clusters)
+    ? (frontmatter.clusters as unknown[]).map((c) => String(c))
+    : [];
+  const papelValue: Record<string, string> =
+    frontmatter.papel && typeof frontmatter.papel === 'object'
+      ? Object.fromEntries(
+          Object.entries(frontmatter.papel as Record<string, unknown>).map(([k, v]) => [k, String(v)]),
+        )
+      : {};
 
   const updateField = (key: string, value: string) => {
     if (!canEditStructured) return;
     if (isBrainRestricted && key !== 'title') return;
     const next = { ...frontmatter, [key]: value };
     updatePage(page.id, key === 'title' ? { frontmatter: next, title: value } : { frontmatter: next });
+  };
+
+  const updateClusters = (clusters: string[]) => {
+    if (!canEditStructured) return;
+    const filteredPapel = Object.fromEntries(
+      Object.entries(papelValue).filter(([k]) => clusters.includes(k)),
+    );
+    const next = { ...frontmatter, clusters };
+    if (Object.keys(filteredPapel).length > 0) {
+      (next as Record<string, unknown>).papel = filteredPapel;
+    } else {
+      delete (next as Record<string, unknown>).papel;
+    }
+    updatePage(page.id, { frontmatter: next });
+  };
+
+  const updatePapel = (clusterSlug: string, value: string) => {
+    if (!canEditStructured) return;
+    const nextPapel = { ...papelValue, [clusterSlug]: value };
+    const next = { ...frontmatter, papel: nextPapel };
+    updatePage(page.id, { frontmatter: next });
   };
 
   const updateYaml = (value: string) => {
@@ -112,6 +184,36 @@ export function FrontmatterDrawer({
           ))}
         </div>
 
+        {isContent && (
+          <div className="space-y-3 pt-2 border-t border-notion-border">
+            <ClusterMultiSelect
+              label="clusters"
+              value={clustersValue}
+              options={clusterOptions}
+              readOnly={!canEditStructured}
+              onChange={updateClusters}
+            />
+            {clustersValue.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-[10px] uppercase tracking-wider text-notion-text-muted">papel</div>
+                {clustersValue.map((slug) => (
+                  <label key={slug} className="flex items-center gap-2">
+                    <span className="text-xs text-notion-text-muted min-w-[120px] truncate">{slug}</span>
+                    <Select
+                      value={papelValue[slug] || 'satelite'}
+                      onChange={(v) => updatePapel(slug, v)}
+                      disabled={!canEditStructured}
+                      options={PAPEL_OPTIONS}
+                      className="flex-1"
+                      triggerClassName="w-full justify-between rounded-md border border-notion-border bg-background px-2.5 py-1.5"
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {extraFields.length > 0 && (
           <div className="pt-2 border-t border-notion-border space-y-3">
             <div className="text-[10px] uppercase tracking-wider text-notion-text-muted">{t('frontmatterDrawer.blockedFields')}</div>
@@ -145,6 +247,102 @@ export function FrontmatterDrawer({
         </div>
       </div>
     </aside>
+  );
+}
+
+function ClusterMultiSelect({
+  label,
+  value,
+  options,
+  readOnly,
+  onChange,
+}: {
+  label: string;
+  value: string[];
+  options: ClusterOption[];
+  readOnly: boolean;
+  onChange: (next: string[]) => void;
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const remaining = useMemo(
+    () => options.filter((o) => !value.includes(o.slug)),
+    [options, value],
+  );
+
+  const removeSlug = (slug: string) => {
+    if (readOnly) return;
+    onChange(value.filter((s) => s !== slug));
+  };
+
+  const addSlug = (slug: string) => {
+    if (readOnly) return;
+    if (value.includes(slug)) return;
+    onChange([...value, slug]);
+    setPickerOpen(false);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <span className="text-xs font-medium text-notion-text-muted">{label}</span>
+      <div className="flex flex-wrap gap-1.5 min-h-[32px]" data-testid="cluster-chips">
+        {value.length === 0 && (
+          <span className="text-xs text-notion-text-muted">—</span>
+        )}
+        {value.map((slug) => {
+          const opt = options.find((o) => o.slug === slug);
+          return (
+            <span
+              key={slug}
+              data-testid={`cluster-chip-${slug}`}
+              className="inline-flex items-center gap-1 rounded-md border border-notion-border bg-notion-active/40 px-2 py-0.5 text-xs text-notion-text"
+            >
+              {opt?.icon ? <span>{opt.icon}</span> : null}
+              <span>{slug}</span>
+              {!readOnly && (
+                <button
+                  onClick={() => removeSlug(slug)}
+                  className="text-notion-text-muted hover:text-notion-text cursor-pointer"
+                  aria-label={`remover ${slug}`}
+                  data-testid={`remove-cluster-${slug}`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </span>
+          );
+        })}
+        {!readOnly && remaining.length > 0 && (
+          <div className="relative">
+            <button
+              onClick={() => setPickerOpen((v) => !v)}
+              data-testid="add-cluster-button"
+              className="inline-flex items-center gap-1 rounded-md border border-dashed border-notion-border px-2 py-0.5 text-xs text-notion-text-muted hover:bg-notion-hover cursor-pointer"
+            >
+              <Plus className="w-3 h-3" /> cluster
+            </button>
+            {pickerOpen && (
+              <div
+                data-testid="cluster-picker"
+                className="absolute left-0 mt-1 z-10 w-56 rounded-md border border-notion-border bg-background shadow-lg p-1 max-h-56 overflow-auto"
+              >
+                {remaining.map((opt) => (
+                  <button
+                    key={opt.slug}
+                    onClick={() => addSlug(opt.slug)}
+                    data-testid={`pick-cluster-${opt.slug}`}
+                    className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-notion-hover cursor-pointer flex items-center gap-2"
+                  >
+                    {opt.icon ? <span>{opt.icon}</span> : null}
+                    <span>{opt.nome}</span>
+                    <span className="text-notion-text-muted">{opt.slug}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

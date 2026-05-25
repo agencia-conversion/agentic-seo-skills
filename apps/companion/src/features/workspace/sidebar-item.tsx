@@ -132,7 +132,12 @@ function SidebarItemImpl({
           </span>
         )}
         <span className="flex-1 truncate">{displayTitle}</span>
-        {page.dirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title={t('deleteFile.unsavedChanges')} />}
+        {page.dirty && !page.saving && (
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title={t('deleteFile.unsavedChanges')} />
+        )}
+        {page.saving && (
+          <span className="w-2 h-2 shrink-0 rounded-full border border-emerald-500 border-t-transparent animate-spin" title="Salvando" />
+        )}
         <div ref={menuRef} className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity relative">
           {canCreateSubpage && (
             <button

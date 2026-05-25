@@ -217,4 +217,42 @@ assert.match(pageWidthSource, /return 'lg'/);
 const globalCssSource = readFileSync("apps/companion/src/app/globals.css", "utf8");
 assert.doesNotMatch(globalCssSource, /left:\s*-76px/);
 
+// cluster-table sentinel roundtrip
+const clusterMd = `---
+title: GEO
+---
+
+# GEO
+
+## Pilar
+
+algo
+
+<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->
+## Conteúdos
+
+| Papel | Conteúdo |
+| --- | --- |
+| Pilar | [GEO](../../conteudos/blog/geo.md) |
+
+<!-- END cluster-content-table:auto -->
+
+## Próximas ações
+
+texto autoral
+`;
+const clusterDoc = markdownToDoc(clusterMd, resolver, { filePath: 'brain/topic-clusters/geo.md' });
+const clusterNodes = clusterDoc?.content || clusterDoc?.children || clusterDoc?.nodes || [];
+const hasClusterTable = JSON.stringify(clusterDoc).includes('"clusterTable"');
+assert.equal(hasClusterTable, true, 'markdownToDoc should produce a clusterTable node when sentinels present');
+const clusterOut = docToMarkdown(clusterDoc, resolver);
+assert.match(clusterOut, /<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->/);
+assert.match(clusterOut, /<!-- END cluster-content-table:auto -->/);
+assert.match(clusterOut, /## Conteúdos/);
+assert.match(clusterOut, /texto autoral/);
+
+const clusterExtensionSource = readFileSync("apps/companion/src/features/editor/cluster-table-extension.tsx", "utf8");
+assert.match(clusterExtensionSource, /name:\s*'clusterTable'/);
+assert.match(clusterExtensionSource, /atom:\s*true/);
+
 console.log("companion markdown roundtrip ok");

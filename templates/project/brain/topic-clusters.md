@@ -1,29 +1,29 @@
 ---
-title: "Topic clusters"
+title: "Topic Clusters"
+contract_version: 1
 updated: "<YYYY-MM-DD>"
 ---
 
-# Topic clusters
+# Topic Clusters
 
-<!--
-Índice curto dos clusters ativos. Cada cluster ativo tem uma subpágina dedicada
-em `brain/topic-clusters/<slug>.md` (criada via handoff `approve-cluster` da skill
-`topic-cluster`). Rascunhos vivem em `../clusters/<slug>/draft.yaml` e não aparecem
-aqui até a promoção. Este índice é regenerado pelo `brain-keeper` quando há mudança
-estrutural; prosa autoral fica no painel e nas seções abaixo.
--->
+Cada Topic Cluster organiza um tema editorial em torno de um conteúdo pilar e satélites que cobrem subtemas relacionados. Use a tabela abaixo para navegar entre os clusters ativos — cada nome leva à página do cluster com a tabela completa de conteúdos publicados e planejados.
 
+<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->
 ## Painel
 
 | Indicador | Valor |
 | --- | --- |
 | Clusters ativos | 0 |
 | Conteúdos publicados | 0 |
-| Conteúdos planejados | 0 |
+| Satélites planejados | 0 |
+| Conteúdos órfãos | 0 |
+| Última sincronização | — |
 
 ## Clusters ativos
 
 <!-- Nenhum cluster ativo. Use `topic-cluster` para criar o primeiro. -->
+
+<!-- END cluster-index-table:auto -->
 
 ## Próximas ações
 

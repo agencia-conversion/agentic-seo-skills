@@ -150,13 +150,21 @@ Lexical pass first (cheap, regex), semantic pass second. A `block` in the lexica
 - Pre-fill check: any file in `brain/` that still contains `<!-- REGRA:`, `<preencher>`, `gap`, `TODO`, `[?]`, `<YYYY-MM-DD>`, "a confirmar", "a definir" blocks with `status: blocked` and the message "template não foi preenchido".
 - Every wikilink `[[...]]` resolves to a file in `brain/` or to a real anchor in an existing brain page.
 - `cluster.table.no-gap` (block): tables in `brain/topic-clusters/<slug>.md` cannot contain empty cells or placeholders. Status must be in `publicado | planejado | a-revisar | descontinuado`; ação must be in `manter | revisar | criar | avaliar`. Planned content appears as `_slug-italico_` (italic without link) — markdown links to non-existing conteúdo files are blocked.
-- `editorial.brain.cluster-cross-ref` (block): every slug in `clusters:[]` of any `conteudos/**/*.md` must exist as folder under `project/clusters/<slug>/`. Each subpage `brain/topic-clusters/<slug>.md` must correspond to a folder under `project/clusters/<slug>/`. Bidirectional consistency: a content listing cluster X must appear in the table of `brain/topic-clusters/X.md` (and vice-versa) — divergence is reported as `tipo: lint` to be reconciled by `cluster-sync`.
+- `editorial.brain.cluster-cross-ref` (block): every slug in `clusters:[]` of any `conteudos/**/*.md` must exist as folder under `project/clusters/<slug>/`. Each subpage `brain/topic-clusters/<slug>.md` must correspond to a folder under `project/clusters/<slug>/`. Bidirectional consistency is owned by `cluster-sync` per `docs/specs/topic-clusters-contract.md`. Per-cluster materialized tables live between `<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->` and `<!-- END cluster-content-table:auto -->` sentinels; the index between `<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->` and `<!-- END cluster-index-table:auto -->`. Manual edits inside sentinels are silently overwritten by sync.
 - No two log entries share the same `## YYYY-MM-DD - <título>` heading.
 - Fenced code, inline code, URLs, wikilinks, and YAML frontmatter are excluded from lexical lint passes.
 
-### Comando `cluster-sync`
+### Commands — `cluster-sync`, `cluster-doctor`, `cluster-rename`, `cluster-retire`
 
-Regenerates the contents table inside each `brain/topic-clusters/<slug>.md` from the union of (a) `clusters:[]` declared in each `project/conteudos/**/*.md` frontmatter and (b) `satelites[]` declared in the matching `project/clusters/<slug>/cluster.yaml`. Idempotent. Preserves authorial prose (resumo, próximas ações, evidência) — only the table block changes. Conflicts (frontmatter says cluster X, cluster X table omits the content) are resolved by adding the content row with `papel: satelite` and `status: published`; a `tipo: lint` entry warns about uncurated papel. Conflicts going the other way (cluster lists a content whose file does not exist) become `editorial.brain.cluster-cross-ref` blockers. Trigger: after `content-seo promote`, after `topic-cluster` Phase 4 promotion, or by explicit user request.
+The Topic Clusters subsystem is governed by `docs/specs/topic-clusters-contract.md` (contract_version 1, plugin 0.2). Read that document first before editing cluster artifacts.
+
+- `node scripts/cluster-sync.mjs [--cluster=<slug>] [--check] [--dry-run]` — recomputes the materialized table between sentinels in each `brain/topic-clusters/<slug>.md` and the index, from the union of (a) `clusters:[]` in each `conteudos/**/*.md` frontmatter, (b) `pilar` and `planned_satellites[]` in `cluster.yaml`, and (c) `satelite_overrides`. Idempotent. Preserves authorial prose. Conflicts surface as lints (`content.cluster-missing`, `cluster.unique-pilar`, `cluster.pilar.divergence`, etc.). `--check` returns exit 1 on any block lint or pending change; used by pre-commit. Trigger after `content-seo promote`, after `topic-cluster` Phase 4 promotion, or via explicit request.
+- `node scripts/cluster-doctor.mjs` — read-only diagnostic. Prints lints without writing.
+- `node scripts/cluster-rename.mjs --from=<old> --to=<new>` — atomic rename across YAML + frontmatters + brain.
+- `node scripts/cluster-retire.mjs --slug=<X> [--reassign-to=<Y>]` — remove cluster preserving contents.
+- `node scripts/install-cluster-sync-hook.mjs --apply` — installs pre-commit hook that runs `cluster-sync --check`.
+
+The Web Companion also fires `cluster-sync --cluster=<affected>` server-side after `POST /api/project/file` saves any `conteudos/<origem>/<slug>.md` or `clusters/<slug>/cluster.yaml`.
 
 ### Failure record
 

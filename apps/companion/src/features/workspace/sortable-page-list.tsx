@@ -38,7 +38,7 @@ export function SortablePageList({
 }: SortablePageListProps) {
   const reorderPages = useWorkspace((s) => s.reorderPages);
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { delay: 150, tolerance: 6 } })
   );
   const [dragActiveId, setDragActiveId] = useState<string | null>(null);
 

@@ -833,6 +833,13 @@ function TiptapEditorSurface({
               }
               return true;
             }
+            // Fallback for cluster subpages or content paths that may not yet be in store.pages.
+            if (typeof window !== 'undefined' && store.token && targetPath) {
+              const slug = targetPath.replace(/\.md$/, '').replace(/\//g, '-');
+              event.preventDefault();
+              window.location.href = `/project/${store.token}/${slug}`;
+              return true;
+            }
           }
         }
         return false;

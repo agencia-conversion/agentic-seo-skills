@@ -258,13 +258,20 @@ function setFrontmatterFields(text: string, fields: Record<string, unknown>) {
   const lines = raw.split(/\r?\n/);
   const seen = new Set<string>();
   const nextLines: string[] = [];
+  let skipIndented = false;
   for (const line of lines) {
+    if (skipIndented) {
+      if (/^\s/.test(line) && line.trim().length > 0) continue;
+      if (line.trim().length === 0) continue;
+      skipIndented = false;
+    }
     let replaced = false;
     for (const [key, value] of Object.entries(fields)) {
       if (new RegExp(`^${key}\\s*:`).test(line)) {
         seen.add(key);
         nextLines.push(...frontmatterLines({ [key]: value }));
         replaced = true;
+        skipIndented = true;
         break;
       }
     }
