@@ -1,0 +1,55 @@
+id: sistrix_2020
+name: Sistrix CTR Study (80M keywords)
+type: absolute
+source:
+  publisher: Sistrix
+  url: https://www.sistrix.com/blog/why-almost-everything-you-knew-about-google-ctr-is-no-longer-valid/
+  published_at: 2020-07-14
+  license: free
+methodology:
+  summary: GSC-anonymized aggregation across roughly 80 million keywords; broken out by layout features such as sitelinks, knowledge panel and featured snippet.
+  sample_size: 80000000
+  coverage:
+    locale: ""
+    device: mixed
+    intent: mixed
+    aio_aware: false
+captured_at: 2026-05-25
+positions:
+  - position: 1
+    ctr_pct: 28.5
+    note: null
+  - position: 2
+    ctr_pct: 15.7
+    note: null
+  - position: 3
+    ctr_pct: 11.0
+    note: null
+  - position: 4
+    ctr_pct: 8.0
+    note: null
+  - position: 5
+    ctr_pct: 6.3
+    note: null
+  - position: 6
+    ctr_pct: 4.7
+    note: null
+  - position: 7
+    ctr_pct: 3.5
+    note: null
+  - position: 8
+    ctr_pct: 2.7
+    note: null
+  - position: 9
+    ctr_pct: 2.1
+    note: null
+  - position: 10
+    ctr_pct: 1.8
+    note: null
+caveats:
+  - Pre-AI Overview historical baseline. Use only as a sanity-check reference, not as the active curve for 2026 SoV.
+  - Methodology is transparent and well documented, but the SERP layout it measured no longer reflects current AI-enhanced results.
+provenance:
+  added_by: agent
+  evidence_refs:
+    - https://www.sistrix.com/blog/why-almost-everything-you-knew-about-google-ctr-is-no-longer-valid/

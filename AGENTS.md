@@ -26,6 +26,7 @@ This repository root is the plugin root.
 - Tools: `tools/` for deterministic provider CLIs.
 - Templates: `templates/`
 - Utility scripts: `scripts/`
+- Versioned reference data: `shared/ctr-curves/` for CTR distributions used by Share of Voice / Share of Clicks modeling. One file per published edition, validated by `shared/ctr-curves/loader.mjs`. See `shared/ctr-curves/_schema.md`.
 - Runtime project: `project/` and ignored by git except `project/.gitkeep`
 - Local persistence for ignored runtime projects is handled by `scripts/project-sync.mjs`; see `docs/project-persistence.md`.
 
