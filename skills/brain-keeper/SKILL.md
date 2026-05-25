@@ -51,6 +51,12 @@ If `brain/revisao.md` is missing or carries only placeholders for the project-sp
 
 Use Obsidian Wikilinks `[[...]]` only for real files inside `project/brain/`. Use Markdown links for `../sources/`, `../conteudos/`, and external URLs. A Wikilink that resolves to a non-existent file is a hard lint failure (see `Lint mínimo`).
 
+**Fonte autoral vs. fonte interna.** O brain é a voz da própria marca falando de si mesma. Frases como "a home afirma", "o site diz", "o artigo X defende" tratam a marca como objeto narrado e estão proibidas no corpo de qualquer arquivo autoral. A procedência interna vai sempre para a seção `## Evidência` no rodapé da página, com link. Veja `## Lint editorial` abaixo para a regra completa.
+
+**Stack observado vs. tese editorial.** `tecnologia.md` é estritamente descritivo do que foi observado no site (frontend, CMS, headers, JSON-LD). Tese editorial sobre stack ("a marca defende Next.js", "preferimos sites estáticos") vive em `editorial.md` como área editorial ou em conteúdos publicados em `conteudos/`. Nunca em `tecnologia.md`.
+
+**Lexicons.** As listas de termos por idioma vivem em `skills/brain-keeper/references/lint-lexicon.<lang>.json` (`pt-br`, `en`). O idioma ativo vem de `project/.agentic-seo/project.json.language`. Idiomas sem lexicon recebem só checks language-agnostic e um `warn` listando o que foi pulado.
+
 ## Schema do log
 
 Append entries with this shape:
@@ -108,17 +114,67 @@ Aplicar a regra em:
 
 Logs (`log.md`) podem citar lacunas observadas como `tipo: lint` ou `tipo: decisao`, com critério para reintroduzir.
 
-## Lint mínimo
+## Lint editorial
 
-Run before declaring done:
+Run before declaring done in any change to an authorial brain page (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) and to `conteudos/<origem>/<slug>.md`. Does not run on `log.md`, `sources/`, or `workbench/`. Severity `block` interrupts the run with `status: blocked`; severity `warn` is logged as `tipo: lint` and the author decides.
 
+Lexicons per language live in `skills/brain-keeper/references/lint-lexicon.<lang>.json`, loaded by `project/.agentic-seo/project.json.language`. Languages without a lexicon get only language-agnostic checks plus a `warn` listing skipped checks.
+
+### Order
+
+Lexical pass first (cheap, regex), semantic pass second. A `block` in the lexical pass stops execution before the semantic pass.
+
+**Lexical pass:**
+1. `editorial.brain.accents` (V8) — block. Lexicon `accents`.
+2. `editorial.brain.no-em-dash` (V7) — block in prose.
+3. `editorial.brain.no-ai-slop` (V6) — block. Lexicon `ai_slop`.
+4. `editorial.brain.no-blog-tutorial-voice` (V5) — block. Lexicon `blog_tutorial`.
+5. `editorial.brain.no-promo-adjectives` (V4) — block when no external source on the same paragraph or in adjacent `## Evidência`. Lexicon `promo_adjectives`.
+
+**Semantic pass:**
+6. `editorial.brain.no-source-description` (V1) — block in authorial pages; excluded inside `## Evidência` and in `log.md`. Lexicon `source_description`.
+7. `editorial.brain.aposto-shape` (V2) — warn when aposto exceeds 12 words or contains enumerative list; block above 20 words. Heuristic: first proper-noun aposto per section.
+8. `editorial.brain.tecnologia-descritivo` (V3) — block in `tecnologia.md` only. Lexicon `tecnologia_editorial_verbs`.
+
+### Standing rules
+
+- Pre-fill check: any file in `brain/` that still contains `<!-- REGRA:`, `<preencher>`, `gap`, `TODO`, `[?]`, `<YYYY-MM-DD>`, "a confirmar", "a definir" blocks with `status: blocked` and the message "template não foi preenchido".
 - Every wikilink `[[...]]` resolves to a file in `brain/` or to a real anchor in an existing brain page.
-- Every factual claim in an authorial page cites a source. No `gap`, `TODO`, `<preencher>`, `[?]`, "a confirmar", "a definir" left in brain pages or `conteudos/`.
 - No `area:` in `conteudos/**/*.md` references a section slug that does not exist in `brain/editorial.md`.
 - No two log entries share the same `## YYYY-MM-DD - <título>` heading.
-- pt-BR text preserves accents.
+- Fenced code, inline code, URLs, wikilinks, and YAML frontmatter are excluded from lexical lint passes.
 
-If a lint check fails, append `tipo: lint` entry to `log.md` describing the finding and stop with `status: blocked` until the user resolves it.
+### Failure record
+
+For each violation, append a single entry to `project/brain/log.md`:
+
+```
+## YYYY-MM-DD - lint editorial em <file>
+
+- tipo: lint
+- escopo: <file>
+- decisao: bloqueio editorial — <check id>
+- evidencia: linha <N>, trecho: "<excerto de até 80 caracteres>"
+- aprovador: agent
+- notas: sugestão de correção — <texto>
+```
+
+Multiple violations in the same file in the same run group under one entry with a list in `notas`.
+
+### Message to the user when blocked
+
+Be factual and propositive. Cite line, ID, excerpt, suggestion, and an active exit. Avoid "erro", "inválido", "rejeitado".
+
+```
+Bloqueei a alteração em brain/identidade.md por 2 violações editoriais antes de aprovar:
+
+1. Linha 14 — "a home afirma que a marca é referência…" — descrição de fonte interna (editorial.brain.no-source-description).
+   Sugestão: "A marca opera consultoria de SEO para empresas brasileiras." Mover o link da home para ## Evidência.
+2. Linha 22 — "líder consagrado em IA" — adjetivo promocional sem fonte externa (editorial.brain.no-promo-adjectives).
+   Sugestão: cortar "líder consagrado" ou citar ranking público de instituto nominal em ## Evidência.
+
+Registrei em log.md como tipo: lint. Posso aplicar a correção sugerida agora — confirma?
+```
 
 ## Output Format
 
@@ -133,6 +189,11 @@ files_touched:
   sources: []
   conteudos: []
   workbench: []
+lint:
+  passed: true | false
+  ran_at: <ISO timestamp>
+  blockers: []
+  warnings: []
 next_action: ""
 ```
 
@@ -140,7 +201,10 @@ next_action: ""
 
 - Sources captured untouched in `sources/`; no existing source modified.
 - Authorial brain pages changed only with matching `tipo: decisao` log entries and evidence references.
-- All wikilinks resolve.
+- All wikilinks resolve to real files or anchors in `brain/`.
+- `editorial.brain.*` lint ran on every changed authorial page or `conteudos/` file; `lint.passed == true`, `lint.blockers == []`. Any `block` failure stops the run with `status: blocked` and forbids declaring `complete`.
+- `warn` findings (V2 aposto between 12 and 20 palavras) registradas em `log.md` como `tipo: lint` e mantidas como dívida visível.
 - Log entries appended with the right `tipo:` and complete fields.
-- pt-BR accents preserved.
+- Active language accents preserved (pt-BR by default).
 - Contradictions and gaps surfaced as `tipo: lint` entries when found.
+- No file in `brain/` still contains `<!-- REGRA:`, `<preencher>`, `gap`, `TODO`, `[?]`, `<YYYY-MM-DD>`, "a confirmar", or "a definir".

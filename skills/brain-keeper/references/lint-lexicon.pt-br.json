@@ -1,0 +1,70 @@
+{
+  "language": "pt-BR",
+  "version": "1.0.0",
+  "accents": [
+    "pagina", "paginas", "conteudo", "conteudos", "analise", "analises",
+    "tecnico", "tecnica", "tecnicas", "aprovacao", "aprovacoes",
+    "evidencia", "evidencias", "estrategia", "estrategias",
+    "publico", "publicos", "publica", "publicas",
+    "nao", "ate", "orgaos", "sao", "tambem", "midia", "midias",
+    "titulo", "titulos", "video", "videos", "ultimo", "ultima",
+    "ja", "so", "ai", "porem", "alem", "atraves",
+    "metrica", "metricas", "logica", "logicas", "grafico", "graficos",
+    "codigo", "codigos", "topico", "topicos", "politica", "politicas",
+    "duvida", "duvidas", "minimo", "maximo", "dinamica", "dinamicas",
+    "indice", "indices", "fisico", "fisica", "historia", "historias",
+    "memoria", "memorias", "hipotese", "hipoteses", "parametro", "parametros",
+    "fenomeno", "fenomenos", "silaba", "silabas", "angulo", "angulos",
+    "numero", "numeros", "genero", "generos", "pratica", "praticas",
+    "serie", "series", "ideia", "ideias"
+  ],
+  "ai_slop": [
+    "crucial", "robusto", "robusta", "compreensivo", "compreensiva",
+    "nuançado", "nuançada", "fundamental", "significativo", "significativa",
+    "abrangente", "holístico", "holística", "sinérgico", "sinérgica",
+    "escalável", "revolucionário", "revolucionária", "disruptivo", "disruptiva",
+    "inovador", "inovadora", "alavancar", "maximizar", "transformacional",
+    "essencial", "next-gen", "end-to-end", "acionável", "empoderar"
+  ],
+  "blog_tutorial": [
+    "vamos entender", "vamos ver", "vamos explorar", "vamos aprender",
+    "neste artigo", "neste post", "neste texto", "neste guia",
+    "como você pode ver", "como você vê", "como vimos",
+    "vale lembrar", "vale destacar", "vale notar", "é importante notar",
+    "não esqueça", "fique atento", "agora que vimos",
+    "em outras palavras", "simplificando", "basicamente",
+    "você vai aprender", "descubra como", "continue lendo para saber",
+    "antes de mais nada", "sem mais delongas", "você já deve ter ouvido falar",
+    "a resposta é simples", "a verdade é que", "o segredo está em"
+  ],
+  "promo_adjectives": [
+    "líder", "principal", "maior", "melhor", "único", "única",
+    "pioneiro", "pioneira", "referência", "consagrado", "consagrada",
+    "renomado", "renomada", "reconhecido", "reconhecida", "premiado", "premiada",
+    "respeitado", "respeitada", "vanguardista",
+    "completo", "exclusivo", "definitivo",
+    "histórico", "marcante", "memorável"
+  ],
+  "source_description": [
+    "a home afirma", "a home diz", "a home declara", "a home posiciona",
+    "a home defende", "a home apresenta", "a home sustenta", "a home revela",
+    "a home indica", "a home mostra",
+    "o site afirma", "o site diz", "o site declara", "o site posiciona",
+    "o site defende", "o site apresenta", "o site sustenta",
+    "a página afirma", "a página diz", "a página declara", "a página defende",
+    "a página apresenta", "a página revela", "a página mostra",
+    "a landing afirma", "a landing diz", "a landing defende",
+    "o blog afirma", "o blog diz", "o blog defende", "o blog posiciona",
+    "o artigo afirma", "o artigo diz", "o artigo defende", "o artigo sustenta",
+    "segundo o site", "segundo a home", "segundo a página", "segundo o blog",
+    "de acordo com o site", "de acordo com a página", "de acordo com o conteúdo publicado",
+    "conforme o blog", "conforme a landing", "conforme a home",
+    "a marca apresenta", "o texto da home mostra", "essa página revela",
+    "o copy indica", "o material institucional"
+  ],
+  "tecnologia_editorial_verbs": [
+    "defende", "propõe", "recomenda", "prega", "sustenta", "argumenta",
+    "aposta em", "acredita em", "pretende usar", "vai migrar", "quer adotar",
+    "preferimos", "rejeitamos", "acreditamos"
+  ]
+}

@@ -95,8 +95,8 @@ The briefing must include a capacity check: the outline must plausibly support t
 - **Tools:** `Glob`, `Grep`, `Read`, `WebSearch`, `WebFetch`.
 - **Inputs:** brand domain, primary keyword, project root.
 - **Sources:** `project/brain/` logged or filled pages, `project/sources/`, prior `project/conteudos/<origem>/<slug>.md`, prior draft artifacts when explicitly relevant, plus `site:<domain>` queries on the public Web.
-- **Output:** `workbench/brand-pov.md` with: prior takes and recurring thesis; proprietary data, exclusive frameworks, or distinctive naming; divergence points from market consensus; observed editorial voice in published material; gaps the brand has not yet addressed. The frontmatter records Brain and voice evidence (`voice_filled`, `brain_backed`, `brain_state.*`).
-- **Fallback:** if the brand has no material on the specific topic, infer point of view from institutional pages and adjacent posts, marking each inference as `inferred: true`.
+- **Output:** `workbench/brand-pov.md` with two clearly separated blocks: (a) **authorial voice** — what the brand declares about itself in `project/brain/` (identidade, voz, tecnologia, editorial, topic-clusters). This is the brand speaking; do not attribute to specific brain pages inside the prose, attribute via wikilinks in the evidence list at the end. (b) **published opinion** — theses, frameworks, naming, and stack claims found in `project/conteudos/<origem>/*.md` and on the public Web. These are editorial positions the brand has published; attribute by title and URL. Also include: divergence points from market consensus, gaps the brand has not addressed, observed editorial voice patterns. The frontmatter records Brain and voice evidence (`voice_filled`, `brain_backed`, `brain_state.*`).
+- **Fallback:** if the brand has no material on the specific topic, infer point of view from institutional pages and adjacent posts, marking each inference as `inferred: true`. Never merge an inferred position with the authorial block.
 
 #### 3c. `seo-analyst` — synthesis to outline (sequential)
 

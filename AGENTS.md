@@ -27,6 +27,7 @@ This repository root is the plugin root.
 - Templates: `templates/`
 - Utility scripts: `scripts/`
 - Runtime project: `project/` and ignored by git except `project/.gitkeep`
+- Local persistence for ignored runtime projects is handled by `scripts/project-sync.mjs`; see `docs/project-persistence.md`.
 
 ## Compatibility Rules
 
