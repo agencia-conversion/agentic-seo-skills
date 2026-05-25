@@ -342,6 +342,8 @@ function titleFromFile(rel: string, frontmatter: Record<string, any>) {
 function normalizeHeadingTitle(value: string) {
   return String(value || '')
     .replace(/^["']|["']$/g, '')
+    // Strip leading emoji/icon prefix (Unicode pictographs, symbols, dingbats).
+    .replace(/^[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{S}]+\s*/u, '')
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();

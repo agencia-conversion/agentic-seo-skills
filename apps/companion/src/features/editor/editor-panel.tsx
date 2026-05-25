@@ -603,9 +603,9 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
                 </motion.div>
               )}
             </AnimatePresence>
-            <div className="flex items-end gap-2">
+            <div className="flex items-start gap-2">
               {activePage.icon && (
-                <div className="relative group/icon-container shrink-0 self-end mb-[0.36em]">
+                <div className="relative group/icon-container shrink-0 self-start mt-[0.12em]">
                   <button
                     type="button"
                     className={cn(
