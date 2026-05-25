@@ -1,0 +1,39 @@
+templates/project/brain/identidade.md
+  s_f161d84bf983d8::t_2d731fabe2627b 9-15,20-32,38-51,55-85,89-95,99-105,109-116,122-129,133-141,145-153,158,162-169,178-181,189-194,196-216
+skills/content-seo/SKILL.md
+  s_f161d84bf983d8::t_f9062b43d877b5 97-98
+templates/project/brain/voz.md
+  s_f161d84bf983d8::t_7d6cd35bcdf9b1 9-17,22-35,41-72,74,76,78-81,83,85-116,118-164,168-175,179-204,206-207
+apps/companion/src/features/editor/linked-mentions-panel.tsx
+  s_f161d84bf983d8::t_2620d300b13e91 4-12,47-62,69-150,161-162,190-194,233-235,239-247,252,254-262,264,268,271-278,283-289,291,293-305,307,311
+  s_f161d84bf983d8::t_78fb163906f14e 14
+  s_f161d84bf983d8::t_a98aa4ce0f1a85 155
+templates/project/brain/tecnologia.md
+  s_f161d84bf983d8::t_ca0dba82488c2e 9-17,22-28,32-33,41-46,52-60,73-79,81-92
+apps/companion/e2e/backlinks.spec.ts
+  s_f161d84bf983d8::t_5c1dda56e0dcd4 45-50,54-57,62-64,73-77,84-97
+skills/brain-keeper/references/lint-lexicon.pt-br.json
+  s_f161d84bf983d8::t_0af6451a7015fe 1-70
+skills/brain-keeper/SKILL.md
+  s_f161d84bf983d8::t_ef6ef6e5c88f61 54-61
+  s_f161d84bf983d8::t_79f5db57d68931 120-126,128,130-144,148-152,154-180
+  s_f161d84bf983d8::t_148995f0227340 195-199,207-209,211,213
+skills/brain-keeper/references/lint-lexicon.en.json
+  s_f161d84bf983d8::t_d8c48f9e0c1211 1-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "1099c96564010fde8014374a3fc318b9fb6c3d61",
+  "prompts": {},
+  "sessions": {
+    "s_f161d84bf983d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2ec0ab40-cfce-41e0-af40-3d20db79f4e4",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
