@@ -1,0 +1,153 @@
+shared/ctr-curves/loader.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 1-145
+shared/ctr-curves/backlinko_2024_12.yaml
+  s_945c96ea3b6850::t_e9f588b94e7068 1-55
+apps/companion/src/lib/project-files.ts
+  s_945c96ea3b6850::t_e9f588b94e7068 159-162
+shared/locale.d.ts
+  s_945c96ea3b6850::t_e9f588b94e7068 1-29
+skills/backlink-analysis/evals/fixture.md
+  s_945c96ea3b6850::t_e9f588b94e7068 3-5,9,16-17,19-53,55,57,60-61
+templates/analyses/keyword-research/report-skeleton.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-44
+tests/test_topic_cluster_hypothesis_e2e.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 27
+skills/competitive-analysis/evals/fixture.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-67
+src/commands/runtime.ts
+  s_945c96ea3b6850::t_e9f588b94e7068 2349-2371,4345
+skills/competitive-analysis/references/modules/M1-footprint.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-52
+scripts/lib/report-contract.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 8,10-12,340
+scripts/session-bootstrap.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 53,58
+skills/competitive-analysis/references/modules/M2-share-of-voice.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-78
+tests/test_graph_builder.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 39-42
+tests/test_agentic_query.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 38-41
+shared/report-modules.js
+  s_945c96ea3b6850::t_e9f588b94e7068 4,17
+apps/companion/src/lib/graph-builder.ts
+  s_945c96ea3b6850::t_e9f588b94e7068 7,37
+apps/companion/src/components/i18n-provider.tsx
+  s_945c96ea3b6850::t_e9f588b94e7068 11-12,24-25,84-93,95-96
+tests/test_module_report_contract.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 13
+tests/test_session_bootstrap.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 33
+shared/ctr-curves/awr_2026_q2.placeholder.yaml
+  s_945c96ea3b6850::t_e9f588b94e7068 1-57
+skills/eeat/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 173
+skills/competitive-analysis/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-250
+skills/competitive-analysis/references/modules/M5-content-footprint.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-78
+skills/backlink-analysis/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 3,5,10-11,14,16,21,23-24,26,31-37,42,44,48,54,58,60-71,73,77,79,83,85,87,89,93-100,104,106,110,116,120,124,128-129,140,145,147-148,153-156,160,162-201,206,216-217,222,226,230,232,234,236,247
+skills/competitive-analysis/references/modules/M6-head-to-head.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-68
+skills/technical-seo/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 26,164
+skills/backlink-analysis/references/multi-competitor.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-114
+shared/ctr-curves/_schema.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-68
+templates/analyses/technical-seo/report-skeleton.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-71
+tests/test_page_report_contract.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 42,111-114
+templates/analyses/backlink-analysis/report-skeleton.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-202
+skills/keyword-research/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 144
+dist/commands/runtime.js
+  s_945c96ea3b6850::t_e9f588b94e7068 2340-2375,4364
+shared/ctr-curves/fps_2026.yaml
+  s_945c96ea3b6850::t_e9f588b94e7068 1-56
+shared/locale.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 1-106
+skills/serp-extract/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 170
+tests/test_ctr_curves.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 1-96
+skills/competitive-analysis/contract.yaml
+  s_945c96ea3b6850::t_e9f588b94e7068 1-26
+scripts/competitive-analysis.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 1-715
+apps/companion/src/lib/i18n.ts
+  s_945c96ea3b6850::t_e9f588b94e7068 1068-1094
+shared/report-modules.d.ts
+  s_945c96ea3b6850::t_e9f588b94e7068 8-14
+tests/test_technical_seo.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 30
+templates/analyses/internal-links/report-skeleton.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-57
+skills/seo-analysis/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 162
+tests/test_tag_index.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 43-46
+skills/competitive-analysis/references/modules/M3-keyword-gap.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-62
+apps/companion/src/app/project/[token]/graph/page.tsx
+  s_945c96ea3b6850::t_e9f588b94e7068 11,42,46
+tests/test_agentic_seo_skill.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 62
+package.json
+  s_945c96ea3b6850::t_e9f588b94e7068 15
+tests/test_companion_project_browser.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 50,180,204-206,359,366,374,380
+templates/analyses/serp-extract/report-skeleton.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-44
+shared/ctr-curves/ahrefs_2025_12_aio_deltas.yaml
+  s_945c96ea3b6850::t_e9f588b94e7068 1-69
+shared/ctr-curves/sistrix_2020.yaml
+  s_945c96ea3b6850::t_e9f588b94e7068 1-55
+tests/test_locale.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 1-100
+skills/agentic-seo/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 24,30,52,100-101
+scripts/lib/autoresearch/state.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 3,6
+skills/competitive-analysis/references/modules/M7-brand.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-93
+scripts/lib/markdown-report.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 4,15
+skills/competitive-analysis/references/modules/M4-link-gap.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-42
+skills/project-init/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 60-68,119
+templates/analyses/topic-cluster/report-skeleton.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-80
+templates/analyses/eeat/report-skeleton.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-65
+templates/analyses/seo-analysis/report-skeleton.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-48
+templates/analyses/competitive-analysis/report-skeleton.md
+  s_945c96ea3b6850::t_e9f588b94e7068 1-246
+skills/page-report/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 14,20,28,31,39,79
+tests/test_competitive_analysis.mjs
+  s_945c96ea3b6850::t_e9f588b94e7068 1-137
+skills/internal-links/SKILL.md
+  s_945c96ea3b6850::t_e9f588b94e7068 170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "289dff2b309d4574ceedbeecba415ebf64612324",
+  "prompts": {},
+  "sessions": {
+    "s_945c96ea3b6850": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6515-2bf0-72a0-ad8e-27c2b89c42f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
