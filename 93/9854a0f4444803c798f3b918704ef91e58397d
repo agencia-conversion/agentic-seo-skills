@@ -1,0 +1,29 @@
+apps/companion/e2e/cluster-sync.spec.ts
+  s_e30d4f198a04fe::t_0fd32b25a18e0e 101
+  s_e30d4f198a04fe::t_dead2481b77e1c 147
+  s_e30d4f198a04fe::t_6c6debb7059835 165
+apps/companion/src/features/clusters/cluster-table-view.tsx
+  s_e30d4f198a04fe::t_81832c73563e55 10
+apps/companion/src/features/contents/cluster-content-table.tsx
+  s_e30d4f198a04fe::t_2cf957e2362133 103,105-117,119-142
+  s_e30d4f198a04fe::t_d1a38ca03be617 306-317,320-323
+  s_e30d4f198a04fe::t_4944b7fc26a2c4 384,402,424,428,430
+  s_e30d4f198a04fe::t_9e189e52554304 4
+  s_e30d4f198a04fe::t_c96a3316135774 244-255,261,269,279,287-289,291
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "939854a0f4444803c798f3b918704ef91e58397d",
+  "prompts": {},
+  "sessions": {
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
