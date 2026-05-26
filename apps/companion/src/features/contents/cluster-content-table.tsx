@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Plus, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { showToast } from '@/components/toast';
 import { ClusterContentModal } from '@/features/clusters/cluster-content-modal';
 import {
   ContentLink,
@@ -324,12 +326,15 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                 </tr>
               </thead>
               <tbody>
+                <LayoutGroup>
                 {rows.map((row) => {
                   const kind: 'published' | 'planned' = row.status === 'publicado' ? 'published' : 'planned';
                   const isSelected = selectedSlugs.has(row.slug);
                   return (
-                    <tr
-                      key={`${row.papel}:${row.slug}:${row.status}`}
+                    <motion.tr
+                      key={`${row.slug}`}
+                      layout={rows.length <= 50 ? 'position' : false}
+                      transition={{ type: 'spring', damping: 28, stiffness: 280 }}
                       data-cluster-row={row.slug}
                       data-cluster-row-kind={kind}
                       className={cn(
@@ -353,7 +358,10 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                         <PapelToggle
                           current={row.papel}
                           onCommit={async (next) => {
-                            await patchRow(slug, row.slug, 'papel', next, kind);
+                            const res = await patchRow(slug, row.slug, 'papel', next, kind);
+                            if (res.ok && next === 'pilar') {
+                              showToast('Promovido a pilar — movido para o topo', 'success');
+                            }
                             refetch();
                           }}
                         />
@@ -392,9 +400,10 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                         </span>
                       </td>
                       <td className="px-3 py-2 align-top text-xs text-notion-text-muted">{row.updated}</td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
+                </LayoutGroup>
                 {addingRow && (
                   <tr data-cluster-row-ghost className="border-b border-notion-border bg-notion-active/30">
                     <td className="px-2 py-2" />
