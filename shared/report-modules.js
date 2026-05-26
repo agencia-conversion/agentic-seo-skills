@@ -14,7 +14,7 @@ const REPORT_MODULES = [
   { id: "backlink-analysis", title: { "pt-BR": "Backlinks", en: "Backlinks" } },
   { id: "topic-cluster", title: { "pt-BR": "Topic Clusters", en: "Topic Clusters" } },
   { id: "eeat", title: { "pt-BR": "E-E-A-T", en: "E-E-A-T" } },
-  { id: "competitive-analysis", title: { "pt-BR": "Análise Competitiva", en: "Competitive Analysis" }, cli_ready: false },
+  { id: "competitive-analysis", title: { "pt-BR": "Análise Competitiva", en: "Competitive Analysis" }, cli_ready: true },
 ];
 
 const REPORT_MODULE_IDS = REPORT_MODULES.map((module) => module.id);

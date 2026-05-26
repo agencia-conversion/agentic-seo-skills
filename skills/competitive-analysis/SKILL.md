@@ -214,9 +214,9 @@ log_entry_plan:
 
 If the run is fully blocked (no provider, no fixture), return `status: blocked`, name the gate, and do not invent any module output.
 
-### Default delivery
+### Default delivery and runtime
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/competitive-analysis/report-skeleton.md`. The module-specific source artifact is the run YAML at `audits/competitive-<run-slug>/report.yaml`; the Companion page is `project/analyses/competitive-analysis/<run-slug>/report.md`. Each module renders as one H2 with `agentic-kpis` and `agentic-table`/`agentic-chart` blocks. Modules that did not run are dropped entirely from the visual body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/competitive-analysis/report-skeleton.md`. The run YAML lives at `audits/competitive-<run-slug>/report.yaml`; the Companion page at `project/analyses/competitive-analysis/<run-slug>/report.md`. Each module renders as one H2 with `agentic-kpis` and `agentic-table` blocks; modules that did not run are dropped. The skill is exposed as `node dist/agentic-seo.js competitive-analysis`, dispatched by `src/commands/runtime.ts` to the orchestrator `scripts/competitive-analysis.mjs`, which calls DataForSEO Labs + Backlinks, the sitemap, and homepage HTML extraction, reads `shared/ctr-curves/` for the modeled curve, writes the YAML + Markdown, appends one `tipo: decisao` entry to `project/brain/log.md`, and returns the standard `{ report_md, source_artifact, modules_run, browser_prompt }` JSON.
 
 ## Examples
 

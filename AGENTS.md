@@ -27,6 +27,7 @@ This repository root is the plugin root.
 - Templates: `templates/`
 - Utility scripts: `scripts/`
 - Versioned reference data: `shared/ctr-curves/` for CTR distributions used by Share of Voice / Share of Clicks modeling. One file per published edition, validated by `shared/ctr-curves/loader.mjs`. See `shared/ctr-curves/_schema.md`.
+- Competitive analysis orchestrator: `scripts/competitive-analysis.mjs`. Invoked via `node dist/agentic-seo.js competitive-analysis` (handler `commandCompetitiveAnalysis` in `src/commands/runtime.ts`). Composes M1-M7 from DataForSEO Labs + Backlinks, sitemaps, and homepage HTML; writes `audits/competitive-<run-slug>/report.yaml` + `analyses/competitive-analysis/<run-slug>/report.md` and appends `tipo: decisao` to `brain/log.md`.
 - Runtime project: `project/` and ignored by git except `project/.gitkeep`
 - Local persistence for ignored runtime projects is handled by `scripts/project-sync.mjs`; see `docs/project-persistence.md`.
 
