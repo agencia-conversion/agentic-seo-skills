@@ -1,14 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ClusterContentModal } from '@/features/clusters/cluster-content-modal';
 import {
   ContentLink,
   EditableCell,
   PapelToggle,
-  TambemEmChips,
   type ClusterRow,
 } from '@/features/clusters/cluster-row-cells';
 import {
@@ -101,13 +100,46 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [pasteStatus, setPasteStatus] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-
-  const rows = data?.rows || [];
+  const allRows = data?.rows || [];
+  const rows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return allRows;
+    return allRows.filter((r) => {
+      const title = r.conteudo.kind === 'published' ? r.conteudo.title : r.conteudo.slug;
+      return (
+        title.toLowerCase().includes(q) ||
+        r.keyword.toLowerCase().includes(q) ||
+        r.intent.toLowerCase().includes(q)
+      );
+    });
+  }, [allRows, query]);
   const counts = useMemo(() => {
-    const published = rows.filter((r) => r.status === 'publicado').length;
-    const planned = rows.filter((r) => r.status === 'planejado').length;
-    return { published, planned, total: rows.length };
+    const published = allRows.filter((r) => r.status === 'publicado').length;
+    const planned = allRows.filter((r) => r.status === 'planejado').length;
+    return { published, planned, total: allRows.length };
+  }, [allRows]);
+
+  const allSelected = rows.length > 0 && rows.every((r) => selectedSlugs.has(r.slug));
+  const someSelected = rows.some((r) => selectedSlugs.has(r.slug));
+  const headerCheckboxRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = someSelected && !allSelected;
+    }
+  }, [someSelected, allSelected]);
+  const toggleSelectAll = useCallback(() => {
+    setSelectedSlugs((prev) => {
+      if (rows.every((r) => prev.has(r.slug))) {
+        const next = new Set(prev);
+        for (const r of rows) next.delete(r.slug);
+        return next;
+      }
+      const next = new Set(prev);
+      for (const r of rows) next.add(r.slug);
+      return next;
+    });
   }, [rows]);
 
   const openContent = useCallback((contentSlug: string) => {
@@ -209,26 +241,32 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
       className={cn('my-6 not-prose', bleedMargin && '-mx-12 md:-mx-16')}
     >
       <div ref={wrapperRef} tabIndex={-1} className="overflow-hidden rounded-md border border-notion-border bg-background">
-        <header className="flex items-center justify-between gap-2 border-b border-notion-border bg-notion-sidebar/40 px-4 py-2.5">
-          <div className="flex items-center gap-2 text-sm">
-            <h2 className="text-base font-semibold text-notion-text">Conteúdos</h2>
-            <span className="text-xs text-notion-text-muted">
+        <header className="flex items-center justify-between gap-3 bg-background px-4 py-3">
+          <label className="flex h-9 min-w-[240px] flex-1 items-center gap-2 rounded-md border border-notion-border bg-background px-3 text-sm">
+            <Search className="h-5 w-5 text-notion-text-muted" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar conteúdos…"
+              className="w-full bg-transparent outline-none placeholder:text-notion-text-muted"
+            />
+          </label>
+          <div className="flex items-center gap-3 text-xs text-notion-text-muted">
+            <span>
               {counts.published} publicado{counts.published === 1 ? '' : 's'}
               {counts.planned > 0 && ` · ${counts.planned} planejado${counts.planned === 1 ? '' : 's'}`}
               {selectedSlugs.size > 0 && ` · ${selectedSlugs.size} selecionada${selectedSlugs.size === 1 ? '' : 's'}`}
             </span>
             {pasteStatus && (
-              <span className="text-xs text-emerald-700" data-testid="cluster-paste-status">
+              <span className="text-emerald-700" data-testid="cluster-paste-status">
                 {pasteStatus}
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-1">
             {selectedSlugs.size > 0 && (
               <button
                 type="button"
                 onClick={() => void copySelected()}
-                className="rounded px-2 py-1 text-xs text-notion-text-muted hover:bg-notion-hover hover:text-notion-text cursor-pointer"
+                className="rounded px-2 py-1 hover:bg-notion-hover hover:text-notion-text cursor-pointer"
                 title="Copiar selecionadas (Cmd+C)"
                 data-testid="cluster-copy-selected"
               >
@@ -237,17 +275,8 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
             )}
             <button
               type="button"
-              onClick={() => void pasteRows()}
-              className="rounded px-2 py-1 text-xs text-notion-text-muted hover:bg-notion-hover hover:text-notion-text cursor-pointer"
-              title="Colar do clipboard (Cmd+V)"
-              data-testid="cluster-paste-button"
-            >
-              Colar
-            </button>
-            <button
-              type="button"
               onClick={refetch}
-              className="rounded px-2 py-1 text-xs text-notion-text-muted hover:bg-notion-hover hover:text-notion-text cursor-pointer"
+              className="rounded px-2 py-1 hover:bg-notion-hover hover:text-notion-text cursor-pointer"
               title="Recarregar"
             >
               ↻
@@ -255,10 +284,11 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
             <button
               type="button"
               onClick={() => setAddingRow(true)}
-              className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-notion-text-muted hover:bg-notion-hover hover:text-notion-text cursor-pointer"
-              title="Adicionar conteúdo"
+              className="inline-flex items-center gap-1 rounded-md bg-notion-text px-3 py-1.5 text-xs font-medium text-background hover:opacity-90 cursor-pointer"
+              title="Adicionar novo conteúdo planejado"
+              data-testid="cluster-add-row"
             >
-              <Plus className="h-3 w-3" /> Nova linha
+              <Plus className="h-3.5 w-3.5" /> Novo conteúdo
             </button>
           </div>
         </header>
@@ -273,16 +303,24 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-notion-border bg-notion-sidebar/30 text-left text-[11px] uppercase tracking-wider text-notion-text-muted">
-                  <th className="px-2 py-2 w-8 font-medium" />
+                <tr className="border-y border-notion-border bg-notion-sidebar/30 text-left text-xs uppercase tracking-wider text-notion-text-muted">
+                  <th className="px-2 py-2 w-8 font-medium">
+                    <input
+                      ref={headerCheckboxRef}
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      className="cursor-pointer"
+                      aria-label="Selecionar todas as linhas"
+                      data-testid="cluster-select-all"
+                    />
+                  </th>
                   <th className="px-3 py-2 w-[88px] font-medium">Papel</th>
                   <th className="px-3 py-2 font-medium">Conteúdo</th>
-                  <th className="px-3 py-2 w-[160px] font-medium">Keyword (vol.)</th>
-                  <th className="px-3 py-2 w-[110px] font-medium">Intenção</th>
-                  <th className="px-3 py-2 w-[90px] font-medium">Status</th>
-                  <th className="px-3 py-2 w-[80px] font-medium">Ação</th>
-                  <th className="px-3 py-2 w-[100px] font-medium">Atualizado</th>
-                  <th className="px-3 py-2 w-[150px] font-medium">Também em</th>
+                  <th className="px-3 py-2 w-[180px] font-medium">Keyword (vol.)</th>
+                  <th className="px-3 py-2 w-[130px] font-medium">Intenção</th>
+                  <th className="px-3 py-2 w-[110px] font-medium">Status</th>
+                  <th className="px-3 py-2 w-[110px] font-medium">Atualizado</th>
                 </tr>
               </thead>
               <tbody>
@@ -343,7 +381,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                           }}
                         />
                       </td>
-                      <td className="px-3 py-2 align-top text-xs">
+                      <td className="px-3 py-2 align-top">
                         <span
                           className={cn(
                             'inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium',
@@ -353,24 +391,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                           {row.status === 'publicado' ? 'Publicado' : 'Planejado'}
                         </span>
                       </td>
-                      <td className="px-3 py-2 align-top">
-                        {kind === 'planned' ? (
-                          <EditableCell
-                            initial={row.acao}
-                            placeholder="Ação"
-                            onCommit={async (value) => {
-                              await patchRow(slug, row.slug, 'acao', value, kind);
-                              refetch();
-                            }}
-                          />
-                        ) : (
-                          <span className="text-xs text-notion-text-muted px-1">{row.acao}</span>
-                        )}
-                      </td>
                       <td className="px-3 py-2 align-top text-xs text-notion-text-muted">{row.updated}</td>
-                      <td className="px-3 py-2 align-top">
-                        <TambemEmChips slugs={row.tambem_em} />
-                      </td>
                     </tr>
                   );
                 })}
@@ -378,7 +399,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                   <tr data-cluster-row-ghost className="border-b border-notion-border bg-notion-active/30">
                     <td className="px-2 py-2" />
                     <td className="px-3 py-2 align-top text-xs text-notion-text-muted">Satélite</td>
-                    <td colSpan={6} className="px-3 py-2">
+                    <td colSpan={4} className="px-3 py-2">
                       <input
                         autoFocus
                         value={newTitle}
@@ -400,13 +421,13 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                             else setAddingRow(false);
                           }
                         }}
-                        placeholder="Título do conteúdo planejado…"
+                        placeholder="Título do novo conteúdo…"
                         disabled={submitting}
                         className="w-full rounded border border-notion-border bg-background px-2 py-1 text-sm text-notion-text outline-none focus:ring-2 focus:ring-notion-text/10 disabled:opacity-60"
                       />
-                      {submitError && <div className="mt-1 text-[11px] text-red-600">Erro: {submitError}</div>}
+                      {submitError && <div className="mt-1 text-xs text-red-600">Erro: {submitError}</div>}
                     </td>
-                    <td className="px-3 py-2 align-top text-[11px] text-notion-text-muted">{submitting ? '…' : 'Enter ↵'}</td>
+                    <td className="px-3 py-2 align-top text-xs text-notion-text-muted">{submitting ? '…' : 'Enter ↵'}</td>
                   </tr>
                 )}
               </tbody>

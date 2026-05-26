@@ -98,7 +98,7 @@ test.describe('cluster-sync end-to-end', () => {
     await page.waitForLoadState('domcontentloaded');
     const node = page.locator('[data-cluster-table="sample-cluster"]');
     await node.waitFor({ state: 'visible', timeout: 10_000 });
-    await expect(node).toContainText('Conteúdos');
+    await expect(node.locator('[data-cluster-add-row], [data-testid="cluster-add-row"]').first()).toBeVisible();
     await expect(node).toContainText('Sample Pilar');
     await expect(node).toContainText('Sample Satellite');
     await page.screenshot({ path: 'e2e/screenshots/cluster-table-view.png', fullPage: false });
@@ -144,7 +144,7 @@ test.describe('cluster-sync end-to-end', () => {
     const node = page.locator('[data-cluster-table="sample-cluster"]');
     await node.waitFor({ state: 'visible', timeout: 10_000 });
     const initialRows = await node.locator('[data-cluster-row]').count();
-    await node.getByRole('button', { name: 'Nova linha' }).click();
+    await node.getByRole('button', { name: 'Novo conteúdo' }).click();
     const ghost = node.locator('[data-cluster-row-ghost] input');
     await ghost.waitFor({ state: 'visible', timeout: 5_000 });
     await ghost.fill('Teste de adição inline');
@@ -162,7 +162,7 @@ test.describe('cluster-sync end-to-end', () => {
     await page.waitForLoadState('domcontentloaded');
     const node = page.locator('[data-cluster-table="sample-cluster"]');
     await node.waitFor({ state: 'visible', timeout: 10_000 });
-    const checkboxes = node.locator('input[type="checkbox"]');
+    const checkboxes = node.locator('[data-cluster-row] input[type="checkbox"]');
     await checkboxes.nth(0).check();
     await checkboxes.nth(1).check();
     const copyBtn = node.locator('[data-testid="cluster-copy-selected"]');

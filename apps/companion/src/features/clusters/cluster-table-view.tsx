@@ -7,7 +7,7 @@ export function ClusterTableView({ node }: any) {
   const slug = String(node?.attrs?.clusterSlug || '');
   return (
     <NodeViewWrapper contentEditable={false} className="my-6 not-prose">
-      <ClusterContentTable clusterSlug={slug} bleedMargin />
+      <ClusterContentTable clusterSlug={slug} />
     </NodeViewWrapper>
   );
 }
