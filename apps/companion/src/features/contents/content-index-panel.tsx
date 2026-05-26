@@ -8,7 +8,7 @@ import { useListingState } from '@/components/listing/use-listing-state';
 import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from '@/hooks/use-page-path';
 import { useI18n } from '@/components/i18n-provider';
-import { AddPlannedModal } from '@/features/clusters/add-planned-modal';
+import { CreateContentModal } from './create-content-modal';
 
 interface ContentRow {
   id: string;
@@ -54,7 +54,7 @@ export function ContentIndexPanel({ topicClusterId, embedded }: { topicClusterId
   const [topicClusters, setTopicClusters] = useState<FilterOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [selectedClusterForAdd, setSelectedClusterForAdd] = useState<string | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
   const pageSize = 25;
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -134,10 +134,7 @@ export function ContentIndexPanel({ topicClusterId, embedded }: { topicClusterId
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, filters.topicCluster, page, token]);
-
-  const availableClusters = topicClusters.filter((c) => c.id !== '__none__');
-  const defaultClusterForAdd = topicClusterId || availableClusters[0]?.id || null;
+  }, [debouncedQuery, filters.topicCluster, page, token, refreshTick]);
 
   return (
     <>
@@ -175,30 +172,20 @@ export function ContentIndexPanel({ topicClusterId, embedded }: { topicClusterId
         toolbar={
           <button
             type="button"
-            onClick={() => {
-              setSelectedClusterForAdd(defaultClusterForAdd);
-              setAddOpen(true);
-            }}
-            disabled={availableClusters.length === 0}
-            className="inline-flex items-center gap-2 rounded-md bg-notion-text px-3 py-2 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-2 rounded-md bg-notion-text px-3 py-2 text-sm font-medium text-background hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
-            Adicionar conteúdo planejado
+            Adicionar conteúdo
           </button>
         }
       />
-      {addOpen && selectedClusterForAdd && (
-        <AddPlannedModal
-          clusterSlug={selectedClusterForAdd}
-          open={addOpen}
-          onClose={() => setAddOpen(false)}
-          clusterOptions={availableClusters.map((c) => ({ id: c.id, title: c.title || c.id }))}
-          onSelectCluster={(slug) => setSelectedClusterForAdd(slug)}
-          onSuccess={() => {
-            if (typeof window !== 'undefined') window.location.reload();
-          }}
-        />
-      )}
+      <CreateContentModal
+        open={addOpen}
+        defaultClusterSlug={topicClusterId || undefined}
+        onClose={() => setAddOpen(false)}
+        onCreated={() => setRefreshTick((n) => n + 1)}
+      />
     </>
   );
 }

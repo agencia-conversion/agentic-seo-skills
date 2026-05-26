@@ -51,13 +51,14 @@ export function ListingPanel<T>({
 }) {
   const body = (
     <>
-      {(toolbar || loading) && (
-        <div className="mb-4 flex items-center justify-end gap-3">
-          {loading && <div className="text-sm text-notion-text-muted">{loadingLabel}</div>}
-          {toolbar}
-        </div>
-      )}
-      <ListingFilters query={query} queryPlaceholder={queryPlaceholder} filters={filters} onQueryChange={onQueryChange} />
+      {loading && <div className="mb-2 text-sm text-notion-text-muted">{loadingLabel}</div>}
+      <ListingFilters
+        query={query}
+        queryPlaceholder={queryPlaceholder}
+        filters={filters}
+        onQueryChange={onQueryChange}
+        endSlot={toolbar}
+      />
       <ListingTable
         rows={rows}
         columns={columns}

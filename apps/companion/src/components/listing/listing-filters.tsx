@@ -35,11 +35,13 @@ export function ListingFilters({
   queryPlaceholder,
   filters,
   onQueryChange,
+  endSlot,
 }: {
   query: string;
   queryPlaceholder: string;
   filters?: ListingFilterDef[];
   onQueryChange: (value: string) => void;
+  endSlot?: React.ReactNode;
 }) {
   return (
     <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
@@ -63,6 +65,7 @@ export function ListingFilters({
           triggerClassName="h-9 border border-notion-border px-3"
         />
       ))}
+      {endSlot && <div className="shrink-0 sm:ml-auto">{endSlot}</div>}
     </div>
   );
 }
