@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { docToMarkdown, markdownToDoc } from '@/lib/markdown';
 import { LocalePreference } from '@/lib/i18n';
 import { projectPageSlug } from '@/lib/project-slugs';
@@ -99,7 +100,7 @@ export interface Page {
   readOnly: boolean;
   requiresApproval: boolean;
   sourceMode: boolean;
-  kind?: 'file' | 'analysisIndex' | 'contentIndex' | 'workbenchIndex' | 'brainEmpty';
+  kind?: 'file' | 'analysisIndex' | 'contentIndex' | 'contentByCluster' | 'workbenchIndex' | 'brainEmpty' | 'clusterDetail';
   reportModuleId?: string;
   contentTopicClusterId?: string;
 }
@@ -127,11 +128,16 @@ interface WorkspaceState {
     usageLimit: number;
     defaultPageWidth: PageWidth;
     language: LocalePreference;
+    customIntents?: string[];
+    advancedExpanded?: boolean;
+    hiddenColumns?: string[];
+    hiddenColumnsByTable?: Record<string, string[]>;
   };
   _hasHydrated: boolean;
 
   initializeProject: (token: string) => Promise<void>;
-  loadPage: (id: string) => Promise<void>;
+  refreshProjectTree: () => Promise<void>;
+  loadPage: (id: string, options?: { force?: boolean }) => Promise<void>;
   savePage: (id: string, options?: { notes?: string; silent?: boolean }) => Promise<boolean>;
   bootstrapBrain: () => Promise<string | null>;
   setHasHydrated: (state: boolean) => void;
@@ -148,6 +154,7 @@ interface WorkspaceState {
   reorderPages: (parentId: string | null, orderedIds: string[]) => void;
   addPage: (parentId?: string | null, type?: 'doc' | 'database', options?: { setActive?: boolean; initialTitle?: string }) => string;
   createWorkbenchFile: (title?: string) => Promise<string | null>;
+  createBrainSubpage: (parentPath: string, title?: string) => Promise<string | null>;
   createContentPage: (title?: string) => Promise<string | null>;
   openReportPage: (report: { path: string; title?: string; hash?: string | null }) => string | null;
   updatePage: (id: string, updates: Partial<Page>) => void;
@@ -165,7 +172,7 @@ interface WorkspaceState {
   deleteTemplate: () => void;
   createFromTemplate: () => string | null;
   computeRollup: () => string | number | null;
-  setActivePage: (id: string | null) => void;
+  setActivePage: (id: string | null) => Promise<void>;
   setSettings: (updates: Partial<WorkspaceState['settings']>) => void;
   turnIntoDatabase: () => void;
   turnIntoPage: () => void;
@@ -243,15 +250,21 @@ function emptyDoc() {
   return { type: 'doc', content: [{ type: 'paragraph' }] };
 }
 
+const BRAIN_PAGE_ICONS: Record<string, string> = {
+  'brain/index.md': '🧠',
+  'brain/identidade.md': '🪪',
+  'brain/voz.md': '🗣️',
+  'brain/tecnologia.md': '🛠️',
+  'brain/editorial.md': '📐',
+  'brain/topic-clusters.md': '🧩',
+  'brain/produtos.md': '📦',
+  'brain/revisao.md': '📝',
+  'brain/log.md': '📋',
+};
+
 function iconForPath(path: string) {
-  if (path === 'brain/index.md') return '🧠';
-  if (path === 'brain/identidade.md') return '🏷️';
-  if (path === 'brain/voz.md') return '🎙️';
-  if (path === 'brain/tecnologia.md') return '🛠️';
-  if (path === 'brain/editorial.md') return '🗂️';
-  if (path === 'brain/topic-clusters.md') return '🧩';
-  if (path === 'brain/revisao.md') return '✅';
-  if (path === 'brain/log.md') return '🕒';
+  const canonical = BRAIN_PAGE_ICONS[path];
+  if (canonical) return canonical;
   if (path.startsWith('brain/')) return '📄';
   if (path.startsWith('conteudos/blog/')) return '📝';
   if (path.startsWith('conteudos/linkedin/')) return '💼';
@@ -266,21 +279,24 @@ function pathSlug(path: string, _title: string) {
 }
 
 function pageFromSummary(item: any, sectionId: string, sortOrder: number, parentId: string | null = null): Page {
+  const path = item.path as string;
+  const isClusterSubpage = path.startsWith('brain/topic-clusters/') && path.endsWith('.md');
+  const clusterSlug = isClusterSubpage ? path.replace('brain/topic-clusters/', '').replace(/\.md$/, '') : null;
   return {
-    id: item.path,
-    slug: pathSlug(item.path, item.title),
-    title: item.title || item.path,
+    id: path,
+    slug: pathSlug(path, item.title),
+    title: item.title || path,
     content: emptyDoc(),
     parentId,
-    icon: Object.prototype.hasOwnProperty.call(item, 'icon') ? item.icon ?? null : iconForPath(item.path),
+    icon: Object.prototype.hasOwnProperty.call(item, 'icon') ? item.icon ?? null : iconForPath(path),
     cover: Object.prototype.hasOwnProperty.call(item, 'cover') ? item.cover ?? null : null,
     type: 'doc',
     favorite: false,
     sortOrder,
     updatedAt: Date.now(),
     createdAt: Date.now(),
-    width: item.path?.startsWith(`${REPORT_DIR_NAME}/`) ? 'lg' : null,
-    path: item.path,
+    width: path?.startsWith(`${REPORT_DIR_NAME}/`) ? 'lg' : null,
+    path,
     sectionId,
     hash: item.hash || null,
     frontmatter: {},
@@ -296,7 +312,8 @@ function pageFromSummary(item: any, sectionId: string, sortOrder: number, parent
     readOnly: !!item.readOnly,
     requiresApproval: false,
     sourceMode: false,
-    kind: 'file',
+    kind: isClusterSubpage ? 'clusterDetail' : 'file',
+    ...(clusterSlug ? { contentTopicClusterId: clusterSlug } : {}),
   };
 }
 
@@ -316,7 +333,7 @@ function virtualPage({
   icon: string;
   parentId: string | null;
   sortOrder: number;
-  kind: 'analysisIndex' | 'contentIndex' | 'workbenchIndex' | 'brainEmpty';
+  kind: 'analysisIndex' | 'contentIndex' | 'contentByCluster' | 'workbenchIndex' | 'brainEmpty';
   sectionId?: string;
   reportModuleId?: string;
   contentTopicClusterId?: string;
@@ -360,73 +377,42 @@ function virtualPage({
 function mentionResolver(pages: Page[]) {
   return {
     findPageId(target: string) {
-      const clean = target.replace(/\.md$/, '').toLowerCase();
+      const clean = target.replace(/\.md$/, '').replace(/^\/+/, '').toLowerCase();
       const page = pages.find((p) => {
         const base = p.path.split('/').pop()?.replace(/\.md$/, '').toLowerCase();
-        return base === clean || p.title.toLowerCase() === clean || p.path.replace(/\.md$/, '').toLowerCase() === clean;
+        const path = p.path.replace(/\.md$/, '').toLowerCase();
+        const brainRelative = path.startsWith('brain/') ? path.slice('brain/'.length) : path;
+        return base === clean || p.title.toLowerCase() === clean || path === clean || brainRelative === clean;
       });
       return page?.id || null;
     },
     labelForPageId(pageId: string) {
       const page = pages.find((p) => p.id === pageId);
-      return page?.path.split('/').pop()?.replace(/\.md$/, '') || page?.title || pageId;
+      const path = page?.path.replace(/\.md$/, '');
+      if (path?.startsWith('brain/')) return path.slice('brain/'.length);
+      return path || page?.title || pageId;
     },
   };
 }
 
-function yamlString(value: unknown) {
-  return JSON.stringify(String(value ?? ''));
-}
-
 export function frontmatterToText(fields: Record<string, any> = {}) {
-  return Object.entries(fields)
-    .map(([key, value]) => {
-      if (Array.isArray(value)) {
-        return value.length ? `${key}:\n${value.map((item) => `  - ${yamlString(item)}`).join('\n')}` : `${key}: []`;
-      }
-      return `${key}: ${yamlString(value)}`;
-    })
-    .join('\n');
+  return stringifyYaml(fields, { lineWidth: 0 }).trimEnd();
 }
 
 export function parseFrontmatterText(raw: string) {
-  const data: Record<string, any> = {};
-  let currentList: string[] | null = null;
-  for (const line of raw.replace(/\r\n/g, '\n').split('\n')) {
-    if (/^\s/.test(line) && currentList) {
-      const item = line.match(/^\s+-\s*(.+)$/);
-      if (item) currentList.push(item[1].replace(/^["']|["']$/g, ''));
-      continue;
-    }
-    const idx = line.indexOf(':');
-    if (idx <= 0) continue;
-    const key = line.slice(0, idx).trim();
-    const val = line.slice(idx + 1).trim();
-    if (!val || val === '[]') {
-      currentList = [];
-      data[key] = currentList;
-    } else {
-      data[key] = val.replace(/^["']|["']$/g, '');
-      currentList = null;
-    }
+  try {
+    const parsed = parseYaml(raw.replace(/\r\n/g, '\n'));
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? parsed as Record<string, any>
+      : {};
+  } catch {
+    return {};
   }
-  return data;
 }
 
 function setFrontmatterTextField(raw: string, key: string, value: unknown) {
-  const nextLine = `${key}: ${yamlString(value)}`;
-  if (!raw.trim()) return nextLine;
-  const lines = raw.replace(/\r\n/g, '\n').split('\n');
-  let found = false;
-  const next = lines.map((line) => {
-    if (new RegExp(`^${key}\\s*:`).test(line)) {
-      found = true;
-      return nextLine;
-    }
-    return line;
-  });
-  if (!found) next.push(nextLine);
-  return next.join('\n');
+  const parsed = parseFrontmatterText(raw);
+  return frontmatterToText({ ...parsed, [key]: value });
 }
 
 async function apiFetch(token: string | null, url: string, init?: RequestInit) {
@@ -440,6 +426,210 @@ async function apiFetch(token: string | null, url: string, init?: RequestInit) {
     },
   });
   return res.json();
+}
+
+interface BuiltTree {
+  pages: Page[];
+  sections: ProjectSection[];
+  reportModules: ReportModuleSummary[];
+  projectName: string;
+  projectRoot: string;
+  hasFiles: boolean;
+  hasBrain: boolean;
+  canBootstrapBrain: boolean;
+  projectLanguage: string | null;
+  firstPageId: string | null;
+  defaultExpandedIds: string[];
+}
+
+async function buildPagesAndSections(token: string): Promise<BuiltTree> {
+  const [tree, reportIndex, projectSettings] = await Promise.all([
+    apiFetch(token, '/api/project/tree'),
+    apiFetch(token, '/api/project/reports').catch(() => ({ ok: false, modules: [] })),
+    apiFetch(token, '/api/project/settings').catch(() => ({ ok: false })),
+  ]);
+  if (!tree.ok) throw new Error(tree.reason || 'project tree failed');
+  const pages: Page[] = [];
+  const sections: ProjectSection[] = [];
+  let brainSection: ProjectSection | null = null;
+  for (const section of tree.sections || []) {
+    const pageIds: string[] = [];
+    const items = section.items || [];
+    if (section.id === 'conteudos') {
+      items.forEach((item: any, index: number) => {
+        pages.push({
+          ...pageFromSummary(item, section.id, index, null),
+          inline: true,
+        });
+      });
+      continue;
+    }
+    if (section.id === 'workbench') {
+      items.forEach((item: any, index: number) => {
+        pages.push({
+          ...pageFromSummary(item, section.id, index, null),
+          inline: true,
+        });
+      });
+      continue;
+    }
+    const brainRootId =
+      section.id === 'brain' ? items.find((item: any) => item.path === 'brain/index.md')?.path || items[0]?.path || null : null;
+    const brainIndexByDir = new Map<string, string>();
+    if (section.id === 'brain') {
+      for (const item of items) {
+        const match = (item.path as string).match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
+        if (match) brainIndexByDir.set(match[1], item.path);
+      }
+    }
+    items.forEach((item: any, index: number) => {
+      let parentId: string | null = null;
+      if (section.id === 'brain' && brainRootId && item.path !== brainRootId) {
+        const subdirMatch = (item.path as string).match(/^brain\/([A-Za-z0-9._-]+)\/[^/]+\.md$/);
+        if (subdirMatch && brainIndexByDir.has(subdirMatch[1])) {
+          parentId = brainIndexByDir.get(subdirMatch[1])!;
+        } else {
+          parentId = brainRootId;
+        }
+      }
+      const page = pageFromSummary(item, section.id, index, parentId);
+      pages.push(page);
+      if (!parentId) pageIds.push(page.id);
+    });
+    const projectSection = { id: section.id, title: section.title, pageIds };
+    sections.push(projectSection);
+    if (section.id === 'brain') brainSection = projectSection;
+  }
+  if (brainSection && !tree.hasBrain) {
+    const brainEmptyId = 'virtual/brain-empty';
+    pages.push(
+      virtualPage({
+        id: brainEmptyId,
+        title: 'Brain',
+        icon: '🧠',
+        parentId: null,
+        sortOrder: brainSection.pageIds.length,
+        kind: 'brainEmpty',
+      })
+    );
+    brainSection.pageIds.push(brainEmptyId);
+  }
+  if (brainSection) {
+    const contentsRootId = 'contents';
+    pages.push(
+      virtualPage({
+        id: contentsRootId,
+        title: 'Conteúdos',
+        icon: '🗂️',
+        parentId: null,
+        sortOrder: brainSection.pageIds.length,
+        kind: 'contentIndex',
+      })
+    );
+    brainSection.pageIds.push(contentsRootId);
+    try {
+      const clusterList = await apiFetch(token, '/api/project/cluster-list').catch(() => ({ ok: false, clusters: [] }));
+      const activeClusters = (clusterList.clusters || []).filter(
+        (c: { slug?: string; status?: string }) => c?.slug && c.status !== 'archived',
+      );
+      for (let idx = 0; idx < activeClusters.length; idx++) {
+        const cluster = activeClusters[idx] as { slug: string; nome?: string; icon?: string };
+        const subId = `contents-${cluster.slug}`;
+        pages.push(
+          virtualPage({
+            id: subId,
+            title: cluster.nome || cluster.slug,
+            icon: cluster.icon || '🗂️',
+            parentId: contentsRootId,
+            sortOrder: idx,
+            kind: 'contentByCluster',
+            contentTopicClusterId: cluster.slug,
+          }),
+        );
+      }
+    } catch {
+      // cluster-list opcional; sidebar funciona sem subpages
+    }
+  }
+  const reportModules: ReportModuleSummary[] = Array.isArray(reportIndex.modules) ? reportIndex.modules : [];
+  if (brainSection && reportModules.length > 0) {
+    const analysesRootId = 'virtual/analyses';
+    pages.push(
+      virtualPage({
+        id: analysesRootId,
+        title: 'Análises',
+        icon: '📊',
+        parentId: null,
+        sortOrder: brainSection.pageIds.length,
+        kind: 'analysisIndex',
+      })
+    );
+    brainSection.pageIds.push(analysesRootId);
+    for (const module of reportModules) {
+      try {
+        const list = await apiFetch(token, `/api/project/reports?module=${encodeURIComponent(module.id)}&page=1&pageSize=100`);
+        for (const report of list.reports || []) {
+          const reportPage: Page = {
+            ...pageFromSummary(
+              {
+                path: report.path,
+                title: report.title || report.path,
+                hash: report.hash || null,
+                readOnly: false,
+                icon: '📊',
+              },
+              REPORT_DIR_NAME,
+              pages.length,
+              null
+            ),
+            inline: true,
+            readOnly: false,
+            width: 'lg',
+          };
+          pages.push(reportPage);
+        }
+      } catch {
+        // Report table browsing still works when preloading report pages fails.
+      }
+    }
+  }
+  if (brainSection) {
+    const workbenchRootId = 'virtual/workbench';
+    pages.push(
+      virtualPage({
+        id: workbenchRootId,
+        title: 'Workbench',
+        icon: '🧰',
+        parentId: null,
+        sortOrder: brainSection.pageIds.length,
+        kind: 'workbenchIndex',
+      })
+    );
+    brainSection.pageIds.push(workbenchRootId);
+  }
+  const defaultExpandedIds = pages
+    .filter(
+      (p) =>
+        p.path === 'brain/index.md' ||
+        p.id === 'virtual/analyses' ||
+        p.id === 'contents' ||
+        p.id === 'virtual/workbench' ||
+        (p.sectionId === 'brain' && !p.parentId)
+    )
+    .map((p) => p.id);
+  return {
+    pages,
+    sections,
+    reportModules,
+    projectName: tree.project?.name || 'agentic seo',
+    projectRoot: tree.project?.root || '',
+    hasFiles: !!tree.hasFiles,
+    hasBrain: !!tree.hasBrain,
+    canBootstrapBrain: !!tree.canBootstrapBrain,
+    projectLanguage: projectSettings.ok && typeof projectSettings.language === 'string' ? projectSettings.language : null,
+    firstPageId: pages[0]?.id || null,
+    defaultExpandedIds,
+  };
 }
 
 export const useWorkspace = create<WorkspaceState>((set, get) => ({
@@ -466,176 +656,53 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
 
   initializeProject: async (token) => {
     set({ token, _hasHydrated: false });
-    const [tree, reportIndex, contentIndex, projectSettings] = await Promise.all([
-      apiFetch(token, '/api/project/tree'),
-      apiFetch(token, '/api/project/reports').catch(() => ({ ok: false, modules: [] })),
-      apiFetch(token, '/api/project/contents').catch(() => ({ ok: false, topicClusters: [], items: [] })),
-      apiFetch(token, '/api/project/settings').catch(() => ({ ok: false })),
-    ]);
-    if (!tree.ok) throw new Error(tree.reason || 'project tree failed');
-    const pages: Page[] = [];
-    const sections: ProjectSection[] = [];
-    let brainSection: ProjectSection | null = null;
-    for (const section of tree.sections || []) {
-      const pageIds: string[] = [];
-      const items = section.items || [];
-      if (section.id === 'conteudos') {
-        items.forEach((item: any, index: number) => {
-          pages.push({
-            ...pageFromSummary(item, section.id, index, null),
-            inline: true,
-          });
-        });
-        continue;
-      }
-      if (section.id === 'workbench') {
-        items.forEach((item: any, index: number) => {
-          pages.push(pageFromSummary(item, section.id, index, 'virtual/workbench'));
-        });
-        continue;
-      }
-      const brainRootId =
-        section.id === 'brain' ? items.find((item: any) => item.path === 'brain/index.md')?.path || items[0]?.path || null : null;
-      items.forEach((item: any, index: number) => {
-        const parentId = section.id === 'brain' && brainRootId && item.path !== brainRootId ? brainRootId : null;
-        const page = pageFromSummary(item, section.id, index, parentId);
-        pages.push(page);
-        if (!parentId) pageIds.push(page.id);
-      });
-      const projectSection = { id: section.id, title: section.title, pageIds };
-      sections.push(projectSection);
-      if (section.id === 'brain') brainSection = projectSection;
-    }
-    const contentTopicClusters: ContentTopicClusterSummary[] = Array.isArray(contentIndex.topicClusters)
-      ? contentIndex.topicClusters.filter((cluster: any) => cluster?.id && cluster.id !== '__none__')
-      : [];
-    if (brainSection && !tree.hasBrain) {
-      const brainEmptyId = 'virtual/brain-empty';
-      pages.push(
-        virtualPage({
-          id: brainEmptyId,
-          title: 'Brain',
-          icon: '🧠',
-          parentId: null,
-          sortOrder: brainSection.pageIds.length,
-          kind: 'brainEmpty',
-        })
-      );
-      brainSection.pageIds.push(brainEmptyId);
-    }
-    if (brainSection) {
-      const contentsRootId = 'virtual/contents';
-      pages.push(
-        virtualPage({
-          id: contentsRootId,
-          title: 'Content',
-          icon: '🗂️',
-          parentId: null,
-          sortOrder: brainSection.pageIds.length,
-          kind: 'contentIndex',
-        })
-      );
-      brainSection.pageIds.push(contentsRootId);
-      contentTopicClusters.forEach((cluster, index) => {
-        pages.push(
-          virtualPage({
-            id: `virtual/contents/${cluster.id}`,
-            title: cluster.title || cluster.id,
-            icon: '🧩',
-            parentId: contentsRootId,
-            sortOrder: index,
-            kind: 'contentIndex',
-            contentTopicClusterId: cluster.id,
-          })
-        );
-      });
-    }
-    const reportModules: ReportModuleSummary[] = Array.isArray(reportIndex.modules) ? reportIndex.modules : [];
-    if (brainSection && reportModules.length > 0) {
-      const analysesRootId = 'virtual/analyses';
-      pages.push(
-        virtualPage({
-          id: analysesRootId,
-          title: 'Análises',
-          icon: '📊',
-          parentId: null,
-          sortOrder: brainSection.pageIds.length,
-          kind: 'analysisIndex',
-        })
-      );
-      brainSection.pageIds.push(analysesRootId);
-      for (const module of reportModules) {
-        try {
-          const list = await apiFetch(token, `/api/project/reports?module=${encodeURIComponent(module.id)}&page=1&pageSize=100`);
-          for (const report of list.reports || []) {
-            const reportPage: Page = {
-              ...pageFromSummary(
-                {
-                  path: report.path,
-                  title: report.title || report.path,
-                  hash: report.hash || null,
-                  readOnly: false,
-                  icon: '📊',
-                },
-                REPORT_DIR_NAME,
-                pages.length,
-                null
-              ),
-              inline: true,
-              readOnly: false,
-              width: 'lg',
-            };
-            pages.push(reportPage);
-          }
-        } catch {
-          // Report table browsing still works when preloading report pages fails.
-        }
-      }
-    }
-    if (brainSection) {
-      const workbenchRootId = 'virtual/workbench';
-      pages.push(
-        virtualPage({
-          id: workbenchRootId,
-          title: 'Workbench',
-          icon: '🧰',
-          parentId: null,
-          sortOrder: brainSection.pageIds.length,
-          kind: 'workbenchIndex',
-        })
-      );
-      brainSection.pageIds.push(workbenchRootId);
-    }
-    const firstPageId = pages[0]?.id || null;
+    const built = await buildPagesAndSections(token);
     const currentSettings = get().settings;
     const nextSettings =
-      projectSettings.ok && ['pt-BR', 'en'].includes(projectSettings.language)
-        ? { ...currentSettings, language: projectSettings.language as LocalePreference }
+      built.projectLanguage && ['pt-BR', 'en'].includes(built.projectLanguage)
+        ? { ...currentSettings, language: built.projectLanguage as LocalePreference }
         : currentSettings;
     if (nextSettings !== currentSettings) writeSettings(nextSettings);
     set({
-      pages,
-      sections,
-      activePageId: firstPageId,
-      projectName: tree.project?.name || 'agentic seo',
-      projectRoot: tree.project?.root || '',
-      hasFiles: !!tree.hasFiles,
-      hasBrain: !!tree.hasBrain,
-      canBootstrapBrain: !!tree.canBootstrapBrain,
-      reportModules,
+      pages: built.pages,
+      sections: built.sections,
+      activePageId: built.firstPageId,
+      projectName: built.projectName,
+      projectRoot: built.projectRoot,
+      hasFiles: built.hasFiles,
+      hasBrain: built.hasBrain,
+      canBootstrapBrain: built.canBootstrapBrain,
+      reportModules: built.reportModules,
       settings: nextSettings,
-      expandedPageIds: pages
-        .filter((p) => p.path === 'brain/index.md' || p.id === 'virtual/analyses' || p.id === 'virtual/contents' || p.id === 'virtual/workbench' || (p.sectionId === 'brain' && !p.parentId))
-        .map((p) => p.id),
+      expandedPageIds: built.defaultExpandedIds,
       _hasHydrated: true,
     });
-    if (firstPageId) void get().loadPage(firstPageId);
+    if (built.firstPageId) void get().loadPage(built.firstPageId);
   },
 
-  loadPage: async (id) => {
+  refreshProjectTree: async () => {
+    const token = get().token;
+    if (!token) return;
+    const built = await buildPagesAndSections(token);
+    const prevActive = get().activePageId;
+    const stillExists = prevActive ? built.pages.find((p) => p.id === prevActive) : null;
+    set({
+      pages: built.pages,
+      sections: built.sections,
+      hasFiles: built.hasFiles,
+      hasBrain: built.hasBrain,
+      canBootstrapBrain: built.canBootstrapBrain,
+      reportModules: built.reportModules,
+      projectName: built.projectName,
+      projectRoot: built.projectRoot,
+      activePageId: stillExists ? prevActive : built.firstPageId,
+    });
+  },
+
+  loadPage: async (id, options = {}) => {
     const page = get().pages.find((p) => p.id === id);
-    if (!page || page.loaded) return;
-    if (page.kind && page.kind !== 'file') return;
+    if (!page || (page.loaded && !options.force)) return;
+    if (page.kind && page.kind !== 'file' && page.kind !== 'clusterDetail') return;
     const file = await apiFetch(get().token, `/api/project/file?path=${encodeURIComponent(page.path)}`);
     if (!file.ok) {
       set((state) => ({
@@ -655,7 +722,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
               frontmatterText: file.frontmatterRaw || frontmatterToText(file.frontmatter || {}),
               bodyMarkdown: file.body || '',
               sourceBody: file.body || '',
-              content: markdownToDoc(file.body || '', resolver),
+              content: markdownToDoc(file.body || '', resolver, { filePath: p.path }),
               hash: file.hash,
               icon: Object.prototype.hasOwnProperty.call(file, 'icon') ? file.icon ?? null : p.icon,
               cover: Object.prototype.hasOwnProperty.call(file, 'cover') ? file.cover ?? null : p.cover,
@@ -674,7 +741,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
 
   savePage: async (id, options = {}) => {
     const page = get().pages.find((p) => p.id === id);
-    if (page?.kind && page.kind !== 'file') return false;
+    if (page?.kind && page.kind !== 'file' && page.kind !== 'clusterDetail') return false;
     if (!page || page.readOnly || page.saving) return false;
     if (!page.dirty) return true;
     set((state) => ({
@@ -698,6 +765,17 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       method: 'POST',
       body: JSON.stringify(payload),
     });
+    if (!result.ok && result.reason === 'file-modified') {
+      // External writer (e.g. cluster-sync regenerating sentinels) touched the file.
+      // Reload silently instead of surfacing a red error banner.
+      set((state) => ({
+        pages: state.pages.map((p) =>
+          p.id === id ? { ...p, saving: false, saveError: null, dirty: false, fileDirty: false } : p,
+        ),
+      }));
+      void get().loadPage(id);
+      return false;
+    }
     set((state) => {
       const resolverAfterSave = mentionResolver(state.pages);
       return {
@@ -800,7 +878,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       body: JSON.stringify({ kind: 'workbench', title }),
     });
     if (!result.ok) return null;
-    await get().initializeProject(get().token!);
+    await get().refreshProjectTree();
     const created = get().pages.find((p) => p.path === result.path);
     if (created) set({ activePageId: created.id });
     return created?.id || null;
@@ -811,7 +889,18 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       body: JSON.stringify({ kind: 'content', title }),
     });
     if (!result.ok) return null;
-    await get().initializeProject(get().token!);
+    await get().refreshProjectTree();
+    const created = get().pages.find((p) => p.path === result.path);
+    if (created) set({ activePageId: created.id });
+    return created?.id || null;
+  },
+  createBrainSubpage: async (parentPath: string, title = 'Nova subpágina') => {
+    const result = await apiFetch(get().token, '/api/project/file/create', {
+      method: 'POST',
+      body: JSON.stringify({ kind: 'brain-subpage', title, parentPath }),
+    });
+    if (!result.ok) return null;
+    await get().refreshProjectTree();
     const created = get().pages.find((p) => p.path === result.path);
     if (created) set({ activePageId: created.id });
     return created?.id || null;
@@ -891,7 +980,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     })),
   deleteFile: async (id) => {
     const page = get().pages.find((p) => p.id === id);
-    if (page?.kind && page.kind !== 'file') return false;
+    if (page?.kind && page.kind !== 'file' && page.kind !== 'clusterDetail') return false;
     if (page?.path.startsWith(`${REPORT_DIR_NAME}/`)) return false;
     if (!page || page.saving || page.readOnly) return false;
     if (page.dirty) {
@@ -913,7 +1002,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       }));
       return false;
     }
-    await get().initializeProject(get().token!);
+    await get().refreshProjectTree();
     if (previousActive && previousActive !== id) {
       const stillActive = get().pages.find((p) => p.id === previousActive);
       if (stillActive) {
@@ -937,7 +1026,21 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   deleteTemplate: () => {},
   createFromTemplate: () => null,
   computeRollup: () => null,
-  setActivePage: (activePageId) => set({ activePageId }),
+  setActivePage: async (activePageId) => {
+    const state = get();
+    const prevId = state.activePageId;
+    if (prevId && prevId !== activePageId) {
+      const prevPage = state.pages.find((p) => p.id === prevId);
+      if (prevPage?.dirty && !prevPage.saving) {
+        try {
+          await state.savePage(prevId, { silent: true });
+        } catch {
+          // swallow — don't block navigation; dirty flag persists
+        }
+      }
+    }
+    set({ activePageId });
+  },
   setSettings: (updates) =>
     set((s) => {
       const settings = { ...s.settings, ...updates };
@@ -969,7 +1072,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
               ...p,
               sourceMode,
               sourceBody: sourceMode ? docToMarkdown(p.content, mentionResolver(s.pages)) : p.sourceBody,
-              content: sourceMode ? p.content : markdownToDoc(p.sourceBody, mentionResolver(s.pages)),
+              content: sourceMode ? p.content : markdownToDoc(p.sourceBody, mentionResolver(s.pages), { filePath: p.path }),
             }
           : p
       ),

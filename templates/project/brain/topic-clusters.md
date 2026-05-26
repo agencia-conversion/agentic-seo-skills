@@ -1,30 +1,30 @@
 ---
-title: "Topic clusters"
+title: "Topic Clusters"
+contract_version: 1
 updated: "<YYYY-MM-DD>"
 ---
 
-# Topic clusters
+# Topic Clusters
 
-<!--
-Clusters semânticos do projeto. Cada cluster é uma seção (## <Cluster
-Principal> (<slug>)) com contexto curto e tabela de subtópicos. Conteúdos
-publicados são linkados via wikilink na coluna "Conteúdo relacionado". Gaps
-explícitos viram pendências para a skill `topic-cluster` ou `content-seo`.
--->
+Cada Topic Cluster organiza um tema editorial em torno de um conteúdo pilar e satélites que cobrem subtemas relacionados. Use a tabela abaixo para navegar entre os clusters ativos — cada nome leva à página do cluster com a tabela completa de conteúdos publicados e planejados.
 
-## <Cluster Principal> (<slug-kebab>)
+<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->
+## Painel
 
-<contexto curto: tese do cluster, audiência, intenção dominante, área editorial relacionada>
+| Indicador | Valor |
+| --- | --- |
+| Clusters ativos | 0 |
+| Conteúdos publicados | 0 |
+| Satélites planejados | 0 |
+| Conteúdos órfãos | 0 |
+| Última sincronização | — |
 
-| Subtópico | Intent | Status | Conteúdo relacionado | Gap |
-| --- | --- | --- | --- | --- |
-| <subtópico> | informational \| navigational \| transactional \| commercial | gap \| draft \| published | [[../conteudos/blog/<slug>]] | <lacuna> |
-| <subtópico> | informational | gap | | <lacuna> |
+## Clusters ativos
 
-## <Cluster Secundário> (<slug>)
+<!-- Nenhum cluster ativo. Use `topic-cluster` para criar o primeiro. -->
 
-<contexto>
+<!-- END cluster-index-table:auto -->
 
-| Subtópico | Intent | Status | Conteúdo relacionado | Gap |
-| --- | --- | --- | --- | --- |
-| <subtópico> | informational | gap | | <lacuna> |
+## Próximas ações
+
+<!-- Vazio até que um cluster esteja em rascunho ou promoção. -->

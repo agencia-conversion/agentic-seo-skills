@@ -14,6 +14,7 @@ const compiled = spawnSync(
     'tsc',
     'apps/companion/src/lib/agentic-query.ts',
     'apps/companion/src/lib/project-files.ts',
+    'apps/companion/src/lib/brain-templates.ts',
     '--target', 'ES2022',
     '--module', 'ES2022',
     '--moduleResolution', 'bundler',
@@ -25,7 +26,7 @@ const compiled = spawnSync(
 );
 assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
 
-for (const name of ['agentic-query', 'project-files']) {
+for (const name of ['agentic-query', 'project-files', 'brain-templates']) {
   const js = join(outDir, `${name}.js`);
   const mjs = join(outDir, `${name}.mjs`);
   if (existsSync(js)) renameSync(js, mjs);
@@ -47,6 +48,12 @@ fs.writeFileSync(
   fs
     .readFileSync(join(outDir, 'agentic-query.mjs'), 'utf8')
     .replace("from './project-files'", "from './project-files.mjs'")
+);
+fs.writeFileSync(
+  join(outDir, 'project-files.mjs'),
+  fs
+    .readFileSync(join(outDir, 'project-files.mjs'), 'utf8')
+    .replace("from './brain-templates'", "from './brain-templates.mjs'")
 );
 
 const { parseQuerySource, executeQuery } = await import(`../${outDir}/agentic-query.mjs`);

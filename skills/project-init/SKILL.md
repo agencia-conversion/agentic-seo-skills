@@ -20,6 +20,7 @@ Do not use this skill to write strategic content, draft brand identity, run SEO 
 - Initialize the single project directory only: `project/`. Do not create sibling project folders.
 - Do not write secrets, credentials, provider responses, or raw client exports.
 - Brain content (`brain/index.md`, `brain/identidade.md`, `brain/voz.md`, `brain/tecnologia.md`, `brain/editorial.md`, `brain/topic-clusters.md`, `brain/revisao.md`) is created from blank templates with placeholders. `brain/revisao.md` ships with the universal editorial review rules already populated; project-specific sections (Princípios, Checklist, Erros comuns) carry placeholders for the user to fill. Do not generate strategic prose.
+- `brain/tecnologia.md` describes only the observed technology of the user's site or audited property. Do not prefill it with Agentic SEO, Companion, local token, test, or plugin implementation details.
 - Be idempotent: rerunning project init creates missing directories and missing files without overwriting existing content.
 - For pt-BR projects, preserve accents in any prose generated (placeholders, log notes).
 - Do not fabricate brand facts, market data, or technical decisions.
@@ -66,6 +67,7 @@ project/analyses/backlink-analysis/
 project/analyses/topic-cluster/
 project/analyses/eeat/
 project/brain/
+project/brain/topic-clusters/
 project/conteudos/
 project/conteudos/blog/
 project/conteudos/linkedin/

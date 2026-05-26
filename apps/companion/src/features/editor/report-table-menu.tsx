@@ -173,7 +173,12 @@ export function ReportTableMenu({ editor, locale, onScoreRecalculated }: ReportT
 
   useEffect(() => {
     if (!editor) return;
-    const update = () => setActive(editor.isActive('table'));
+    const update = () => {
+      const inTable = editor.isActive('table');
+      const inClusterTable = editor.isActive('clusterTable');
+      const onLink = editor.isActive('link');
+      setActive(inTable && !inClusterTable && !onLink);
+    };
     update();
     editor.on('selectionUpdate', update);
     editor.on('transaction', update);

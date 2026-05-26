@@ -449,3 +449,10 @@ button, a, select, [role="button"] { cursor: pointer !important; }
 .ProseMirror a {
   cursor: pointer;
 }
+
+.title-editor[data-empty="true"]::before {
+  content: attr(data-placeholder);
+  color: var(--color-notion-text-muted, #9ca3af);
+  opacity: 0.5;
+  pointer-events: none;
+}

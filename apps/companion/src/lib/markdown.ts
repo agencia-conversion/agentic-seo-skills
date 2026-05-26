@@ -164,10 +164,31 @@ function pipeTableNode(lines: string[], resolver?: MentionResolver): JsonNode {
   };
 }
 
-export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
+export interface MarkdownDocContext {
+  filePath?: string;
+  clusterSlug?: string;
+}
+
+const CLUSTER_SENTINEL_BEGIN = '<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->';
+const CLUSTER_SENTINEL_END = '<!-- END cluster-content-table:auto -->';
+const CLUSTER_INDEX_SENTINEL_BEGIN = '<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->';
+const CLUSTER_INDEX_SENTINEL_END = '<!-- END cluster-index-table:auto -->';
+
+function extractClusterSlugFromPath(filePath?: string): string {
+  if (!filePath) return '';
+  const m = filePath.match(/(?:^|\/)brain\/topic-clusters\/([^/]+)\.md$/);
+  return m ? m[1] : '';
+}
+
+export function markdownToDoc(
+  markdown: string,
+  resolver?: MentionResolver,
+  context?: MarkdownDocContext,
+) {
   const lines = markdown.replace(/\r\n/g, '\n').split('\n');
   const content: JsonNode[] = [];
   let i = 0;
+  const clusterSlug = context?.clusterSlug || extractClusterSlugFromPath(context?.filePath);
 
   while (i < lines.length) {
     const line = lines[i];
@@ -211,6 +232,34 @@ export function markdownToDoc(markdown: string, resolver?: MentionResolver) {
         content.push(raw(line));
       }
       i++;
+      continue;
+    }
+
+    if (line.trim() === CLUSTER_SENTINEL_BEGIN) {
+      const inner: string[] = [];
+      i++;
+      while (i < lines.length && lines[i].trim() !== CLUSTER_SENTINEL_END) {
+        inner.push(lines[i++]);
+      }
+      if (i < lines.length) i++; // consume END
+      content.push({
+        type: 'clusterTable',
+        attrs: { clusterSlug, sentinelRaw: inner.join('\n') },
+      });
+      continue;
+    }
+
+    if (line.trim() === CLUSTER_INDEX_SENTINEL_BEGIN) {
+      const inner: string[] = [];
+      i++;
+      while (i < lines.length && lines[i].trim() !== CLUSTER_INDEX_SENTINEL_END) {
+        inner.push(lines[i++]);
+      }
+      if (i < lines.length) i++;
+      content.push({
+        type: 'activeClustersTable',
+        attrs: { sentinelRaw: inner.join('\n') },
+      });
       continue;
     }
 
@@ -418,6 +467,14 @@ export function docToMarkdown(doc: any, resolver?: MentionResolver): string {
     else if (node.type === 'heading') out.push(`${'#'.repeat(Number(node.attrs?.level || 1))} ${paragraphText(node, resolver)}`);
     else if (node.type === 'horizontalRule') out.push('---');
     else if (node.type === 'rawMarkdown') out.push(String(node.attrs?.text || ''));
+    else if (node.type === 'clusterTable') {
+      const raw = String(node.attrs?.sentinelRaw || '').replace(/\s+$/, '');
+      out.push(`${CLUSTER_SENTINEL_BEGIN}\n${raw}\n${CLUSTER_SENTINEL_END}`);
+    }
+    else if (node.type === 'activeClustersTable') {
+      const raw = String(node.attrs?.sentinelRaw || '').replace(/\s+$/, '');
+      out.push(`${CLUSTER_INDEX_SENTINEL_BEGIN}\n${raw}\n${CLUSTER_INDEX_SENTINEL_END}`);
+    }
     else if (node.type === 'reportBlock') {
       const kind = node.attrs?.kind || 'agentic-table';
       out.push(`\`\`\`${kind}\n${String(node.attrs?.data || '').replace(/\s+$/, '')}\n\`\`\``);

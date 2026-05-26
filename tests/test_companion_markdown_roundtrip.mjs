@@ -217,4 +217,69 @@ assert.match(pageWidthSource, /return 'lg'/);
 const globalCssSource = readFileSync("apps/companion/src/app/globals.css", "utf8");
 assert.doesNotMatch(globalCssSource, /left:\s*-76px/);
 
+// cluster-table sentinel roundtrip
+const clusterMd = `---
+title: GEO
+---
+
+# GEO
+
+## Pilar
+
+algo
+
+<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->
+## Conteúdos
+
+| Papel | Conteúdo |
+| --- | --- |
+| Pilar | [GEO](../../conteudos/blog/geo.md) |
+
+<!-- END cluster-content-table:auto -->
+
+## Próximas ações
+
+texto autoral
+`;
+const clusterDoc = markdownToDoc(clusterMd, resolver, { filePath: 'brain/topic-clusters/geo.md' });
+const clusterNodes = clusterDoc?.content || clusterDoc?.children || clusterDoc?.nodes || [];
+const hasClusterTable = JSON.stringify(clusterDoc).includes('"clusterTable"');
+assert.equal(hasClusterTable, true, 'markdownToDoc should produce a clusterTable node when sentinels present');
+const clusterOut = docToMarkdown(clusterDoc, resolver);
+assert.match(clusterOut, /<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->/);
+assert.match(clusterOut, /<!-- END cluster-content-table:auto -->/);
+assert.match(clusterOut, /## Conteúdos/);
+assert.match(clusterOut, /texto autoral/);
+
+// active clusters index sentinel roundtrip
+const clusterIndexMd = `---
+title: Topic Clusters
+---
+
+# Topic Clusters
+
+Texto autoral antes.
+
+<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->
+| Cluster | Pilar |
+| --- | --- |
+| Alpha | Pilar A |
+<!-- END cluster-index-table:auto -->
+
+Texto autoral depois.
+`;
+const clusterIndexDoc = markdownToDoc(clusterIndexMd, resolver, { filePath: 'brain/topic-clusters.md' });
+assert.match(JSON.stringify(clusterIndexDoc), /"activeClustersTable"/);
+const clusterIndexOut = docToMarkdown(clusterIndexDoc, resolver);
+assert.match(clusterIndexOut, /<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->/);
+assert.match(clusterIndexOut, /<!-- END cluster-index-table:auto -->/);
+assert.match(clusterIndexOut, /Texto autoral antes/);
+assert.match(clusterIndexOut, /Texto autoral depois/);
+
+const clusterExtensionSource = readFileSync("apps/companion/src/features/editor/cluster-table-extension.tsx", "utf8");
+assert.match(clusterExtensionSource, /name:\s*'clusterTable'/);
+assert.match(clusterExtensionSource, /name:\s*'activeClustersTable'/);
+assert.match(clusterExtensionSource, /atom:\s*true/);
+assert.equal(existsSync("apps/companion/src/features/clusters/active-clusters-table-view.tsx"), true);
+
 console.log("companion markdown roundtrip ok");

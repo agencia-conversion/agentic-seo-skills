@@ -17,6 +17,7 @@ import { ContentIndexPanel } from '@/features/contents/content-index-panel';
 import { WorkbenchIndexPanel } from '@/features/workbench/workbench-index-panel';
 import { SourceViewerModal } from '@/features/sources/source-viewer-modal';
 import { LinkEditModal } from '@/features/editor/link-edit-modal';
+import { ClusterDetailPanel } from '@/features/clusters/cluster-detail-panel';
 
 const EditorPanel = dynamic(() => import('@/features/editor/editor-panel').then((mod) => mod.EditorPanel), {
   ssr: false,
@@ -106,8 +107,12 @@ export default function ProjectPage() {
           <WorkbenchIndexPanel />
         ) : activePage?.kind === 'contentIndex' ? (
           <ContentIndexPanel topicClusterId={activePage.contentTopicClusterId} />
+        ) : activePage?.kind === 'contentByCluster' && activePage.contentTopicClusterId ? (
+          <ContentIndexPanel topicClusterId={activePage.contentTopicClusterId} />
         ) : activePage?.kind === 'analysisIndex' ? (
           <AnalysesIndexPanel moduleId={activePage.reportModuleId} />
+        ) : activePage?.kind === 'clusterDetail' && activePage.contentTopicClusterId ? (
+          <ClusterDetailPanel clusterSlug={activePage.contentTopicClusterId} />
         ) : (
           <EditorPanel />
         )}

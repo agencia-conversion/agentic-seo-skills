@@ -8,7 +8,7 @@ const TOKEN = TEST_TOKEN;
 test.describe('Obsidian vault compatibility', () => {
   test('Fixture brain files use vanilla Markdown + YAML frontmatter', async () => {
     const fixture = resolve(__dirname, '.tmp-fixture');
-    const files = ['brain/identidade.md', 'brain/voz.md', 'brain/index.md'];
+    const files = ['brain/identidade.md', 'brain/voz.md', 'brain/index.md', 'brain/revisao.md'];
     for (const rel of files) {
       const text = readFileSync(resolve(fixture, rel), 'utf8');
       expect(text.startsWith('---\n'), `${rel} must start with YAML frontmatter`).toBe(true);
@@ -22,8 +22,10 @@ test.describe('Obsidian vault compatibility', () => {
     const body = await res.json();
     expect(body.ok).toBe(true);
     // Wikilinks must be present in the raw body — agent or Obsidian can both read them
-    expect(body.body).toMatch(/\[\[identidade\]\]/);
-    expect(body.body).toMatch(/!\[\[identidade#Frase-marca\]\]/);
+    expect(body.body).toMatch(/\[\[identidade\|Identidade\]\]/);
+    expect(body.body).toMatch(/\[\[topic-clusters\/sample-cluster\|Sample Cluster\]\]/);
+    expect(body.body).toMatch(/\[\[revisao\|Revisão\]\]/);
+    expect(body.body).not.toMatch(/!\[\[identidade#Frase-marca\]\]/);
   });
 
   test('Custom agentic fences degrade gracefully (still valid Markdown code blocks)', async ({ request }) => {

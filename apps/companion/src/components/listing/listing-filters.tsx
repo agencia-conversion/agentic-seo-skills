@@ -1,6 +1,7 @@
 'use client';
 
 import { Search } from 'lucide-react';
+import { Select, SelectOption } from '@/components/select';
 
 export interface ListingFilterOption {
   id: string;
@@ -18,52 +19,53 @@ export interface ListingFilterDef {
   onChange: (value: string) => void;
 }
 
+function toSelectOptions(filter: ListingFilterDef): SelectOption[] {
+  const options: SelectOption[] = [{ value: '', label: filter.allLabel }];
+  for (const option of filter.options) {
+    const label = filter.formatOption
+      ? filter.formatOption(option)
+      : `${option.title || option.id}${option.count == null ? '' : ` (${option.count})`}`;
+    options.push({ value: option.id, label });
+  }
+  return options;
+}
+
 export function ListingFilters({
   query,
   queryPlaceholder,
   filters,
   onQueryChange,
+  endSlot,
 }: {
   query: string;
   queryPlaceholder: string;
   filters?: ListingFilterDef[];
   onQueryChange: (value: string) => void;
+  endSlot?: React.ReactNode;
 }) {
   return (
-    <div className="mb-4 flex flex-col gap-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-        <label className="flex h-9 min-w-[240px] items-center gap-2 rounded-md border border-notion-border px-3 text-sm">
-          <Search className="h-4 w-4 text-notion-text-muted" />
-          <input
-            value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
-            placeholder={queryPlaceholder}
-            className="w-full bg-transparent outline-none placeholder:text-notion-text-muted"
-          />
-        </label>
-      </div>
-      {!!filters?.length && (
-        <div className="flex flex-col gap-2 sm:flex-row">
-          {filters.map((filter) => (
-            <label key={filter.id}>
-              <span className="sr-only">{filter.label}</span>
-              <select
-                aria-label={filter.label}
-                value={filter.value}
-                onChange={(event) => filter.onChange(event.target.value)}
-                className="h-9 rounded-md border border-notion-border bg-background px-3 text-sm text-notion-text outline-none"
-              >
-                <option value="">{filter.allLabel}</option>
-                {filter.options.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {filter.formatOption ? filter.formatOption(item) : `${item.title || item.id}${item.count == null ? '' : ` (${item.count})`}`}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
-        </div>
-      )}
+    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+      <label className="flex h-9 min-w-[240px] flex-1 items-center gap-2 rounded-md border border-notion-border px-3 text-sm">
+        <Search className="h-4 w-4 text-notion-text-muted" />
+        <input
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          placeholder={queryPlaceholder}
+          className="w-full bg-transparent outline-none placeholder:text-notion-text-muted"
+        />
+      </label>
+      {filters?.map((filter) => (
+        <Select
+          key={filter.id}
+          value={filter.value}
+          onChange={filter.onChange}
+          options={toSelectOptions(filter)}
+          placeholder={filter.allLabel}
+          className="shrink-0"
+          triggerClassName="h-9 border border-notion-border px-3"
+        />
+      ))}
+      {endSlot && <div className="shrink-0 sm:ml-auto">{endSlot}</div>}
     </div>
   );
 }

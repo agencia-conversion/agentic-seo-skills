@@ -9,8 +9,13 @@ dist/*
 !dist/agentic-seo.js
 !dist/commands/
 !dist/commands/runtime.js
+!dist/commands/cluster-sync.js
 !dist/lib/
 !dist/lib/player-score.js
+!dist/lib/cluster-types.js
+!dist/lib/cluster-io.js
+!dist/lib/cluster-render.js
+!dist/lib/cluster-labels.js
 coverage/
 .turbo/
 .vercel/
@@ -51,3 +56,4 @@ project/.obsidian/
 .claude/
 skills-lock.json
 .gstack/
+test-results/

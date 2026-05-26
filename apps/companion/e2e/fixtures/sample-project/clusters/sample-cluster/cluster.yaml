@@ -1,0 +1,23 @@
+contract_version: 1
+slug: sample-cluster
+nome: Sample Cluster
+icon: 🧪
+area: fundamentos
+status: active
+tese: Organizar conteúdos publicados e próximos passos do site demonstrativo.
+pilar:
+  slug: sample-pilar
+  keyword: sample pilar
+  intent: informational
+  volume: null
+  volume_source: null
+planned_satellites: []
+satelite_overrides: {}
+stats:
+  publicados: 0
+  planejados: 0
+  updated: 2026-05-25
+provenance:
+  created_at: 2026-05-25
+  created_by: agent
+evidence: []

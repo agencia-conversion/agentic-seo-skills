@@ -14,7 +14,7 @@ export function VirtualPageShell({ title, children }: { title: string; children:
       <WorkspaceHeader
         left={activePage ? <BreadcrumbTrail activePage={activePage} /> : <span className="font-medium text-notion-text">{title}</span>}
       />
-      <div className={cn('flex-1 overflow-y-auto px-6 py-6 md:px-10')}>
+      <div className={cn('flex-1 overflow-y-auto px-5 py-4 md:px-8')}>
         <div className="mx-auto max-w-6xl">{children}</div>
       </div>
     </div>

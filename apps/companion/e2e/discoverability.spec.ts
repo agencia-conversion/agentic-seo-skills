@@ -1,16 +1,23 @@
 import { test, expect, type Page } from '@playwright/test';
-import { TEST_TOKEN } from './test-constants';
+import { PROJECT_ROOT, TEST_TOKEN } from './test-constants';
 
 const TOKEN = TEST_TOKEN;
 
 async function openProject(page: Page) {
   await page.goto(`/project/${TOKEN}/`);
   await page.waitForURL(/\/brain-index$/, { timeout: 20_000 });
-  await page.waitForSelector('[data-testid="sidebar-tools"]', { timeout: 20_000 });
+  await page.waitForSelector('[data-testid="sidebar-tool-graph"]', { timeout: 20_000 });
+}
+
+async function setProjectLanguage(page: Page, language: 'pt-BR' | 'en') {
+  const response = await page.request.patch('/api/project/settings', {
+    data: { language },
+  });
+  expect(response.ok()).toBeTruthy();
 }
 
 test.describe('Discoverability — sidebar Tools + Cmd+P navigation', () => {
-  test('Sidebar shows Tools section with 3 entries', async ({ page }) => {
+  test('Sidebar shows Graph + Advanced entries', async ({ page }) => {
     await openProject(page);
     await expect(page.locator('[data-testid="sidebar-tool-graph"]')).toBeVisible();
     await expect(page.locator('[data-testid="sidebar-tool-tags"]')).toBeVisible();
@@ -64,5 +71,31 @@ test.describe('Discoverability — sidebar Tools + Cmd+P navigation', () => {
     // cmdk needs a direct click; force to bypass any backdrop blocker
     await page.locator('[data-testid="search-nav-graph"]').click({ force: true });
     await page.waitForURL(/\/graph$/, { timeout: 10_000 });
+  });
+
+  test('Conversion footer link is locale-aware and replaces project folder block', async ({ page }) => {
+    await setProjectLanguage(page, 'pt-BR');
+
+    try {
+      await openProject(page);
+      const footer = page.locator('[data-testid="sidebar-conversion-footer"]');
+      const link = footer.locator('[data-testid="conversion-brand-link"]');
+
+      await expect(footer).toBeVisible();
+      await expect(footer).not.toContainText(PROJECT_ROOT);
+      await expect(footer.locator('svg')).toHaveCount(0);
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute('href', 'https://www.conversion.com.br/');
+      await expect(link).toHaveAttribute('target', '_blank');
+      await expect(link).toHaveAttribute('rel', /noopener/);
+      await expect(link).toHaveAttribute('rel', /noreferrer/);
+
+      await setProjectLanguage(page, 'en');
+      await page.reload();
+      await page.waitForSelector('[data-testid="sidebar-tool-graph"]', { timeout: 20_000 });
+      await expect(page.locator('[data-testid="conversion-brand-link"]')).toHaveAttribute('href', 'https://conversion.ag');
+    } finally {
+      await setProjectLanguage(page, 'pt-BR');
+    }
   });
 });

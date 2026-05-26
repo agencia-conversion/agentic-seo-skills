@@ -7,9 +7,10 @@ updated: "<YYYY-MM-DD>"
 
 <!--
 Áreas editoriais do projeto. Cada área é uma seção (## <Nome da área>) com
-slug, tese, diferenciação, exemplos de conteúdo e links para conteúdos
-publicados. Conteúdos referenciam a área via campo `area:` no frontmatter
-(slug exato).
+slug, tese, diferenciação e audiência. Lista de conteúdos publicados vive
+na subpágina do cluster em `brain/topic-clusters/<slug>.md`, não aqui —
+áreas são camada estratégica macro, clusters são unidades operacionais
+(1 área : N clusters).
 -->
 
 ## <Área 1>
@@ -18,10 +19,6 @@ publicados. Conteúdos referenciam a área via campo `area:` no frontmatter
 - tese: <em uma linha, o que esta área defende>
 - diferenciação: <o ângulo que só este projeto tem>
 - audiência: <quem lê esta área>
-
-### Conteúdos publicados
-
-- [[../conteudos/blog/<slug>]] — <linha resumo>
 
 ### Provas
 
@@ -35,10 +32,6 @@ publicados. Conteúdos referenciam a área via campo `area:` no frontmatter
 - tese: <em uma linha>
 - diferenciação: <ângulo>
 - audiência: <quem>
-
-### Conteúdos publicados
-
-- [[../conteudos/<origem>/<slug>]] — <linha resumo>
 
 ### Provas
 

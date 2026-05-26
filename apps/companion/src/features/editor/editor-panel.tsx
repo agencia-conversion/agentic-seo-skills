@@ -76,6 +76,7 @@ const INITIAL_DOC = {
 interface EditorPanelProps {
   pageId?: string;
   isModal?: boolean;
+  slotAfterEditor?: ReactNode;
 }
 
 type InternalLinkContext =
@@ -114,6 +115,16 @@ function applyLinkSubmit(editor: any, selectedText: string, submit: { text: stri
   } else {
     chain.setLink({ href: submit.href }).run();
   }
+}
+
+export function resolveRelativeProjectPath(fromPath: string, rel: string): string {
+  if (/^https?:\/\//i.test(rel) || rel.startsWith('/')) return rel;
+  const baseSegments = fromPath.split('/').slice(0, -1);
+  for (const segment of rel.split('/')) {
+    if (segment === '..') baseSegments.pop();
+    else if (segment !== '' && segment !== '.') baseSegments.push(segment);
+  }
+  return baseSegments.join('/');
 }
 
 export function matchSourcePath(href: string): string | null {
@@ -165,7 +176,7 @@ function currentHashAnchor() {
   }
 }
 
-export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
+export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelProps) {
   const { t, locale } = useI18n();
   const activePageId = useWorkspace((s) => s.activePageId);
   const effectivePageId = pageId || activePageId;
@@ -320,6 +331,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
   }
 
   const pageWidthOptions = getPageWidthOptions(t);
+  const isContentPage = activePage.path.startsWith('conteudos/');
   const validContent: JSONContent =
     activePage.content && typeof activePage.content === 'object' && 'type' in activePage.content
       ? (activePage.content as JSONContent)
@@ -538,13 +550,13 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
           className={cn(
             'w-full mx-auto',
             widthToClass(effectiveWidth),
-            isModal ? 'px-10 pt-14' : 'px-12 md:px-16 pt-10',
+            isModal ? 'px-10 pt-14' : 'px-8 md:px-12 pt-8',
             activePage.cover ? 'mt-6' : 'mt-2'
           )}
         >
           <div className="group/title relative mb-4">
             <div className="opacity-0 group-hover/title:opacity-100 transition-opacity flex gap-2 absolute -top-8 left-0 text-sm text-notion-text-muted">
-              {!activePage.readOnly && !activePage.icon && (
+              {!isContentPage && !activePage.readOnly && !activePage.icon && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -592,66 +604,58 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
                 </motion.div>
               )}
             </AnimatePresence>
-            <div className="flex items-end gap-2">
-              {activePage.icon && (
-                <div className="relative group/icon-container shrink-0 self-end mb-[0.36em]">
-                  <button
-                    type="button"
-                    className={cn(
-                      'flex h-[1.15em] w-[1.15em] items-center justify-center rounded-md leading-none transition-colors',
-                      !activePage.readOnly && 'cursor-pointer hover:bg-notion-hover',
-                      activePage.readOnly && 'cursor-default',
-                      isModal ? 'text-3xl' : 'text-[40px]'
-                    )}
+            <TitleEditor
+              pageId={activePage.id}
+              initialTitle={activePage.title}
+              placeholder={t('common.untitled')}
+              prefix={
+                !isContentPage && activePage.icon ? (
+                  <span
+                    role="button"
+                    tabIndex={activePage.readOnly ? -1 : 0}
                     onClick={(e) => {
                       if (activePage.readOnly) return;
                       e.stopPropagation();
                       setShowEmojiPicker(true);
                     }}
-                    aria-label={activePage.readOnly ? activePage.title || t('common.untitled') : t('editor.addIcon')}
+                    onKeyDown={(e) => {
+                      if (activePage.readOnly) return;
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setShowEmojiPicker(true);
+                      }
+                    }}
+                    className={cn(
+                      'inline-block leading-none align-baseline rounded transition-colors',
+                      !activePage.readOnly && 'cursor-pointer hover:bg-notion-hover',
+                    )}
+                    aria-label={t('editor.addIcon')}
                   >
                     {activePage.icon}
-                  </button>
-                  {!activePage.readOnly && (
-                    <button
-                      type="button"
-                      onClick={() => updatePage(activePage.id, { icon: null })}
-                      className="absolute -top-1.5 -right-1.5 p-0.5 bg-background border border-notion-border rounded-full opacity-0 group-hover/icon-container:opacity-100 transition-opacity shadow-sm hover:bg-notion-hover cursor-pointer"
-                      aria-label={t('editor2.removeIcon')}
-                    >
-                      <X className="w-3 h-3 text-notion-text-muted" />
-                    </button>
-                  )}
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <TitleEditor
-                  pageId={activePage.id}
-                  initialTitle={activePage.title}
-                  placeholder={t('common.untitled')}
-                  endAction={
-                    !isModal
-                      ? {
-                          icon: <Settings />,
-                          label: 'Editar metadados',
-                          onClick: (e) => {
-                            e.stopPropagation();
-                            setShowFrontmatterDrawer((open) => !open);
-                          },
-                        }
-                      : undefined
-                  }
-                  isModal={isModal}
-                  autoFocus={!activePage.title && !activePage.readOnly}
-                  readOnly={activePage.readOnly}
-                  onEnter={() => {
-                    const editorEl = document.querySelector('.ProseMirror') as HTMLElement | null;
-                    editorEl?.focus();
-                  }}
-                  onPasteMultiline={(p) => setPendingPasteHtml(p)}
-                />
-              </div>
-            </div>
+                  </span>
+                ) : null
+              }
+              endAction={
+                !isModal
+                  ? {
+                      icon: <Settings />,
+                      label: 'Editar metadados',
+                      onClick: (e) => {
+                        e.stopPropagation();
+                        setShowFrontmatterDrawer((open) => !open);
+                      },
+                    }
+                  : undefined
+              }
+              isModal={isModal}
+              autoFocus={!activePage.title && !activePage.readOnly}
+              readOnly={activePage.readOnly}
+              onEnter={() => {
+                const editorEl = document.querySelector('.ProseMirror') as HTMLElement | null;
+                editorEl?.focus();
+              }}
+              onPasteMultiline={(p) => setPendingPasteHtml(p)}
+            />
             <div className="mt-2 flex items-center gap-2 text-xs text-notion-text-muted">
               {activePage.readOnly && <span className="rounded bg-notion-active px-2 py-0.5">{t('shared.readOnly')}</span>}
               <button
@@ -697,6 +701,7 @@ export function EditorPanel({ pageId, isModal }: EditorPanelProps) {
             />
           )}
           {!isModal && activePage.path && <LinkedMentionsPanel pagePath={activePage.path} />}
+          {slotAfterEditor}
         </div>
       </div>
 
@@ -756,6 +761,7 @@ function TiptapEditorSurface({
   onReportScoreRecalculated: (result: ReportScoreResult) => void;
 }) {
   const { t } = useI18n();
+  const router = useRouter();
   useEffect(() => {
     (window as any).__noteblockSlashItems = (query: string) => {
       if (!query) return suggestionItems;
@@ -805,6 +811,27 @@ function TiptapEditorSurface({
           event.preventDefault();
           window.open(href, '_blank', 'noopener,noreferrer');
           return true;
+        }
+        if (/\.md(?:#[^?]*)?$/i.test(href) && !href.startsWith('/')) {
+          const store = useWorkspace.getState();
+          const current = store.pages.find((p) => p.id === store.activePageId);
+          if (current) {
+            const targetPath = resolveRelativeProjectPath(current.path, href.replace(/#.*$/, ''));
+            const targetPage = store.pages.find((p) => p.path === targetPath);
+            if (targetPage && store.token) {
+              event.preventDefault();
+              void store.setActivePage(targetPage.id).then(() => store.loadPage(targetPage.id));
+              router.push(`/project/${store.token}/${targetPage.slug}`);
+              return true;
+            }
+            // Fallback for cluster subpages or content paths that may not yet be in store.pages.
+            if (store.token && targetPath) {
+              const slug = targetPath.replace(/\.md$/, '').replace(/\//g, '-');
+              event.preventDefault();
+              router.push(`/project/${store.token}/${slug}`);
+              return true;
+            }
+          }
         }
         return false;
       },

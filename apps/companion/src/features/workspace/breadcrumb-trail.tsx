@@ -11,7 +11,7 @@ import { displayPageTitle } from '@/lib/page-display';
 
 function rootCrumbFor(page: Page, pages: Page[]) {
   if (page.sectionId === 'brain') return pages.find((item) => item.path === 'brain/index.md') || null;
-  if (page.path.startsWith('conteudos/')) return pages.find((item) => item.id === 'virtual/contents') || null;
+  if (page.path.startsWith('conteudos/')) return pages.find((item) => item.id === 'contents') || null;
   if (page.path.startsWith(`${REPORT_DIR_NAME}/`)) return pages.find((item) => item.id === 'virtual/analyses') || null;
   if (page.path.startsWith('workbench/')) return pages.find((item) => item.id === 'virtual/workbench') || null;
   return null;
@@ -21,7 +21,7 @@ function contextCrumbFor(page: Page, pages: Page[]) {
   if (page.path.startsWith(`${REPORT_DIR_NAME}/`)) return null;
   if (page.path.startsWith('conteudos/')) {
     const clusterId = page.frontmatter?.topic_cluster || page.frontmatter?.topicCluster || page.frontmatter?.cluster;
-    return clusterId ? pages.find((item) => item.id === `virtual/contents/${clusterId}`) || null : null;
+    return clusterId ? pages.find((item) => item.id === `contents-${clusterId}`) || null : null;
   }
   return null;
 }

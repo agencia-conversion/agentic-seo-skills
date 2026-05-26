@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { useWorkspace } from '../workspace/store';
 
@@ -38,6 +38,7 @@ interface TitleEditorProps {
   pageId: string;
   initialTitle: string;
   placeholder: string;
+  prefix?: ReactNode;
   endAction?: {
     icon: ReactNode;
     label: string;
@@ -54,6 +55,7 @@ export function TitleEditor({
   pageId,
   initialTitle,
   placeholder,
+  prefix,
   endAction,
   isModal,
   autoFocus,
@@ -62,67 +64,136 @@ export function TitleEditor({
   onEnter,
 }: TitleEditorProps) {
   const updatePage = useWorkspace((s) => s.updatePage);
-  const [value, setValue] = useState(initialTitle);
-  const ref = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<HTMLHeadingElement>(null);
+  const textNodeRef = useRef<Text | null>(null);
+  const valueRef = useRef(initialTitle);
   const lastCommittedRef = useRef(initialTitle);
   const pageIdRef = useRef(pageId);
+  const composingRef = useRef(false);
+  const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const ensureTextNode = () => {
+    const el = editorRef.current;
+    if (!el) return null;
+    if (textNodeRef.current && el.contains(textNodeRef.current)) return textNodeRef.current;
+    const node = el.lastChild;
+    if (node && node.nodeType === Node.TEXT_NODE) {
+      textNodeRef.current = node as Text;
+      return textNodeRef.current;
+    }
+    const created = document.createTextNode('');
+    el.appendChild(created);
+    textNodeRef.current = created;
+    return textNodeRef.current;
+  };
+
+  const writeText = (text: string) => {
+    const node = ensureTextNode();
+    if (!node) return;
+    if (node.textContent !== text) node.textContent = text;
+    const el = editorRef.current;
+    if (el) el.dataset.empty = text.length === 0 ? 'true' : 'false';
+  };
 
   useEffect(() => {
     if (pageIdRef.current !== pageId) {
       pageIdRef.current = pageId;
-      setValue(initialTitle);
+      valueRef.current = initialTitle;
       lastCommittedRef.current = initialTitle;
+      writeText(initialTitle);
+      return;
+    }
+    const editor = editorRef.current;
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    if (
+      initialTitle !== lastCommittedRef.current &&
+      !composingRef.current &&
+      active !== editor
+    ) {
+      if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+      valueRef.current = initialTitle;
+      lastCommittedRef.current = initialTitle;
+      writeText(initialTitle);
     }
   }, [pageId, initialTitle]);
 
   useEffect(() => {
+    writeText(valueRef.current || initialTitle || '');
     if (autoFocus && !initialTitle) {
-      const t = setTimeout(() => ref.current?.focus(), 60);
+      const t = setTimeout(() => {
+        const el = editorRef.current;
+        if (!el) return;
+        el.focus();
+        const node = ensureTextNode();
+        if (node) {
+          const range = document.createRange();
+          range.setStart(node, node.textContent?.length ?? 0);
+          range.collapse(true);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        }
+      }, 60);
       return () => clearTimeout(t);
     }
-  }, [autoFocus, initialTitle, pageId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageId]);
 
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.style.height = 'auto';
-      ref.current.style.height = ref.current.scrollHeight + 'px';
-    }
-  }, [value]);
-
-  useEffect(() => {
-    if (value === lastCommittedRef.current) return;
-    const t = setTimeout(() => {
-      lastCommittedRef.current = value;
-      updatePage(pageId, { title: value });
+  const scheduleCommit = (next: string) => {
+    if (composingRef.current) return;
+    if (next === lastCommittedRef.current) return;
+    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+    commitTimerRef.current = setTimeout(() => {
+      lastCommittedRef.current = next;
+      updatePage(pageId, { title: next });
     }, 120);
-    return () => clearTimeout(t);
-  }, [value, pageId, updatePage]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (readOnly) return;
-    setValue(e.target.value.replace(/\n/g, ''));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const readCurrentText = (): string => {
+    const node = textNodeRef.current;
+    return node?.textContent ?? '';
+  };
+
+  const handleInput = () => {
+    if (readOnly) return;
+    const text = readCurrentText().replace(/\n/g, '');
+    valueRef.current = text;
+    const el = editorRef.current;
+    if (el) el.dataset.empty = text.length === 0 ? 'true' : 'false';
+    scheduleCommit(text);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLHeadingElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (value !== lastCommittedRef.current) {
-        lastCommittedRef.current = value;
-        updatePage(pageId, { title: value });
+      const text = readCurrentText().replace(/\n/g, '');
+      valueRef.current = text;
+      if (text !== lastCommittedRef.current) {
+        lastCommittedRef.current = text;
+        updatePage(pageId, { title: text });
       }
       onEnter?.();
+      return;
+    }
+    if (e.key === 'Backspace' || e.key === 'ArrowLeft') {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        if (range.startOffset === 0 && (range.startContainer === textNodeRef.current || range.startContainer === editorRef.current)) {
+          if (e.key === 'Backspace') e.preventDefault();
+        }
+      }
     }
   };
 
-  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLHeadingElement>) => {
     if (readOnly) return;
+    e.preventDefault();
     const html = e.clipboardData.getData('text/html');
     const text = e.clipboardData.getData('text/plain');
-
     if (html && text.includes('\n')) {
-      e.preventDefault();
       const firstLine = (text.match(/^[^\n]*/)?.[0] || '').trim();
-      if (firstLine) setValue((v) => v + firstLine);
+      if (firstLine) document.execCommand('insertText', false, firstLine);
       const strippedHtml = stripFirstBlock(html);
       if (strippedHtml.trim()) onPasteMultiline?.({ html: strippedHtml });
       else {
@@ -131,44 +202,59 @@ export function TitleEditor({
       }
       return;
     }
-    if (text && text.includes('\n')) {
-      e.preventDefault();
+    if (text.includes('\n')) {
       const [firstLine, ...rest] = text.split('\n');
-      setValue((v) => v + firstLine);
+      if (firstLine) document.execCommand('insertText', false, firstLine);
       const restText = rest.join('\n').trim();
       if (restText) onPasteMultiline?.({ text: restText });
+      return;
     }
+    document.execCommand('insertText', false, text);
   };
 
-  const titleLayoutStyle = {
-    width: '100%',
-    maxWidth: '100%',
-    minWidth: 0,
-    paddingLeft: '8px',
-    paddingRight: '8px',
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-  } as const;
+  const handleCompositionStart = () => {
+    composingRef.current = true;
+  };
+  const handleCompositionEnd = () => {
+    composingRef.current = false;
+    handleInput();
+  };
+
   const titleClassName = cn(
-    'block font-bold border-none outline-none bg-transparent placeholder:text-notion-text-muted/30 text-notion-text tracking-tight leading-[1.15] resize-none overflow-hidden',
+    'block font-bold border-none outline-none bg-transparent text-notion-text tracking-tight leading-[1.15]',
+    'whitespace-pre-wrap break-words',
     readOnly && 'cursor-default',
-    isModal ? 'text-3xl' : 'text-[40px]'
+    isModal ? 'text-3xl' : 'text-[40px]',
   );
 
   return (
     <div className={cn('grid items-start', endAction ? 'grid-cols-[minmax(0,1fr)_auto] gap-[0.35em]' : 'grid-cols-1')}>
-      <textarea
-        ref={ref}
-        value={value}
-        onChange={handleChange}
+      <h1
+        ref={editorRef}
+        contentEditable={!readOnly}
+        suppressContentEditableWarning
+        role="textbox"
+        aria-multiline="false"
+        aria-label={placeholder}
+        data-placeholder={placeholder}
+        data-empty={(valueRef.current || initialTitle || '').length === 0 ? 'true' : 'false'}
+        spellCheck
+        onInput={handleInput}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
-        placeholder={placeholder}
-        readOnly={readOnly}
-        rows={1}
-        style={titleLayoutStyle}
-        className={titleClassName}
-      />
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
+        className={cn(titleClassName, 'title-editor px-2')}
+      >
+        {prefix && (
+          <span
+            contentEditable={false}
+            className="select-none mr-[0.18em] align-baseline"
+          >
+            {prefix}
+          </span>
+        )}
+      </h1>
       {endAction && (
         <button
           type="button"

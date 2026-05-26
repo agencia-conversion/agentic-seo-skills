@@ -40,13 +40,15 @@ export function resolvePageWidth(
   defaultWidth: PageWidth
 ): PageWidth {
   if (!pageId) return defaultWidth;
-  let current: Page | undefined = pages.find((p) => p.id === pageId);
+  const page = pages.find((p) => p.id === pageId);
+  let current: Page | undefined = page;
   while (current) {
     if (current.path?.startsWith(`${REPORT_DIR_NAME}/`) && current.width === 'full') return 'lg';
     if (current.width) return current.width;
     if (!current.parentId) break;
     current = pages.find((p) => p.id === current!.parentId);
   }
-  if (pages.find((p) => p.id === pageId)?.path?.startsWith(`${REPORT_DIR_NAME}/`) && defaultWidth === 'full') return 'lg';
+  if (page?.path?.startsWith(`${REPORT_DIR_NAME}/`) && defaultWidth === 'full') return 'lg';
+  if (page?.path === 'brain/topic-clusters.md' || page?.path?.startsWith('brain/topic-clusters/')) return 'full';
   return defaultWidth;
 }
