@@ -11,7 +11,7 @@ Use this skill whenever an Agentic SEO workflow generates a report page for the 
 
 ## When To Use
 
-Use `page-report` from report-producing skills and runtime code when creating or reviewing `report.md` for Technical SEO, Internal Links, SEO Analysis, Keyword Research, SERP Extract, Backlink Analysis, Topic Cluster, or E-E-A-T.
+Use `page-report` from report-producing skills and runtime code when creating or reviewing `report.md` for Technical SEO, Internal Links, SEO Analysis, Keyword Research, SERP Extract, Backlink Analysis, Topic Cluster, E-E-A-T, or Competitive Analysis.
 
 Do not use this skill for public content drafts, approval handoffs, inline chat answers, raw provider captures, or authorial Brain updates that are not report pages.
 
@@ -75,7 +75,7 @@ items:
 ```
 ````
 
-Use only supported `report_type` values: `technical-seo`, `internal-links`, `seo-analysis`, `keyword-research`, `serp-extract`, `backlink-analysis`, `topic-cluster`, and `eeat`.
+Use only supported `report_type` values: `technical-seo`, `internal-links`, `seo-analysis`, `keyword-research`, `serp-extract`, `backlink-analysis`, `topic-cluster`, `eeat`, and `competitive-analysis`.
 
 ## Done Criteria
 
