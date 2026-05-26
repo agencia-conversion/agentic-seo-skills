@@ -74,10 +74,12 @@ version: 1
 items:
   - label: Curva CTR
     value: "{{ctr_curve_id}}"
+    tag: Modelado
   - label: Universo de keywords
     value: "{{universe_total}}"
   - label: AIO ajustado
     value: "{{aio_adjusted_keywords}}"
+    tag: Modelado
 ```
 
 ```agentic-table
@@ -92,7 +94,7 @@ columns:
   - key: sov_pct
     label: SoV (%) [Modelado]
   - key: soc_modeled
-    label: SoC modelado
+    label: SoC [Modelado]
 rows: []
 ```
 
@@ -126,7 +128,7 @@ columns:
   - key: target_position
     label: Posição atual
   - key: ctr_uplift_modeled
-    label: Uplift modelado
+    label: Uplift [Modelado]
 rows: []
 ```
 

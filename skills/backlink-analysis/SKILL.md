@@ -90,15 +90,14 @@ Normalize every measured player into the same row schema. Mark missing metrics a
 
 **Weak:** "Competitor A is much stronger because it is a known brand."
 
-Per surface:
+Per surface (full pseudo-code and edge cases in `references/multi-competitor.md`):
 
-- **Link Gap**: emit one row per RD that links to ≥1 competitor and does NOT appear in target's RD list. Include intersect strength (number of competitors that share it), rank, country, category if returned, first-seen date, and one sample backlink URL when available. If `domain_intersection` does not return a row, omit it; never fabricate strength.
-- **Link Intersect**: emit one row per RD that links to target AND every measured competitor. Show rank, sample anchors per side, and counts of backlinks per side when available.
-- **Anchor Distribution Comparison**: bucketize anchors per player into `branded | exact_match | partial_match | naked | generic | image_or_empty`. Compute percentages with rounding rule documented in the report. Show top-10 anchors per player and the top-10 anchors exclusive to competitors.
-- **Referring-Domain Quality Mix**: categorize RDs per player by `editorial | news | directory | partner | ugc | sitewide | suspected_spam_network | irrelevant | unknown` and by spam-score buckets `0-15 | 16-30 | 31+`. Use the provider category when it exists; otherwise mark `unknown` rather than guessing.
-- **Link Velocity Delta**: per player, sum new RDs and lost RDs inside the requested `time_window`. Gap = competitor_new − target_new. Surface `time_window` and end date inside the report.
-- **Page-Level Link Gap** (URL mode): for each competitor URL identified by the user or sourced from `serp-extract`, emit RDs that link to the competitor URL and not to the target URL. Tag observed asset hint (`study | dataset | tool | listicle | comparison | unknown`) **only when the sample backlink anchor or surrounding URL pattern justifies it**.
-- **Brand Mention Gap** (optional): when `--with-brand-mentions` is set, surface domains that mention competitors textually but not the target. Requires user-supplied or `serp-extract`-sourced mention evidence; never invent.
+- **Link Gap** / **Link Intersect**: derived strictly from `domain_intersection` rows; never fabricated by subtracting RD lists. Link Gap emits when `strength(rd) >= intersect_strength_threshold AND rd ∉ RDs(target)`; Link Intersect emits when `rd ∈ RDs(target) AND ∀ c ∈ competitors : rd ∈ RDs(c)`.
+- **Anchor Distribution Comparison**: bucketize per player into `branded | exact_match | partial_match | naked | generic | image_or_empty`. `branded` requires a user-supplied brand string; without it, the bucket stays 0% with a limitation.
+- **Referring-Domain Quality Mix**: categorize RDs per player by `editorial | news | directory | partner | ugc | sitewide | suspected_spam_network | irrelevant | unknown` and by spam-score buckets `0-15 | 16-30 | 31+`. Use the provider category when present; otherwise `unknown`.
+- **Link Velocity Delta**: per player, sum new and lost RDs inside `time_window_days`. Gap = competitor_new − target_new. Never extrapolate a missing window.
+- **Page-Level Link Gap** (URL mode): per competitor URL identified by the user or via `attach_serp_extract_run`, emit RDs that link to the competitor URL set but not the target URL. Asset hint defaults to `unknown` and is upgraded only when the anchor or destination URL pattern justifies it.
+- **Brand Mention Gap** (optional, `--with-brand-mentions`): requires `brand`, `competitor_brands[]`, and mention evidence rows. Sentiment is never inferred.
 
 ### 5. Assess Link Quality And Risk
 
