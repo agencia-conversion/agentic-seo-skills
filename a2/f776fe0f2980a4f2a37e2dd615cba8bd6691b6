@@ -1,0 +1,60 @@
+scripts/lib/markdown-report.mjs
+  s_529b03f3f0def1::t_837a17a04bfbd9 4,15
+skills/page-report/SKILL.md
+  s_529b03f3f0def1::t_036a7e95a97b84 31
+scripts/competitive-analysis.mjs
+  s_529b03f3f0def1::t_659dbecee717b7 557-558
+  s_529b03f3f0def1::t_d017f100e292c3 467
+  s_529b03f3f0def1::t_dac2ac9d66fe45 89-99,102-105,107-110
+  s_529b03f3f0def1::t_22ca369dfec0a6 692-693
+  s_529b03f3f0def1::t_9e0774020fb60d 373-375
+  s_529b03f3f0def1::t_3778330197e94c 190-210,212-214,220,223-248,251,253-257,260-269,271-294
+  s_529b03f3f0def1::t_518edb49e59822 429,436,439,446-447,450-454,459
+  s_529b03f3f0def1::t_54b12a90e5e2d2 8
+  s_529b03f3f0def1::t_06494ffb26544a 496,498-499,504-505,511-512,519,521
+scripts/lib/autoresearch/state.mjs
+  s_529b03f3f0def1::t_c06171f818264a 3,6
+skills/competitive-analysis/SKILL.md
+  s_529b03f3f0def1::t_1afcb1bff97c14 23
+apps/companion/src/lib/i18n.ts
+  s_529b03f3f0def1::t_3173e9f59209d8 1052-1078
+shared/locale.mjs
+  s_529b03f3f0def1::t_8388b1b26915c8 1-106
+shared/locale.d.ts
+  s_529b03f3f0def1::t_fabb215d68171d 1-29
+tests/test_locale.mjs
+  s_529b03f3f0def1::t_3087d0a5d8c1e8 1-100
+tests/test_competitive_analysis.mjs
+  s_529b03f3f0def1::t_b45ee92c1bc314 105-133
+apps/companion/src/components/i18n-provider.tsx
+  s_529b03f3f0def1::t_39bf4e28e13132 11-12,24-25
+  s_529b03f3f0def1::t_83f7b08bfdf39b 84-93,95-96
+tests/test_agentic_query.mjs
+  s_529b03f3f0def1::t_a4010bcc09a87e 37-40
+apps/companion/src/lib/project-files.ts
+  s_529b03f3f0def1::t_e525d566636d27 150-153
+tests/test_tag_index.mjs
+  s_529b03f3f0def1::t_e257c29f8392ad 39-42
+tests/test_graph_builder.mjs
+  s_529b03f3f0def1::t_6974a4959fd0e7 38-41
+package.json
+  s_529b03f3f0def1::t_d1a861bde19d4e 15
+AGENTS.md
+  s_529b03f3f0def1::t_7f82eb8968a3cc 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "a2f776fe0f2980a4f2a37e2dd615cba8bd6691b6",
+  "prompts": {},
+  "sessions": {
+    "s_529b03f3f0def1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "df019ed3-d1e7-4d1b-8c87-45ef6ed101cd",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
