@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { docToMarkdown, markdownToDoc } from '@/lib/markdown';
 import { LocalePreference } from '@/lib/i18n';
 import { projectPageSlug } from '@/lib/project-slugs';
@@ -127,12 +128,16 @@ interface WorkspaceState {
     usageLimit: number;
     defaultPageWidth: PageWidth;
     language: LocalePreference;
+    customIntents?: string[];
+    advancedExpanded?: boolean;
+    hiddenColumns?: string[];
+    hiddenColumnsByTable?: Record<string, string[]>;
   };
   _hasHydrated: boolean;
 
   initializeProject: (token: string) => Promise<void>;
   refreshProjectTree: () => Promise<void>;
-  loadPage: (id: string) => Promise<void>;
+  loadPage: (id: string, options?: { force?: boolean }) => Promise<void>;
   savePage: (id: string, options?: { notes?: string; silent?: boolean }) => Promise<boolean>;
   bootstrapBrain: () => Promise<string | null>;
   setHasHydrated: (state: boolean) => void;
@@ -167,7 +172,7 @@ interface WorkspaceState {
   deleteTemplate: () => void;
   createFromTemplate: () => string | null;
   computeRollup: () => string | number | null;
-  setActivePage: (id: string | null) => void;
+  setActivePage: (id: string | null) => Promise<void>;
   setSettings: (updates: Partial<WorkspaceState['settings']>) => void;
   turnIntoDatabase: () => void;
   turnIntoPage: () => void;
@@ -372,73 +377,42 @@ function virtualPage({
 function mentionResolver(pages: Page[]) {
   return {
     findPageId(target: string) {
-      const clean = target.replace(/\.md$/, '').toLowerCase();
+      const clean = target.replace(/\.md$/, '').replace(/^\/+/, '').toLowerCase();
       const page = pages.find((p) => {
         const base = p.path.split('/').pop()?.replace(/\.md$/, '').toLowerCase();
-        return base === clean || p.title.toLowerCase() === clean || p.path.replace(/\.md$/, '').toLowerCase() === clean;
+        const path = p.path.replace(/\.md$/, '').toLowerCase();
+        const brainRelative = path.startsWith('brain/') ? path.slice('brain/'.length) : path;
+        return base === clean || p.title.toLowerCase() === clean || path === clean || brainRelative === clean;
       });
       return page?.id || null;
     },
     labelForPageId(pageId: string) {
       const page = pages.find((p) => p.id === pageId);
-      return page?.path.split('/').pop()?.replace(/\.md$/, '') || page?.title || pageId;
+      const path = page?.path.replace(/\.md$/, '');
+      if (path?.startsWith('brain/')) return path.slice('brain/'.length);
+      return path || page?.title || pageId;
     },
   };
 }
 
-function yamlString(value: unknown) {
-  return JSON.stringify(String(value ?? ''));
-}
-
 export function frontmatterToText(fields: Record<string, any> = {}) {
-  return Object.entries(fields)
-    .map(([key, value]) => {
-      if (Array.isArray(value)) {
-        return value.length ? `${key}:\n${value.map((item) => `  - ${yamlString(item)}`).join('\n')}` : `${key}: []`;
-      }
-      return `${key}: ${yamlString(value)}`;
-    })
-    .join('\n');
+  return stringifyYaml(fields, { lineWidth: 0 }).trimEnd();
 }
 
 export function parseFrontmatterText(raw: string) {
-  const data: Record<string, any> = {};
-  let currentList: string[] | null = null;
-  for (const line of raw.replace(/\r\n/g, '\n').split('\n')) {
-    if (/^\s/.test(line) && currentList) {
-      const item = line.match(/^\s+-\s*(.+)$/);
-      if (item) currentList.push(item[1].replace(/^["']|["']$/g, ''));
-      continue;
-    }
-    const idx = line.indexOf(':');
-    if (idx <= 0) continue;
-    const key = line.slice(0, idx).trim();
-    const val = line.slice(idx + 1).trim();
-    if (!val || val === '[]') {
-      currentList = [];
-      data[key] = currentList;
-    } else {
-      data[key] = val.replace(/^["']|["']$/g, '');
-      currentList = null;
-    }
+  try {
+    const parsed = parseYaml(raw.replace(/\r\n/g, '\n'));
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? parsed as Record<string, any>
+      : {};
+  } catch {
+    return {};
   }
-  return data;
 }
 
 function setFrontmatterTextField(raw: string, key: string, value: unknown) {
-  const nextLine = `${key}: ${yamlString(value)}`;
-  if (!raw.trim()) return nextLine;
-  const lines = raw.replace(/\r\n/g, '\n').split('\n');
-  let found = false;
-  const next = lines.map((line) => {
-    if (new RegExp(`^${key}\\s*:`).test(line)) {
-      found = true;
-      return nextLine;
-    }
-    return line;
-  });
-  if (!found) next.push(nextLine);
-  return next.join('\n');
+  const parsed = parseFrontmatterText(raw);
+  return frontmatterToText({ ...parsed, [key]: value });
 }
 
 async function apiFetch(token: string | null, url: string, init?: RequestInit) {
@@ -541,7 +515,7 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
     brainSection.pageIds.push(brainEmptyId);
   }
   if (brainSection) {
-    const contentsRootId = 'virtual/contents';
+    const contentsRootId = 'contents';
     pages.push(
       virtualPage({
         id: contentsRootId,
@@ -560,7 +534,7 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
       );
       for (let idx = 0; idx < activeClusters.length; idx++) {
         const cluster = activeClusters[idx] as { slug: string; nome?: string; icon?: string };
-        const subId = `virtual/contents-${cluster.slug}`;
+        const subId = `contents-${cluster.slug}`;
         pages.push(
           virtualPage({
             id: subId,
@@ -638,7 +612,7 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
       (p) =>
         p.path === 'brain/index.md' ||
         p.id === 'virtual/analyses' ||
-        p.id === 'virtual/contents' ||
+        p.id === 'contents' ||
         p.id === 'virtual/workbench' ||
         (p.sectionId === 'brain' && !p.parentId)
     )
@@ -725,9 +699,9 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     });
   },
 
-  loadPage: async (id) => {
+  loadPage: async (id, options = {}) => {
     const page = get().pages.find((p) => p.id === id);
-    if (!page || page.loaded) return;
+    if (!page || (page.loaded && !options.force)) return;
     if (page.kind && page.kind !== 'file' && page.kind !== 'clusterDetail') return;
     const file = await apiFetch(get().token, `/api/project/file?path=${encodeURIComponent(page.path)}`);
     if (!file.ok) {
@@ -1052,7 +1026,21 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   deleteTemplate: () => {},
   createFromTemplate: () => null,
   computeRollup: () => null,
-  setActivePage: (activePageId) => set({ activePageId }),
+  setActivePage: async (activePageId) => {
+    const state = get();
+    const prevId = state.activePageId;
+    if (prevId && prevId !== activePageId) {
+      const prevPage = state.pages.find((p) => p.id === prevId);
+      if (prevPage?.dirty && !prevPage.saving) {
+        try {
+          await state.savePage(prevId, { silent: true });
+        } catch {
+          // swallow — don't block navigation; dirty flag persists
+        }
+      }
+    }
+    set({ activePageId });
+  },
   setSettings: (updates) =>
     set((s) => {
       const settings = { ...s.settings, ...updates };

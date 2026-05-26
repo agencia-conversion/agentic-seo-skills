@@ -1,6 +1,7 @@
 import { appendFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { createHash } from 'node:crypto';
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { REPORT_DIR_NAME, REPORT_MODULE_IDS } from '../../../../shared/report-modules';
 import { loadBrainSubpageTemplate } from './brain-templates';
 
@@ -74,6 +75,10 @@ function yamlString(value: unknown) {
 function yamlValue(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.length ? ['', ...value.map((item) => `  - ${yamlString(item)}`)] : ['[]'];
+  }
+  if (value && typeof value === 'object') {
+    const yaml = stringifyYaml(value, { lineWidth: 0 }).trimEnd().split(/\r?\n/);
+    return yaml.length ? ['', ...yaml.map((line) => `  ${line}`)] : ['{}'];
   }
   return [yamlString(value)];
 }
@@ -221,66 +226,39 @@ export function parseFrontmatter(text: string) {
   if (end === -1) return { data: {} as Record<string, any>, body: text, raw: '' };
   const raw = text.slice(4, end);
   const body = text.slice(end + 4).replace(/^\n/, '');
-  const data: Record<string, any> = {};
-  let currentList: string[] | null = null;
-  for (const line of raw.split(/\r?\n/)) {
-    if (/^\s/.test(line) && currentList) {
-      const m = line.match(/^\s+-\s*(.+)$/);
-      if (m) currentList.push(m[1].replace(/^["']|["']$/g, ''));
-      continue;
+  let data: Record<string, any> = {};
+  try {
+    const parsed = parseYaml(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      data = parsed as Record<string, any>;
     }
-    const idx = line.indexOf(':');
-    if (idx <= 0) continue;
-    const key = line.slice(0, idx).trim();
-    const val = line.slice(idx + 1).trim();
-    if (val === '' || val === '[]') {
-      currentList = [];
-      data[key] = currentList;
-    } else {
-      data[key] = val.replace(/^["']|["']$/g, '');
-      currentList = null;
-    }
+  } catch {
+    data = {};
   }
   return { data, body, raw };
 }
 
 function setFrontmatterFields(text: string, fields: Record<string, unknown>) {
-  const linesForFields = frontmatterLines(fields);
   if (!text.startsWith('---\n')) {
+    const linesForFields = frontmatterLines(fields);
     return `---\n${linesForFields.join('\n')}\n---\n\n${text.replace(/^\n+/, '')}`;
   }
   const end = text.indexOf('\n---', 4);
   if (end === -1) {
+    const linesForFields = frontmatterLines(fields);
     return `---\n${linesForFields.join('\n')}\n---\n\n${text}`;
   }
   const raw = text.slice(4, end);
   const after = text.slice(end + 4);
-  const lines = raw.split(/\r?\n/);
-  const seen = new Set<string>();
-  const nextLines: string[] = [];
-  let skipIndented = false;
-  for (const line of lines) {
-    if (skipIndented) {
-      if (/^\s/.test(line) && line.trim().length > 0) continue;
-      if (line.trim().length === 0) continue;
-      skipIndented = false;
-    }
-    let replaced = false;
-    for (const [key, value] of Object.entries(fields)) {
-      if (new RegExp(`^${key}\\s*:`).test(line)) {
-        seen.add(key);
-        nextLines.push(...frontmatterLines({ [key]: value }));
-        replaced = true;
-        skipIndented = true;
-        break;
-      }
-    }
-    if (!replaced) nextLines.push(line);
+  let current: Record<string, unknown> = {};
+  try {
+    const parsed = parseYaml(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) current = parsed as Record<string, unknown>;
+  } catch {
+    current = {};
   }
-  for (const [key, value] of Object.entries(fields)) {
-    if (!seen.has(key)) nextLines.push(...frontmatterLines({ [key]: value }));
-  }
-  return `---\n${nextLines.join('\n')}\n---${after}`;
+  const nextRaw = stringifyYaml({ ...current, ...fields }, { lineWidth: 0 }).trimEnd();
+  return `---\n${nextRaw}\n---${after}`;
 }
 
 function cleanFrontmatterRaw(raw: unknown) {

@@ -2,7 +2,7 @@ import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, statSyn
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { REPORT_DIR_NAME } from '../../../../shared/report-modules';
 
-const SCAN_ROOTS = ['brain', 'conteudos', 'workbench', REPORT_DIR_NAME] as const;
+const SCAN_ROOTS = ['brain', 'sources', 'conteudos', 'workbench', REPORT_DIR_NAME] as const;
 const CONTEXT_CHARS = 80;
 const WIKILINK_RE = /(!)?\[\[([^\]\n]+?)\]\]/g;
 const MD_LINK_RE = /\[([^\]\n]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;

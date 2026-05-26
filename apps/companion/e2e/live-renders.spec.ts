@@ -4,8 +4,8 @@ import { TEST_TOKEN } from './test-constants';
 const TOKEN = TEST_TOKEN;
 
 test.describe('Live renders — agentic-query + mermaid', () => {
-  test('AgenticQuery in brain/index renders a table with results', async ({ page }) => {
-    await page.goto(`/project/${TOKEN}/brain-index`);
+  test('AgenticQuery in brain/companion-demo renders a table with results', async ({ page }) => {
+    await page.goto(`/project/${TOKEN}/brain-companion-demo`);
     // Hydration: wait for the data-agentic-query-result table to appear
     await page.waitForSelector('[data-agentic-query-result] table', { timeout: 20_000 });
     const table = page.locator('[data-agentic-query-result] table');
@@ -17,14 +17,26 @@ test.describe('Live renders — agentic-query + mermaid', () => {
   });
 
   test('AgenticQuery row click navigates to the file', async ({ page }) => {
-    await page.goto(`/project/${TOKEN}/brain-index`);
+    await page.goto(`/project/${TOKEN}/brain-companion-demo`);
     await page.waitForSelector('[data-agentic-query-result] table tbody tr[data-agentic-query-row]', { timeout: 20_000 });
-    const firstRow = page.locator('[data-agentic-query-result] tbody tr[data-agentic-query-row]').first();
-    const targetPath = await firstRow.getAttribute('data-path');
+    const rows = page.locator('[data-agentic-query-result] tbody tr[data-agentic-query-row]');
+    const count = await rows.count();
+    let targetRow = rows.first();
+    let targetPath = await targetRow.getAttribute('data-path');
+    for (let i = 0; i < count; i++) {
+      const candidate = rows.nth(i);
+      const candidatePath = await candidate.getAttribute('data-path');
+      if (candidatePath && candidatePath !== 'brain/companion-demo.md') {
+        targetRow = candidate;
+        targetPath = candidatePath;
+        break;
+      }
+    }
     expect(targetPath).toBeTruthy();
-    await firstRow.click();
-    // URL should change away from brain-index
-    await page.waitForFunction(() => !window.location.pathname.endsWith('brain-index'), { timeout: 5_000 });
+    expect(targetPath).not.toBe('brain/companion-demo.md');
+    await targetRow.click();
+    // URL should change away from the demo page.
+    await page.waitForFunction(() => !window.location.pathname.endsWith('brain-companion-demo'), { timeout: 5_000 });
   });
 
   test('Mermaid in brain/identidade renders an SVG (not raw source)', async ({ page }) => {

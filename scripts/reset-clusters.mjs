@@ -123,7 +123,7 @@ function buildClusterYaml(cluster, blogSlugs) {
     pilar: {
       slug: cluster.pilar.slug,
       keyword: cluster.pilar.keyword,
-      intent: "informacional",
+      intent: "informational",
       volume: null,
       volume_source: null,
     },
@@ -133,7 +133,7 @@ function buildClusterYaml(cluster, blogSlugs) {
           {
             slug: cluster.pilar.slug,
             keyword: cluster.pilar.keyword,
-            intent: "informacional",
+            intent: "informational",
             volume: null,
             volume_source: null,
             papel: "pilar",

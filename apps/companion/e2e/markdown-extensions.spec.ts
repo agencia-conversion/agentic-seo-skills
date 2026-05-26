@@ -25,15 +25,15 @@ test.describe('Markdown extensions (callout, embed, mermaid)', () => {
     await page.waitForSelector('[data-mermaid-result] svg', { timeout: 20_000 });
   });
 
-  test('Index page renders pageEmbed card with the embed marker', async ({ page }) => {
-    await page.goto(`/project/${TOKEN}/brain-index`);
+  test('Companion demo page renders pageEmbed card with the embed marker', async ({ page }) => {
+    await page.goto(`/project/${TOKEN}/brain-companion-demo`);
     await page.waitForSelector('[data-page-embed]', { timeout: 20_000 });
     const embed = page.locator('[data-page-embed]');
     await expect(embed).toBeVisible();
     await expect(embed).toContainText('Embed');
   });
 
-  test('Voz page callout type tip renders without title', async ({ page }) => {
+  test('Tom de Voz page callout type tip renders without title', async ({ page }) => {
     await page.goto(`/project/${TOKEN}/brain-voz`);
     await page.waitForSelector('[data-callout][data-callout-type="tip"]', { timeout: 20_000 });
     const tip = page.locator('[data-callout][data-callout-type="tip"]');

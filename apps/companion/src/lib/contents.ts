@@ -9,6 +9,7 @@ const NONE_CLUSTER = '__none__';
 
 interface ClusterContentMeta {
   keyword?: string | null;
+  intent?: string | null;
   volume?: number | null;
   display_title?: string | null;
 }
@@ -91,6 +92,7 @@ function buildClusterIndexEntry(data: any, filePath: string, root: string): Topi
       pageSlugs.add(slug);
       metaBySlug.set(slug, {
         keyword: data.pilar.keyword || null,
+        intent: data.pilar.intent || null,
         volume: typeof data.pilar.volume === 'number' ? data.pilar.volume : null,
         display_title: data.pilar.display_title || null,
       });
@@ -111,6 +113,7 @@ function buildClusterIndexEntry(data: any, filePath: string, root: string): Topi
       pageSlugs.add(slug);
       metaBySlug.set(slug, {
         keyword: page.keyword || page.keyword_principal?.keyword || null,
+        intent: page.intent || null,
         volume: typeof page.volume === 'number' ? page.volume : null,
         display_title: page.display_title || null,
       });
@@ -231,6 +234,8 @@ export function listProjectContents({
   query = '',
   origin = '',
   topicCluster = '',
+  sort = 'updated',
+  direction = 'desc',
 }: {
   projectRoot: string;
   page?: number;
@@ -238,6 +243,8 @@ export function listProjectContents({
   query?: string;
   origin?: string;
   topicCluster?: string;
+  sort?: string;
+  direction?: string;
 }) {
   const root = resolve(projectRoot);
   const clusters = readTopicClusters(root);
@@ -257,15 +264,37 @@ export function listProjectContents({
       const contentSlug = clean(frontmatter.slug) || basename(child, '.md');
       const matches = inferClusters(frontmatter, contentSlug, clusters);
       const primary = matches[0] || null;
-      let keyword: string | null = null;
-      let keywordVolume: number | null = null;
+      let keyword: string | null = clean(frontmatter.keyword) || clean(frontmatter.keyword_principal?.keyword) || null;
+      let intent: string | null = clean(frontmatter.intent) || null;
+      let keywordVolume: number | null =
+        typeof frontmatter.volume === 'number'
+          ? frontmatter.volume
+          : Number.isFinite(Number(frontmatter.volume))
+            ? Number(frontmatter.volume)
+            : null;
       for (const match of matches) {
         const cluster = clusters.find((c) => c.id === match.id);
         const meta = cluster?.metaBySlug.get(contentSlug);
-        if (meta?.keyword) {
-          keyword = meta.keyword;
-          keywordVolume = meta.volume ?? null;
-          break;
+        if (!keyword && meta?.keyword) keyword = meta.keyword;
+        if (!intent && meta?.intent) intent = meta.intent;
+        if (keywordVolume == null && typeof meta?.volume === 'number') keywordVolume = meta.volume;
+        if (keyword && intent && keywordVolume != null) break;
+      }
+      if (keywordVolume != null && (!Number.isFinite(keywordVolume) || keywordVolume < 0)) {
+        keywordVolume = null;
+      }
+      if (keywordVolume != null) {
+        keywordVolume = Math.round(keywordVolume);
+      }
+      let papel: Record<string, string> = {};
+      if (frontmatter.papel && typeof frontmatter.papel === 'object' && !Array.isArray(frontmatter.papel)) {
+        papel = Object.fromEntries(
+          Object.entries(frontmatter.papel as Record<string, unknown>).map(([key, value]) => [key, String(value)]),
+        );
+      }
+      for (const match of matches) {
+        if (papel[match.id] === 'pilar') {
+          intent = intent || clusters.find((c) => c.id === match.id)?.metaBySlug.get(contentSlug)?.intent || null;
         }
       }
       rows.push({
@@ -282,6 +311,7 @@ export function listProjectContents({
         topicClusterTitles: matches.map((entry) => entry.title),
         topicClusterPaths: matches.map((entry) => entry.path),
         keyword,
+        intent,
         keyword_volume: keywordVolume,
         published_at: clean(frontmatter.published_at),
         updated: clean(frontmatter.updated || frontmatter.updated_at),
@@ -306,12 +336,23 @@ export function listProjectContents({
   }
   if (q) {
     filtered = filtered.filter((row) =>
-      [row.title, row.path, row.origin, row.area, row.topicClusterTitle, ...(row.topicClusterTitles || []), row.status, row.excerpt].some(
+      [row.title, row.path, row.origin, row.area, row.topicClusterTitle, ...(row.topicClusterTitles || []), row.keyword, row.intent, row.status, row.excerpt].some(
         (value) => String(value || '').toLowerCase().includes(q),
       ),
     );
   }
-  filtered.sort((a, b) => String(b.updated || b.published_at || b.path).localeCompare(String(a.updated || a.published_at || a.path)));
+  const sortKey = ['title', 'origin', 'keyword', 'intent', 'status', 'updated', 'published_at', 'clusters'].includes(sort)
+    ? sort
+    : 'updated';
+  const dir = direction === 'asc' ? 1 : -1;
+  filtered.sort((a, b) => {
+    const valueFor = (row: any) => {
+      if (sortKey === 'clusters') return (row.topicClusterTitles || row.topic_clusters || []).join(', ');
+      if (sortKey === 'updated') return row.updated || row.published_at || row.path;
+      return row[sortKey] || '';
+    };
+    return String(valueFor(a)).localeCompare(String(valueFor(b)), 'pt-BR', { numeric: true }) * dir;
+  });
 
   const safePageSize = Math.max(1, Math.min(100, Number(pageSize) || 25));
   const safePage = Math.max(1, Number(page) || 1);

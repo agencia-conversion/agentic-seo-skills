@@ -61,3 +61,22 @@ export async function patchRow(
   if (!res.ok) return { ok: false, reason: `http-${res.status}` };
   return res.json();
 }
+
+export async function patchContentMetadata(
+  contentSlug: string,
+  field: 'keyword' | 'intent' | 'volume',
+  value: string,
+): Promise<ClusterApiResult> {
+  const token = getCompanionToken();
+  if (!token) return { ok: false, reason: 'missing-token' };
+  const res = await fetch(
+    `/api/project/content/${encodeURIComponent(contentSlug)}/metadata?token=${encodeURIComponent(token)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
+      body: JSON.stringify({ field, value, syncWait: true }),
+    },
+  );
+  if (!res.ok) return { ok: false, reason: `http-${res.status}` };
+  return res.json();
+}

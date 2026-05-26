@@ -59,26 +59,28 @@ tese: |
 pilar:                            # obrigatório se status=active; pode ser null em drafting/proposed
   slug: o-que-e-seo-agentico      # casa com conteúdo publicado ou aponta para slug planejado
   keyword: "seo agêntico"
-  intent: informacional           # informacional | transacional | comparativo | navegacional
+  intent: informational           # informational | transactional | comparative | navigational
   volume: 1200                    # número ou null
   volume_source: dataforseo:2026-04   # provider:período; null quando volume é null
 
 planned_satellites:               # APENAS keywords sem conteúdo publicado
   - slug: agentes-de-pesquisa-seo
     keyword: "agentes de pesquisa seo"
-    intent: informacional
+    intent: informational
     volume: 320
     volume_source: dataforseo:2026-04
     papel: satelite               # default; quase nunca pilar
+    editorial_status: draft       # draft | in-review | approved | published
     note: "considerar como pilar se o autor migrar"
 
 satelite_overrides:               # opcional; só quando conteúdo publicado precisa de
-                                  # display_title/keyword diferentes do título do post
+                                  # display_title/keyword/editorial_status diferentes do título do post
   agente-de-seo:
     display_title: "O que é um agente de SEO"
     keyword: "agente de seo"
     volume: 480
     volume_source: dataforseo:2026-04
+    editorial_status: published   # draft | in-review | approved | published
 
 stats:                            # gerado por cluster-sync, não autoral
   publicados: 9
@@ -376,3 +378,6 @@ PRs 1-4 entregam plugin 0.2 operável só por CLI. PRs 5-6 são UX/ops.
 ## Histórico
 
 - `v1` (2026-05-25, plugin 0.2.0) — primeira versão pública do contrato.
+- `v1.1` (2026-05-25, plugin 0.2.0) — campos adicionados sem breaking change:
+  - `intent` values agora canônicos em inglês: `informational | transactional | comparative | navigational` (consumidores ainda aceitam string livre conforme `Intent` type).
+  - `satelite_overrides[<slug>].editorial_status` e `planned_satellites[<i>].editorial_status` opcionais; valores `draft | in-review | approved | published`. Default: `published` para conteúdo publicado sem override, `draft` para planejado sem override.

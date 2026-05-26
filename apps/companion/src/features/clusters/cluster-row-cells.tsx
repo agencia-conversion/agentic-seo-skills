@@ -5,12 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useWorkspace } from '@/features/workspace/store';
 import { cn } from '@/lib/utils';
 
-function openContentInNewTab(slug: string, origem: string, token?: string | null) {
-  if (typeof window === 'undefined' || !token) return;
-  const path = `/project/${encodeURIComponent(token)}/conteudos-${encodeURIComponent(origem)}-${encodeURIComponent(slug)}`;
-  window.open(path, '_blank', 'noopener,noreferrer');
-}
-
 export interface ClusterRow {
   slug: string;
   papel: 'pilar' | 'satelite';
@@ -19,8 +13,10 @@ export interface ClusterRow {
     | { kind: 'published'; title: string; href: string; origem: string }
     | { kind: 'planned'; slug: string };
   keyword: string;
+  keyword_volume?: number | null;
   intent: string;
   status: 'publicado' | 'planejado';
+  editorial_status: 'draft' | 'in-review' | 'approved' | 'published';
   acao: string;
   updated: string;
   tambem_em: string[];
@@ -28,48 +24,37 @@ export interface ClusterRow {
 
 export function ContentLink({
   row,
-  onOpenContent,
+  onOpenContent: _onOpenContent,
 }: {
   row: ClusterRow;
   onOpenContent?: (slug: string) => void;
 }) {
+  const router = useRouter();
   const token = useWorkspace((s) => s.token);
   if (row.conteudo.kind === 'planned') {
     return <span className="italic text-notion-text-muted">{row.conteudo.slug}</span>;
   }
   const origem = row.conteudo.origem;
-  const handleClick = (e: ReactMouseEvent<HTMLButtonElement>) => {
+  const targetPath =
+    token && `/project/${encodeURIComponent(token)}/conteudos-${encodeURIComponent(origem)}-${encodeURIComponent(row.slug)}`;
+  const handleClick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();
-    if (e.metaKey || e.ctrlKey || e.button === 1) {
-      openContentInNewTab(row.slug, origem, token);
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
       return;
     }
-    onOpenContent?.(row.slug);
-  };
-  const handleAuxClick = (e: ReactMouseEvent<HTMLButtonElement>) => {
-    if (e.button === 1) {
-      e.preventDefault();
-      e.stopPropagation();
-      openContentInNewTab(row.slug, origem, token);
-    }
-  };
-  const handleContextMenu = (e: ReactMouseEvent<HTMLButtonElement>) => {
-    if (!token) return;
+    if (!targetPath) return;
     e.preventDefault();
-    e.stopPropagation();
-    openContentInNewTab(row.slug, origem, token);
+    router.push(targetPath);
   };
   return (
-    <button
-      type="button"
+    <a
+      href={targetPath || '#'}
       onClick={handleClick}
-      onAuxClick={handleAuxClick}
-      onContextMenu={handleContextMenu}
       className="text-left text-sm text-notion-text underline-offset-2 hover:underline truncate cursor-pointer w-full"
-      title={`${row.conteudo.title}\n(Cmd+click ou botão-direito abre em nova aba)`}
+      title={row.conteudo.title}
     >
       {row.conteudo.title}
-    </button>
+    </a>
   );
 }
 

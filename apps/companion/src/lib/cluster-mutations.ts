@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parse as parseYaml, stringify as yamlStringify } from 'yaml';
 import { loadBrainSubpageTemplate } from './brain-templates';
+import { updateContentMetadata } from './content-mutations';
 
 const PLUGIN_ROOT =
   process.env.AGENTIC_SEO_PLUGIN_ROOT ||
@@ -205,7 +206,7 @@ export function addPlannedSatellite(projectRoot: string, clusterSlug: string, in
   data.planned_satellites.push({
     slug,
     keyword,
-    intent: input.intent || 'informacional',
+    intent: input.intent || 'informational',
     volume: typeof input.volume === 'number' && input.volume > 0 ? input.volume : null,
     volume_source: null,
     papel: input.papel === 'pilar' ? 'pilar' : 'satelite',
@@ -238,7 +239,15 @@ function findContentFile(projectRoot: string, slug: string): { path: string; ori
 }
 
 export interface EditRowInput {
-  field: 'display_title' | 'keyword' | 'intent' | 'acao' | 'papel' | 'note';
+  field:
+    | 'display_title'
+    | 'keyword'
+    | 'intent'
+    | 'acao'
+    | 'papel'
+    | 'note'
+    | 'editorial_status'
+    | 'volume';
   value: string;
   kind: 'published' | 'planned';
 }
@@ -258,14 +267,33 @@ function editPublishedOverride(
   field: EditRowInput['field'],
   value: string,
 ): boolean {
-  if (field !== 'display_title' && field !== 'keyword' && field !== 'intent') return false;
+  if (
+    field !== 'display_title' &&
+    field !== 'keyword' &&
+    field !== 'intent' &&
+    field !== 'editorial_status' &&
+    field !== 'volume'
+  ) {
+    return false;
+  }
   const overrides = (data.satelite_overrides && typeof data.satelite_overrides === 'object'
     ? data.satelite_overrides
     : {}) as Record<string, Record<string, unknown>>;
   const current = { ...(overrides[contentSlug] || {}) };
-  const normalized = normalizeStringValue(value);
-  if (normalized === null) delete current[field];
-  else current[field] = normalized;
+  if (field === 'volume') {
+    const num = Number((value || '').replace(/[^\d.-]/g, ''));
+    if (!Number.isFinite(num) || num <= 0) {
+      delete current.volume;
+      delete current.volume_source;
+    } else {
+      current.volume = Math.round(num);
+      current.volume_source = 'manual';
+    }
+  } else {
+    const normalized = normalizeStringValue(value);
+    if (normalized === null) delete current[field];
+    else current[field] = normalized;
+  }
   if (Object.keys(current).length === 0) {
     const next = { ...overrides };
     delete next[contentSlug];
@@ -291,7 +319,22 @@ function editPlannedEntry(
     entry.note = normalized || null;
   } else if (field === 'papel') {
     entry.papel = value === 'pilar' ? 'pilar' : 'satelite';
-  } else if (field === 'acao' || field === 'display_title' || field === 'keyword' || field === 'intent') {
+  } else if (field === 'volume') {
+    const num = Number((value || '').replace(/[^\d.-]/g, ''));
+    if (!Number.isFinite(num) || num <= 0) {
+      delete entry.volume;
+      delete entry.volume_source;
+    } else {
+      entry.volume = Math.round(num);
+      entry.volume_source = 'manual';
+    }
+  } else if (
+    field === 'acao' ||
+    field === 'display_title' ||
+    field === 'keyword' ||
+    field === 'intent' ||
+    field === 'editorial_status'
+  ) {
     const normalized = normalizeStringValue(value);
     if (normalized === null) delete entry[field];
     else entry[field] = normalized;
@@ -394,6 +437,14 @@ export function editClusterRow(
       if (located) affected.push(`conteudos/${located.origem}/${contentSlug}.md`);
     }
     return { ok: true, affected };
+  }
+
+  if (input.field === 'keyword' || input.field === 'intent' || input.field === 'volume') {
+    const contentResult = updateContentMetadata(projectRoot, contentSlug, {
+      [input.field]: input.value,
+    });
+    if (!contentResult.ok) return contentResult;
+    return { ok: true, affected: [contentResult.path] };
   }
 
   if (!editPublishedOverride(data, contentSlug, input.field, input.value)) {

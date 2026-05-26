@@ -6,7 +6,7 @@ const TOKEN = TEST_TOKEN;
 test.describe('Keyboard shortcuts — Tools navigation', () => {
   test('Cmd+Shift+G navigates to /graph', async ({ page }) => {
     await page.goto(`/project/${TOKEN}/`);
-    await page.waitForSelector('[data-testid="sidebar-tools"]', { timeout: 20_000 });
+    await page.waitForSelector('[data-testid="sidebar-tool-graph"]', { timeout: 20_000 });
     await page.locator('body').click();
     await page.keyboard.press('Meta+Shift+G');
     await page.waitForURL(/\/graph$/, { timeout: 10_000 });
@@ -14,7 +14,7 @@ test.describe('Keyboard shortcuts — Tools navigation', () => {
 
   test('Cmd+Shift+T navigates to /tags', async ({ page }) => {
     await page.goto(`/project/${TOKEN}/`);
-    await page.waitForSelector('[data-testid="sidebar-tools"]', { timeout: 20_000 });
+    await page.waitForSelector('[data-testid="sidebar-tool-graph"]', { timeout: 20_000 });
     await page.locator('body').click();
     await page.keyboard.press('Meta+Shift+T');
     await page.waitForURL(/\/tags$/, { timeout: 10_000 });
@@ -22,7 +22,7 @@ test.describe('Keyboard shortcuts — Tools navigation', () => {
 
   test('Cmd+Shift+B navigates to /broken-links', async ({ page }) => {
     await page.goto(`/project/${TOKEN}/`);
-    await page.waitForSelector('[data-testid="sidebar-tools"]', { timeout: 20_000 });
+    await page.waitForSelector('[data-testid="sidebar-tool-graph"]', { timeout: 20_000 });
     await page.locator('body').click();
     await page.keyboard.press('Meta+Shift+B');
     await page.waitForURL(/\/broken-links$/, { timeout: 10_000 });

@@ -60,6 +60,20 @@ function renderKeyword(
   return keyword;
 }
 
+function cleanString(value: unknown): string | undefined {
+  const cleaned = String(value ?? "").trim();
+  return cleaned || undefined;
+}
+
+function cleanVolume(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+  }
+  return undefined;
+}
+
 function statusLabel(value: string | undefined, labels: ClusterLabels): string {
   switch (value) {
     case "published":
@@ -118,14 +132,17 @@ function publishedRow(
   const link = `[${title}](${relPathToContent(content)})`;
   const keyword =
     override?.keyword ??
+    cleanString(content.fm.keyword) ??
     (forcePilar ? cluster.yaml.pilar?.keyword : undefined) ??
     undefined;
   const volume =
     override?.volume ??
+    cleanVolume(content.fm.volume) ??
     (forcePilar ? cluster.yaml.pilar?.volume : undefined) ??
     undefined;
   const intent =
     override?.intent ||
+    cleanString(content.fm.intent) ||
     (forcePilar ? cluster.yaml.pilar?.intent : undefined) ||
     "—";
   return {

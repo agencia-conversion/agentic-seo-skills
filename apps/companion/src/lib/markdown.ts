@@ -171,6 +171,8 @@ export interface MarkdownDocContext {
 
 const CLUSTER_SENTINEL_BEGIN = '<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->';
 const CLUSTER_SENTINEL_END = '<!-- END cluster-content-table:auto -->';
+const CLUSTER_INDEX_SENTINEL_BEGIN = '<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->';
+const CLUSTER_INDEX_SENTINEL_END = '<!-- END cluster-index-table:auto -->';
 
 function extractClusterSlugFromPath(filePath?: string): string {
   if (!filePath) return '';
@@ -243,6 +245,20 @@ export function markdownToDoc(
       content.push({
         type: 'clusterTable',
         attrs: { clusterSlug, sentinelRaw: inner.join('\n') },
+      });
+      continue;
+    }
+
+    if (line.trim() === CLUSTER_INDEX_SENTINEL_BEGIN) {
+      const inner: string[] = [];
+      i++;
+      while (i < lines.length && lines[i].trim() !== CLUSTER_INDEX_SENTINEL_END) {
+        inner.push(lines[i++]);
+      }
+      if (i < lines.length) i++;
+      content.push({
+        type: 'activeClustersTable',
+        attrs: { sentinelRaw: inner.join('\n') },
       });
       continue;
     }
@@ -454,6 +470,10 @@ export function docToMarkdown(doc: any, resolver?: MentionResolver): string {
     else if (node.type === 'clusterTable') {
       const raw = String(node.attrs?.sentinelRaw || '').replace(/\s+$/, '');
       out.push(`${CLUSTER_SENTINEL_BEGIN}\n${raw}\n${CLUSTER_SENTINEL_END}`);
+    }
+    else if (node.type === 'activeClustersTable') {
+      const raw = String(node.attrs?.sentinelRaw || '').replace(/\s+$/, '');
+      out.push(`${CLUSTER_INDEX_SENTINEL_BEGIN}\n${raw}\n${CLUSTER_INDEX_SENTINEL_END}`);
     }
     else if (node.type === 'reportBlock') {
       const kind = node.attrs?.kind || 'agentic-table';

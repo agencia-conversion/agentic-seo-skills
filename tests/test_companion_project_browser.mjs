@@ -91,7 +91,13 @@ slug: "post-teste"
 published_at: ""
 source_url: ""
 origem: "blog"
-area: "seo"
+keyword: "post teste keyword"
+intent: "informational"
+volume: 480
+clusters:
+  - seo-agentico
+papel:
+  seo-agentico: pilar
 ---
 
 # Post
@@ -116,7 +122,11 @@ writeFileSync(
 title: "Post LinkedIn"
 slug: "post-linkedin"
 origem: "linkedin"
-topic_cluster: "seo-agentico"
+keyword: "linkedin keyword"
+intent: "comparative"
+volume: 90
+clusters:
+  - seo-agentico
 status: "draft"
 ---
 
@@ -125,13 +135,19 @@ Conteúdo para LinkedIn.
   "utf8",
 );
 writeFileSync(
-  join(projectRoot, "clusters", "seo-agentico", "cluster.json"),
-  JSON.stringify({
-    seed: "SEO agêntico",
-    seed_slug: "seo-agentico",
-    pillar: { title: "SEO agêntico", slug: "seo-agentico" },
-    supporting_pages: [{ slug: "post-teste", title: "Post Teste" }],
-  }, null, 2),
+  join(projectRoot, "clusters", "seo-agentico", "cluster.yaml"),
+  [
+    "contract_version: 1",
+    "slug: seo-agentico",
+    "nome: SEO agêntico",
+    "status: active",
+    "pilar:",
+    "  slug: post-teste",
+    "  keyword: legacy cluster keyword",
+    "planned_satellites: []",
+    "satelite_overrides: {}",
+    "",
+  ].join("\n"),
   "utf8",
 );
 writeFileSync(
@@ -210,8 +226,13 @@ assert.equal(contentIndex.total, 2);
 assert.equal(contentIndex.items.some((item) => item.path === "conteudos/blog/_template.md"), false);
 assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").topic_cluster, "seo-agentico");
 assert.equal(contentIndex.items.find((item) => item.path === "conteudos/linkedin/post-linkedin.md").topicClusterTitle, "SEO agêntico");
+assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").keyword, "post teste keyword");
+assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").intent, "informational");
+assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").keyword_volume, 480);
 assert.equal(listProjectContents({ projectRoot, origin: "blog" }).total, 1);
 assert.equal(listProjectContents({ projectRoot, topicCluster: "seo-agentico" }).total, 2);
+assert.equal(listProjectContents({ projectRoot, query: "comparative" }).total, 1);
+assert.equal(listProjectContents({ projectRoot, pageSize: 1, sort: "title", direction: "asc" }).items[0].title, "Post LinkedIn");
 
 const workbenchIndex = listProjectWorkbench({ projectRoot });
 assert.equal(workbenchIndex.ok, true);
@@ -257,14 +278,14 @@ const contentSaved = saveProjectFile({
   expectedHash: contentFile.hash,
   title: "Post Teste Revisado",
   body: contentFile.body,
-  frontmatter: { ...contentFile.frontmatter, title: "Post Teste Revisado", area: "seo-tecnico" },
+  frontmatter: { ...contentFile.frontmatter, title: "Post Teste Revisado", keyword: "keyword revisada" },
   frontmatterRaw:
-    'title: "Post Teste Revisado"\nslug: "post-teste"\npublished_at: ""\nsource_url: ""\norigem: "blog"\narea: "seo-tecnico"',
+    'title: "Post Teste Revisado"\nslug: "post-teste"\npublished_at: ""\nsource_url: ""\norigem: "blog"\nkeyword: "keyword revisada"\nintent: "informational"\nvolume: 480\nclusters:\n  - seo-agentico\npapel:\n  seo-agentico: pilar',
 });
 assert.equal(contentSaved.ok, true);
 const contentText = readFileSync(join(projectRoot, "conteudos", "blog", "post-teste.md"), "utf8");
 assert.match(contentText, /title: "Post Teste Revisado"/);
-assert.match(contentText, /area: "seo-tecnico"/);
+assert.match(contentText, /keyword: "keyword revisada"/);
 
 writeFileSync(join(brain, "voz.md"), readFileSync(join(brain, "voz.md"), "utf8") + "\nMudança externa.\n", "utf8");
 const stale = saveProjectFile({

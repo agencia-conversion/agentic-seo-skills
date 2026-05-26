@@ -140,6 +140,10 @@ const messages = {
       missingToken:
         'Open this interface through the agentic seo launcher to receive a tokenized local session.',
     },
+    brand: {
+      by: 'by',
+      openConversion: 'Open Conversion website',
+    },
     contentIndex: {
       countOne: '{count} content',
       countOther: '{count} contents',
@@ -437,6 +441,10 @@ const messages = {
       brokenLinksHint: 'Unresolved wikilinks and embeds',
       shortcut: 'Shortcut',
     },
+    advanced: {
+      heading: 'Advanced',
+      settings: 'Settings',
+    },
     navigation: {
       heading: 'Navigate',
     },
@@ -628,6 +636,10 @@ const messages = {
       name: 'agentic seo companion',
       missingToken:
         'Abra esta interface pelo launcher do agentic seo para receber uma sessão local tokenizada.',
+    },
+    brand: {
+      by: 'por',
+      openConversion: 'Abrir site da Conversion',
     },
     contentIndex: {
       countOne: '{count} conteúdo',
@@ -925,6 +937,10 @@ const messages = {
       tagsHint: 'Tags do frontmatter e inline',
       brokenLinksHint: 'Wikilinks e embeds que não resolvem',
       shortcut: 'Atalho',
+    },
+    advanced: {
+      heading: 'Avançado',
+      settings: 'Configurações',
     },
     navigation: {
       heading: 'Navegação',

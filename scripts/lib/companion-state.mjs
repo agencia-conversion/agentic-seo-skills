@@ -28,7 +28,7 @@ export function newHandoffId() {
 }
 
 export function newToken() {
-  return randomBytes(32).toString("hex");
+  return randomBytes(9).toString("base64url");
 }
 
 export function sha256(content) {

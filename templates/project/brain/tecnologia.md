@@ -6,9 +6,9 @@ updated: "<YYYY-MM-DD>"
 # Tecnologia
 
 <!--
-PROPOSITO: Stack observado e mapa de SEO tecnico do projeto. Este arquivo
-e exclusivamente operacional: o que foi observado, o que foi decidido,
-o que falta verificar. NAO documenta opiniao editorial sobre stack
+PROPOSITO: Stack observado e mapa de SEO tecnico do site da marca. Este
+arquivo e exclusivamente operacional: o que foi observado no site, o que
+foi decidido, o que falta verificar. NAO documenta opiniao editorial sobre stack
 ("preferimos sites estaticos", "rejeitamos WordPress", "acreditamos em
 edge rendering"). Tese editorial sobre tecnologia vive em [[editorial]]
 ou em conteudos publicados em `conteudos/`. Cada linha factual aqui tem

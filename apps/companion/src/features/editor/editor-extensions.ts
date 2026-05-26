@@ -17,7 +17,7 @@ import { Mermaid } from './mermaid-extension';
 import { AgenticQuery } from './agentic-query-extension';
 import { RawMarkdown } from './raw-markdown-extension';
 import { ReportBlock } from './report-block-extension';
-import { ClusterTable } from './cluster-table-extension';
+import { ActiveClustersTableNode, ClusterTable } from './cluster-table-extension';
 import { SlashCommand } from './slash-command-extension';
 import type { ReportScoreResult } from './report-block-data';
 import type { SupportedLocale } from '@/lib/i18n';
@@ -166,5 +166,6 @@ export const getExtensions = (options: { onReportScoreRecalculated?: (result: Re
     locale: options.locale || 'pt-BR',
   }),
   ClusterTable,
+  ActiveClustersTableNode,
   RawMarkdown,
 ];

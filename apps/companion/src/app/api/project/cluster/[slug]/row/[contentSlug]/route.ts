@@ -5,7 +5,16 @@ import { runClusterSyncHook } from '@/lib/cluster-sync-runner';
 
 export const dynamic = 'force-dynamic';
 
-const ALLOWED_FIELDS = new Set(['display_title', 'keyword', 'intent', 'acao', 'papel', 'note']);
+const ALLOWED_FIELDS = new Set([
+  'display_title',
+  'keyword',
+  'intent',
+  'acao',
+  'papel',
+  'note',
+  'editorial_status',
+  'volume',
+]);
 
 export async function PATCH(
   req: NextRequest,
@@ -22,15 +31,27 @@ export async function PATCH(
     return NextResponse.json({ ok: false, reason: 'invalid-field' }, { status: 400 });
   }
   const result = editClusterRow(projectRoot(), slug, contentSlug, {
-    field: field as 'display_title' | 'keyword' | 'intent' | 'acao' | 'papel' | 'note',
+    field: field as
+      | 'display_title'
+      | 'keyword'
+      | 'intent'
+      | 'acao'
+      | 'papel'
+      | 'note'
+      | 'editorial_status'
+      | 'volume',
     value,
     kind,
   });
   if (result.ok) {
+    const affected = Array.isArray((result as { affected?: string[] }).affected)
+      ? (result as { affected: string[] }).affected
+      : [`clusters/${slug}/cluster.yaml`];
+    const syncTarget = affected.find((path) => path.startsWith('conteudos/')) || `clusters/${slug}/cluster.yaml`;
     if (body.syncWait === true) {
-      await runClusterSyncHook(projectRoot(), `clusters/${slug}/cluster.yaml`);
+      await runClusterSyncHook(projectRoot(), syncTarget);
     } else {
-      void runClusterSyncHook(projectRoot(), `clusters/${slug}/cluster.yaml`).catch(() => {});
+      void runClusterSyncHook(projectRoot(), syncTarget).catch(() => {});
     }
   }
   return NextResponse.json(result);

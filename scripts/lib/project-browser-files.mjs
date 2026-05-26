@@ -530,7 +530,7 @@ function normalizeClusterFilter(topicCluster) {
     .filter(Boolean);
 }
 
-export function listProjectContents({ projectRoot, page = 1, pageSize = 25, query = "", origin = "", topicCluster = "" }) {
+export function listProjectContents({ projectRoot, page = 1, pageSize = 25, query = "", origin = "", topicCluster = "", sort = "", direction = "desc" }) {
   const root = normalizeProjectRoot(projectRoot);
   const clusters = readTopicClusters(root);
   const rows = [];
@@ -549,6 +549,13 @@ export function listProjectContents({ projectRoot, page = 1, pageSize = 25, quer
       const contentSlug = cleanValue(frontmatter.slug) || basename(child, ".md");
       const matches = inferContentClusters(frontmatter, contentSlug, clusters);
       const primary = matches[0] || null;
+      const rawVolume = frontmatter.volume;
+      const keywordVolume =
+        typeof rawVolume === "number"
+          ? rawVolume
+          : Number.isFinite(Number(rawVolume))
+            ? Number(rawVolume)
+            : null;
       rows.push({
         id: sha256(rel),
         path: rel,
@@ -562,6 +569,9 @@ export function listProjectContents({ projectRoot, page = 1, pageSize = 25, quer
         topic_clusters: matches.map((entry) => entry.id),
         topicClusterTitles: matches.map((entry) => entry.title),
         topicClusterPaths: matches.map((entry) => entry.path),
+        keyword: cleanValue(frontmatter.keyword || frontmatter.keyword_principal?.keyword),
+        intent: cleanValue(frontmatter.intent),
+        keyword_volume: keywordVolume,
         published_at: cleanValue(frontmatter.published_at),
         updated: cleanValue(frontmatter.updated || frontmatter.updated_at),
         status: cleanValue(frontmatter.status) || (cleanValue(frontmatter.published_at) ? "published" : "draft"),
@@ -585,12 +595,24 @@ export function listProjectContents({ projectRoot, page = 1, pageSize = 25, quer
   }
   if (q) {
     filtered = filtered.filter((row) =>
-      [row.title, row.path, row.origin, row.area, row.topicClusterTitle, ...(row.topicClusterTitles || []), row.status, row.excerpt].some(
+      [row.title, row.path, row.origin, row.area, row.topicClusterTitle, ...(row.topicClusterTitles || []), row.keyword, row.intent, row.status, row.excerpt].some(
         (value) => String(value || "").toLowerCase().includes(q),
       ),
     );
   }
-  filtered.sort((a, b) => String(b.updated || b.published_at || b.path).localeCompare(String(a.updated || a.published_at || a.path)));
+  const sortKey = String(sort || "").trim();
+  const dir = String(direction).toLowerCase() === "asc" ? 1 : -1;
+  const valueForSort = (row) => {
+    if (sortKey === "title" || sortKey === "conteudo") return row.title;
+    if (sortKey === "origin") return row.origin;
+    if (sortKey === "keyword") return row.keyword;
+    if (sortKey === "intent") return row.intent;
+    if (sortKey === "status") return row.status;
+    if (sortKey === "clusters") return (row.topicClusterTitles || []).join(", ");
+    if (sortKey === "published_at") return row.published_at;
+    return row.updated || row.published_at || row.path;
+  };
+  filtered.sort((a, b) => String(valueForSort(a) || "").localeCompare(String(valueForSort(b) || ""), "pt-BR", { numeric: true }) * dir);
   const safePageSize = Math.max(1, Math.min(100, Number(pageSize) || 25));
   const safePage = Math.max(1, Number(page) || 1);
   const assignedCounts = new Map();

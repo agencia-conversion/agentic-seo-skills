@@ -14,7 +14,7 @@ test.describe('Visual UX evidence (screenshots)', () => {
   test('Sidebar with Tools section', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(`/project/${TOKEN}/brain-identidade`);
-    await page.waitForSelector('[data-testid="sidebar-tools"]', { timeout: 20_000 });
+    await page.waitForSelector('[data-testid="sidebar-tool-graph"]', { timeout: 20_000 });
     await page.waitForTimeout(500);
     await page.screenshot({ path: resolve(SCREENSHOT_DIR, 'sidebar-tools.png'), fullPage: false });
   });
@@ -22,7 +22,7 @@ test.describe('Visual UX evidence (screenshots)', () => {
   test('Cmd+P open with Navigation group', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(`/project/${TOKEN}/`);
-    await page.waitForSelector('[data-testid="sidebar-tools"]', { timeout: 20_000 });
+    await page.waitForSelector('[data-testid="sidebar-tool-graph"]', { timeout: 20_000 });
     await page.locator('body').click();
     await page.keyboard.press('Meta+P');
     await page.waitForSelector('[data-testid="search-nav-graph"]', { timeout: 10_000 });
@@ -43,9 +43,9 @@ test.describe('Visual UX evidence (screenshots)', () => {
     await page.screenshot({ path: resolve(SCREENSHOT_DIR, 'slash-menu-new-entries.png'), fullPage: false });
   });
 
-  test('AgenticQuery rendered as live table on brain/index', async ({ page }) => {
+  test('AgenticQuery rendered as live table on brain/companion-demo', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto(`/project/${TOKEN}/brain-index`);
+    await page.goto(`/project/${TOKEN}/brain-companion-demo`);
     await page.waitForSelector('[data-agentic-query-result] table', { timeout: 20_000 });
     await page.waitForTimeout(500);
     await page.screenshot({ path: resolve(SCREENSHOT_DIR, 'agentic-query-live-table.png'), fullPage: true });

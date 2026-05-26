@@ -5,6 +5,25 @@ const PATH_TO_CONTENT = 'conteudos/blog/sample-satellite.md';
 const SECOND_CLUSTER = 'second-cluster';
 
 test.describe('cluster-sync end-to-end', () => {
+  test('short companion token works in routes and APIs', async ({ page, request }) => {
+    expect(TEST_TOKEN).toMatch(/^[A-Za-z0-9_-]{12}$/);
+
+    const byQuery = await request.get(`/api/project/tree?token=${TEST_TOKEN}`, {
+      headers: { 'x-companion-token': '' },
+    });
+    expect(byQuery.ok()).toBeTruthy();
+
+    const byHeader = await request.get('/api/project/tree', {
+      headers: { 'x-companion-token': TEST_TOKEN },
+    });
+    expect(byHeader.ok()).toBeTruthy();
+
+    await page.goto(`/project/${TEST_TOKEN}/brain-index`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.getByRole('link', { name: 'Sample Cluster', exact: true }).click();
+    await page.waitForURL(new RegExp(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster$`), { timeout: 5_000 });
+  });
+
   test('GET /api/project/cluster-list returns sample cluster', async ({ request }) => {
     const res = await request.get(`/api/project/cluster-list?token=${TEST_TOKEN}`);
     expect(res.ok()).toBeTruthy();
@@ -73,6 +92,56 @@ test.describe('cluster-sync end-to-end', () => {
     expect(body.body).toContain('Sample Cluster');
   });
 
+  test('brain index renders brand summary and core brain links', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-index`);
+    await page.waitForLoadState('domcontentloaded');
+    const editor = page.locator('main');
+    await expect(editor).toContainText('Sample Project');
+    await expect(editor).toContainText('Sample Project é uma marca de exemplo');
+    await expect(editor).toContainText('Frase-marca: "Marca de exemplo para testes do Companion."');
+    await expect(editor).toContainText('Pilares do cérebro');
+    await expect(editor).not.toContainText('Entrada do cérebro');
+    const firstBodyHeading = editor.locator('.ProseMirror h2, .ProseMirror h3').first();
+    await expect(firstBodyHeading).toContainText('Pilares do cérebro');
+    await expect(editor).toContainText('Identidade');
+    await expect(editor).toContainText('Tom de Voz');
+    await expect(editor).toContainText('Aposto: Sample Project, marca de exemplo para testes do Companion.');
+    await expect(editor).toContainText("Do's");
+    await expect(editor).toContainText("Don'ts");
+    await expect(editor).toContainText('Sample Cluster');
+    await expect(editor).toContainText('Sample Pilar');
+    await expect(editor).toContainText('Tecnologia');
+    await expect(editor).toContainText('site demonstrativo da marca');
+    await expect(editor).not.toContainText('[[topic-clusters/sample-cluster|Sample Cluster]]');
+    await expect(editor).not.toContainText('Companion local');
+    await expect(editor).not.toContainText('rotas tokenizadas');
+    await expect(editor).not.toContainText('cluster-sync');
+    await expect(editor).toContainText('Editorial');
+    await expect(editor).toContainText('Topic Clusters');
+    await expect(editor).toContainText('Revisão');
+    await expect(editor).toContainText('Log');
+    await expect(editor).not.toContainText('![[identidade#Frase-marca]]');
+    await expect(editor).not.toContainText('Leitura rápida');
+    await expect(page.locator('[data-agentic-query]')).toHaveCount(0);
+    await expect(editor).not.toContainText('fantasma');
+    await editor.getByRole('link', { name: 'Sample Cluster', exact: true }).first().click();
+    await page.waitForURL(/brain-topic-clusters-sample-cluster/, { timeout: 5_000 });
+  });
+
+  test('topic clusters index hydrates active clusters table', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters`);
+    await page.waitForLoadState('domcontentloaded');
+    const table = page.locator('[data-active-clusters-table]');
+    await table.waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(table).toContainText('Sample Cluster');
+    await expect(table).toContainText('Sample Pilar');
+    await expect(table).not.toContainText('🧪');
+    await expect(table.locator('thead')).not.toContainText('Área');
+    await expect(table).not.toContainText('fundamentos');
+    await table.getByRole('link', { name: 'Sample Cluster', exact: true }).click();
+    await page.waitForURL(/brain-topic-clusters-sample-cluster/, { timeout: 5_000 });
+  });
+
   test('companion home renders without server error', async ({ page }) => {
     const response = await page.goto(`/?token=${TEST_TOKEN}`);
     expect(response?.status()).toBeLessThan(500);
@@ -104,6 +173,47 @@ test.describe('cluster-sync end-to-end', () => {
     await page.screenshot({ path: 'e2e/screenshots/cluster-table-view.png', fullPage: false });
   });
 
+  test('intent column renders as dropdown with EN canonical values and persists', async ({ page, request }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const node = page.locator('[data-cluster-table="sample-cluster"]');
+    await node.waitFor({ state: 'visible', timeout: 10_000 });
+    const pilarRow = node.locator('[data-cluster-row="sample-pilar"]');
+    await pilarRow.waitFor({ state: 'visible' });
+    const intentTrigger = pilarRow.locator('button').filter({ hasText: 'Informacional' }).first();
+    await intentTrigger.click();
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: 'Comparativo', exact: true }).first().click();
+    await page.waitForTimeout(1_500);
+    const res = await request.get(`/api/project/cluster/sample-cluster?token=${TEST_TOKEN}`);
+    const body = await res.json();
+    const row = body.rows.find((r: { slug: string }) => r.slug === 'sample-pilar');
+    expect(row.intent).toBe('comparative');
+    const fileRes = await request.get(
+      `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-pilar.md')}&token=${TEST_TOKEN}`,
+    );
+    const fileBody = await fileRes.json();
+    expect(fileBody.frontmatter.intent).toBe('comparative');
+  });
+
+  test('editorial_status column persists via PATCH from publicado to in-review', async ({ page, request }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const node = page.locator('[data-cluster-table="sample-cluster"]');
+    await node.waitFor({ state: 'visible', timeout: 10_000 });
+    const targetRow = node.locator('[data-cluster-row="sample-satellite"]');
+    await targetRow.waitFor({ state: 'visible' });
+    const statusTrigger = targetRow.locator('button').filter({ hasText: 'Publicado' }).first();
+    await statusTrigger.click();
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: 'Em revisão', exact: true }).first().click();
+    await page.waitForTimeout(1_500);
+    const res = await request.get(`/api/project/cluster/sample-cluster?token=${TEST_TOKEN}`);
+    const body = await res.json();
+    const row = body.rows.find((r: { slug: string }) => r.slug === 'sample-satellite');
+    expect(row.editorial_status).toBe('in-review');
+  });
+
   test('inline edit keyword via EditableCell persists to API', async ({ page, request }) => {
     await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
     await page.waitForLoadState('domcontentloaded');
@@ -111,7 +221,7 @@ test.describe('cluster-sync end-to-end', () => {
     await node.waitFor({ state: 'visible', timeout: 10_000 });
     const targetRow = node.locator('[data-cluster-row="sample-satellite"]');
     await targetRow.waitFor({ state: 'visible' });
-    const keywordCell = targetRow.getByRole('button', { name: 'Keyword', exact: true });
+    const keywordCell = targetRow.getByRole('button', { name: /sample satellite/i });
     await keywordCell.click();
     const input = targetRow.locator('input[type="text"], input:not([type])').first();
     await input.fill('keyword editada');
@@ -121,6 +231,11 @@ test.describe('cluster-sync end-to-end', () => {
     const body = await res.json();
     const row = body.rows.find((r: { slug: string }) => r.slug === 'sample-satellite');
     expect(row.keyword).toContain('keyword editada');
+    const fileRes = await request.get(
+      `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+    );
+    const fileBody = await fileRes.json();
+    expect(fileBody.frontmatter.keyword).toBe('keyword editada');
   });
 
   test('papel toggle promotes satellite to pilar via PATCH', async ({ page, request }) => {
@@ -174,17 +289,251 @@ test.describe('cluster-sync end-to-end', () => {
     expect(clipboard.split('\n').length).toBeGreaterThanOrEqual(3);
   });
 
-  test('clicking a row title opens the content modal', async ({ page }) => {
+  test('Companion volume lookup endpoint is not available', async ({ request }) => {
+    const res = await request.post(`/api/project/keyword-research?token=${TEST_TOKEN}`, {
+      data: { keyword: 'sample pilar', offline: true },
+    });
+    expect(res.status()).toBe(404);
+  });
+
+  test('/contents (all-contents) renders ClusterContentTable with Cluster(s) column', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/contents`);
+    await page.waitForLoadState('domcontentloaded');
+    const table = page.locator('[data-cluster-table="all"]');
+    await table.waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(table.locator('[data-testid="cluster-filter-select"]')).toBeVisible();
+    await expect(table.locator('thead')).toContainText('Cluster(s)');
+    await expect(table).not.toContainText('Pesquisar volume');
+  });
+
+  test('GET /api/project/contents sorts server-side before pagination', async ({ request }) => {
+    const asc = await request.get(`/api/project/contents?token=${TEST_TOKEN}&page=1&pageSize=1&sort=title&direction=asc`);
+    expect(asc.ok()).toBeTruthy();
+    const ascBody = await asc.json();
+    expect(ascBody.items[0].title).toBe('Sample Pilar');
+    const desc = await request.get(`/api/project/contents?token=${TEST_TOKEN}&page=1&pageSize=1&sort=title&direction=desc`);
+    expect(desc.ok()).toBeTruthy();
+    const descBody = await desc.json();
+    expect(descBody.items[0].title).toBe('Sample Satellite');
+  });
+
+  test('/contents cluster filter local switches to cluster-scope mode', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/contents`);
+    await page.waitForLoadState('domcontentloaded');
+    const all = page.locator('[data-cluster-table="all"]');
+    await all.waitFor({ state: 'visible', timeout: 10_000 });
+    const filterTrigger = all.locator('[data-testid="cluster-filter-select"] button').first();
+    await filterTrigger.click();
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Sample Cluster/ }).first().click();
+    const scoped = page.locator('[data-cluster-table="sample-cluster"]');
+    await scoped.waitFor({ state: 'visible', timeout: 5_000 });
+    await expect(scoped.locator('thead')).toContainText('Papel');
+  });
+
+  test('/contents-sample-cluster subpage opens cluster-scope directly', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/contents-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const table = page.locator('[data-cluster-table="sample-cluster"]');
+    await table.waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(table.locator('thead')).toContainText('Papel');
+    await expect(table.locator('[data-testid="cluster-filter-select"]')).toHaveCount(0);
+  });
+
+  test('table settings menu opens with sort/filter/columns sections', async ({ page }) => {
     await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
     await page.waitForLoadState('domcontentloaded');
     const node = page.locator('[data-cluster-table="sample-cluster"]');
     await node.waitFor({ state: 'visible', timeout: 10_000 });
-    await node.getByRole('button', { name: 'Sample Pilar', exact: true }).click();
-    const modal = page.locator('text=Abrir página').first();
-    await modal.waitFor({ state: 'visible', timeout: 5_000 });
-    await page.screenshot({ path: 'e2e/screenshots/cluster-content-modal.png', fullPage: false });
+    await node.locator('[data-testid="cluster-table-settings"]').click();
+    const menu = page.locator('[data-testid="table-settings-menu"]');
+    await menu.waitFor({ state: 'visible', timeout: 3_000 });
+    await expect(menu).toContainText('Ordenação');
+    await expect(menu).toContainText('Filtros');
+    await expect(menu).toContainText('Colunas visíveis');
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
-    await expect(modal).toBeHidden({ timeout: 5_000 });
+  });
+
+  test('hiding column via settings hides column in table', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const node = page.locator('[data-cluster-table="sample-cluster"]');
+    await node.waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(node.locator('thead')).toContainText('Atualizado');
+    await node.locator('[data-testid="cluster-table-settings"]').click();
+    const menu = page.locator('[data-testid="table-settings-menu"]');
+    await menu.waitFor({ state: 'visible', timeout: 3_000 });
+    const checkbox = menu.locator('[data-testid="table-column-updated"]');
+    await checkbox.click();
+    await expect(node.locator('thead')).not.toContainText('Atualizado');
+    await checkbox.click();
+    await expect(node.locator('thead')).toContainText('Atualizado');
+  });
+
+  test('left-click on row title navigates in-app', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const node = page.locator('[data-cluster-table="sample-cluster"]');
+    await node.waitFor({ state: 'visible', timeout: 10_000 });
+    await node.getByRole('link', { name: 'Sample Pilar', exact: true }).click();
+    await page.waitForURL(/conteudos-blog-sample-pilar/, { timeout: 5_000 });
+  });
+
+  test('Cmd+click on row title opens new tab', async ({ page, context }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const node = page.locator('[data-cluster-table="sample-cluster"]');
+    await node.waitFor({ state: 'visible', timeout: 10_000 });
+    const [popup] = await Promise.all([
+      context.waitForEvent('page'),
+      node.getByRole('link', { name: 'Sample Pilar', exact: true }).click({ modifiers: ['Meta'] }),
+    ]);
+    await expect(popup).toHaveURL(/conteudos-blog-sample-pilar/);
+    await popup.close();
+  });
+
+  test('right-click on row title keeps native link behavior without in-app navigation', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const node = page.locator('[data-cluster-table="sample-cluster"]');
+    await node.waitFor({ state: 'visible', timeout: 10_000 });
+    await node.getByRole('link', { name: 'Sample Pilar', exact: true }).click({ button: 'right' });
+    await expect(page).toHaveURL(/brain-topic-clusters-sample-cluster/);
+  });
+
+  test('content page H1 hides content emoji', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/conteudos-blog-sample-pilar`);
+    await page.waitForLoadState('domcontentloaded');
+    const h1 = page.locator('h1.title-editor');
+    await expect(h1).toBeVisible();
+    await expect(h1).toContainText('Sample Pilar');
+    await expect(h1).not.toContainText('📝');
+  });
+
+  test('column header click toggles sort', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const node = page.locator('[data-cluster-table="sample-cluster"]');
+    await node.waitFor({ state: 'visible', timeout: 10_000 });
+    const conteudoHeader = node.locator('thead button').filter({ hasText: 'Conteúdo' }).first();
+    await conteudoHeader.click();
+    // sort asc — first row alphabetically should be Sample Pilar
+    const firstRow = node.locator('[data-cluster-row]').first();
+    await expect(firstRow).toContainText('Sample Pilar');
+  });
+
+  test('content metadata drawer persists title date intent clusters and papel', async ({ page, request }) => {
+    await page.goto(`/project/${TEST_TOKEN}/conteudos-blog-sample-satellite`);
+    await page.waitForLoadState('domcontentloaded');
+    const h1 = page.locator('h1.title-editor');
+    await expect(h1).toBeVisible();
+
+    await page.getByRole('button', { name: 'Editar metadados' }).click();
+    const drawer = page.locator('aside.fixed.right-0');
+    await drawer.waitFor({ state: 'visible', timeout: 5_000 });
+
+    const nextTitle = 'Sample Satellite Metadata';
+    await drawer.locator('[data-testid="frontmatter-field-title"] input').fill(nextTitle);
+    await expect(h1).toContainText(nextTitle);
+    await expect.poll(async () => {
+      const fileRes = await request.get(
+        `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+      );
+      const fileBody = await fileRes.json();
+      return fileBody.frontmatter.title;
+    }, { timeout: 8_000 }).toBe(nextTitle);
+
+    const nextDate = '2026-04-16';
+    const dateInput = drawer.locator('[data-testid="frontmatter-field-published_at"] input[type="date"]');
+    await expect(dateInput).toBeVisible();
+    await dateInput.fill(nextDate);
+    await expect.poll(async () => {
+      const fileRes = await request.get(
+        `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+      );
+      const fileBody = await fileRes.json();
+      return fileBody.frontmatter.published_at;
+    }, { timeout: 8_000 }).toBe(nextDate);
+
+    await drawer.locator('[data-testid="frontmatter-field-intent"] button').click();
+    await page.getByRole('button', { name: 'Comparativo', exact: true }).first().click();
+    await expect.poll(async () => {
+      const fileRes = await request.get(
+        `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+      );
+      const fileBody = await fileRes.json();
+      return fileBody.frontmatter.intent;
+    }, { timeout: 8_000 }).toBe('comparative');
+
+    let clusterPosts = 0;
+    page.on('request', (req) => {
+      if (req.method() === 'POST' && req.url().includes('/api/project/clusters')) clusterPosts++;
+    });
+    const drawerScrollBody = drawer.locator('div.overflow-y-auto').first();
+    const scrollHeightBeforePicker = await drawerScrollBody.evaluate((el) => el.scrollHeight);
+    const addClusterButton = drawer.locator('[data-testid="add-cluster-button"]');
+    await addClusterButton.scrollIntoViewIfNeeded();
+    const addClusterBox = await addClusterButton.boundingBox();
+    expect(addClusterBox).toBeTruthy();
+    const intentBox = await drawer.locator('[data-testid="frontmatter-field-intent"]').boundingBox();
+    await addClusterButton.click();
+    const clusterPicker = page.locator('[data-testid="cluster-picker"]');
+    await clusterPicker.waitFor({ state: 'visible', timeout: 5_000 });
+    await expect(drawer.locator('[data-testid="cluster-picker"]')).toHaveCount(0);
+    await expect(clusterPicker.locator('[data-testid="cluster-all-linked"]')).toContainText('Todos os clusters disponíveis já estão vinculados.');
+    await page.waitForFunction(() => {
+      const trigger = document.querySelector('[data-testid="add-cluster-button"]');
+      const picker = document.querySelector('[data-testid="cluster-picker"]');
+      if (!trigger || !picker) return false;
+      const triggerBox = trigger.getBoundingClientRect();
+      const pickerBox = picker.getBoundingClientRect();
+      const gap = pickerBox.top < triggerBox.top
+        ? triggerBox.top - pickerBox.bottom
+        : pickerBox.top - triggerBox.bottom;
+      return gap >= 0 && gap <= 8;
+    }, null, { timeout: 5_000 });
+    const scrollHeightAfterPicker = await drawerScrollBody.evaluate((el) => el.scrollHeight);
+    expect(scrollHeightAfterPicker).toBe(scrollHeightBeforePicker);
+    const pickerBox = await clusterPicker.boundingBox();
+    expect(pickerBox).toBeTruthy();
+    expect(pickerBox!.x).toBeGreaterThanOrEqual(0);
+    expect(pickerBox!.y).toBeGreaterThanOrEqual(0);
+    expect(pickerBox!.x + pickerBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+    expect(pickerBox!.y + pickerBox!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+    const verticalGap = pickerBox!.y < addClusterBox!.y
+      ? addClusterBox!.y - (pickerBox!.y + pickerBox!.height)
+      : pickerBox!.y - (addClusterBox!.y + addClusterBox!.height);
+    expect(verticalGap).toBeLessThanOrEqual(8);
+    if (intentBox) expect(pickerBox!.y).toBeGreaterThan(intentBox.y + intentBox.height);
+    await page.waitForTimeout(300);
+    expect(clusterPosts).toBe(0);
+
+    const clusterName = 'Novo Cluster da Gaveta';
+    const createdSlug = 'novo-cluster-da-gaveta';
+    await clusterPicker.locator('[data-testid="cluster-search-input"]').fill(clusterName);
+    await expect(clusterPicker.locator('[data-testid="create-cluster-from-search"]')).toContainText(`Criar cluster "${clusterName}"`);
+    await clusterPicker.locator('[data-testid="create-cluster-from-search"]').click();
+    await drawer.locator(`[data-testid="cluster-chip-${createdSlug}"]`).waitFor({ state: 'visible', timeout: 12_000 });
+    await expect(drawer.locator(`[data-testid="papel-field-${createdSlug}"] button`)).toContainText('pilar');
+
+    const fileRes = await request.get(
+      `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+    );
+    const fileBody = await fileRes.json();
+    expect(fileBody.frontmatter.clusters).toContain(createdSlug);
+    expect(fileBody.frontmatter.papel[createdSlug]).toBe('pilar');
+
+    const clustersRes = await request.get(`/api/project/clusters?token=${TEST_TOKEN}`);
+    const clustersBody = await clustersRes.json();
+    const created = clustersBody.clusters.find((cluster: { slug: string }) => cluster.slug === createdSlug);
+    expect(created).toBeTruthy();
+    expect(created.pilar_slug).toBe('sample-satellite');
+
+    await drawer.locator('[data-testid="add-cluster-button"]').click();
+    const reopenedPicker = page.locator('[data-testid="cluster-picker"]');
+    await reopenedPicker.locator('[data-testid="cluster-search-input"]').fill(clusterName);
+    await expect(reopenedPicker.locator(`[data-testid="pick-cluster-${createdSlug}"]`)).toContainText('vinculado');
+    await expect(reopenedPicker.locator('[data-testid="create-cluster-from-search"]')).toHaveCount(0);
+    await expect(drawer).not.toContainText('Este cluster já existe');
   });
 });

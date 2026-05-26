@@ -13,21 +13,22 @@ tese: |
 pilar:
   slug: <content-slug-em-conteudos>
   keyword: "<keyword do pilar>"
-  intent: informacional                 # informacional | transacional | comparativo | navegacional
+  intent: informational                 # informational | transactional | comparative | navigational
   volume: null
   volume_source: null
 
 planned_satellites:
   - slug: <novo-conteudo-planejado>
     keyword: "<keyword planejada>"
-    intent: informacional
+    intent: informational
     volume: null
     volume_source: null
     papel: satelite
+    editorial_status: draft             # draft | in-review | approved | published
     note: "Gap identificado no cluster."
 
 satelite_overrides: {}                  # opcional; só quando conteúdo publicado precisa de
-                                        # display_title/keyword diferentes do título do post
+                                        # display_title/keyword/editorial_status diferentes do título do post
 
 stats:                                  # regenerado por cluster-sync
   publicados: 0

@@ -4,11 +4,11 @@ nome: Sample Cluster
 icon: 🧪
 area: fundamentos
 status: active
-tese: Cluster de teste para validar o pipeline cluster-sync.
+tese: Organizar conteúdos publicados e próximos passos do site demonstrativo.
 pilar:
   slug: sample-pilar
   keyword: sample pilar
-  intent: informacional
+  intent: informational
   volume: null
   volume_source: null
 planned_satellites: []

@@ -57,6 +57,8 @@ Use Obsidian Wikilinks `[[...]]` only for real files inside `project/brain/`. Us
 
 **Stack observado vs. tese editorial.** `tecnologia.md` é estritamente descritivo do que foi observado no site (frontend, CMS, headers, JSON-LD). Tese editorial sobre stack ("a marca defende Next.js", "preferimos sites estáticos") vive em `editorial.md` como área editorial ou em conteúdos publicados em `conteudos/`. Nunca em `tecnologia.md`.
 
+**Brain Index.** `index.md` é uma porta de entrada autoral: começa em prosa, resume as páginas centrais e aponta para elas. Ao resumir `[[tecnologia]]`, use apenas tecnologia observada do site da marca. Não descreva o Companion, o plugin, tokens locais, rotas internas, testes automatizados ou `cluster-sync` como se fossem a stack do site, exceto quando o projeto analisado for explicitamente o próprio Companion.
+
 **Lexicons.** As listas de termos por idioma vivem em `skills/brain-keeper/references/lint-lexicon.<lang>.json` (`pt-br`, `en`). O idioma ativo vem de `project/.agentic-seo/project.json.language`. Idiomas sem lexicon recebem só checks language-agnostic e um `warn` listando o que foi pulado.
 
 ## Schema do log

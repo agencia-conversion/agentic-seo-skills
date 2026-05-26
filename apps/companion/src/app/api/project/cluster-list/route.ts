@@ -12,6 +12,7 @@ interface ClusterEntry {
   icon?: string;
   status?: string;
   area?: string;
+  pilar_slug?: string;
 }
 
 function readClusters(root: string): ClusterEntry[] {
@@ -32,6 +33,10 @@ function readClusters(root: string): ClusterEntry[] {
           icon: typeof data.icon === 'string' ? data.icon : undefined,
           status: typeof data.status === 'string' ? data.status : undefined,
           area: typeof data.area === 'string' ? data.area : undefined,
+          pilar_slug:
+            data.pilar && typeof data.pilar === 'object' && !Array.isArray(data.pilar) && typeof (data.pilar as Record<string, unknown>).slug === 'string'
+              ? String((data.pilar as Record<string, unknown>).slug)
+              : undefined,
         });
       }
     } catch {

@@ -57,7 +57,7 @@ export async function runClusterSyncHook(
   if (cluster) args.push(`--cluster=${cluster}`);
 
   return new Promise((resolveFn) => {
-    const child = spawn('node', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (chunk) => {

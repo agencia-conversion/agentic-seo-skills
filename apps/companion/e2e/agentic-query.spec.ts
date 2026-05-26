@@ -44,8 +44,8 @@ columns: [title]
     expect(body.items?.length || 0).toBe(0);
   });
 
-  test('Index page renders agentic-query Tiptap node with source preserved', async ({ page }) => {
-    await page.goto(`/project/${TOKEN}/brain-index`);
+  test('Companion demo page renders agentic-query Tiptap node with source preserved', async ({ page }) => {
+    await page.goto(`/project/${TOKEN}/brain-companion-demo`);
     await page.waitForSelector('[data-agentic-query]', { timeout: 20_000 });
     const block = page.locator('[data-agentic-query]');
     await expect(block).toBeVisible();

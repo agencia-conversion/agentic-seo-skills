@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Hash, Network, Search, Star, Unlink2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Hash, Network, Search, Settings as SettingsIcon, Star, Unlink2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useWorkspace } from './store';
 import { SortablePageList } from './sortable-page-list';
@@ -23,8 +23,6 @@ export function Sidebar() {
   const toggleSidebar = useWorkspace((s) => s.toggleSidebar);
   const sidebarWidth = useWorkspace((s) => s.sidebarWidth);
   const setSidebarWidth = useWorkspace((s) => s.setSidebarWidth);
-  const projectName = useWorkspace((s) => s.projectName);
-  const projectRoot = useWorkspace((s) => s.projectRoot);
 
   const [isResizing, setIsResizing] = useState(false);
   const settingsOpen = useWorkspace((s) => s.settingsOpen);
@@ -39,18 +37,23 @@ export function Sidebar() {
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
   const shortcutChord = isMac ? '⌘⇧' : 'Ctrl+Shift+';
 
-  const tools = useMemo(
+  const graphTool = useMemo(
+    () => (token
+      ? {
+          id: 'graph',
+          href: `/project/${token}/graph`,
+          label: t('tools.graph'),
+          hint: t('tools.graphHint'),
+          shortcut: `${shortcutChord}G`,
+          testId: 'sidebar-tool-graph',
+        }
+      : null),
+    [token, t, shortcutChord]
+  );
+
+  const advancedTools = useMemo(
     () => (token
       ? [
-          {
-            id: 'graph',
-            href: `/project/${token}/graph`,
-            label: t('tools.graph'),
-            hint: t('tools.graphHint'),
-            icon: Network,
-            shortcut: `${shortcutChord}G`,
-            testId: 'sidebar-tool-graph',
-          },
           {
             id: 'tags',
             href: `/project/${token}/tags`,
@@ -73,6 +76,12 @@ export function Sidebar() {
       : []),
     [token, t, shortcutChord]
   );
+
+  const advancedExpanded = useWorkspace((s) => s.settings.advancedExpanded);
+  const setSettingsStore = useWorkspace((s) => s.setSettings);
+  const toggleAdvanced = useCallback(() => {
+    setSettingsStore({ advancedExpanded: !advancedExpanded });
+  }, [advancedExpanded, setSettingsStore]);
 
   const handleResizeMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -173,12 +182,40 @@ export function Sidebar() {
       <div className="px-3 pt-3 pb-1 flex flex-col gap-1">
         <div className="flex items-start gap-2 px-2 py-1.5 mb-1">
           <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-            <NoteblockBrand />
+            <NoteblockBrand showBy={false} />
             <WorkspaceSwitcher />
           </div>
         </div>
 
         <div className="mt-1 flex flex-col gap-[1px]">
+          {graphTool && (
+            <button
+              data-testid={graphTool.testId}
+              data-active={pathname === graphTool.href ? 'true' : 'false'}
+              onClick={() => router.push(graphTool.href)}
+              title={`${graphTool.hint} · ${graphTool.shortcut}`}
+              className="group flex items-center gap-2.5 px-3 py-1.5 text-sm rounded-md hover:bg-notion-hover transition-colors text-notion-text/80 cursor-pointer"
+            >
+              <Network className="w-4 h-4 text-notion-text-muted group-hover:text-notion-text" />
+              <span>{graphTool.label}</span>
+              <span className="ml-auto text-[10px] text-notion-text-muted font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                {graphTool.shortcut}
+              </span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => openSettings()}
+            className="group flex items-center gap-2.5 px-3 py-1.5 text-sm rounded-md hover:bg-notion-hover transition-colors text-notion-text/80 cursor-pointer"
+            title={t('advanced.settings')}
+            data-testid="sidebar-tool-settings"
+          >
+            <SettingsIcon className="w-4 h-4 text-notion-text-muted group-hover:text-notion-text" />
+            <span>{t('advanced.settings')}</span>
+            <span className="ml-auto text-[10px] text-notion-text-muted font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+              ⌘,
+            </span>
+          </button>
           <button
             className="flex items-center gap-2.5 px-3 py-1.5 text-sm rounded-md hover:bg-notion-hover transition-colors text-notion-text/80 cursor-pointer"
             onClick={() => {
@@ -196,46 +233,59 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto pt-4 pb-10 scrollbar-hide">
-        {tools.length > 0 && (
-          <div className="mb-4" data-testid="sidebar-tools">
-            <div className="px-3 mb-2">
+        {advancedTools.length > 0 && (
+          <div className="mb-4" data-testid="sidebar-advanced">
+            <button
+              type="button"
+              onClick={toggleAdvanced}
+              className="w-full px-3 mb-2 flex items-center gap-1 cursor-pointer group"
+              data-testid="sidebar-advanced-toggle"
+              aria-expanded={advancedExpanded !== false}
+            >
+              {advancedExpanded !== false ? (
+                <ChevronDown className="w-3 h-3 text-notion-text-muted/70 group-hover:text-notion-text-muted" />
+              ) : (
+                <ChevronRight className="w-3 h-3 text-notion-text-muted/70 group-hover:text-notion-text-muted" />
+              )}
               <span className="text-[11px] font-semibold text-notion-text-muted uppercase tracking-wider px-1">
-                {t('tools.heading')}
+                {t('advanced.heading')}
               </span>
-            </div>
-            <div className="space-y-[1px] px-1">
-              {tools.map((tool) => {
-                const Icon = tool.icon;
-                const active = pathname === tool.href;
-                return (
-                  <button
-                    key={tool.id}
-                    data-testid={tool.testId}
-                    data-active={active ? 'true' : 'false'}
-                    onClick={() => router.push(tool.href)}
-                    title={`${tool.hint} · ${tool.shortcut}`}
-                    aria-label={tool.label}
-                    className={cn(
-                      'group w-full flex items-center gap-2.5 px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer',
-                      active
-                        ? 'bg-notion-active text-notion-text'
-                        : 'text-notion-text/80 hover:bg-notion-hover hover:text-notion-text'
-                    )}
-                  >
-                    <Icon
+            </button>
+            {advancedExpanded !== false && (
+              <div className="space-y-[1px] px-1">
+                {advancedTools.map((tool) => {
+                  const Icon = tool.icon;
+                  const active = pathname === tool.href;
+                  return (
+                    <button
+                      key={tool.id}
+                      data-testid={tool.testId}
+                      data-active={active ? 'true' : 'false'}
+                      onClick={() => router.push(tool.href)}
+                      title={`${tool.hint} · ${tool.shortcut}`}
+                      aria-label={tool.label}
                       className={cn(
-                        'w-4 h-4 shrink-0',
-                        active ? 'text-notion-text' : 'text-notion-text-muted group-hover:text-notion-text'
+                        'group w-full flex items-center gap-2.5 px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer',
+                        active
+                          ? 'bg-notion-active text-notion-text'
+                          : 'text-notion-text/80 hover:bg-notion-hover hover:text-notion-text'
                       )}
-                    />
-                    <span className="truncate">{tool.label}</span>
-                    <span className="ml-auto text-[10px] text-notion-text-muted font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                      {tool.shortcut}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                    >
+                      <Icon
+                        className={cn(
+                          'w-4 h-4 shrink-0',
+                          active ? 'text-notion-text' : 'text-notion-text-muted group-hover:text-notion-text'
+                        )}
+                      />
+                      <span className="truncate">{tool.label}</span>
+                      <span className="ml-auto text-[10px] text-notion-text-muted font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                        {tool.shortcut}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -290,7 +340,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-3 py-2 border-t border-notion-border">
-        <UserFooter projectName={projectName} projectRoot={projectRoot} onSettings={() => openSettings()} />
+        <UserFooter />
       </div>
 
       <SettingsModal isOpen={settingsOpen} initialTab={settingsTab} onClose={closeSettings} />

@@ -155,10 +155,10 @@ export function AddPlannedModal({
                 onChange={(e) => setIntent(e.target.value)}
                 className="w-full rounded-md border border-notion-border bg-transparent px-3 py-2 text-notion-text outline-none"
               >
-                <option value="informational">informational</option>
-                <option value="comparative">comparative</option>
-                <option value="commercial">commercial</option>
-                <option value="navigational">navigational</option>
+                <option value="informational">Informational</option>
+                <option value="transactional">Transactional</option>
+                <option value="comparative">Comparative</option>
+                <option value="navigational">Navigational</option>
               </select>
             </label>
             <label className="block text-sm">

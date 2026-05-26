@@ -83,6 +83,44 @@ async function test_lint_cluster_missing() {
   rmSync(root, { recursive: true, force: true });
 }
 
+async function test_content_frontmatter_keyword_volume_preferred() {
+  const root = fixture();
+  writeCluster(
+    root,
+    "alpha",
+    [
+      "contract_version: 1",
+      "slug: alpha",
+      "nome: Alpha",
+      "status: active",
+      "pilar:",
+      "  slug: pilar-a",
+      "  keyword: legacy keyword",
+      "  intent: informational",
+      "  volume: 10",
+      "",
+    ].join("\n"),
+  );
+  writeContent(root, "pilar-a", {
+    title: "Pilar A",
+    slug: "pilar-a",
+    origem: "blog",
+    keyword: "frontmatter keyword",
+    intent: "comparative",
+    volume: 320,
+    clusters: ["alpha"],
+    papel: { alpha: "pilar" },
+    contract_version: 1,
+  });
+  const r = await mod.clusterSync({ root });
+  assert.equal(r.ok, true);
+  const page = readFileSync(join(root, "brain", "topic-clusters", "alpha.md"), "utf8");
+  assert.match(page, /frontmatter keyword \(320\)/);
+  assert.match(page, /comparative/);
+  assert.doesNotMatch(page, /legacy keyword \(10\)/);
+  rmSync(root, { recursive: true, force: true });
+}
+
 async function test_lint_unique_pilar() {
   const root = fixture();
   writeCluster(
@@ -192,6 +230,7 @@ async function test_cluster_filter() {
 
 async function main() {
   await test_basic_sync_and_idempotence();
+  await test_content_frontmatter_keyword_volume_preferred();
   await test_lint_cluster_missing();
   await test_lint_unique_pilar();
   await test_lint_pilar_missing();

@@ -15,6 +15,8 @@ export async function GET(req: NextRequest) {
       query: req.nextUrl.searchParams.get('query') || '',
       origin: req.nextUrl.searchParams.get('origin') || '',
       topicCluster: req.nextUrl.searchParams.get('topicCluster') || '',
+      sort: req.nextUrl.searchParams.get('sort') || '',
+      direction: req.nextUrl.searchParams.get('direction') || '',
     })
   );
 }

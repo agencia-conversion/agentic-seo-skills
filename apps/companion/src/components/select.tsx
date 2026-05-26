@@ -140,7 +140,7 @@ export function Select({
         <div
           ref={menuRef}
           style={menuStyle}
-          className="fixed z-[160] overflow-y-auto bg-background border border-notion-border rounded-md shadow-xl py-1"
+          className="fixed z-[320] overflow-y-auto bg-background border border-notion-border rounded-md shadow-xl py-1"
         >
           {options.map((opt) => {
             const isActive = opt.value === value;

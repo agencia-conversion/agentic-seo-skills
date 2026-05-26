@@ -11,11 +11,26 @@ export type ClusterStatus = "drafting" | "proposed" | "active" | "archived";
 export type Origem = "blog" | "linkedin" | "podcast" | "outros";
 export type Papel = "pilar" | "satelite";
 export type Intent =
-  | "informacional"
-  | "transacional"
-  | "comparativo"
-  | "navegacional"
+  | "informational"
+  | "transactional"
+  | "comparative"
+  | "navigational"
   | string;
+export type EditorialStatus = "draft" | "in-review" | "approved" | "published";
+
+export const INTENT_OPTIONS: ReadonlyArray<{ value: Intent; label_pt: string; label_en: string }> = [
+  { value: "informational", label_pt: "Informacional", label_en: "Informational" },
+  { value: "transactional", label_pt: "Transacional", label_en: "Transactional" },
+  { value: "comparative", label_pt: "Comparativo", label_en: "Comparative" },
+  { value: "navigational", label_pt: "Navegacional", label_en: "Navigational" },
+];
+
+export const EDITORIAL_STATUS_OPTIONS: ReadonlyArray<{ value: EditorialStatus; label_pt: string; label_en: string }> = [
+  { value: "draft", label_pt: "Rascunho", label_en: "Draft" },
+  { value: "in-review", label_pt: "Em revisão", label_en: "In review" },
+  { value: "approved", label_pt: "Aprovado", label_en: "Approved" },
+  { value: "published", label_pt: "Publicado", label_en: "Published" },
+];
 
 export interface PilarSpec {
   slug: string;

@@ -251,8 +251,35 @@ assert.match(clusterOut, /<!-- END cluster-content-table:auto -->/);
 assert.match(clusterOut, /## Conteúdos/);
 assert.match(clusterOut, /texto autoral/);
 
+// active clusters index sentinel roundtrip
+const clusterIndexMd = `---
+title: Topic Clusters
+---
+
+# Topic Clusters
+
+Texto autoral antes.
+
+<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->
+| Cluster | Pilar |
+| --- | --- |
+| Alpha | Pilar A |
+<!-- END cluster-index-table:auto -->
+
+Texto autoral depois.
+`;
+const clusterIndexDoc = markdownToDoc(clusterIndexMd, resolver, { filePath: 'brain/topic-clusters.md' });
+assert.match(JSON.stringify(clusterIndexDoc), /"activeClustersTable"/);
+const clusterIndexOut = docToMarkdown(clusterIndexDoc, resolver);
+assert.match(clusterIndexOut, /<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->/);
+assert.match(clusterIndexOut, /<!-- END cluster-index-table:auto -->/);
+assert.match(clusterIndexOut, /Texto autoral antes/);
+assert.match(clusterIndexOut, /Texto autoral depois/);
+
 const clusterExtensionSource = readFileSync("apps/companion/src/features/editor/cluster-table-extension.tsx", "utf8");
 assert.match(clusterExtensionSource, /name:\s*'clusterTable'/);
+assert.match(clusterExtensionSource, /name:\s*'activeClustersTable'/);
 assert.match(clusterExtensionSource, /atom:\s*true/);
+assert.equal(existsSync("apps/companion/src/features/clusters/active-clusters-table-view.tsx"), true);
 
 console.log("companion markdown roundtrip ok");
