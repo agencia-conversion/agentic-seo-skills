@@ -1,0 +1,22 @@
+apps/companion/src/features/contents/cluster-content-table.tsx
+  s_e30d4f198a04fe::t_c415d660d7eff2 4,7
+  s_e30d4f198a04fe::t_8ad5dfe3972409 329,334-337
+  s_e30d4f198a04fe::t_64d079f39ed664 403,406
+  s_e30d4f198a04fe::t_5b57dd868d5fc7 361-364
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "edabb62cab9c7e47c29594b87cf8d575b0dd704f",
+  "prompts": {},
+  "sessions": {
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
