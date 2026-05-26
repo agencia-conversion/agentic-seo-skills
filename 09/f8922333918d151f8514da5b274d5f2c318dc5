@@ -1,0 +1,25 @@
+apps/companion/src/features/contents/cluster-content-table.tsx
+  s_e30d4f198a04fe::t_692c1c63143283 1-420
+apps/companion/src/features/contents/content-index-panel.tsx
+  s_e30d4f198a04fe::t_89d016805fa73d 12-13
+  s_e30d4f198a04fe::t_81d1574b0000f4 41-49
+  s_e30d4f198a04fe::t_ef2f3a0279fc49 57,61
+apps/companion/src/features/clusters/cluster-table-view.tsx
+  s_e30d4f198a04fe::t_ae32a1ecbee8e9 4,9-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "09f8922333918d151f8514da5b274d5f2c318dc5",
+  "prompts": {},
+  "sessions": {
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
