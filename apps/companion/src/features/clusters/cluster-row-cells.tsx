@@ -1,9 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkspace } from '@/features/workspace/store';
 import { cn } from '@/lib/utils';
+
+function openContentInNewTab(slug: string, origem: string, token?: string | null) {
+  if (typeof window === 'undefined' || !token) return;
+  const path = `/project/${encodeURIComponent(token)}/conteudos-${encodeURIComponent(origem)}-${encodeURIComponent(slug)}`;
+  window.open(path, '_blank', 'noopener,noreferrer');
+}
 
 export interface ClusterRow {
   slug: string;
@@ -27,18 +33,40 @@ export function ContentLink({
   row: ClusterRow;
   onOpenContent?: (slug: string) => void;
 }) {
+  const token = useWorkspace((s) => s.token);
   if (row.conteudo.kind === 'planned') {
     return <span className="italic text-notion-text-muted">{row.conteudo.slug}</span>;
   }
+  const origem = row.conteudo.origem;
+  const handleClick = (e: ReactMouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (e.metaKey || e.ctrlKey || e.button === 1) {
+      openContentInNewTab(row.slug, origem, token);
+      return;
+    }
+    onOpenContent?.(row.slug);
+  };
+  const handleAuxClick = (e: ReactMouseEvent<HTMLButtonElement>) => {
+    if (e.button === 1) {
+      e.preventDefault();
+      e.stopPropagation();
+      openContentInNewTab(row.slug, origem, token);
+    }
+  };
+  const handleContextMenu = (e: ReactMouseEvent<HTMLButtonElement>) => {
+    if (!token) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openContentInNewTab(row.slug, origem, token);
+  };
   return (
     <button
       type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onOpenContent?.(row.slug);
-      }}
+      onClick={handleClick}
+      onAuxClick={handleAuxClick}
+      onContextMenu={handleContextMenu}
       className="text-left text-sm text-notion-text underline-offset-2 hover:underline truncate cursor-pointer w-full"
-      title={row.conteudo.title}
+      title={`${row.conteudo.title}\n(Cmd+click ou botão-direito abre em nova aba)`}
     >
       {row.conteudo.title}
     </button>
