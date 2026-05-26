@@ -1,107 +1,133 @@
 ---
 name: backlink-analysis
-description: When the user wants backlink, referring-domain, anchor, link-quality, or competitor link-profile analysis for one target domain or URL.
+description: When the user wants backlink, referring-domain, anchor, link-quality, link-gap, link-intersect, anchor-diff, link-velocity, brand-mention, or competitor link-profile analysis for one target domain or URL.
 metadata:
-  version: 1.0.0
+  version: 2.0.0
 ---
 
 # Backlink Analysis
 
-You are a backlink analyst for Agentic SEO. Your goal is to produce one evidence-backed backlink profile analysis for one target domain or URL, optionally compared with provided competitors, without turning link data into outreach promises or decided strategy.
+You are a backlink analyst for Agentic SEO. Your goal is to produce one evidence-backed backlink profile analysis for one target domain or URL — optionally compared with provided competitors in single or multi-competitor mode — without turning link data into outreach promises or decided strategy.
+
 ## When To Use
 
-Use this skill when the user asks about backlinks, referring domains, anchors, link gaps, link-quality risks, spam risk, authority claims that need backlink evidence, or competitor backlink deltas for a specific URL or domain.
+Use this skill when the user asks about backlinks, referring domains, anchors, link gaps, link intersect, anchor distribution comparison, referring-domain quality mix, link-quality risks, spam risk, link velocity (new vs lost), authority claims that need backlink evidence, brand mentions vs competitors, or competitor backlink deltas for a specific URL or domain.
 
-Do not use this skill to run outreach, promise link acquisition, decide strategic positioning, write authorial brain pages, build a content calendar, or infer rankings from backlinks alone. Those are separate workflows that may use this analysis as evidence after it is complete.
+Do not use this skill to run outreach, promise link acquisition, decide strategic positioning, write authorial brain pages, build a content calendar, or infer rankings from backlinks alone. Those are separate workflows that may use this analysis as evidence after it is complete. For multi-keyword footprint or content gap analysis, route to `competitive-analysis`; this skill only owns the off-page link layer.
 
 ## Critical Points
 
 - DataForSEO Backlinks is the required source for measured backlink evidence. Do not silently substitute WebSearch, guesses, browser observations, or SEO folklore for backlink counts.
-- Always record provider, provider endpoint coverage, requested mode, effective mode, target, competitors, include-subdomains setting, backlink status type, limit, timestamp, and any unavailable fields.
+- Always record provider, provider endpoint coverage, requested mode, effective mode, target, competitors, mode (`single | multi-competitor`), include-subdomains setting, backlink status type, limit, time window, timestamp, and any unavailable fields.
 - `standard` may be accepted as the user-facing mode, but DataForSEO Backlinks analysis uses live endpoints. Record both `requested_mode: standard` and `effective_mode: live` when this happens.
-- Never fabricate backlink counts, referring-domain counts, authority scores, traffic, spam scores, anchor counts, first-seen dates, client proof, awards, credentials, or competitor evidence.
-- Competitor deltas are allowed only from provided DataForSEO data. If a competitor was requested but not measured, mark its deltas as `unavailable`.
+- Never fabricate backlink counts, referring-domain counts, authority scores, traffic, spam scores, anchor counts, first-seen dates, intersect cardinality, link-gap counts, velocity deltas, brand-mention counts, client proof, awards, credentials, or competitor evidence.
+- Competitor deltas and intersect analysis are allowed only from provided DataForSEO data. If a competitor was requested but not measured, mark every per-competitor field as `unavailable` and disclose it.
 - Treat spam score, suspected networks, irrelevant directories, sitewide patterns, anchor over-optimization, and low-context links as risks, not proof of a penalty.
-- Keep raw source data separate from synthesis. Raw provider responses belong under `project/sources/backlinks/`; normalized analysis belongs under `project/workbench/backlinks/`.
+- Keep raw source data separate from synthesis. Raw provider responses belong under `project/sources/backlinks/`; normalized analysis belongs under `project/workbench/backlinks/` or `project/audits/backlinks-<run-slug>/report.yaml`.
 - Do not write backlink drafts, hypotheses, or strategic conclusions to `project/brain/`. Brain promotion requires source evidence and a separate `tipo: decisao` entry in `project/brain/log.md`; it is not part of this skill.
 - Do not make outreach promises such as "we can get these links" or "this will earn backlinks." Recommend investigation, qualification, disavow review, content support, or digital PR planning only as next actions.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
+
+## Modes
+
+- `single`: one target (domain or URL), no competitors. Produces summary, top referring domains, top anchors, sample backlinks, and link-quality observations.
+- `multi-competitor`: one target plus 1-4 competitors (domains or URLs). Adds **Link Gap**, **Link Intersect**, **Anchor Distribution Comparison**, **Referring-Domain Quality Mix**, **Link Velocity Delta**, and — when the target/competitors are URLs — **Page-Level Link Gap**. `--with-brand-mentions` adds the optional Brand Mention Gap surface when SERP and keyword-mention evidence is provided.
+
+Modes are inferred from input: presence of `competitors[]` with `length >= 1` activates `multi-competitor`. The skill never invents competitors.
 
 ## Framework
 
 ### 1. Define The Backlink Job
 
-**Check:** What target domain or URL is being analyzed, and are competitors part of the request?
+**Check:** What target domain or URL is being analyzed, in which mode, and which competitors are part of the request?
 
-**Strong:** "Analyze `example.com` with competitors `competitor-a.com` and `competitor-b.com`, include subdomains, limit sample tables to 10 rows, and produce a workbench report."
+**Strong:** "Analyze `example.com` in `multi-competitor` mode against `competitor-a.com` and `competitor-b.com`, include subdomains, time window 180 days, intersect strength threshold 1, limit sample tables to 10 rows, and produce a workbench report."
 
 **Weak:** "Analyze the brand's authority broadly and assume competitors from memory."
 
-If the target is missing, ask for it before analysis. If competitors are not provided, analyze only the target and leave competitor deltas empty rather than inventing a market set.
+If the target is missing, ask for it before analysis. If competitors are not provided, run `single` mode and leave every multi-competitor field empty rather than inventing a market set. URL-level page-link-gap requires the target to be a URL and at least one competitor URL on the same SERP.
 
 ### 2. Gather DataForSEO Evidence
 
 **Check:** Is measured backlink data available from DataForSEO Backlinks for the target and each provided competitor?
 
-**Strong:** "Use DataForSEO Backlinks live endpoints for summary, referring domains, anchors, and sample backlinks; save raw responses under `project/sources/backlinks/` with timestamped filenames."
+**Strong:** "Use DataForSEO Backlinks live endpoints for the per-target surfaces (summary, referring domains, anchors, sample backlinks). In `multi-competitor` mode also use `competitors`, `domain_intersection`, `bulk_referring_domains`, `timeseries_new_lost_summary`, and — when URLs are present — `page_intersection`. Save raw responses under `project/sources/backlinks/` with timestamped filenames."
 
 **Weak:** "Use search results or browser-visible backlinks because the provider was inconvenient."
 
-For normal execution, use the deterministic Agentic SEO backlink workflow when available. It should collect these DataForSEO Backlinks API surfaces:
+Endpoint coverage:
 
-- summary: `POST /v3/backlinks/summary/live`
-- top referring domains: `POST /v3/backlinks/referring_domains/live`
-- top anchors: `POST /v3/backlinks/anchors/live`
-- sample backlinks: `POST /v3/backlinks/backlinks/live`
+| Surface | Endpoint | Activation |
+|---|---|---|
+| Per-target summary | `POST /v3/backlinks/summary/live` | always |
+| Top referring domains | `POST /v3/backlinks/referring_domains/live` | always |
+| Top anchors | `POST /v3/backlinks/anchors/live` | always |
+| Sample backlinks | `POST /v3/backlinks/backlinks/live` | always |
+| Competitor discovery validation | `POST /v3/backlinks/competitors/live` | `multi-competitor` |
+| Domain intersection | `POST /v3/backlinks/domain_intersection/live` | `multi-competitor` |
+| Bulk referring-domain totals | `POST /v3/backlinks/bulk_referring_domains/live` | `multi-competitor` |
+| Velocity (new vs lost) | `POST /v3/backlinks/timeseries_new_lost_summary/live` | `multi-competitor` |
+| History (raw timeseries) | `POST /v3/backlinks/history/live` | when `--with-history` |
+| Page intersection | `POST /v3/backlinks/page_intersection/live` | `multi-competitor` + URL inputs |
 
-Use these default settings unless the user or project context provides different settings: `include_subdomains: true`, `backlinks_status_type: live`, `limit: 10`, and `backlink_mode: as_is` for sample backlinks. If credentials or provider access are missing, stop at `status: blocked` and use the local browser handoff for secure setup when possible. Do not hand a nontechnical user raw terminal commands as the decision or credential UX.
+Use these default settings unless the user or project context overrides them: `include_subdomains: true`, `backlinks_status_type: live`, `limit: 10` for per-target surfaces, `limit: 100` for intersection tables, `backlink_mode: as_is` for sample backlinks, `time_window: 180` days for velocity. If credentials are missing, stop at `status: blocked` and use the local browser handoff for secure setup. Never hand a nontechnical user raw terminal commands as the decision or credential UX.
 
 ### 3. Normalize Sources Before Synthesis
 
-**Check:** Are measured facts represented separately from interpretation?
+**Check:** Are measured facts represented separately from interpretation, and is the per-player shape identical across target and competitors?
 
-**Strong:** "Record `backlinks: 1250`, `referring_domains: 120`, `spam_score: 3`, top anchors, source paths, provider settings, and sample backlink rows before interpreting quality."
+**Strong:** "Record per-player `backlinks`, `referring_domains`, `spam_score`, `rank`, top anchors, top referring domains, sample backlinks, plus per-pair intersect counts, gap counts, and velocity windows."
 
 **Weak:** "Say the domain has strong authority because 120 referring domains sounds good."
 
-Normalize the target and each measured competitor into the same shape: aggregate counts, spam score if provided, top referring domains, top anchors, sample backlink URL, source page, target page, anchor text, link type, and any provider timestamps. Mark missing metrics as `null` or `unavailable`; do not backfill them from intuition.
+Normalize every measured player into the same row schema. Mark missing metrics as `null` or `unavailable`; do not backfill from intuition. Intersect, gap, and velocity tables must reference the provider response paths that produced them.
 
-### 4. Compare Competitors Only From Provided Data
+### 4. Compute Multi-Competitor Surfaces Only From Measured Data
 
-**Check:** Are deltas calculated from measured target and competitor fields?
+**Check:** Are gap/intersect/anchor-diff/quality-mix/velocity tables grounded in DataForSEO rows for every cell?
 
-**Strong:** "Competitor A has `+1550` backlinks and `+130` referring domains versus the target because the packet reports 2800 and 250 against 1250 and 120."
+**Strong:** "Link Gap row for `editor.example.org`: rank 720, observed on competitor-a and competitor-b, not observed on target; intersect strength 2; first seen 2025-08-12; sample anchors `agentic seo guide`, `automated seo`."
 
 **Weak:** "Competitor A is much stronger because it is a known brand."
 
-Calculate simple deltas for fields that exist for both sides: backlinks, referring domains, spam score, anchor patterns, and observed sample-link quality. If a field is unavailable for either side, leave that delta unavailable and explain the limitation.
+Per surface:
+
+- **Link Gap**: emit one row per RD that links to ≥1 competitor and does NOT appear in target's RD list. Include intersect strength (number of competitors that share it), rank, country, category if returned, first-seen date, and one sample backlink URL when available. If `domain_intersection` does not return a row, omit it; never fabricate strength.
+- **Link Intersect**: emit one row per RD that links to target AND every measured competitor. Show rank, sample anchors per side, and counts of backlinks per side when available.
+- **Anchor Distribution Comparison**: bucketize anchors per player into `branded | exact_match | partial_match | naked | generic | image_or_empty`. Compute percentages with rounding rule documented in the report. Show top-10 anchors per player and the top-10 anchors exclusive to competitors.
+- **Referring-Domain Quality Mix**: categorize RDs per player by `editorial | news | directory | partner | ugc | sitewide | suspected_spam_network | irrelevant | unknown` and by spam-score buckets `0-15 | 16-30 | 31+`. Use the provider category when it exists; otherwise mark `unknown` rather than guessing.
+- **Link Velocity Delta**: per player, sum new RDs and lost RDs inside the requested `time_window`. Gap = competitor_new − target_new. Surface `time_window` and end date inside the report.
+- **Page-Level Link Gap** (URL mode): for each competitor URL identified by the user or sourced from `serp-extract`, emit RDs that link to the competitor URL and not to the target URL. Tag observed asset hint (`study | dataset | tool | listicle | comparison | unknown`) **only when the sample backlink anchor or surrounding URL pattern justifies it**.
+- **Brand Mention Gap** (optional): when `--with-brand-mentions` is set, surface domains that mention competitors textually but not the target. Requires user-supplied or `serp-extract`-sourced mention evidence; never invent.
 
 ### 5. Assess Link Quality And Risk
 
-**Check:** What quality signals and risks are visible in the measured evidence?
+**Check:** What quality signals and risks are visible in the measured evidence, per player?
 
-**Strong:** "One editorial article appears contextually relevant; one directory link may be low value; one suspected spam-network page needs manual review before any disavow recommendation."
+**Strong:** "One editorial article appears contextually relevant on the target; competitor A's quality mix has 38% `suspected_spam_network` and an anchor distribution skewed to exact-match commercial terms, both noted as risks for further human review."
 
 **Weak:** "The spam-network sample proves the site is penalized and those links must be disavowed."
 
-Separate observations from risk labels. Use categories such as `editorial`, `directory`, `partner`, `ugc`, `sitewide`, `suspected_spam_network`, `irrelevant`, and `unknown` only when the source evidence supports them. A risk is a prioritization cue for human review, not final proof.
+Spam score and over-optimized anchor signals are prioritization cues for human review, not proof. Risk labels must point to the provider field that triggered them.
 
 ### 6. Produce Bounded Recommendations
 
 **Check:** Do next actions follow from evidence without promising outcomes?
 
-**Strong:** "Review suspected spam-network samples, investigate over-represented commercial anchors, qualify relevant editorial domains, and compare competitor referring-domain sources for research opportunities."
+**Strong:** "Review suspected spam-network samples, investigate over-represented commercial anchors, qualify relevant editorial domains in Link Gap rows, and compare velocity deltas to inform a digital PR research plan."
 
 **Weak:** "Replicate all competitor backlinks and traffic will increase."
 
-Recommendations must be framed as analysis, investigation, cleanup review, or planning inputs. Do not promise acquired links, ranking lifts, authority gains, or traffic impact.
+Recommendations must be framed as analysis, investigation, cleanup review, or planning inputs. Do not promise acquired links, ranking lifts, authority gains, or traffic impact. Multi-competitor outputs feed `competitive-analysis` and digital PR planning but never auto-promote to `brain/`.
 
 ## Output Format
 
-Write the report to `project/workbench/backlinks/<target-slug>.yaml` unless the user asks for an inline preview first. Use this structure:
+Write the report to `project/audits/backlinks-<run-slug>/report.yaml` for new runs (legacy `project/workbench/backlinks/<target-slug>.yaml` remains accepted on read). Use this structure:
 
 ```yaml
 status: complete | blocked | incomplete
+mode: single | multi-competitor
+run_slug: ""
 target:
   input: ""
   normalized: ""
@@ -112,51 +138,73 @@ provider:
   requested_mode: standard | live | offline
   effective_mode: live | offline
   generated_at: ""
-  endpoints:
-    - /v3/backlinks/summary/live
-    - /v3/backlinks/referring_domains/live
-    - /v3/backlinks/anchors/live
-    - /v3/backlinks/backlinks/live
+  endpoints: []
   settings:
     include_subdomains: true
     backlinks_status_type: live
     limit: 10
+    intersection_limit: 100
     backlink_mode: as_is
+    time_window_days: 180
+    intersect_strength_threshold: 1
 sources:
   raw_provider_responses:
     - path: project/sources/backlinks/...
   normalized_workbench:
-    - path: project/workbench/backlinks/...
-evidence:
-  target_summary:
+    - path: project/audits/backlinks-<run-slug>/report.yaml
+players:
+  - role: target | competitor
+    domain_or_url: ""
     backlinks: null
     referring_domains: null
     spam_score: null
+    rank: null
     unavailable_metrics: []
-  competitors:
-    - domain: ""
-      backlinks: null
-      referring_domains: null
-      spam_score: null
-      unavailable_metrics: []
-  top_referring_domains: []
-  top_anchors: []
-  sample_backlinks:
-    - source_url: ""
-      target_url: ""
-      anchor: ""
-      observed_type: editorial | directory | partner | ugc | sitewide | suspected_spam_network | irrelevant | unknown
-      evidence_note: ""
-competitor_deltas:
-  - competitor: ""
-    backlinks_delta: null
-    referring_domains_delta: null
-    spam_score_delta: null
-    unavailable_deltas: []
+    top_referring_domains: []
+    top_anchors: []
+    sample_backlinks: []
+multi_competitor:
+  link_gap:
+    - referring_domain: ""
+      rank: null
+      intersect_strength: 0
+      observed_on: []
+      first_seen: null
+      sample_backlink: null
+  link_intersect:
+    - referring_domain: ""
+      anchors_by_player: []
+      backlinks_by_player: []
+  anchor_diff:
+    by_player:
+      - player: ""
+        distribution: {}
+    exclusive_to_competitors: []
+  quality_mix:
+    by_player:
+      - player: ""
+        categories: {}
+        spam_buckets: {}
+  velocity:
+    time_window_days: 180
+    by_player:
+      - player: ""
+        new_rds: null
+        lost_rds: null
+    deltas: []
+  page_link_gap:
+    - target_url: ""
+      competitor_url: ""
+      referring_domains_only_on_competitor: 0
+      sample_rows: []
+  brand_mentions:
+    enabled: false
+    domains_mentioning_competitor_not_target: []
 synthesis:
   summary: ""
   link_quality_risks: []
   anchor_risks: []
+  velocity_observations: []
   competitor_observations: []
   hypotheses: []
 limitations: []
@@ -166,25 +214,27 @@ brain_promotion:
   note: "Backlink analysis stays outside project/brain unless a separate decision workflow records `tipo: decisao` in project/brain/log.md."
 ```
 
+In `single` mode, every `multi_competitor.*` collection stays empty. In `multi-competitor` mode, every empty collection must carry a `limitations` entry explaining why (no provider rows, time window too short, URLs missing, etc.).
+
 If blocked by missing provider access, missing target, or unavailable competitor evidence, return `status: blocked` or `status: incomplete` and explain the gate. Do not invent a partial backlink profile.
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/backlink-analysis/report-skeleton.md`. The module-specific source artifact is the normalized backlink YAML under `audits/`, `sources/backlinks/`, or `workbench/`; the Companion page is `project/analyses/backlink-analysis/<target-slug>/report.md`. Start with the executive reading, then present backlink volume, referring domains, competitor deltas, risks, and limitations in readable tables with friendly metric names; never paste raw provider JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/backlink-analysis/report-skeleton.md`. The module-specific source artifact is the normalized YAML under `audits/backlinks-<run-slug>/`, `sources/backlinks/`, or `workbench/`; the Companion page is `project/analyses/backlink-analysis/<run-slug>/report.md`. Single-mode reports show the executive reading, KPI strip, comparison table, sample backlinks, and risks. Multi-competitor reports add Link Gap, Link Intersect, Anchor Distribution Comparison, Quality Mix, Velocity, optional Page-Level Link Gap, and optional Brand Mention Gap as readable tables. Never paste raw provider JSON or object arrays into the visual report body. See `references/multi-competitor.md` for the detailed multi-competitor decision rules, edge cases, and naming.
 
 ## Examples
 
-### Example: Competitor Delta From DataForSEO
+### Example: Competitor Delta From DataForSEO (single)
 
 Input: "Analyze `example.com` against `competitor-a.com` and `competitor-b.com`. The DataForSEO packet shows 1,250 backlinks and 120 referring domains for the target, 2,800 and 250 for competitor A, and 900 and 95 for competitor B."
 
-Output: "Record DataForSEO, timestamp, endpoint settings, and source paths. Report competitor A as `+1550` backlinks and `+130` referring domains; competitor B as `-350` backlinks and `-25` referring domains. Mention spam-score differences only if provided, and keep authority or traffic metrics `unavailable` unless measured."
+Output: "Activate `multi-competitor` because two competitors were provided. Record provider, timestamp, endpoint settings, source paths. Per-player counts ship as observed. Skip Link Gap and Intersect if the packet only included summary fields; mark the multi-competitor section `incomplete` and explain the missing endpoints rather than inventing rows."
 
-### Example: Link-Quality Risk
+### Example: Link Gap And Intersect
 
-Input: "Samples include one directory link, one editorial article, and one suspected spam-network page."
+Input: "Use the DataForSEO domain_intersection packet for target `example.com` vs `competitor-a.com` and `competitor-b.com`."
 
-Output: "Classify the editorial article as a positive contextual sample if the evidence supports it, flag the directory as possible low value, flag the suspected network page for manual review, and avoid saying the site has been penalized."
+Output: "For every RD that the packet flags as linking to both competitors and not target, emit one Link Gap row with intersect strength 2, the provider-reported rank, and a sample backlink URL when available. For every RD present in all three lists, emit one Link Intersect row. Leave anchors_by_player empty when the packet did not include anchor breakdowns and add a limitation."
 
 ### Example: Weak Execution
 
@@ -195,6 +245,7 @@ Output: "Guess domain authority, use remembered competitor reputations, promise 
 ## Related Skills
 
 - `seo-analysis`: use when the primary task is SERP comparison, ranking-page gaps, or player-score interpretation.
+- `competitive-analysis`: use when the user wants multi-keyword footprint, Share of Voice, content gap, head-to-head URL comparison, or brand positioning surfaces; it consumes this skill's `multi-competitor` output via `attach_backlink_analysis_run: <slug>`.
 - `keyword-research`: use when the primary task is keyword discovery, clustering, or search metric collection.
 - `technical-seo`: use when the primary task is crawlability, rendering, indexing, performance, or technical health.
 - `content-seo`: use after backlink evidence when the user wants a content brief or draft informed by authority and proof gaps.
