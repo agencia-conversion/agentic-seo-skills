@@ -1,0 +1,324 @@
+dist/lib/cluster-io.js
+  s_a327642cc1e80e::t_8f2da42ceb32f5 20,69-72,75-109
+tests/test_eeat_engine.mjs
+  s_a327642cc1e80e::t_81d992aca5fff4 15-16
+templates/project/brain/voice.md
+  s_a327642cc1e80e::t_8722c2ae91c064 1-204
+skills/data-setup/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 123,153
+  s_a327642cc1e80e::t_3e9eea84cbf086 25
+templates/project/brain/products/_subpage-template.md
+  s_a327642cc1e80e::t_e4d548da82a0a7 1-20
+templates/project/brain/editorial.md
+  s_a327642cc1e80e::t_d826d786133af1 9-13,16,19-21,23,25,27,29,32-34,36,38
+skills/technical-seo/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 29
+templates/analyses/serp-extract/report-skeleton.md
+  s_a327642cc1e80e::t_7916f73f45012b 11
+templates/analyses/internal-links/report-skeleton.md
+  s_a327642cc1e80e::t_7916f73f45012b 11,18,22,28,30,34,36,40,51,55
+templates/project/brain/identity.pt-BR.md
+  s_a327642cc1e80e::t_3321c95f4289e3 1-216
+apps/companion/src/lib/contents.ts
+  s_a327642cc1e80e::t_67d1ef18250c38 329
+  s_a327642cc1e80e::t_6cc5a022df8983 256,258,263
+  s_a327642cc1e80e::t_904d5f3e486442 7-11
+CLAUDE.md
+  s_a327642cc1e80e::t_8818fa1509b972 7,9
+skills/agentic-seo/SKILL.md
+  s_a327642cc1e80e::t_58c2ee65ff4f16 28
+  s_a327642cc1e80e::t_cdcf0ff71fb498 53,81,116,118
+  s_a327642cc1e80e::t_452f764506fad8 176
+  s_a327642cc1e80e::t_3e9eea84cbf086 41,52,82-83,120,163,193
+templates/analyses/topic-cluster/report-skeleton.md
+  s_a327642cc1e80e::t_7916f73f45012b 11,22,28,36,51,59
+apps/companion/src/lib/project-files.ts
+  s_a327642cc1e80e::t_c729f3a0c10c28 189
+  s_a327642cc1e80e::t_9716b4bc6fbd83 13-19,29,31,33,37,39,59
+  s_a327642cc1e80e::t_0c1523e57c86b0 6
+  s_a327642cc1e80e::t_c0b331516f2255 297
+  s_a327642cc1e80e::t_d13e42a340e0cd 140
+  s_a327642cc1e80e::t_aa64623318be4f 560,570,572-573,585,587
+  s_a327642cc1e80e::t_80970354e22c33 154
+  s_a327642cc1e80e::t_4d5680f135dfe9 8-10,44-55
+scripts/lib/markdown-report.mjs
+  s_a327642cc1e80e::t_c7d7fff756369d 24-25
+templates/project/content/other/_template.md
+  s_a327642cc1e80e::t_870107f1bbfb3e 1-27
+templates/project/brain/technology.md
+  s_a327642cc1e80e::t_b0c361992be056 1-92
+templates/analyses/backlink-analysis/report-skeleton.md
+  s_a327642cc1e80e::t_051d2ae3ec3639 11,20,28,38,51,63,65,69,71,73,83,85,87,89,91,103,105,107,109,111,113,127,131,133,135,139,144-146,148,156,158,160,172,174,176,178,190,192,194,196,200
+apps/companion/src/lib/reports.ts
+  s_a327642cc1e80e::t_017557c524b62b 15
+shared/locale.mjs
+  s_a327642cc1e80e::t_3bd6e18ae76241 9-10
+  s_a327642cc1e80e::t_14e1b945cb3bc4 79-80
+tests/test_brain_review_protocol.mjs
+  s_a327642cc1e80e::t_7a68d49113bc8a 30-31,35
+  s_a327642cc1e80e::t_cf564d829cf113 11-14,17,25
+tests/test_pt_br_diacritics.mjs
+  s_a327642cc1e80e::t_d64287fafb2ab9 44
+  s_a327642cc1e80e::t_d671d14ba72ba7 72
+skills/eeat/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 24,87,108
+apps/companion/src/features/editor/editor-extensions.ts
+  s_a327642cc1e80e::t_f8bfaecefee9da 166
+apps/companion/src/lib/cluster-labels.ts
+  s_a327642cc1e80e::t_13f96b9b59303b 29,31,37,40
+templates/project/brain/topic-clusters.md
+  s_a327642cc1e80e::t_7ac3dcb493d5c4 9,12,14,16-20,22,24,28,30
+scripts/cluster-rename.mjs
+  s_a327642cc1e80e::t_c0f5366c5dc222 92
+templates/project/brain/review.md
+  s_a327642cc1e80e::t_ff5cc842f0fd2b 1-61
+templates/project/brain/technology/_subpage-template.md
+  s_a327642cc1e80e::t_6c4f38322620da 1-20
+templates/analyses/eeat/report-skeleton.md
+  s_a327642cc1e80e::t_7916f73f45012b 12,23,29,33,37,39,43,49,51,53,55,63
+apps/companion/src/features/editor/report-block-extension.tsx
+  s_a327642cc1e80e::t_39a31f089be031 21
+  s_a327642cc1e80e::t_53c95bb7e165c5 140
+src/lib/cluster-types.ts
+  s_a327642cc1e80e::t_65db600c3fbf90 11-12
+src/lib/cluster-render.ts
+  s_a327642cc1e80e::t_ef2153c5dfec60 106
+  s_a327642cc1e80e::t_a230d2c23f2bc7 279
+tests/test_project_context.mjs
+  s_a327642cc1e80e::t_49623e95d9e4c7 29,31-33,36,45,48-49
+  s_a327642cc1e80e::t_bfd249dfcb010d 23
+  s_a327642cc1e80e::t_70f6c7d6954273 54
+  s_a327642cc1e80e::t_b7bab84a0735d9 35
+skills/project-init/SKILL.md
+  s_a327642cc1e80e::t_aee4be980e9f24 107
+  s_a327642cc1e80e::t_cdcf0ff71fb498 117-122,167
+  s_a327642cc1e80e::t_3e9eea84cbf086 22-23,71-75,98,105,133
+skills/start/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 50
+  s_a327642cc1e80e::t_3e9eea84cbf086 31,53-55,58
+skills/keyword-research/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 137
+tests/test_companion_project_browser.mjs
+  s_a327642cc1e80e::t_02ba099b7527ba 34
+  s_a327642cc1e80e::t_6921a2a2daf6e4 387-388,390
+templates/project/brain/editorial/_subpage-template.md
+  s_a327642cc1e80e::t_e3765842ff0ee5 8,10,12,14,16,18,20,22,24
+templates/project/brain/log.md
+  s_a327642cc1e80e::t_a3163d390d0009 10,12,16-22,25-27,29,32-34
+  s_a327642cc1e80e::t_0682c7431a1d34 9,14,24,28,30-31,35
+scripts/lib/cluster-yaml.mjs
+  s_a327642cc1e80e::t_68f91c1429a8fa 1-74
+tests/test_agentic_seo_skill.mjs
+  s_a327642cc1e80e::t_57368c821639b8 25
+templates/project/brain/topic-clusters/_cluster-subpage.md.template
+  s_a327642cc1e80e::t_590856e105e567 2-3,6,8,10,12,14,16,18,20-22,24,26,28-30
+apps/companion/src/features/contents/cluster-content-table.tsx
+  s_a327642cc1e80e::t_267ec26eaa5399 301
+scripts/lib/eeat/render.mjs
+  s_a327642cc1e80e::t_46eab058a27d82 4-7,17-21,23-32,36-38,42-43,48-49,51,53,59-60,62,68,70,73,78,84-85,88-92,96-97,99,107-108,113,125,127,133,135,137-141,147,149
+apps/companion/src/features/editor/frontmatter-drawer.tsx
+  s_a327642cc1e80e::t_909a3c09291d6f 726
+scripts/lib/project-browser-files.mjs
+  s_a327642cc1e80e::t_9f4452a2d78093 12-13,16-22
+  s_a327642cc1e80e::t_8934e629f24bd7 38,40,42,46,48,52-64
+  s_a327642cc1e80e::t_c3b0f75f4c79d6 723
+  s_a327642cc1e80e::t_f0504ac7654cc9 101
+  s_a327642cc1e80e::t_7fb264fd1aadb7 163
+  s_a327642cc1e80e::t_78df08cf8d595a 729-737,742,744-745,757,759
+  s_a327642cc1e80e::t_bc173fbb4c48e5 147
+templates/project/brain/products.md
+  s_a327642cc1e80e::t_aa0b2fded9669f 1-53
+src/commands/runtime.ts
+  s_a327642cc1e80e::t_a3d4e8d3476634 35-37,40,45-50,56-66
+  s_a327642cc1e80e::t_0a002b7988ac13 2415-2439,2448-2449,2451-2454,2456-2464,2466-2474,2476-2480
+  s_a327642cc1e80e::t_eeb822a8239367 3884
+  s_a327642cc1e80e::t_2b295dcae6cb34 2455
+  s_a327642cc1e80e::t_4c67ab8087d32b 2475
+  s_a327642cc1e80e::t_019558bfa300fb 452-454,459-460,466-470,472
+  s_a327642cc1e80e::t_44a5ba85548456 439-440,443-444,446-449
+  s_a327642cc1e80e::t_366ea5cf438f33 480,486-490,492
+  s_a327642cc1e80e::t_3c1b6a1dc2d6bc 29-32
+  s_a327642cc1e80e::t_084933678d3625 2485-2489
+  s_a327642cc1e80e::t_733791699a4442 2443-2446
+  s_a327642cc1e80e::t_db708519ed365f 3619-3626,3628-3630
+  s_a327642cc1e80e::t_8522179b3954f5 2465
+docs/specs/topic-clusters-contract.md
+  s_a327642cc1e80e::t_90b9f4d30d35cf 3-4,6,9,13-33
+skills/competitive-analysis/SKILL.md
+  s_a327642cc1e80e::t_6d6a1bf820a574 48
+  s_a327642cc1e80e::t_cdcf0ff71fb498 26,69,123,211,219
+  s_a327642cc1e80e::t_3e9eea84cbf086 91
+tests/test_page_report_contract.mjs
+  s_a327642cc1e80e::t_641a7f154a8f41 58
+apps/companion/src/lib/brain-templates.ts
+  s_a327642cc1e80e::t_0b331f080d0a2f 12-29,35-36,38,43-50
+scripts/cluster-doctor.mjs
+  s_a327642cc1e80e::t_010df674c0725c 41-42,45
+templates/project/brain/technology.pt-BR.md
+  s_a327642cc1e80e::t_3321c95f4289e3 1-92
+dist/lib/cluster-render.js
+  s_a327642cc1e80e::t_8f2da42ceb32f5 68,201
+templates/project/content/blog/_template.md
+  s_a327642cc1e80e::t_d759d050783ded 1-29
+tests/test_single_project_contract.mjs
+  s_a327642cc1e80e::t_d2d07a406d6f00 35-43,53-54,57
+templates/project/brain/voice/_subpage-template.md
+  s_a327642cc1e80e::t_de965d09d94801 1-20
+templates/analyses/technical-seo/report-skeleton.md
+  s_a327642cc1e80e::t_7916f73f45012b 12
+docs/specs/en-rename-map.md
+  s_a327642cc1e80e::t_73443bfc22504e 1-205
+templates/analyses/seo-analysis/report-skeleton.md
+  s_a327642cc1e80e::t_af3de11e41fe69 11,22,28,30,32,42,46
+skills/brain-keeper/SKILL.md
+  s_a327642cc1e80e::t_485a3be63b2f0a 108,110,112,114-115,120,123-124
+  s_a327642cc1e80e::t_cdcf0ff71fb498 30,32,44,50,71-77,116,126,178-183,200,209,227,230-231,233
+  s_a327642cc1e80e::t_70ec7d410f49cc 46,52,56,62,64
+  s_a327642cc1e80e::t_2dc238686420b9 80
+  s_a327642cc1e80e::t_0bffc6058ab9ad 42,186
+  s_a327642cc1e80e::t_850e9f3c368c68 214
+  s_a327642cc1e80e::t_1e65fa06ebc117 94,97-98,100-101
+  s_a327642cc1e80e::t_664439e312446e 88
+  s_a327642cc1e80e::t_aee4be980e9f24 84,90,130,161,163,169
+  s_a327642cc1e80e::t_3e9eea84cbf086 10,28,48,54,58,60,102,118,122,148,155,193,229
+apps/companion/src/lib/cluster-yaml.ts
+  s_a327642cc1e80e::t_a804aa0234a881 1-47
+CHANGELOG.md
+  s_a327642cc1e80e::t_94adcd8b830a56 3-16
+templates/project/brain/voice.pt-BR.md
+  s_a327642cc1e80e::t_3321c95f4289e3 1-207
+.gitignore
+  s_a327642cc1e80e::t_58c0b121867e42 31
+scripts/migrate-clusters.mjs
+  s_a327642cc1e80e::t_7c6dbb09126c44 43
+  s_a327642cc1e80e::t_3b4342324c23c0 121-123
+  s_a327642cc1e80e::t_d82ef94fa08e0e 85-89,95
+templates/analyses/competitive-analysis/report-skeleton.md
+  s_a327642cc1e80e::t_7916f73f45012b 11,24,34,36,38,40,43,56,58,60,62,75,77-78,80,82,89,95,97,107,111,113,115,125,129,131,144,146,150,156,166,172,174,176,178,192,196,198,202,208,214,216,220,226,228,230,232,236,240,244
+src/lib/cluster-io.ts
+  s_a327642cc1e80e::t_a90e2ba5812736 20
+  s_a327642cc1e80e::t_eea8d5f89abd2e 77-81,84-113
+skills/topic-cluster/SKILL.md
+  s_a327642cc1e80e::t_0bffc6058ab9ad 126
+  s_a327642cc1e80e::t_aff32da7f1be2b 10
+  s_a327642cc1e80e::t_cdcf0ff71fb498 25,63,128,134,183
+  s_a327642cc1e80e::t_aee4be980e9f24 22
+  s_a327642cc1e80e::t_2062c4f2984cec 34
+  s_a327642cc1e80e::t_468d49a08cd4b2 124
+  s_a327642cc1e80e::t_5b087a6168a662 117
+  s_a327642cc1e80e::t_652c2abd032b5c 67
+  s_a327642cc1e80e::t_167a141b4c4e6f 3
+  s_a327642cc1e80e::t_44ff3212ebb05d 76,78,81-82,84,87,89,91,99-100,102
+  s_a327642cc1e80e::t_a3ab36f5024d02 55,57,59
+templates/project/brain/topic-clusters/_subpage-template.md
+  s_a327642cc1e80e::t_870a059e2357a7 6,10,14,16,18,20,24,26
+templates/project/content/podcast/_template.md
+  s_a327642cc1e80e::t_9258274ee9ce03 1-37
+dist/commands/runtime.js
+  s_a327642cc1e80e::t_be6678b2ec10b3 74-76,79,84-89,95-105,3653-3660,3662-3664,3920
+  s_a327642cc1e80e::t_1023a671452770 2420-2442,2451,2453-2454,2457-2460,2462-2472,2474-2483,2485-2489
+  s_a327642cc1e80e::t_6eac13ee50af5a 68-71,431-432,436,438,442,444,446-447,449-451,456-457,463-467,469-470,477,483-487,490,2446-2449,2461,2473,2484
+  s_a327642cc1e80e::t_1b5b54145104b4 2494-2498
+scripts/cluster-retire.mjs
+  s_a327642cc1e80e::t_28511fa0eba6d3 100
+  s_a327642cc1e80e::t_1a683f301943cc 83,85
+skills/autoresearch/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 25
+templates/project/brain/identity.md
+  s_a327642cc1e80e::t_c3952770f645e5 1-215
+templates/project/brain/index.md
+  s_a327642cc1e80e::t_73883d7a11d21b 2,6,8,10,12,14,16,18,20,22,24,28,32,34,36,38,40,44
+skills/internal-links/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 89
+scripts/lib/brain-templates.mjs
+  s_a327642cc1e80e::t_2a0963fd7ed3da 4-21,24-25,30-37
+skills/spec-driven/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 33,68
+AGENTS.md
+  s_a327642cc1e80e::t_e8b984776fc111 102,118,163
+  s_a327642cc1e80e::t_d2557d12cc88e0 167
+  s_a327642cc1e80e::t_8818fa1509b972 73-75,80,83,98,104,112,121,131,135,139,155
+templates/project/brain/identity/_subpage-template.md
+  s_a327642cc1e80e::t_a714730fa62a80 1-20
+templates/project/brain/log.pt-BR.md
+  s_a327642cc1e80e::t_b393d13f118e8c 10-35
+templates/analyses/keyword-research/report-skeleton.md
+  s_a327642cc1e80e::t_7916f73f45012b 11
+templates/project/clusters/planning.md.template
+  s_a327642cc1e80e::t_47f494dff02f04 1-31
+templates/project/clusters/cluster.yaml.template
+  s_a327642cc1e80e::t_aaaf8dc05b3a60 1-3,5,7-8,10-11,13-15,21-22,26,28,30-31,33-35
+scripts/reset-clusters.mjs
+  s_a327642cc1e80e::t_2db3692742262f 295-296,299
+  s_a327642cc1e80e::t_2c989dde96afec 97,100
+templates/project/.agentic-seo/project.json.template
+  s_a327642cc1e80e::t_9285f0d4dccfa0 1-11
+tools/_oneoff/migrate-brain-belo-horizonte.mjs
+  s_a327642cc1e80e::t_84bfc1eac2635e 1-260
+scripts/install-cluster-sync-hook.mjs
+  s_a327642cc1e80e::t_bb7cecf86d827c 51,53,60
+tests/test_locale.mjs
+  s_a327642cc1e80e::t_8a095a59c74a83 28,34-37,40
+  s_a327642cc1e80e::t_974a5c3fee3087 42,51,53,55
+templates/project/content/linkedin/_template.md
+  s_a327642cc1e80e::t_31963fec292862 1-23
+scripts/lib/clusters-migration.mjs
+  s_a327642cc1e80e::t_a08e1241c30945 11
+  s_a327642cc1e80e::t_fe6c1dadbc4621 5
+apps/companion/src/lib/cluster-management.ts
+  s_a327642cc1e80e::t_8f1e7f4cd2094c 94
+  s_a327642cc1e80e::t_2d7d2652e3a248 5
+tests/test_technical_seo.mjs
+  s_a327642cc1e80e::t_6c44280bbfce68 12
+skills/content-seo/SKILL.md
+  s_a327642cc1e80e::t_aee4be980e9f24 160,192
+  s_a327642cc1e80e::t_2c9d7f874dd470 98
+  s_a327642cc1e80e::t_3e9eea84cbf086 26-27,30,52,131,133,135,139,145,149,151,162,263,269,275,287,293
+  s_a327642cc1e80e::t_cdcf0ff71fb498 127
+  s_a327642cc1e80e::t_0bffc6058ab9ad 153-154
+  s_a327642cc1e80e::t_edbba845381687 99
+  s_a327642cc1e80e::t_c6475925b1dcc5 28
+skills/page-report/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 33
+scripts/regenerate-clusters-brain.mjs
+  s_a327642cc1e80e::t_666d9425b410e0 9
+  s_a327642cc1e80e::t_c3926ed9d1ca37 24
+  s_a327642cc1e80e::t_1867930119a7d6 106,108
+scripts/lib/clusters-apply.mjs
+  s_a327642cc1e80e::t_c17b5c6d473d9a 381
+  s_a327642cc1e80e::t_d5d1171be16801 115,142,185
+  s_a327642cc1e80e::t_c5a13135c79582 6-7
+  s_a327642cc1e80e::t_9ca33369dd95f7 27
+  s_a327642cc1e80e::t_9b6ecdefa254c7 323
+skills/serp-extract/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 30,160
+skills/backlink-analysis/SKILL.md
+  s_a327642cc1e80e::t_cdcf0ff71fb498 27,213
+scripts/eeat.mjs
+  s_a327642cc1e80e::t_11c1d7136038d5 165,183
+  s_a327642cc1e80e::t_f341ede25f04e4 271,308
+  s_a327642cc1e80e::t_ace5ada63d8e1f 100-101,104-117,124-125,128,131,135-136,142-145,149,155,157,159-161,166,174-179,182,184-186,188
+  s_a327642cc1e80e::t_295ce8521c2d38 278,316
+  s_a327642cc1e80e::t_b65ef4c154854e 15
+apps/companion/src/lib/cluster-mutations.ts
+  s_a327642cc1e80e::t_a7c4a413e4fcef 411
+  s_a327642cc1e80e::t_a369abcdcf760c 202
+  s_a327642cc1e80e::t_1a7d7a6d08f119 6
+  s_a327642cc1e80e::t_5ccd9913719d06 394
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "5a357f06a964c128576ff60623880b6ca640e2da",
+  "prompts": {},
+  "sessions": {
+    "s_a327642cc1e80e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ba60845b-736e-410d-a50a-de9ec6daa75a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
