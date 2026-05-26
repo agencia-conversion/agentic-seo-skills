@@ -1,0 +1,25 @@
+skills/backlink-analysis/SKILL.md
+  s_529b03f3f0def1::t_2dda6f9e625855 93-100
+skills/competitive-analysis/SKILL.md
+  s_529b03f3f0def1::t_c32186cf9bb834 23
+  s_529b03f3f0def1::t_eee3bd3dffc2ee 22
+templates/analyses/competitive-analysis/report-skeleton.md
+  s_529b03f3f0def1::t_8c813783bc1647 77,82,97
+  s_529b03f3f0def1::t_6a4f0874a9a2d1 131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "967f098776b73c30350556da4a7942bf96a2372b",
+  "prompts": {},
+  "sessions": {
+    "s_529b03f3f0def1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "df019ed3-d1e7-4d1b-8c87-45ef6ed101cd",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
