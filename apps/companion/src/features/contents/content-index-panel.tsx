@@ -9,6 +9,8 @@ import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from '@/hooks/use-page-path';
 import { useI18n } from '@/components/i18n-provider';
 import { CreateContentModal } from './create-content-modal';
+import { ClusterContentTable } from './cluster-content-table';
+import { VirtualPageShell } from '@/features/workspace/virtual-page-shell';
 
 interface ContentRow {
   id: string;
@@ -36,6 +38,15 @@ interface FilterOption {
 }
 
 export function ContentIndexPanel({ topicClusterId, embedded }: { topicClusterId?: string | null; embedded?: boolean }) {
+  if (topicClusterId) {
+    const body = <ClusterContentTable clusterSlug={topicClusterId} />;
+    if (embedded) return <div className="w-full">{body}</div>;
+    return <VirtualPageShell title="Conteúdos">{body}</VirtualPageShell>;
+  }
+  return <ContentIndexPanelDefault embedded={embedded} />;
+}
+
+function ContentIndexPanelDefault({ embedded }: { embedded?: boolean }) {
   const router = useRouter();
   const pagePath = usePagePath();
   const { t } = useI18n();
@@ -43,11 +54,11 @@ export function ContentIndexPanel({ topicClusterId, embedded }: { topicClusterId
   const pages = useWorkspace((s) => s.pages);
   const setActivePage = useWorkspace((s) => s.setActivePage);
   const loadPage = useWorkspace((s) => s.loadPage);
-  const defaultFilters = useMemo(() => ({ topicCluster: topicClusterId || '' }), [topicClusterId]);
+  const defaultFilters = useMemo(() => ({ topicCluster: '' }), []);
   const { query, debouncedQuery, filters, page, setQuery, setFilter, setPage } = useListingState({
     filterKeys: ['topicCluster'],
     defaultFilters,
-    resetKey: topicClusterId || '',
+    resetKey: '',
   });
   const [rows, setRows] = useState<ContentRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -182,7 +193,6 @@ export function ContentIndexPanel({ topicClusterId, embedded }: { topicClusterId
       />
       <CreateContentModal
         open={addOpen}
-        defaultClusterSlug={topicClusterId || undefined}
         onClose={() => setAddOpen(false)}
         onCreated={() => setRefreshTick((n) => n + 1)}
       />
