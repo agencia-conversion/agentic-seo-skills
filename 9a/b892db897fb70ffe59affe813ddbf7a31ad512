@@ -1,0 +1,350 @@
+apps/companion/src/lib/contents.ts
+  s_857c206bbb43ba::t_b053a9ed422699 12,95,116,237-238,246-247,267-274,278-297,314,339,344-355
+apps/companion/src/features/editor/cluster-table-extension.tsx
+  s_857c206bbb43ba::t_698cd1ed51016d 4,8-9,39-64
+apps/companion/src/features/workspace/user-footer.tsx
+  s_e30d4f198a04fe::t_a5e25fe214ef58 3
+  s_945c96ea3b6850::t_fed290fd0aaaaf 5,7-8
+apps/companion/src/lib/page-display.ts
+  s_e30d4f198a04fe::t_47c7cf8aa575ae 9
+apps/companion/e2e/fixtures/sample-project/brain/index.md
+  s_857c206bbb43ba::t_1f2aae1c677e74 60-61
+  s_857c206bbb43ba::t_2aebaafdd3ff4f 64,68
+  s_857c206bbb43ba::t_7a0bf2da84234b 2-3,6
+  s_857c206bbb43ba::t_399d143c908742 8,10,12,14,16,67,69,71,73,75
+  s_857c206bbb43ba::t_d0fc60079b481e 18-58,62-63,66,70,72,74,76
+apps/companion/e2e/backlinks.spec.ts
+  s_857c206bbb43ba::t_6695322d42a1e9 27,33,66,76,78,97,101
+  s_857c206bbb43ba::t_93f84bad982450 16-17,48,50,56-57
+  s_857c206bbb43ba::t_2588224c46adb3 55
+apps/companion/e2e/fixtures/sample-project/brain/companion-demo.md
+  s_857c206bbb43ba::t_399d143c908742 1-23
+apps/companion/e2e/live-renders.spec.ts
+  s_857c206bbb43ba::t_abd0ee672c9b02 22-34,36-37
+  s_857c206bbb43ba::t_93f84bad982450 7-8,20,38-39
+apps/companion/e2e/discoverability.spec.ts
+  s_e30d4f198a04fe::t_710d51e4d84947 9,20
+  s_945c96ea3b6850::t_30d486b0ede005 2,12-16,75-99
+apps/companion/e2e/test-constants.ts
+  s_857c206bbb43ba::t_ffee3434680ce8 3
+apps/companion/e2e/fixtures/sample-project/brain/identidade.md
+  s_857c206bbb43ba::t_d0fc60079b481e 11-24,29-35
+apps/companion/e2e/fixtures/sample-project/brain/editorial.md
+  s_857c206bbb43ba::t_d0fc60079b481e 8-29
+apps/companion/e2e/fixtures/sample-project/brain/tecnologia.md
+  s_857c206bbb43ba::t_da62f2b2969435 8,14-32
+  s_857c206bbb43ba::t_d0fc60079b481e 9-13
+apps/companion/e2e/fixtures/sample-project/brain/topic-clusters/sample-cluster.md
+  s_857c206bbb43ba::t_d0fc60079b481e 1-28
+apps/companion/src/lib/content-mutations.ts
+  s_857c206bbb43ba::t_7fb5de75e078dc 1-129,136-146
+  s_857c206bbb43ba::t_9e9c6438be012c 147-177
+  s_857c206bbb43ba::t_5b0108e0d11198 130-135
+apps/companion/e2e/agentic-query.spec.ts
+  s_857c206bbb43ba::t_93f84bad982450 47-48
+apps/companion/e2e/fixtures/sample-project/sources/site/technology-snapshot.md
+  s_857c206bbb43ba::t_376732f124cab4 1-11
+apps/companion/e2e/markdown-extensions.spec.ts
+  s_857c206bbb43ba::t_2588224c46adb3 36
+  s_857c206bbb43ba::t_93f84bad982450 28-29
+apps/companion/src/app/api/project/cluster/[slug]/route.ts
+  s_857c206bbb43ba::t_669767228953b3 54-56,65,128-133,154-158,171-172,190-192,208-209
+  s_e30d4f198a04fe::t_af183ba133e06f 26,33,37-44
+  s_e30d4f198a04fe::t_04d6098b7b962a 68
+  s_857c206bbb43ba::t_aac2b76f56c65e 6-7,247-261
+  s_e30d4f198a04fe::t_9fc79fa3e8f6a4 160,173,175,194,210,212
+  s_857c206bbb43ba::t_47c3cae15212c8 113-116,127
+scripts/lib/project-browser-files.mjs
+  s_857c206bbb43ba::t_f30162ea73fc07 533,552-558,572-574,598,603-615
+apps/companion/e2e/fixtures/sample-project/brain/topic-clusters.md
+  s_857c206bbb43ba::t_1f2aae1c677e74 25
+  s_857c206bbb43ba::t_d0fc60079b481e 8-24,26-31
+apps/companion/src/app/api/project/content/[contentSlug]/metadata/route.ts
+  s_857c206bbb43ba::t_87c857986a0f00 1-7,9-33
+  s_857c206bbb43ba::t_0037cc60eddb86 8
+apps/companion/src/features/editor/editor-extensions.ts
+  s_857c206bbb43ba::t_61e90cb2fdb2c5 20,169
+src/lib/cluster-types.ts
+  s_e30d4f198a04fe::t_d8dc8979b70044 14-17,19-33
+templates/project/clusters/cluster.yaml.template
+  s_e30d4f198a04fe::t_668ae0e3e9445d 16,23,27,31
+apps/companion/e2e/keyboard-shortcuts.spec.ts
+  s_e30d4f198a04fe::t_bd6aa47f827f13 9,17,25
+apps/companion/e2e/fixtures/sample-project/brain/revisao.md
+  s_857c206bbb43ba::t_399d143c908742 1-18
+apps/companion/src/features/clusters/create-cluster-modal.tsx
+  s_857c206bbb43ba::t_8609011784388b 1-139
+dist/lib/cluster-types.js
+  s_857c206bbb43ba::t_268e62d66ef194 3,11-22
+apps/companion/src/features/clusters/add-planned-modal.tsx
+  s_e30d4f198a04fe::t_298bc817fd5ca5 158-161
+apps/companion/e2e/fixtures/sample-project/conteudos/blog/sample-satellite.md
+  s_857c206bbb43ba::t_7939aed3f088b0 6-8
+apps/companion/src/app/api/project/clusters/route.ts
+  s_857c206bbb43ba::t_c7c61a87874b6b 1-25
+apps/companion/src/features/contents/content-index-panel.tsx
+  s_e30d4f198a04fe::t_46a498d50e20a3 6-15
+tests/test_companion_markdown_roundtrip.mjs
+  s_857c206bbb43ba::t_bbf78e6b9b37c0 254-278,281,283
+apps/companion/src/lib/markdown.ts
+  s_857c206bbb43ba::t_c34fd9b77f40c0 174-175,252-265,474-476
+apps/companion/src/features/workspace/breadcrumb-trail.tsx
+  s_e30d4f198a04fe::t_e3c3022c4252e4 14
+  s_e30d4f198a04fe::t_cfb067d73b5023 24
+tests/test_cluster_sync.mjs
+  s_857c206bbb43ba::t_d40d603b7448df 86-123,233
+apps/companion/e2e/cluster-sync.spec.ts
+  s_857c206bbb43ba::t_5bfe138711c932 109-110
+  s_857c206bbb43ba::t_81278e88c6a7aa 131-137,143-144,192-196,234-238,292,296,306-317,378,389,393-394,404-406,408,410
+  s_e30d4f198a04fe::t_88f1d336876a32 293-295,297-298
+  s_e30d4f198a04fe::t_cd4049e9af0a23 387-388,390-392
+  s_e30d4f198a04fe::t_8170169dcf264a 323-325,329-331
+  s_857c206bbb43ba::t_d8a99c4b1e1509 395-403
+  s_857c206bbb43ba::t_fbdf618160254f 407,409
+  s_857c206bbb43ba::t_2588224c46adb3 8-26,103-105,107-108,111-112,474-479,503-507
+  s_e30d4f198a04fe::t_22313dac8a1a93 343,348-353,355-363,368,371-372
+  s_e30d4f198a04fe::t_e8a7354b9b9353 176-191,197-216
+  s_857c206bbb43ba::t_c97820e997b697 95-100,106,113,119,122,126,129-130,425,445-456,468-471,508-512,531-532,537
+  s_857c206bbb43ba::t_6ae7ed568c0903 472-473,480-483,495-502,513-515,533-536
+  s_e30d4f198a04fe::t_2dc8e490d6c03d 373,379-386,411-422
+  s_857c206bbb43ba::t_78500df67a51fd 120
+  s_857c206bbb43ba::t_35ae914a0dba4e 224
+  s_857c206bbb43ba::t_be39eb5fb02aa3 432
+  s_857c206bbb43ba::t_9e10e73e2eeaa9 484-494
+  s_857c206bbb43ba::t_da6714dfde28c6 114-118,127-128
+  s_e30d4f198a04fe::t_00b7f74fa8bbec 299-305,318-322,326-328,332-342
+  s_857c206bbb43ba::t_b11aea5ad4865b 138-142,423-424,426-431,433-444,457-467,516-530
+  s_e30d4f198a04fe::t_5b45e940f82891 364-367,369-370
+  s_857c206bbb43ba::t_93f84bad982450 101-102,121,123-125
+apps/companion/src/features/editor/frontmatter-drawer.tsx
+  s_857c206bbb43ba::t_279313159fc8e2 50,52-53,59-65,67-72,93-95,97,141-150,181-184,186-187,195-202,204,206-207,209-211,227,245,331
+  s_857c206bbb43ba::t_abbd0215537327 658-675
+  s_e30d4f198a04fe::t_3143c92fa3f86c 909-914,924-937,939-999
+  s_857c206bbb43ba::t_9ce711875655b0 342,730,768,813,829,844,883
+  s_857c206bbb43ba::t_7c67fed532f9df 179-180,185,188,190-194,203,205,208
+  s_857c206bbb43ba::t_c93022d179e031 55
+  s_e30d4f198a04fe::t_d83fbbed713271 39-40,75-79,117,119,132,137-138,798-812,814,816-817,823-828,831-843,845-848,850-853,856-882,884-890,894-908,915-923,1000-1014,1017,1019-1070
+  s_857c206bbb43ba::t_b7c7203ca3fdce 454,457,464
+  s_857c206bbb43ba::t_86822e817f0bb5 214-217
+  s_857c206bbb43ba::t_e6aabd6fadfa49 11-12,26-38,47,98,118,120,135,213,218-226,239,241-244,246,292-300,302-321,333-337,346
+  s_857c206bbb43ba::t_80969080310df7 3-4
+  s_857c206bbb43ba::t_a15e6725c51ddf 189
+  s_857c206bbb43ba::t_b3eecc8d8926ad 398-406,427-438,451-453,460-462,466-468,470-489
+  s_857c206bbb43ba::t_c81ab20cd1431b 91,301
+  s_857c206bbb43ba::t_3bf6aa8129f315 439,463,469,656-657,676-705
+  s_857c206bbb43ba::t_4a0b976bb578b0 744-759
+  s_857c206bbb43ba::t_ddc8f67bd8db94 558,560,570,572,574-580,590,633-634
+  s_857c206bbb43ba::t_579fb8e691fa6e 440-450,455-456,458-459,465
+  s_857c206bbb43ba::t_b481f149b14a54 393,397,407-426,501-504,506-514,517-521,562,565,582-589,591-622,624-628,630,632,643-655
+  s_857c206bbb43ba::t_7703ea87c02330 708,712,716,718-719,721-729,731-743,760-767,769-777,780-786,788-797
+  s_857c206bbb43ba::t_cfd63b5c418023 778-779
+  s_857c206bbb43ba::t_7182400f9764c9 938,1015-1016,1018
+  s_857c206bbb43ba::t_ae1fbb89604ffb 386,392,396,493,499,505,515-516,522-524,557,561,564,568
+  s_857c206bbb43ba::t_7e8b57e86c25b3 153-167,169-178,228-230,232-236,247-248
+skills/project-init/SKILL.md
+  s_857c206bbb43ba::t_ab57f9769c94bf 23
+apps/companion/src/lib/project-files.ts
+  s_857c206bbb43ba::t_f57e776fb90cbb 4,79-82,229-233,235-236,243,248,253-258,260-261
+apps/companion/src/components/select.tsx
+  s_857c206bbb43ba::t_e372c89efc4926 143
+apps/companion/src/app/api/project/contents/route.ts
+  s_857c206bbb43ba::t_d3f659843b86c2 18-19
+apps/companion/src/app/globals.css
+  s_e30d4f198a04fe::t_378c94aa7dfd4d 452-458
+apps/companion/src/lib/cluster-management.ts
+  s_857c206bbb43ba::t_8259c7afcd9934 1-270,275-276,282-285,291-297
+  s_857c206bbb43ba::t_ec8283009f468b 271-274,278-279,281,286-290
+  s_857c206bbb43ba::t_fc345b50cc756e 277,280
+apps/companion/src/lib/cluster-mutations.ts
+  s_857c206bbb43ba::t_7f2d6f7ba365b6 290,329
+  s_857c206bbb43ba::t_d352f068e01e13 5,442-447
+  s_e30d4f198a04fe::t_c0c425037fa9bf 274-275,283-289,291-296
+  s_e30d4f198a04fe::t_a19d81a567815b 331-334,337
+  s_e30d4f198a04fe::t_fbb7e968f7049f 270-273,276-278
+  s_e30d4f198a04fe::t_5d31a6a840d85b 242-250
+  s_e30d4f198a04fe::t_c5eb7beb3fcf1a 209
+  s_e30d4f198a04fe::t_82a6e0cbe8b99a 322-328,330
+apps/companion/src/features/contents/table-settings-menu.tsx
+  s_e30d4f198a04fe::t_c5e60c79274284 1-56,64-234
+  s_e30d4f198a04fe::t_04669e15873377 57-63
+apps/companion/src/lib/i18n.ts
+  s_945c96ea3b6850::t_9e02f1a24deca1 143-146,640-642
+  s_e30d4f198a04fe::t_911553f582814b 941-944
+  s_e30d4f198a04fe::t_61c2d0892d9e01 444-447
+apps/companion/src/app/api/project/cluster-list/route.ts
+  s_857c206bbb43ba::t_e759dfaa0672f2 15,36-39
+apps/companion/src/features/clusters/active-clusters-table.tsx
+  s_857c206bbb43ba::t_c0651800cd4a1f 201
+  s_857c206bbb43ba::t_47c4a62872f997 63-119
+  s_857c206bbb43ba::t_a671d2e501706b 1-3,5-10,12-62,120-138,141-156,158-160,162-200,202-204,206-278,280,282-376,410-503
+  s_857c206bbb43ba::t_58ebe739e4c1e8 4,157,205,279,281,377-409
+  s_857c206bbb43ba::t_30e1c5bc5db4b3 139-140,161
+  s_857c206bbb43ba::t_2cc3c747617946 11
+apps/companion/e2e/fixtures/sample-project/clusters/sample-cluster/cluster.yaml
+  s_857c206bbb43ba::t_8770ab1cc573a0 7
+  s_e30d4f198a04fe::t_b48902ff151e46 11
+apps/companion/src/lib/cluster-labels.ts
+  s_e30d4f198a04fe::t_29db6184ce87f9 1-56
+apps/companion/src/features/contents/cluster-content-table.tsx
+  s_e30d4f198a04fe::t_c87e0cf5ebc15e 862,866-871
+  s_e30d4f198a04fe::t_1795fdf468802e 674,676,678-679,681
+  s_857c206bbb43ba::t_5bf6e7359f1139 290,296
+  s_e30d4f198a04fe::t_ca73ab7cf13a15 331-346,348-352
+  s_857c206bbb43ba::t_c7d5c7efaa42c1 347,353
+  s_e30d4f198a04fe::t_df73b4c0665c11 677
+  s_e30d4f198a04fe::t_2c15f9141e064b 808,814-818
+  s_e30d4f198a04fe::t_1f41a1ba32da67 4,17
+  s_857c206bbb43ba::t_5306dc9540a697 20,58,117,139-143,155,173-175
+  s_e30d4f198a04fe::t_7e6ce4ef65b2ac 383-391
+  s_857c206bbb43ba::t_0654a9a0062d52 354,356,367-372,374
+  s_e30d4f198a04fe::t_655947927a4b94 328-330,357-366,373,375
+  s_857c206bbb43ba::t_2d72e5787ad0d0 224,228,231-235
+  s_e30d4f198a04fe::t_b578ca58bbd10c 621,623-624
+  s_e30d4f198a04fe::t_d0c12382e70ba8 841,847-850
+  s_e30d4f198a04fe::t_c49386b182d05f 747-748,775,788-789,794,796-799,802-807,819-821,826-828,831-833,836-840,851-853,855-858,861,863-865,872-874
+  s_857c206bbb43ba::t_03ccf42e3c56a2 250,262-273
+  s_e30d4f198a04fe::t_a3d2601c84d7ee 719,721-722,724,728,730-731,733-734,736-737
+  s_e30d4f198a04fe::t_0a1920e4f8dac5 209-223,225-227,229-230,236-240
+  s_e30d4f198a04fe::t_2c322b52814fad 584-615
+  s_e30d4f198a04fe::t_3f6c88c649e56d 9,24-30
+  s_857c206bbb43ba::t_46c563737c0854 749-750,801,809-813,822-825,829,835,842-846,854,860
+  s_857c206bbb43ba::t_26a7a2e388827b 5
+  s_e30d4f198a04fe::t_fd7f2c7a742fdb 299-319
+  s_e30d4f198a04fe::t_e59873b1b6810f 582
+  s_857c206bbb43ba::t_adfb1df9b00eca 619,622,708,764,776,790,795,800,834,859,882
+  s_e30d4f198a04fe::t_fc92dfbf205122 720,723,725-727,729,732,735,738
+  s_e30d4f198a04fe::t_59c100118e3458 8,14,31,47-57,59-74,76-77,84-89,112-116,118-138,144-154,159-172,176-181,277,282-289,291-295,297-298,321,376-382,392,427,429-460,501-504,507,516,532-536,547,556,577-581,618,627-630,636-650,685,687,698-700,739,777-787,791-793,925-949,953-960
+  s_e30d4f198a04fe::t_08a3866ddfbaa3 241-249,251-261,274-275
+  s_e30d4f198a04fe::t_0c9c3cac20104c 875-880
+  s_e30d4f198a04fe::t_272594e9650721 881,883
+  s_e30d4f198a04fe::t_5d64bce36dc511 631-632,635
+  s_857c206bbb43ba::t_18fc78ecefa0df 890-892,920
+  s_e30d4f198a04fe::t_639762f1c46dd4 961-976,980-981
+  s_857c206bbb43ba::t_c89a195d0de34b 977-979
+  s_857c206bbb43ba::t_9b629412e44712 75,355
+  s_e30d4f198a04fe::t_b9b548c2e2d7b4 394-414,416-426
+apps/companion/e2e/graph.spec.ts
+  s_e30d4f198a04fe::t_594d8a25bd38ca 37,39,41
+  s_857c206bbb43ba::t_de5e781d001c68 7,14,16,19,26
+apps/companion/e2e/fixtures/sample-project/brain/voz.md
+  s_857c206bbb43ba::t_d0fc60079b481e 2,7,9-20
+apps/companion/src/lib/backlink-index.ts
+  s_857c206bbb43ba::t_a3f57472382283 5
+tests/test_companion_project_browser.mjs
+  s_857c206bbb43ba::t_4318582381386a 94-100,125-129,138-150,229-231,234-235,281,283,288
+apps/companion/src/features/clusters/cluster-row-cells.tsx
+  s_e30d4f198a04fe::t_5ff43535b3799f 19
+  s_e30d4f198a04fe::t_1174110bd44811 32,38-39,45,47
+  s_857c206bbb43ba::t_2eccae67f921c2 16,40,42,50-51,54,57
+  s_e30d4f198a04fe::t_d6838ee36c391e 27
+scripts/lib/companion-state.mjs
+  s_857c206bbb43ba::t_ffee3434680ce8 31
+apps/companion/src/features/workspace/virtual-page-shell.tsx
+  s_857c206bbb43ba::t_9fe4f13b45967c 17
+apps/companion/e2e/obsidian-compat.spec.ts
+  s_857c206bbb43ba::t_1f2aae1c677e74 25
+  s_857c206bbb43ba::t_a1b004ebb50bb2 27
+  s_857c206bbb43ba::t_27ac602fb19a56 26
+  s_857c206bbb43ba::t_93f84bad982450 11,28
+apps/companion/src/lib/cluster-sync-runner.ts
+  s_857c206bbb43ba::t_3bd5db387cbd73 60
+src/lib/cluster-render.ts
+  s_857c206bbb43ba::t_df0f4626ba3f05 63-76,135,140,145
+skills/brain-keeper/SKILL.md
+  s_857c206bbb43ba::t_fd8762ea6ca707 60-61
+dist/lib/cluster-render.js
+  s_857c206bbb43ba::t_268e62d66ef194 27-40,85,89,93
+apps/companion/src/components/noteblock-brand.tsx
+  s_945c96ea3b6850::t_e1c1efb8b575f0 1-2
+  s_945c96ea3b6850::t_308e86637f4776 57
+  s_945c96ea3b6850::t_ba35110e62f0eb 3,46-48,51-56,58
+  s_e30d4f198a04fe::t_fcde2e0d8d3e99 11,14-19,40,44-45,49-50,59-65
+apps/companion/src/app/api/project/cluster/[slug]/row/[contentSlug]/route.ts
+  s_857c206bbb43ba::t_96b538b966e0db 47-50,52,54
+  s_e30d4f198a04fe::t_4820153263b231 34-42
+  s_e30d4f198a04fe::t_bab890601ada33 8-17
+apps/companion/src/features/editor/title-editor.tsx
+  s_857c206bbb43ba::t_2181627940701c 104-114,116
+  s_e30d4f198a04fe::t_37a818478dcc6e 3,41,58,67-69,72-96,101-103,121,123-136,139-140,142-148,150,152-157,159-163,166,169-173,176-185,189,191,196,205,207,210,212-220,224-225,227,232-242,245-257
+apps/companion/e2e/fixtures/sample-project/conteudos/blog/sample-pilar.md
+  s_857c206bbb43ba::t_448cf88e9aff46 6-8
+apps/companion/src/features/editor/editor-panel.tsx
+  s_857c206bbb43ba::t_1dbb81439560eb 334,553,559,612
+  s_e30d4f198a04fe::t_c619d86f396a9e 607-611,613-615,621-632,635-658
+  s_e30d4f198a04fe::t_06ce5c4cffc38a 823
+apps/companion/src/features/workspace/sidebar.tsx
+  s_945c96ea3b6850::t_0375a8568afcc5 343
+  s_e30d4f198a04fe::t_fa1f7f4603791c 40-54,80-84
+  s_e30d4f198a04fe::t_23ea3739d46ac1 207-218
+  s_e30d4f198a04fe::t_7a09d63d2fff66 185,191-205
+  s_e30d4f198a04fe::t_b3f351be5cc490 4
+  s_e30d4f198a04fe::t_55a131afbe7b2f 236-249,251,253-266,268-271,273-288
+apps/companion/src/features/clusters/active-clusters-table-view.tsx
+  s_857c206bbb43ba::t_97fdfa4e253bc8 1-12
+templates/project/brain/index.md
+  s_857c206bbb43ba::t_399d143c908742 8,14,16,35,37,39,41,43
+  s_857c206bbb43ba::t_08da1dd2f61746 36
+  s_857c206bbb43ba::t_a89a9031c1cfb6 15,31,33
+  s_857c206bbb43ba::t_d0fc60079b481e 10-12,17-30,32,34,38,40,42,44
+apps/companion/e2e/visual-screenshots.spec.ts
+  s_e30d4f198a04fe::t_fc92e6f19ecf72 17,25
+  s_857c206bbb43ba::t_93f84bad982450 46,48
+apps/companion/src/features/clusters/editable-select-cell.tsx
+  s_e30d4f198a04fe::t_3cf4258f34f0a6 1-48,52-55
+  s_e30d4f198a04fe::t_423959d5a8fb6f 49-51
+templates/project/brain/tecnologia.md
+  s_857c206bbb43ba::t_b47fe1cf2934b0 9-11
+scripts/reset-clusters.mjs
+  s_e30d4f198a04fe::t_463b2e410a65cb 126,136
+apps/companion/src/app/api/project/content/[contentSlug]/clusters/route.ts
+  s_857c206bbb43ba::t_5c8b06d6a13f89 1-70
+docs/specs/topic-clusters-contract.md
+  s_e30d4f198a04fe::t_ccbb4bfd24322e 62,69,73,77,83
+  s_e30d4f198a04fe::t_05c7c980697789 381-383
+apps/companion/src/features/clusters/cluster-row-api.ts
+  s_857c206bbb43ba::t_3b729dbd36c3e6 64-82
+apps/companion/src/features/workspace/store.ts
+  s_857c206bbb43ba::t_1d63c7584e9e5c 391-393
+  s_e30d4f198a04fe::t_a3c5df38e0936c 518
+  s_e30d4f198a04fe::t_f365d4f6bb3272 175
+  s_857c206bbb43ba::t_81f83d402680b7 140,702,704
+  s_e30d4f198a04fe::t_bd52db7bad3c9f 537
+  s_e30d4f198a04fe::t_554b7c3e026e4f 131
+  s_857c206bbb43ba::t_5ff6d5a8abf008 380,383-385
+  s_857c206bbb43ba::t_cd602e46f90d6e 2,134,399,403-409,414-415
+  s_e30d4f198a04fe::t_702a8a900cb167 132-133
+  s_e30d4f198a04fe::t_7d2d36c47d9600 615
+  s_e30d4f198a04fe::t_7f73a4706d90f7 1029-1043
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "9ab892db897fb70ffe59affe813ddbf7a31ad512",
+  "prompts": {},
+  "sessions": {
+    "s_857c206bbb43ba": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e645c-f244-7201-8fb1-a45609552d4f",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    },
+    "s_945c96ea3b6850": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6515-2bf0-72a0-ad8e-27c2b89c42f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    },
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
