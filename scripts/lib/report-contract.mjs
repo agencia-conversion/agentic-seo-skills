@@ -5,8 +5,11 @@ import YAML from "yaml";
 import sharedModules from "../../shared/report-modules.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const { REPORT_MODULE_IDS, REPORT_DIR_NAME } = sharedModules;
+const { REPORT_MODULE_IDS, REPORT_DIR_NAME, REPORT_MODULES } = sharedModules;
 const MODULES = new Set(REPORT_MODULE_IDS);
+const REQUIRED_MODULE_IDS = REPORT_MODULES
+  .filter((module) => module.cli_ready !== false)
+  .map((module) => module.id);
 const COMMON_FRONTMATTER = ["title", "slug", "report_type", "generated_at", "status", "source_artifact", "summary"];
 
 function normalizeRel(value) {
@@ -334,7 +337,7 @@ export function reviewReportsInProject(projectDir, options = {}) {
   const requireAllModules = options.requireAllModules ?? (!options.file && !options.moduleId);
   if (requireAllModules) {
     const modules = new Set(reviewed.map((item) => item.module));
-    for (const moduleId of MODULES) {
+    for (const moduleId of REQUIRED_MODULE_IDS) {
       if (!modules.has(moduleId)) addError(errors, "module.missing", `missing module report: ${moduleId}`, `Expected at least one report under ${REPORT_DIR_NAME}/${moduleId}/.`, `${REPORT_DIR_NAME}/${moduleId}`);
     }
   }

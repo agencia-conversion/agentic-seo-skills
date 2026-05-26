@@ -21,13 +21,13 @@ The default user is nontechnical (founder, marketing lead, SEO strategist). Fram
 
 For any substantive deliverable (report, analysis, content, brief, audit, recommendation), pick the delivery in this order:
 
-1. **Web Companion first** for reports and project artifacts. Data/report workflows follow the shared `page-report` contract and write editable, human-first Markdown pages under `project/analises/<module>/<run-slug>/report.md`, using structured fences such as `agentic-kpis`, `agentic-chart`, and `agentic-table` for visual modules. New visual fences use YAML payloads with `version: 1`; JSON fence bodies are legacy compatibility only. `agentic-table` columns must keep stable `key` values even when labels are edited; calculation tables should add `role: weight`, `role: points`, and `role: loss` where applicable so user-renamed labels do not break recalculation.
+1. **Web Companion first** for reports and project artifacts. Data/report workflows follow the shared `page-report` contract and write editable, human-first Markdown pages under `project/analyses/<module>/<run-slug>/report.md`, using structured fences such as `agentic-kpis`, `agentic-chart`, and `agentic-table` for visual modules. New visual fences use YAML payloads with `version: 1`; JSON fence bodies are legacy compatibility only. `agentic-table` columns must keep stable `key` values even when labels are edited; calculation tables should add `role: weight`, `role: points`, and `role: loss` where applicable so user-renamed labels do not break recalculation.
 2. **Specific local handoff** when a decision or sensitive input is required — `approve-page`, `approve-briefing`, `pick-cluster`, `review-changes`, `dataforseo-bypass`, or `collect-env`.
 3. **Plain Markdown/prose in chat** only for quick clarifications, status, or when the user explicitly asks for inline output.
 
 Whenever a workflow generates `report.md`, the CLI or skill output must include `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?" }`. Ask that exact consent line in chat before opening any browser. Never expose `node scripts/companion.mjs ...` to the user; run it as the agent after consent. If the user declines, leave the artifact in place and tell them where it lives.
 
-The eight data and report skills — `seo-analysis`, `technical-seo`, `backlink-analysis`, `keyword-research`, `serp-extract`, `internal-links`, `eeat`, `topic-cluster` — must always apply `page-report`, write a Companion report Markdown file under `project/analises/`, return `report_md`, and offer browser access through the chat prompt. Editorial skills like `content-seo` use the existing `approve-briefing` and `approve-page` handoffs.
+The nine data and report skills — `seo-analysis`, `technical-seo`, `backlink-analysis`, `keyword-research`, `serp-extract`, `internal-links`, `eeat`, `topic-cluster`, `competitive-analysis` — must always apply `page-report`, write a Companion report Markdown file under `project/analyses/`, return `report_md`, and offer browser access through the chat prompt. Editorial skills like `content-seo` use the existing `approve-briefing` and `approve-page` handoffs.
 
 Report pages are presentation artifacts for humans. Write the executive reading first, keep depth in human-readable appendices, never paste raw JSON/object dumps into visual tables, and keep raw evidence in `source_artifact` plus `sources/`, `audits/`, `workbench/`, or module-specific normalized files. Checks, severities, status, evidence, score labels, chart labels, and table headers must use friendly names in the project language rather than internal IDs such as `image_alt` or provider payload keys. Use `project/.agentic-seo/project.json.language` as the default report/UI language; v1 supports `pt-BR` and `en`, with explicit command language overrides allowed.
 
@@ -49,7 +49,7 @@ Humans own judgment. Agents execute repeatable intelligence, extraction, formatt
 ## Critical Points
 
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, case studies, or proof. Unknown metrics stay `null`, `unknown`, or blocked.
-- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, report pages in `project/analises/`, complete non-report deliverables in `project/artifacts/`, public content in `project/conteudos/`, and authorial knowledge in `project/brain/`.
+- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, report pages in `project/analyses/`, complete non-report deliverables in `project/artifacts/`, public content in `project/conteudos/`, and authorial knowledge in `project/brain/`.
 - Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `index`) may change directly when the agent records a `tipo: decisao` entry in `brain/log.md` with evidence, actor, and limitations. For `revisao.md`, stylistic minor additions auto-apply; checklist changes register as `tipo: lint` and wait for human approval.
 - DataForSEO is the default provider for SEO metrics, SERP evidence, and backlink data. Agentic SEO is not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
 - Do not silently fall back to WebSearch, intuition, or hypothesis-only output when DataForSEO is missing. Record the provider decision, reason, timestamp, and consequence.
@@ -97,7 +97,8 @@ Route to the narrowest skill that owns the next step:
 - `keyword-research`: collect keyword metrics, suggestions, CPC, competition, long-tail ideas, and clustering inputs.
 - `serp-extract`: capture raw and normalized SERP snapshots by keyword, market, language, location, and device.
 - `seo-analysis`: compare SERP competitors, interpret target gaps, score a page, and create the canonical evidence gate before content work.
-- `backlink-analysis`: analyze backlinks, referring domains, anchors, authority comparison, link gaps, or competitor link profiles.
+- `backlink-analysis`: analyze backlinks, referring domains, anchors, authority comparison, link gaps, link intersect, anchor distribution comparison, link velocity, page-level link gap (URL mode), and brand mention gap when competitors are supplied.
+- `competitive-analysis`: orchestrate multi-surface domain or URL comparisons across footprint, Share of Voice (modeled), keyword/content gap, head-to-head pages, link gap (via attached backlink-analysis run), and brand positioning. Consumes other skills; does not duplicate them.
 - `technical-seo`: run deterministic audits for metadata, canonicals, robots, headings, links, images, structured data, hreflang, indexability, viewport, status, and crawlable words.
 - `brain-keeper`: ingest sources, change brain pages with logged decisions, catalog publications, and lint brain pages.
 - `eeat`: evaluate or document experience, expertise, authoritativeness, trust, proof, authors, reviewers, and claims.

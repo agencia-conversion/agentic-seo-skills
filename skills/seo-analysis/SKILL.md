@@ -159,7 +159,7 @@ If blocked by a missing provider or missing bypass record, return `status: block
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analises/seo-analysis/report-skeleton.md`. The module-specific source artifact is the normalized SEO-analysis YAML under `audits/seo-analysis-<keyword-slug>/report.yaml` or `workbench/seo-analysis/`; the Companion page is `project/analises/seo-analysis/<keyword-slug>/report.md`. Start with the executive reading and priorities, then show competitor/player details and limitations as readable tables and prose. Translate labels/status/severities/nulls, use friendly check names, and never paste raw SERP, heading, player-score, or provider JSON into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/seo-analysis/report-skeleton.md`. The module-specific source artifact is the normalized SEO-analysis YAML under `audits/seo-analysis-<keyword-slug>/report.yaml` or `workbench/seo-analysis/`; the Companion page is `project/analyses/seo-analysis/<keyword-slug>/report.md`. Start with the executive reading and priorities, then show competitor/player details and limitations as readable tables and prose. Translate labels/status/severities/nulls, use friendly check names, and never paste raw SERP, heading, player-score, or provider JSON into the visual report body.
 
 ## Examples
 

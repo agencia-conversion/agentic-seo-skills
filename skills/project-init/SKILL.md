@@ -56,15 +56,15 @@ project/audits/
 project/keywords/
 project/clusters/
 project/eeat/
-project/analises/
-project/analises/technical-seo/
-project/analises/internal-links/
-project/analises/seo-analysis/
-project/analises/keyword-research/
-project/analises/serp-extract/
-project/analises/backlink-analysis/
-project/analises/topic-cluster/
-project/analises/eeat/
+project/analyses/
+project/analyses/technical-seo/
+project/analyses/internal-links/
+project/analyses/seo-analysis/
+project/analyses/keyword-research/
+project/analyses/serp-extract/
+project/analyses/backlink-analysis/
+project/analyses/topic-cluster/
+project/analyses/eeat/
 project/brain/
 project/conteudos/
 project/conteudos/blog/
@@ -114,7 +114,7 @@ Append to `brain/log.md` exactly one entry per init run that creates or complete
 
 - tipo: decisao
 - escopo: project/
-- decisao: Estrutura inicial criada (brain/, sources/, conteudos/, artifacts/, workbench/, audits/, keywords/, clusters/, eeat/, analises/) com templates em branco para preenchimento humano.
+- decisao: Estrutura inicial criada (brain/, sources/, conteudos/, artifacts/, workbench/, audits/, keywords/, clusters/, eeat/, analyses/) com templates em branco para preenchimento humano.
 - evidencia: project/.agentic-seo/project.json
 - aprovador: agent
 - notas: <name>, <market>, <language>.

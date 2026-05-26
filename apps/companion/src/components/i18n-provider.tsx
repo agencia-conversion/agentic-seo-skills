@@ -8,6 +8,8 @@ import {
   SupportedLocale,
   TranslationKey,
   formatDateForLocale,
+  formatNumberForLocale,
+  formatPercentForLocale,
   resolveLocale,
   resolvePreferredLocale,
   translate,
@@ -19,6 +21,8 @@ interface I18nContextValue {
   preference: LocalePreference;
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   formatDate: (value: number | Date, options?: Intl.DateTimeFormatOptions) => string;
+  formatNumber: (value: number | string | null | undefined, options?: Intl.NumberFormatOptions) => string;
+  formatPercent: (value: number | string | null | undefined, options?: Intl.NumberFormatOptions) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -77,9 +81,19 @@ export function I18nProvider({
     [locale]
   );
 
+  const formatNumber = useCallback<I18nContextValue['formatNumber']>(
+    (value, options) => formatNumberForLocale(locale, value, options),
+    [locale]
+  );
+
+  const formatPercent = useCallback<I18nContextValue['formatPercent']>(
+    (value, options) => formatPercentForLocale(locale, value, options),
+    [locale]
+  );
+
   const value = useMemo(
-    () => ({ locale, browserLocale, preference, t, formatDate }),
-    [locale, browserLocale, preference, t, formatDate]
+    () => ({ locale, browserLocale, preference, t, formatDate, formatNumber, formatPercent }),
+    [locale, browserLocale, preference, t, formatDate, formatNumber, formatPercent]
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

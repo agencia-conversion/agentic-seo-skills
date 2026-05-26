@@ -59,7 +59,7 @@ for (const required of [
   "browser_prompt",
   "Posso abrir o Web Companion para você ver a análise?",
   "agentic-kpis",
-  "project/analises/",
+  "project/analyses/",
   "human-first",
   "raw JSON/object dumps",
   "project/.agentic-seo/project.json.language",

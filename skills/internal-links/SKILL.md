@@ -167,7 +167,7 @@ If blocked by missing scope, unavailable validation, or unclear apply scope, ret
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analises/internal-links/report-skeleton.md`. The module-specific source artifact is the normalized internal-link YAML under `audits/internal-links-<run-slug>/report.yaml` or `workbench/internal-links/`; the Companion page is `project/analises/internal-links/<run-slug>/report.md`. Present recommendations as readable source/target/anchor decisions with friendly validation names and exact `before`/`after` snippets in natural language; never paste raw crawl JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/internal-links/report-skeleton.md`. The module-specific source artifact is the normalized internal-link YAML under `audits/internal-links-<run-slug>/report.yaml` or `workbench/internal-links/`; the Companion page is `project/analyses/internal-links/<run-slug>/report.md`. Present recommendations as readable source/target/anchor decisions with friendly validation names and exact `before`/`after` snippets in natural language; never paste raw crawl JSON or object arrays into the visual report body.
 
 ## Examples
 

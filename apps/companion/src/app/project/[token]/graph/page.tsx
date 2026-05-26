@@ -8,7 +8,7 @@ import { useWorkspace } from '@/features/workspace/store';
 import { usePagePath } from '@/hooks/use-page-path';
 import { useI18n } from '@/components/i18n-provider';
 
-type GraphSection = 'brain' | 'conteudos' | 'workbench' | 'analises' | 'other';
+type GraphSection = 'brain' | 'conteudos' | 'workbench' | 'analyses' | 'other';
 
 interface GraphNode {
   id: string;
@@ -39,11 +39,11 @@ const SECTION_COLORS: Record<GraphSection, string> = {
   brain: '#3b82f6',
   conteudos: '#22c55e',
   workbench: '#9ca3af',
-  analises: '#f97316',
+  analyses: '#f97316',
   other: '#ef4444',
 };
 
-const ALL_SECTIONS: GraphSection[] = ['brain', 'conteudos', 'workbench', 'analises', 'other'];
+const ALL_SECTIONS: GraphSection[] = ['brain', 'conteudos', 'workbench', 'analyses', 'other'];
 
 export default function GraphPage() {
   const { t } = useI18n();

@@ -2337,6 +2337,42 @@ function runDataSetupHandoff() {
         return { ok: false, reason: `handoff-exit-${result.status}` };
     return { ok: true };
 }
+async function commandCompetitiveAnalysis(args) {
+    if (!args.target)
+        throw new CliError("Missing --target. Usage: competitive-analysis --target <domain|url> --competitors <a,b> [--mode domain|url|mixed] [--preset domain-full|quick|url-headtohead|content-only|brand-only|full] [--location-code 2076] [--language-code pt] [--keyword-limit 500] [--ctr-curve-id awr_2026_q2] [--attach-backlink-analysis-run slug] [--sample] [--confirm-budget] [--offline]");
+    if (!args.competitors)
+        throw new CliError("Missing --competitors (comma-separated, at least one).");
+    ensureProject();
+    const forwardArgs = [path.join(ROOT, "scripts", "competitive-analysis.mjs")];
+    for (const key of Object.keys(args)) {
+        if (key === "_")
+            continue;
+        const flag = `--${key.replace(/_/g, "-")}`;
+        const value = args[key];
+        if (value === true)
+            forwardArgs.push(flag);
+        else if (value === false)
+            continue;
+        else
+            forwardArgs.push(flag, String(value));
+    }
+    const result = (0, node_child_process_1.spawnSync)(process.execPath, forwardArgs, { cwd: ROOT, env: process.env, encoding: "utf8", maxBuffer: 64 * 1024 * 1024, stdio: ["ignore", "pipe", "inherit"] });
+    if (result.error)
+        throw new CliError(result.error.message);
+    const stdout = result.stdout || "";
+    process.stdout.write(stdout.endsWith("\n") ? stdout : stdout + "\n");
+    if (result.status !== 0) {
+        try {
+            const parsed = JSON.parse(stdout);
+            throw new CliError(parsed.error || `competitive-analysis exited with status ${result.status}`);
+        }
+        catch (e) {
+            if (e instanceof CliError)
+                throw e;
+            throw new CliError(`competitive-analysis exited with status ${result.status}`);
+        }
+    }
+}
 async function commandProjectBrowser(args) {
     const p = ensureProject();
     const childArgs = [
@@ -4325,6 +4361,7 @@ const COMMANDS = {
     "content-seo": commandContentSeo,
     "technical-seo": commandTechnicalSeo,
     "audit-skills": commandAuditSkills,
+    "competitive-analysis": commandCompetitiveAnalysis,
 };
 function parseArgs(argv) {
     const [command, ...rest] = argv;
