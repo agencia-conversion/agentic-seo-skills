@@ -163,7 +163,7 @@ export const getExtensions = (options: { onReportScoreRecalculated?: (result: Re
   SlashCommand,
   ReportBlock.configure({
     onScoreRecalculated: options.onReportScoreRecalculated || null,
-    locale: options.locale || 'pt-BR',
+    locale: options.locale || 'en',
   }),
   ClusterTable,
   ActiveClustersTableNode,

@@ -26,7 +26,7 @@ Do not use this skill for keyword research, SERP competitor analysis, content dr
 - Keep raw audit inputs and extracted evidence in `project/audits/<slug>/sources/`; write normalized audit data under `project/audits/<slug>/report.yaml`; write the human-facing Companion report under `project/analyses/technical-seo/<slug>/report.md`.
 - Keep sources separate from synthesis. Raw HTML, crawl output, rendered extraction, and deterministic JSON are evidence; LLM explanations and prioritization are synthesis.
 - Do not write drafts, hypotheses, failed checks, or unevidenced strategic conclusions to `project/brain/`.
-- Authorial brain pages require a source-backed `tipo: decisao` entry in `project/brain/log.md`. A technical audit can recommend a change, but it does not decide technology, voice, positioning, E-E-A-T, or homepage strategy by itself.
+- Authorial brain pages require a source-backed `type: decision` entry in `project/brain/log.md`. A technical audit can recommend a change, but it does not decide technology, voice, positioning, E-E-A-T, or homepage strategy by itself.
 - Preserve the requested output language and all human-facing accents, especially pt-BR terms such as `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
 
 ## Framework

@@ -32,6 +32,15 @@ const banned = [
   "../reports/",
 ];
 
+// Files that legitimately reference workspace-mirror or historical specs.
+// Excluding them keeps the "single project" contract enforced for new code
+// while allowing existing meta-docs and operational paths.
+const EXCLUDED = new Set([
+  "docs/project-persistence.md",        // documents the Conductor mirror path (multi-workspace by design)
+  "docs/refactor-status.md",            // meta-doc that discusses past contract migrations
+  "docs/specs/topic-clusters-iteracao-3.md", // historical internal spec referencing test names
+]);
+
 function files(path) {
   const full = join(root, path);
   const stat = statSync(full);
@@ -41,9 +50,11 @@ function files(path) {
 
 const findings = [];
 for (const file of roots.flatMap(files)) {
+  const rel = file.replace(root + "/", "");
+  if (EXCLUDED.has(rel)) continue;
   const text = readFileSync(file, "utf8");
   for (const token of banned) {
-    if (text.includes(token)) findings.push(`${file.replace(root + "/", "")}: ${token}`);
+    if (text.includes(token)) findings.push(`${rel}: ${token}`);
   }
 }
 

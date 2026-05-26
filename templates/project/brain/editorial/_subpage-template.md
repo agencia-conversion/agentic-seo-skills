@@ -5,20 +5,20 @@ updated: "{{updated}}"
 
 # {{title}}
 
-<!-- Subpágina de [[editorial]]. Use para detalhar uma área editorial específica: tese, diferenciação, audiência e provas. -->
+<!-- Subpage of [[editorial]]. Use it to detail a specific editorial area: thesis, differentiation, audience, and proof. -->
 
-## Tese
+## Thesis
 
-<!-- Em 2-3 frases, qual é a tese central desta área. -->
+<!-- In 2-3 sentences, the core thesis of this area. -->
 
-## Diferenciação
+## Differentiation
 
-<!-- O que a marca defende aqui que o mercado não defende. -->
+<!-- What the brand defends here that the market does not. -->
 
-## Audiência
+## Audience
 
-<!-- Para quem essa área fala. Persona principal e secundária se houver. -->
+<!-- Who this area speaks to. Primary and secondary persona if any. -->
 
-## Provas
+## Proof
 
-- <prova: case, dado, citação, link>
+<!-- Cases, data, credentials, citations supporting this area. -->

@@ -6,25 +6,25 @@ updated: "<YYYY-MM-DD>"
 
 # Topic Clusters
 
-Cada Topic Cluster organiza um tema editorial em torno de um conteúdo pilar e satélites que cobrem subtemas relacionados. Use a tabela abaixo para navegar entre os clusters ativos — cada nome leva à página do cluster com a tabela completa de conteúdos publicados e planejados.
+Each Topic Cluster organizes an editorial theme around a pillar content and satellites that cover related subthemes. Use the table below to navigate between active clusters — each name links to the cluster page with the full table of published and planned content.
 
 <!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->
-## Painel
+## Dashboard
 
-| Indicador | Valor |
+| Indicator | Value |
 | --- | --- |
-| Clusters ativos | 0 |
-| Conteúdos publicados | 0 |
-| Satélites planejados | 0 |
-| Conteúdos órfãos | 0 |
-| Última sincronização | — |
+| Active clusters | 0 |
+| Published content | 0 |
+| Planned satellites | 0 |
+| Orphan content | 0 |
+| Last sync | — |
 
-## Clusters ativos
+## Active clusters
 
-<!-- Nenhum cluster ativo. Use `topic-cluster` para criar o primeiro. -->
+<!-- No active cluster. Use `topic-cluster` to create the first one. -->
 
 <!-- END cluster-index-table:auto -->
 
-## Próximas ações
+## Next actions
 
-<!-- Vazio até que um cluster esteja em rascunho ou promoção. -->
+<!-- Empty until a cluster is in draft or promotion. -->

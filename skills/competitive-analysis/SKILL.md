@@ -23,7 +23,7 @@ Do not use this skill to run single-keyword SERP analysis (`seo-analysis`), capt
 - SoV/SoC outputs are modeled, not observed. Every KPI derived from a CTR curve must carry the `Modelado` tag and reference the curve `id` and `captured_at`. **Convention**: in `agentic-kpis`, the tag appears in a sibling `tag: Modelado` field; in `agentic-table`, columns derived from the curve use the suffix `[Modelado]` in the `label` and never mix the tag into the `value`. Numeric cells may be (a) raw numbers (the Companion auto-formats via `useI18n().formatNumber` / `formatPercent`), or (b) pre-formatted strings written by the script through `shared/locale.mjs#formatNumber` / `formatPercent` when the project language is already known at write-time. Never mix raw numbers and pre-formatted strings inside a single column. Percent-bearing columns use a `_pct` key suffix on the 0..100 scale (matches `sov_pct`, `ctr_uplift_modeled_pct`).
 - Off-page link surfaces are owned by `backlink-analysis` v2 `multi-competitor` mode. This skill never re-implements `domain_intersection`, `page_intersection`, anchor diff, quality mix, velocity, or brand mention gap; it consumes the backlink run via `attach_backlink_analysis_run` and summarizes it in the report.
 - Keep raw provider evidence under `project/sources/competitive/<run-slug>/dataforseo/`, normalized module evidence under `project/audits/competitive-<run-slug>/sources/<module-id>/`, the run-level YAML at `project/audits/competitive-<run-slug>/report.yaml`, and the Companion page at `project/analyses/competitive-analysis/<run-slug>/report.md`.
-- Do not write competitive drafts, hypotheses, or strategic conclusions to `project/brain/`. The brand module (M7) proposes a `tipo: decisao` entry in `project/brain/log.md`; it does not edit brain pages.
+- Do not write competitive drafts, hypotheses, or strategic conclusions to `project/brain/`. The brand module (M7) proposes a `type: decision` entry in `project/brain/log.md`; it does not edit brain pages.
 - Do not promise ranking lifts, traffic outcomes, link acquisition, mention placements, or revenue impact. Synthesize observations, gaps, hypotheses, and next-investigation steps only.
 - Preserve the requested output language and pt-BR diacritics: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
@@ -45,7 +45,7 @@ The mode is inferred from input: every player is a domain → `domain`; every pl
 | M4 | Link Gap & Linkable Assets | both | `backlink-analysis` `multi-competitor` run, attached |
 | M5 | Topical Authority & Content Footprint | domain | sitemap, HTML structural extraction, optional `topic-cluster` reference |
 | M6 | Head-to-Head Page Comparison | url | HTML structural extraction + `serp-extract` + `technical-seo` subset |
-| M7 | Brand Positioning & Conversion Surface | domain primary | observable hero/CTA/proof/pricing extraction; brain identidade/voz reference |
+| M7 | Brand Positioning & Conversion Surface | domain primary | observable hero/CTA/proof/pricing extraction; brain identity/voice reference |
 
 Per-module compute rules, edge cases, anti-patterns, and YAML row shapes live in `references/modules/<module-id>.md`. Load on demand; never required for the orchestration framework.
 
@@ -66,7 +66,7 @@ Presets are convenience bundles. `modules[]` in input overrides the preset when 
 - **CTR curve gate** (M2 only): a curve must be selected before SoV runs. `selectPrimary({ prefer: ctr_curve_id })` from `shared/ctr-curves/loader.mjs` returns the chosen curve and logs the selection in `provider.ctr_curve` of the output. If no usable curve exists, block M2 and surface the gate.
 - **Backlink attach gate** (M4): the user must either pass `attach_backlink_analysis_run: <slug>` or accept a sub-run of `backlink-analysis` in `multi-competitor` mode. Never reimplement off-page surfaces here.
 - **Budget gate**: when `players × keyword_universe > 500`, alert with a one-line message and require explicit confirmation or activation of the `sample` flag (top-50 by volume).
-- **Brain decision gate** (M7 synthesis): the brand differentiation block proposes a `tipo: decisao` log entry; never writes to `brain/`.
+- **Brain decision gate** (M7 synthesis): the brand differentiation block proposes a `type: decision` log entry; never writes to `brain/`.
 - **Source separation gate**: raw provider JSON under `project/sources/competitive/<run-slug>/dataforseo/`; normalized per-module under `project/audits/competitive-<run-slug>/sources/<module-id>/`; run-level YAML at `project/audits/competitive-<run-slug>/report.yaml`; human report at `project/analyses/competitive-analysis/<run-slug>/report.md`. No raw JSON in the visual body.
 
 ## Framework
@@ -88,7 +88,7 @@ For each module selected by the preset or by `modules[]`:
 - M4: confirm `attach_backlink_analysis_run` exists at `project/audits/backlinks-<slug>/report.yaml`; if missing, schedule a sub-run.
 - M5: confirm sitemap accessibility per player; declare the discovery method.
 - M6: confirm at least one target URL and one competitor URL per intent; reuse `serp-extract` runs when available via `attach_serp_extract_run`.
-- M7: read `project/brain/identidade.md` and `project/brain/voz.md` for the project's own positioning context. If missing, run M7 with `brain_context: absent` and surface the limitation.
+- M7: read `project/brain/identity.md` and `project/brain/voice.md` for the project's own positioning context. If missing, run M7 with `brain_context: absent` and surface the limitation.
 
 Apply the budget gate before any costly provider call.
 
@@ -120,7 +120,7 @@ End the report with:
 
 - Limitations (per-module, named, with evidence reference).
 - Next actions framed as research/investigation (never as promises).
-- A proposed `tipo: decisao` log entry for the run (which surfaces the agent observed, which gaps remain, which curve was used).
+- A proposed `type: decision` log entry for the run (which surfaces the agent observed, which gaps remain, which curve was used).
 
 ## Output Format
 
@@ -208,7 +208,7 @@ limitations: []
 next_actions: []
 log_entry_plan:
   path: project/brain/log.md
-  tipo: decisao
+  type: decision
   summary: ""
 ```
 
@@ -216,7 +216,7 @@ If the run is fully blocked (no provider, no fixture), return `status: blocked`,
 
 ### Default delivery and runtime
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/competitive-analysis/report-skeleton.md`. The run YAML lives at `audits/competitive-<run-slug>/report.yaml`; the Companion page at `project/analyses/competitive-analysis/<run-slug>/report.md`. Each module renders as one H2 with `agentic-kpis` and `agentic-table` blocks; modules that did not run are dropped. The skill is exposed as `node dist/agentic-seo.js competitive-analysis`, dispatched by `src/commands/runtime.ts` to the orchestrator `scripts/competitive-analysis.mjs`, which calls DataForSEO Labs + Backlinks, the sitemap, and homepage HTML extraction, reads `shared/ctr-curves/` for the modeled curve, writes the YAML + Markdown, appends one `tipo: decisao` entry to `project/brain/log.md`, and returns the standard `{ report_md, source_artifact, modules_run, browser_prompt }` JSON.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/competitive-analysis/report-skeleton.md`. The run YAML lives at `audits/competitive-<run-slug>/report.yaml`; the Companion page at `project/analyses/competitive-analysis/<run-slug>/report.md`. Each module renders as one H2 with `agentic-kpis` and `agentic-table` blocks; modules that did not run are dropped. The skill is exposed as `node dist/agentic-seo.js competitive-analysis`, dispatched by `src/commands/runtime.ts` to the orchestrator `scripts/competitive-analysis.mjs`, which calls DataForSEO Labs + Backlinks, the sitemap, and homepage HTML extraction, reads `shared/ctr-curves/` for the modeled curve, writes the YAML + Markdown, appends one `type: decision` entry to `project/brain/log.md`, and returns the standard `{ report_md, source_artifact, modules_run, browser_prompt }` JSON.
 
 ## Examples
 

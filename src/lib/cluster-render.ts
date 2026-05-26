@@ -103,7 +103,7 @@ function acaoLabel(value: string | undefined, labels: ClusterLabels): string {
 }
 
 function relPathToContent(content: ContentRecord): string {
-  return `../../conteudos/${content.origem}/${content.slug}.md`;
+  return `../../content/${content.origem}/${content.slug}.md`;
 }
 
 function papelLabel(value: Papel, labels: ClusterLabels): string {
@@ -276,7 +276,7 @@ function indexClusterRow(
     ? published.find((c) => c.slug === cluster.yaml.pilar?.slug)
     : null;
   const pilarLink = pilarContent
-    ? `[${shortenTitle(pilarContent.fm.title) || pilarContent.slug}](../conteudos/${pilarContent.origem}/${pilarContent.slug}.md)`
+    ? `[${shortenTitle(pilarContent.fm.title) || pilarContent.slug}](../content/${pilarContent.origem}/${pilarContent.slug}.md)`
     : cluster.yaml.pilar?.slug
       ? `_${cluster.yaml.pilar.slug}_`
       : "—";

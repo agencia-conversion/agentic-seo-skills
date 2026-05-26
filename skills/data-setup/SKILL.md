@@ -22,7 +22,7 @@ Do not use this skill to perform keyword research, create a SERP analysis, write
 - Never echo full secrets in chat, terminal output, logs, Markdown, screenshots, reports, errors, or brain pages.
 - For nontechnical users and all sensitive input, browser handoff is the primary UX. Ask whether you may open a local browser window, then run the handoff yourself after consent.
 - Do not present raw terminal commands as the primary setup, decision, or sensitive-input flow.
-- Do not write secrets to the repository root `.env`, committed files, `project/sources/`, `project/workbench/`, `project/artifacts/`, `project/conteudos/`, or `project/brain/`.
+- Do not write secrets to the repository root `.env`, committed files, `project/sources/`, `project/workbench/`, `project/artifacts/`, `project/content/`, or `project/brain/`.
 - In Claude Code plugin mode, store secrets in sensitive `userConfig` fields when available.
 - In standalone project mode, store secrets in `project/.env.local`, which must stay local and ignored by git.
 - In portable user-level CLI mode, store secrets only in `~/.agentic-seo/userConfig` or the configured user secret store with owner-only permissions.
@@ -120,7 +120,7 @@ If validation fails, do not delete existing credentials unless the user explicit
 
 **Check:** Is the project left with a clear, non-secret setup status?
 
-When `project/brain/log.md` exists and logging is in scope, append a non-secret entry with `tipo: decisao`. Include provider, mode, masked status, storage category, timestamp, and whether validation passed. Never log credential values or raw provider responses.
+When `project/brain/log.md` exists and logging is in scope, append a non-secret entry with `type: decision`. Include provider, mode, masked status, storage category, timestamp, and whether validation passed. Never log credential values or raw provider responses.
 
 If setup is only being previewed or the project has no `brain/log.md` yet, return the masked status inline and leave the brain untouched.
 
@@ -150,7 +150,7 @@ validation:
   checked_at: null
 log:
   path: null
-  tipo: decisao
+  type: decision
 limitations: []
 next_action: ""
 ```

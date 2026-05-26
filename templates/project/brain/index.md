@@ -1,44 +1,44 @@
 ---
-title: "<Nome do projeto>"
+title: "<Project name>"
 updated: "<YYYY-MM-DD>"
 ---
 
-# <Nome do projeto>
+# <Project name>
 
-<Nome do projeto> é a página de entrada do cérebro da marca. Ela resume o contexto editorial, técnico e estratégico que orienta decisões de SEO, conteúdo e análise.
+<Project name> is the entry page of the brand's brain. It summarizes the editorial, technical and strategic context that guides SEO, content and analysis decisions.
 
-A marca usa este brain para transformar conhecimento acumulado em decisões publicáveis, rastreáveis e úteis. Cada página concentra uma parte do contexto que outros agentes precisam ler antes de escrever, revisar ou analisar.
+The brand uses this brain to turn accumulated knowledge into publishable, traceable, useful decisions. Each page concentrates a piece of context that other agents need to read before writing, reviewing or analyzing.
 
-A frase-marca, o aposto e os pontos de posicionamento vivem em [[identidade]]. O tom, a linha editorial e as decisões ficam nas páginas abaixo para que o index permaneça curto e navegável.
+The brand line, the appositive and positioning points live in [[identity]]. Tone, editorial direction and decisions live in the pages below so that the index stays short and navigable.
 
-Use esta página como ponto de partida antes de editar conteúdos, avaliar oportunidades ou registrar decisões. Os links abaixo levam às áreas autorais que sustentam o trabalho.
+Use this page as the starting point before editing content, evaluating opportunities or recording decisions. The links below lead to the authorial areas that sustain the work.
 
-## Pilares do cérebro
+## Brain pillars
 
-### [[identidade|Identidade]]
+### [[identity|Identity]]
 
-A página de identidade reúne o aposto, a apresentação, a promessa central, o público e os limites de posicionamento da marca.
+The identity page gathers the appositive, the introduction, the core promise, the audience and the positioning boundaries of the brand.
 
-### [[voz|Tom de Voz]]
+### [[voice|Tone of Voice]]
 
-A página de tom de voz define o registro editorial, os termos preferidos, os termos proibidos e os critérios de linguagem que mantêm os conteúdos consistentes.
+The tone-of-voice page defines the editorial register, preferred terms, forbidden terms, and the language criteria that keep content consistent.
 
 ### [[editorial|Editorial]]
 
-A página editorial organiza as áreas macro, as teses de conteúdo, os do's e don'ts de linha editorial e a lógica que conecta conteúdo, busca e autoridade temática.
+The editorial page organizes the macro areas, content theses, dos and don'ts of editorial direction and the logic that connects content, search and topical authority.
 
 ### [[topic-clusters|Topic Clusters]]
 
-A página de Topic Clusters reúne os clusters semânticos ativos, seus pilares, satélites publicados e oportunidades planejadas.
+The Topic Clusters page lists the active semantic clusters, their pillars, published satellites and planned opportunities.
 
-### [[tecnologia|Tecnologia]]
+### [[technology|Technology]]
 
-A página de tecnologia registra o contexto técnico observado do site da marca, os riscos de SEO técnico e as decisões operacionais que afetam rastreamento, performance e publicação.
+The technology page records the observed technical context of the brand's site, technical SEO risks, and operational decisions that affect crawling, performance and publishing.
 
-### [[revisao|Revisão]]
+### [[review|Review]]
 
-A página de revisão concentra as regras editoriais usadas antes de publicar, incluindo critérios universais e aprendizados específicos do projeto.
+The review page concentrates the editorial rules used before publishing, including universal criteria and project-specific learnings.
 
 ### [[log|Log]]
 
-O log preserva decisões, aprovações, evidências e mudanças relevantes em ordem cronológica.
+The log preserves decisions, approvals, evidence and relevant changes in chronological order.

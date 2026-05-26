@@ -26,26 +26,44 @@ const PROJECT_DIR = resolveProjectDir();
 const TEMPLATES_DIR = path.join(ROOT, "templates", "project");
 const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
 const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
+// EN canonical names. Brain lint requires these — files written via
+// project-init use EN filenames regardless of project language; the content
+// of each file is picked from the `.pt-BR.md` template variant when
+// project.json.language is pt-BR. See docs/specs/en-rename-map.md.
 const REQUIRED_BRAIN_PAGES = [
   "index.md",
-  "identidade.md",
-  "voz.md",
-  "tecnologia.md",
+  "identity.md",
+  "voice.md",
+  "technology.md",
   "editorial.md",
   "topic-clusters.md",
-  "revisao.md",
+  "review.md",
   "log.md",
 ];
 const AUTHORIAL_BRAIN_PAGES = new Set([
   "index.md",
+  "identity.md",
+  "voice.md",
+  "technology.md",
+  "editorial.md",
+  "topic-clusters.md",
+  "review.md",
   "identidade.md",
   "voz.md",
   "tecnologia.md",
-  "editorial.md",
-  "topic-clusters.md",
   "revisao.md",
 ]);
-const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "outros"]);
+const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "other", "outros"]);
+
+// Picks the first existing path for a logical brain page across EN canonical
+// and pt-BR alias filenames. Used during the bilingual transition.
+function brainPagePath(projectDir: string, ...candidates: string[]): string {
+  for (const candidate of candidates) {
+    const full = path.join(projectDir, "brain", candidate);
+    if (fs.existsSync(full)) return full;
+  }
+  return path.join(projectDir, "brain", candidates[0]);
+}
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sharedReportModules = require("../../shared/report-modules.js") as {
   REPORT_MODULE_IDS: readonly string[];
@@ -418,35 +436,40 @@ function isBrainPageFilled(body: string): boolean {
   return stripped.trim().length > 100;
 }
 
+// Maps internal event labels to canonical EN log type values
+// (contract_version 2). Accepts pt-BR aliases on input for backward compat.
 function mapEventTypeToTipo(eventType: string): string {
   const lower = eventType.toLowerCase();
-  if (lower.includes("approv") || lower.includes("aprovac")) return "aprovacao";
-  if (lower.includes("ingest")) return "ingestao";
+  if (lower.includes("approv") || lower.includes("aprovac")) return "approval";
+  if (lower.includes("ingest")) return "ingestion";
   if (lower.includes("lint")) return "lint";
-  if (lower.includes("publica")) return "publicacao";
-  if (lower.includes("errat")) return "errata";
-  if (lower.includes("prova") || lower.includes("proof")) return "prova";
-  return "decisao";
+  if (lower.includes("publica")) return "publication";
+  if (lower.includes("errat")) return "erratum";
+  if (lower.includes("prova") || lower.includes("proof")) return "proof";
+  return "decision";
 }
 
+// EN canonical log entry. The schema migration to contract_version 2 renames
+// pt-BR keys (tipo/escopo/decisao/evidencia/aprovador/aprovado_em) to EN
+// (type/scope/decision/evidence/approver/approved_at).
 function appendLog(eventType: string, title: string, files: string[], summary: string, approval: string): void {
   const brainLog = path.join(PROJECT_DIR, "brain", "log.md");
   mkdirp(path.dirname(brainLog));
   const links = formatLogFileRefs(files);
-  const tipo = mapEventTypeToTipo(eventType);
-  const aprovador = approval && approval !== "not-required" && approval !== "pending" ? approval : "agent";
+  const type = mapEventTypeToTipo(eventType);
+  const approver = approval && approval !== "not-required" && approval !== "pending" ? approval : "agent";
   const lines = [
     "",
     "",
     `## ${today()} - ${title}`,
     "",
-    `- tipo: ${tipo}`,
-    `- escopo: ${links}`,
-    `- decisao: ${summary}`,
-    `- evidencia: ${links}`,
-    `- aprovador: ${aprovador}`,
+    `- type: ${type}`,
+    `- scope: ${links}`,
+    `- decision: ${summary}`,
+    `- evidence: ${links}`,
+    `- approver: ${approver}`,
   ];
-  if (eventType === "aprovacao") lines.push(`- aprovado_em: ${today()}`);
+  if (eventType === "aprovacao" || eventType === "approval") lines.push(`- approved_at: ${today()}`);
   fs.appendFileSync(brainLog, lines.join("\n") + "\n", "utf8");
 }
 
@@ -454,19 +477,19 @@ function appendOperationalLog(eventType: string, title: string, files: string[],
   const brainLog = path.join(PROJECT_DIR, "brain", "log.md");
   mkdirp(path.dirname(brainLog));
   const links = formatLogFileRefs(files);
-  const tipo = mapEventTypeToTipo(eventType);
+  const type = mapEventTypeToTipo(eventType);
   const lines = [
     "",
     "",
     `## ${today()} - ${title}`,
     "",
-    `- tipo: ${tipo}`,
-    `- escopo: ${links}`,
-    `- decisao: ${decision}`,
-    `- evidencia: ${summary}`,
-    "- aprovador: agent",
+    `- type: ${type}`,
+    `- scope: ${links}`,
+    `- decision: ${decision}`,
+    `- evidence: ${summary}`,
+    "- approver: agent",
   ];
-  if (notes) lines.push(`- notas: ${notes}`);
+  if (notes) lines.push(`- notes: ${notes}`);
   fs.appendFileSync(brainLog, lines.join("\n") + "\n", "utf8");
 }
 
@@ -2389,23 +2412,81 @@ async function commandProjectBrowser(args: AnyRecord): Promise<void> {
   }
 }
 
+// EN canonical brain filenames. Content varies by `project.json.language`;
+// templates with the `.pt-BR.md` suffix carry the pt-BR variant content.
+const BRAIN_SCAFFOLD_FILES = [
+  "index.md",
+  "identity.md",
+  "voice.md",
+  "technology.md",
+  "editorial.md",
+  "topic-clusters.md",
+  "products.md",
+  "review.md",
+  "log.md",
+];
+
+// EN canonical content origin folders. `outros` (pt-BR) maps to `other` (EN).
+const CONTENT_ORIGIN_FOLDERS = ["blog", "linkedin", "podcast", "other"];
+
+function pickTemplateForLanguage(dir: string, baseName: string, language: string): string {
+  if (language === "pt-BR") {
+    const localized = path.join(dir, baseName.replace(/\.md$/, ".pt-BR.md"));
+    if (fs.existsSync(localized)) return localized;
+  }
+  return path.join(dir, baseName);
+}
+
 async function commandProjectInit(args: AnyRecord): Promise<void> {
   const name = args._[0] || "Agentic SEO Project";
   const p = PROJECT_DIR;
-  const language = args.language || "pt-BR";
-  const market = args.market || "Brasil";
+  const language = (args.language as string) || "en";
+  // pt-PT is treated as pt-BR for template scaffolding (Portuguese variant).
+  const scaffoldLang = language === "pt-PT" || language === "pt-BR" ? "pt-BR" : "en";
+  const market = args.market || (language.startsWith("pt") ? "Brasil" : "Global");
   const country = args.country || market;
-  for (const dir of ["brain", "conteudos", "web", "sources", "workbench", "artifacts", "audits", "keywords", "clusters", "eeat", REPORT_DIR_NAME, ".agentic-seo"]) mkdirp(path.join(p, dir));
-  for (const origem of PUBLIC_CONTENT_ORIGENS) mkdirp(path.join(p, "conteudos", origem));
+  for (const dir of ["brain", "content", "web", "sources", "workbench", "artifacts", "audits", "keywords", "clusters", "eeat", REPORT_DIR_NAME, ".agentic-seo"]) mkdirp(path.join(p, dir));
+  for (const origin of CONTENT_ORIGIN_FOLDERS) mkdirp(path.join(p, "content", origin));
   for (const moduleId of REPORT_MODULE_IDS) mkdirp(path.join(p, REPORT_DIR_NAME, moduleId));
-  copyDir(path.join(TEMPLATES_DIR, "brain"), path.join(p, "brain"));
-  copyDir(path.join(TEMPLATES_DIR, "conteudos"), path.join(p, "conteudos"));
-  writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
+  // Scaffold brain pages by language: EN canonical filename, content from the
+  // matching `.pt-BR.md` variant when language is pt-BR.
+  const brainTemplateDir = path.join(TEMPLATES_DIR, "brain");
+  for (const fileName of BRAIN_SCAFFOLD_FILES) {
+    const source = pickTemplateForLanguage(brainTemplateDir, fileName, scaffoldLang);
+    if (!fs.existsSync(source)) continue;
+    const dest = path.join(p, "brain", fileName);
+    fs.writeFileSync(dest, fs.readFileSync(source, "utf8"));
+  }
+  // Brain subpage scaffolds (one folder per parent with _subpage-template.md).
+  for (const parent of ["identity", "voice", "technology", "products", "editorial", "topic-clusters"]) {
+    const subDir = path.join(brainTemplateDir, parent);
+    if (!fs.existsSync(subDir)) continue;
+    mkdirp(path.join(p, "brain", parent));
+    const subSource = pickTemplateForLanguage(subDir, "_subpage-template.md", scaffoldLang);
+    if (fs.existsSync(subSource)) {
+      fs.writeFileSync(path.join(p, "brain", parent, "_subpage-template.md"), fs.readFileSync(subSource, "utf8"));
+    }
+  }
+  // Content origin templates.
+  const contentTemplateDir = path.join(TEMPLATES_DIR, "content");
+  for (const origin of CONTENT_ORIGIN_FOLDERS) {
+    const originDir = path.join(contentTemplateDir, origin);
+    if (!fs.existsSync(originDir)) continue;
+    const source = pickTemplateForLanguage(originDir, "_template.md", scaffoldLang);
+    if (fs.existsSync(source)) {
+      fs.writeFileSync(path.join(p, "content", origin, "_template.md"), fs.readFileSync(source, "utf8"));
+    }
+  }
+  writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "3.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
   const brainIndex = path.join(p, "brain", "index.md");
   if (fs.existsSync(brainIndex)) {
     setFrontmatterValue(brainIndex, { title: JSON.stringify(name), updated: JSON.stringify(today()) });
   }
-  appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado em ${country}/${language}.`, "agent");
+  const initTitle = scaffoldLang === "pt-BR" ? "Projeto criado" : "Project initialized";
+  const initSummary = scaffoldLang === "pt-BR"
+    ? `Projeto ${name} inicializado em ${country}/${language}.`
+    : `Project ${name} initialized in ${country}/${language}.`;
+  appendLog("init", initTitle, ["index"], initSummary, "agent");
   printJson({ ok: true, project_dir: p });
 }
 
@@ -3535,10 +3616,18 @@ function readBrainEvidencePage(projectDir: string, rel: string): AnyRecord {
 }
 
 function buildContentContextEvidence(projectDir: string, topicSlug: string): AnyRecord {
-  const pageRels = ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md", "revisao.md"];
+  const pageRels = [
+    fs.existsSync(path.join(projectDir, "brain", "identity.md")) ? "identity.md" : "identidade.md",
+    fs.existsSync(path.join(projectDir, "brain", "voice.md")) ? "voice.md" : "voz.md",
+    fs.existsSync(path.join(projectDir, "brain", "technology.md")) ? "technology.md" : "tecnologia.md",
+    fs.existsSync(path.join(projectDir, "brain", "review.md")) ? "review.md" : "revisao.md",
+    "index.md",
+    "editorial.md",
+  ];
   const brainPages = pageRels.map((rel) => readBrainEvidencePage(projectDir, rel));
-  const voicePage = brainPages.find((page) => page.path === "brain/voz.md") || readBrainEvidencePage(projectDir, "voz.md");
-  const voiceFile = path.join(projectDir, "brain", "voz.md");
+  const voicePage = brainPages.find((page) => page.path === "brain/voice.md" || page.path === "brain/voz.md")
+    || readBrainEvidencePage(projectDir, "voice.md");
+  const voiceFile = brainPagePath(projectDir, "voice.md", "voz.md");
   let voiceBody = "";
   if (fs.existsSync(voiceFile)) voiceBody = parseFrontmatter(fs.readFileSync(voiceFile, "utf8"))[1];
   const limitations = brainPages
@@ -3792,7 +3881,7 @@ async function buildContentResearchPacket(topic: string, keyword: string, topicS
 }
 
 function contentVoiceContext(projectDir: string): AnyRecord {
-  const voicePath = path.join(projectDir, "brain", "voz.md");
+  const voicePath = brainPagePath(projectDir, "voice.md", "voz.md");
   const [voiceFm, voiceBody] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
   const filled = voiceBody.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]+>/g, "").trim().length > 50;
   return {

@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as yamlParse } from "yaml";
-import { updateContentsSection, writeBrainIndex } from "./lib/clusters-apply.mjs";
+import { updateContentsSection, writeBrainIndex, normalizeClusterYaml } from "./lib/clusters-apply.mjs";
 
 const ROOT = resolve(fileURLToPath(import.meta.url), "..", "..");
 const PROJECT = join(ROOT, "project");
@@ -21,7 +21,7 @@ function loadClusterEntries() {
     const yamlPath = join(dir, name, "cluster.yaml");
     if (!existsSync(yamlPath)) continue;
     try {
-      const data = yamlParse(readFileSync(yamlPath, "utf8"));
+      const data = normalizeClusterYaml(yamlParse(readFileSync(yamlPath, "utf8")));
       if (data && data.slug) out.push({ slug: data.slug, target_path: `project/clusters/${data.slug}/cluster.yaml`, yaml: data });
     } catch {
       // skip malformed yaml
@@ -103,6 +103,6 @@ for (const entry of entries) {
   updates.push({ slug: entry.slug, mode: result.mode });
 }
 const indexPath = writeBrainIndex(ROOT, plan, publishedByCluster);
-console.log(`Regerado.`);
+console.log(`Regenerated.`);
 for (const update of updates) console.log(`- ${update.slug}: ${update.mode}`);
-console.log(`Índice: ${indexPath}`);
+console.log(`Index: ${indexPath}`);

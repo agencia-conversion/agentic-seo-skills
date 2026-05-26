@@ -24,7 +24,7 @@ Do not use this skill to run outreach, promise link acquisition, decide strategi
 - Competitor deltas and intersect analysis are allowed only from provided DataForSEO data. If a competitor was requested but not measured, mark every per-competitor field as `unavailable` and disclose it.
 - Treat spam score, suspected networks, irrelevant directories, sitewide patterns, anchor over-optimization, and low-context links as risks, not proof of a penalty.
 - Keep raw source data separate from synthesis. Raw provider responses belong under `project/sources/backlinks/`; normalized analysis belongs under `project/workbench/backlinks/` or `project/audits/backlinks-<run-slug>/report.yaml`.
-- Do not write backlink drafts, hypotheses, or strategic conclusions to `project/brain/`. Brain promotion requires source evidence and a separate `tipo: decisao` entry in `project/brain/log.md`; it is not part of this skill.
+- Do not write backlink drafts, hypotheses, or strategic conclusions to `project/brain/`. Brain promotion requires source evidence and a separate `type: decision` entry in `project/brain/log.md`; it is not part of this skill.
 - Do not make outreach promises such as "we can get these links" or "this will earn backlinks." Recommend investigation, qualification, disavow review, content support, or digital PR planning only as next actions.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
@@ -210,7 +210,7 @@ limitations: []
 next_actions: []
 brain_promotion:
   attempted: false
-  note: "Backlink analysis stays outside project/brain unless a separate decision workflow records `tipo: decisao` in project/brain/log.md."
+  note: "Backlink analysis stays outside project/brain unless a separate decision workflow records `type: decision` in project/brain/log.md."
 ```
 
 In `single` mode, every `multi_competitor.*` collection stays empty. In `multi-competitor` mode, every empty collection must carry a `limitations` entry explaining why (no provider rows, time window too short, URLs missing, etc.).

@@ -80,9 +80,9 @@ function visit(dir) {
 visit(join(project, "conteudos"));
 
 if (orphans.length > 0 && !force) {
-  console.error(`Bloqueado: ${orphans.length} conteúdos ficariam com clusters:[] vazio.`);
+  console.error(`Blocked: ${orphans.length} content files would end up with clusters:[] empty.`);
   for (const fp of orphans) console.error(`  ${fp}`);
-  console.error("Use --reassign-to=<Y> ou --force.");
+  console.error("Use --reassign-to=<Y> or --force.");
   process.exit(1);
 }
 
@@ -97,4 +97,4 @@ if (existsSync(distEntry)) {
   await mod.clusterSync({ root: project });
 }
 
-console.log(`Cluster ${slug} aposentado. ${touched} conteúdos ${reassignTo ? `migrados para ${reassignTo}` : "desvinculados"}.`);
+console.log(`Cluster ${slug} retired. ${touched} content files ${reassignTo ? `migrated to ${reassignTo}` : "unlinked"}.`);

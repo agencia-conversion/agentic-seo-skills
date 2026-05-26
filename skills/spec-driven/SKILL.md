@@ -30,7 +30,7 @@ Do not use this skill for a single clear task. If the user asks only for one key
 - Always present a simple design before writing `spec.md`, `plan.md`, or `result-check.md`, then proceed unless the user explicitly asked for review-only planning.
 - Write the control files only under `project/workbench/specs/<slug>/`. Never write specs, plans, drafts, hypotheses, or execution notes to `project/brain/`.
 - Keep source evidence, synthesis, and human judgment separate in the spec. Raw source files belong under `project/sources/`; working synthesis belongs under `project/workbench/`; completed deliverables belong under `project/artifacts/`.
-- Authorial brain pages require a recorded `tipo: decisao` entry in `project/brain/log.md` with evidence and limitations. Agent output is decision support, not fabricated proof.
+- Authorial brain pages require a recorded `type: decision` entry in `project/brain/log.md` with evidence and limitations. Agent output is decision support, not fabricated proof.
 - Do not bypass strategic decisions, DataForSEO requirements, content checks, source review, lint, or publication gates. Name missing gates as blockers or requirements.
 - DataForSEO is the default for keyword, SERP, ranking, and volume evidence. Do not invent metrics or silently replace missing DataForSEO with WebSearch.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, rankings, traffic, or proof. Unknown values stay unknown.
@@ -65,7 +65,7 @@ List:
 - deterministic checks;
 - blocked items and why they are blocked.
 
-Be explicit about gates. Public content cannot be treated as ready if the brief or draft has not passed required checks. Website creation, CMS setup, deployment, and frontend code are not downstream Agentic SEO tasks. An authorial brain page cannot be changed without a `tipo: decisao` entry in `brain/log.md` that records evidence, limitations, and actor. SERP or keyword metrics cannot be asserted without source evidence.
+Be explicit about gates. Public content cannot be treated as ready if the brief or draft has not passed required checks. Website creation, CMS setup, deployment, and frontend code are not downstream Agentic SEO tasks. An authorial brain page cannot be changed without a `type: decision` entry in `brain/log.md` that records evidence, limitations, and actor. SERP or keyword metrics cannot be asserted without source evidence.
 
 ### 3. Present A Simple Design
 

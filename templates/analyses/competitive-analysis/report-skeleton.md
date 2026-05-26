@@ -8,7 +8,7 @@ source_artifact: "audits/competitive-{{run_slug}}/report.yaml"
 summary: "{{summary}}"
 ---
 
-## Resumo executivo
+## Executive summary
 
 {{executive_summary}}
 
@@ -21,7 +21,7 @@ items:
     value: "{{players_count}}"
   - label: Preset
     value: "{{preset}}"
-  - label: Curva CTR
+  - label: CTR curve
     value: "{{ctr_curve_id}}"
 ```
 
@@ -31,16 +31,16 @@ items:
 version: 1
 columns:
   - key: player
-    label: Participante
+    label: Player
   - key: role
-    label: Papel
+    label: Role
   - key: type
-    label: Tipo
+    label: Type
   - key: source
-    label: Origem
+    label: Source
 rows:
   - player: "{{target}}"
-    role: "alvo"
+    role: "target"
     type: "{{target_type}}"
     source: "user"
 ```
@@ -53,13 +53,13 @@ rows:
 version: 1
 columns:
   - key: player
-    label: Participante
+    label: Player
   - key: organic_keywords
-    label: Keywords orgânicas
+    label: Organic keywords
   - key: organic_etv
-    label: Tráfego estimado (ETV)
+    label: Estimated traffic (ETV)
   - key: domain_rank
-    label: Rank DataForSEO
+    label: DataForSEO Rank
   - key: top_3
     label: Top 1-3
   - key: top_10
@@ -72,29 +72,29 @@ rows: []
 ```agentic-kpis
 version: 1
 items:
-  - label: Curva CTR
+  - label: CTR curve
     value: "{{ctr_curve_id}}"
-    tag: Modelado
-  - label: Universo de keywords
+    tag: Modeled
+  - label: Keyword universe
     value: "{{universe_total}}"
-  - label: AIO ajustado
+  - label: AIO adjusted
     value: "{{aio_adjusted_keywords}}"
-    tag: Modelado
+    tag: Modeled
 ```
 
 ```agentic-table
 version: 1
 columns:
   - key: player
-    label: Participante
+    label: Player
   - key: keywords_in_top_20
     label: Keywords top 20
   - key: keywords_in_top_3
     label: Keywords top 1-3
   - key: sov_pct
-    label: SoV (%) [Modelado]
+    label: SoV (%) [Modeled]
   - key: soc_modeled
-    label: SoC [Modelado]
+    label: SoC [Modeled]
 rows: []
 ```
 
@@ -104,15 +104,15 @@ rows: []
 version: 1
 columns:
   - key: keyword
-    label: Palavra-chave
+    label: Keyword
   - key: volume
     label: Volume
   - key: target_position
-    label: Pos. alvo
+    label: Target pos.
   - key: competitor_positions
-    label: Pos. concorrentes
+    label: Competitor pos.
   - key: intent_hint
-    label: Intenção
+    label: Intent
 rows: []
 ```
 
@@ -122,13 +122,13 @@ rows: []
 version: 1
 columns:
   - key: keyword
-    label: Palavra-chave
+    label: Keyword
   - key: volume
     label: Volume
   - key: target_position
-    label: Posição atual
+    label: Current position
   - key: ctr_uplift_modeled
-    label: Uplift [Modelado]
+    label: Uplift [Modeled]
 rows: []
 ```
 
@@ -141,19 +141,19 @@ items:
     value: "{{total_link_gap_rows}}"
   - label: Link Intersect rows
     value: "{{total_link_intersect_rows}}"
-  - label: Maior delta de velocidade
+  - label: Largest velocity delta
     value: "{{velocity_delta_value}} ({{velocity_delta_largest_player}})"
-  - label: Relatório completo
+  - label: Full report
     value: "[Abrir]({{backlink_run_report_md}})"
 ```
 
-## M5. Cobertura de Conteúdo
+## M5. Content Coverage
 
 ```agentic-table
 version: 1
 columns:
   - key: subtopic
-    label: Subtópico
+    label: Subtopic
   - key: target
     label: Alvo
   - key: competitor_a
@@ -163,19 +163,19 @@ columns:
 rows: []
 ```
 
-## M5. Frescor
+## M5. Freshness
 
 ```agentic-table
 version: 1
 columns:
   - key: player
-    label: Participante
+    label: Player
   - key: urls_total
-    label: URLs no recorte
+    label: URLs in scope
   - key: median_age_days
-    label: Idade mediana (dias)
+    label: Median age (days)
   - key: updated_within_window_pct
-    label: Atualizado na janela (%)
+    label: Updated within window (%)
 rows: []
 ```
 
@@ -189,58 +189,58 @@ columns:
   - key: pair_id
     label: Par
   - key: word_count_delta
-    label: Δ palavras úteis
+    label: Δ useful words
   - key: h2_delta
     label: Δ H2
   - key: schema_only_competitor
-    label: Schema só no concorrente
+    label: Schema only on competitor
   - key: serp_features_only_competitor
-    label: SERP features só no concorrente
+    label: SERP features only on competitor
 rows: []
 ```
 
-## M7. Posicionamento e mensagem
+## M7. Positioning and messaging
 
 ```agentic-table
 version: 1
 columns:
   - key: player
-    label: Participante
+    label: Player
   - key: h1
     label: H1
   - key: subhead
     label: Subhead
   - key: cta_pressure
-    label: Pressão de conversão
+    label: Conversion pressure
   - key: pricing_visibility
-    label: Visibilidade de preço
+    label: Pricing visibility
 rows: []
 ```
 
-## M7. Prova social
+## M7. Social proof
 
 ```agentic-table
 version: 1
 columns:
   - key: player
-    label: Participante
+    label: Player
   - key: proof_type
-    label: Tipo de prova
+    label: Proof type
   - key: excerpt
-    label: Trecho (literal)
+    label: Excerpt (literal)
   - key: source_or_attribution
-    label: Fonte
+    label: Source
 rows: []
 ```
 
-## Hipóteses e próximas investigações
+## Hypotheses and next investigations
 
 {{hypotheses_and_next_actions}}
 
-## Limitações
+## Limitations
 
 {{limitations}}
 
-## Próximas ações
+## Next actions
 
 {{next_actions}}

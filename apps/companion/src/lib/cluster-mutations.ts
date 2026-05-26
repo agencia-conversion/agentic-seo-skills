@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 import { parse as parseYaml, stringify as yamlStringify } from 'yaml';
 import { loadBrainSubpageTemplate } from './brain-templates';
 import { updateContentMetadata } from './content-mutations';
+import { normalizeClusterYaml } from './cluster-yaml';
 
 const PLUGIN_ROOT =
   process.env.AGENTIC_SEO_PLUGIN_ROOT ||
@@ -198,7 +199,7 @@ export function addPlannedSatellite(projectRoot: string, clusterSlug: string, in
   const keyword = (input.keyword || '').trim();
   if (!slug) return { ok: false as const, reason: 'invalid-slug' };
   if (!keyword) return { ok: false as const, reason: 'invalid-keyword' };
-  const data = parseYaml(readFileSync(yamlPath, 'utf8')) || {};
+  const data = normalizeClusterYaml(parseYaml(readFileSync(yamlPath, 'utf8'))) || {};
   data.planned_satellites = Array.isArray(data.planned_satellites) ? data.planned_satellites : [];
   if (data.planned_satellites.some((s: any) => s?.slug === slug)) {
     return { ok: false as const, reason: 'slug-already-exists' };
@@ -390,7 +391,7 @@ function ensureUniquePilar(
     const yamlPath = join(dir, name, 'cluster.yaml');
     if (!existsSync(yamlPath)) continue;
     try {
-      const other = parseYaml(readFileSync(yamlPath, 'utf8')) as Record<string, any>;
+      const other = normalizeClusterYaml(parseYaml(readFileSync(yamlPath, 'utf8'))) as Record<string, any>;
       if (other?.pilar?.slug === newPilarSlug) conflicts.push(name);
     } catch {
       // skip
@@ -407,7 +408,7 @@ export function editClusterRow(
 ): EditRowResult {
   const yamlPath = clusterYamlPath(projectRoot, clusterSlug);
   if (!existsSync(yamlPath)) return { ok: false, reason: 'cluster-not-found' };
-  const data = (parseYaml(readFileSync(yamlPath, 'utf8')) as Record<string, any>) || {};
+  const data = (normalizeClusterYaml(parseYaml(readFileSync(yamlPath, 'utf8'))) as Record<string, any>) || {};
   const affected: string[] = [];
 
   if (input.kind === 'planned') {

@@ -8,8 +8,8 @@ export const SENTINELS = {
 } as const;
 
 export type ClusterStatus = "drafting" | "proposed" | "active" | "archived";
-export type Origem = "blog" | "linkedin" | "podcast" | "outros";
-export type Papel = "pilar" | "satelite";
+export type Origem = "blog" | "linkedin" | "podcast" | "other" | "outros";
+export type Papel = "pilar" | "satelite" | "pillar" | "satellite";
 export type Intent =
   | "informational"
   | "transactional"

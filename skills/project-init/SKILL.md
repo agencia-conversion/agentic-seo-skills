@@ -19,8 +19,8 @@ Do not use this skill to write strategic content, draft brand identity, run SEO 
 
 - Initialize the single project directory only: `project/`. Do not create sibling project folders.
 - Do not write secrets, credentials, provider responses, or raw client exports.
-- Brain content (`brain/index.md`, `brain/identidade.md`, `brain/voz.md`, `brain/tecnologia.md`, `brain/editorial.md`, `brain/topic-clusters.md`, `brain/revisao.md`) is created from blank templates with placeholders. `brain/revisao.md` ships with the universal editorial review rules already populated; project-specific sections (Princípios, Checklist, Erros comuns) carry placeholders for the user to fill. Do not generate strategic prose.
-- `brain/tecnologia.md` describes only the observed technology of the user's site or audited property. Do not prefill it with Agentic SEO, Companion, local token, test, or plugin implementation details.
+- Brain content (`brain/index.md`, `brain/identity.md`, `brain/voice.md`, `brain/technology.md`, `brain/editorial.md`, `brain/topic-clusters.md`, `brain/review.md`) is created from blank templates with placeholders. `brain/review.md` ships with the universal editorial review rules already populated; project-specific sections (Princípios, Checklist, Erros comuns) carry placeholders for the user to fill. Do not generate strategic prose.
+- `brain/technology.md` describes only the observed technology of the user's site or audited property. Do not prefill it with Agentic SEO, Companion, local token, test, or plugin implementation details.
 - Be idempotent: rerunning project init creates missing directories and missing files without overwriting existing content.
 - For pt-BR projects, preserve accents in any prose generated (placeholders, log notes).
 - Do not fabricate brand facts, market data, or technical decisions.
@@ -68,11 +68,11 @@ project/analyses/topic-cluster/
 project/analyses/eeat/
 project/brain/
 project/brain/topic-clusters/
-project/conteudos/
-project/conteudos/blog/
-project/conteudos/linkedin/
-project/conteudos/podcast/
-project/conteudos/outros/
+project/content/
+project/content/blog/
+project/content/linkedin/
+project/content/podcast/
+project/content/other/
 ```
 
 ### 3. Write Project Metadata
@@ -95,16 +95,16 @@ Write `project/.agentic-seo/project.json` with stable, machine-readable metadata
 
 ### 4. Create Brain Files from Blank Templates
 
-For each of `brain/index.md`, `brain/identidade.md`, `brain/voz.md`, `brain/tecnologia.md`, `brain/editorial.md`, `brain/topic-clusters.md`, `brain/revisao.md`, `brain/log.md`:
+For each of `brain/index.md`, `brain/identity.md`, `brain/voice.md`, `brain/technology.md`, `brain/editorial.md`, `brain/topic-clusters.md`, `brain/review.md`, `brain/log.md`:
 
 - If the file does not exist, copy from `templates/project/brain/<file>.md`. Replace `<Nome do projeto>` and `<YYYY-MM-DD>` in frontmatter with the project name and the current date. Leave all other placeholders for the user.
 - If the file exists with substantive content, leave untouched.
 
 ### 5. Create Content Templates
 
-For each of `conteudos/blog/_template.md`, `conteudos/linkedin/_template.md`, `conteudos/podcast/_template.md`, `conteudos/outros/_template.md`:
+For each of `content/blog/_template.md`, `content/linkedin/_template.md`, `content/podcast/_template.md`, `content/other/_template.md`:
 
-- If missing, copy from `templates/project/conteudos/<origem>/_template.md`.
+- If missing, copy from `templates/project/content/<origin>/_template.md`.
 - If present, leave untouched.
 
 ### 6. Append First Log Entry
@@ -114,12 +114,12 @@ Append to `brain/log.md` exactly one entry per init run that creates or complete
 ```markdown
 ## YYYY-MM-DD - Project initialized
 
-- tipo: decisao
-- escopo: project/
-- decisao: Estrutura inicial criada (brain/, sources/, conteudos/, artifacts/, workbench/, audits/, keywords/, clusters/, eeat/, analyses/) com templates em branco para preenchimento humano.
-- evidencia: project/.agentic-seo/project.json
-- aprovador: agent
-- notas: <name>, <market>, <language>.
+- type: decisao
+- scope: project/
+- decision: Estrutura inicial criada (brain/, sources/, content/, artifacts/, workbench/, audits/, keywords/, clusters/, eeat/, analyses/) com templates em branco para preenchimento humano.
+- evidence: project/.agentic-seo/project.json
+- approver: agent
+- notes: <name>, <market>, <language>.
 ```
 
 Do not append duplicate entries on idempotent reruns that did not change anything.
@@ -130,7 +130,7 @@ Before reporting completion, verify:
 
 - `project/.agentic-seo/project.json` exists with project name, market, canonical `language`, `single_project_root: "project"`, `schema_version: "2.0.0"`. `pt-BR` and `en` are the fully translated UI/report languages in v1; other project language values require future UI/report copy or fall back during report rendering.
 - All required directories exist.
-- The 8 brain files exist with frontmatter populated (title and updated only); placeholders untouched if user has not filled them. `brain/revisao.md` carries the universal editorial review rules populated by the template.
+- The 8 brain files exist with frontmatter populated (title and updated only); placeholders untouched if user has not filled them. `brain/review.md` carries the universal editorial review rules populated by the template.
 - `brain/log.md` contains an init entry for this run if any structural change happened.
 - pt-BR text preserves accents.
 - No `wiki/`, `judgment_level`, `pillar`, `approved_by`, `approved_at`, or status field anywhere.
@@ -164,7 +164,7 @@ Use `blocked` when required inputs (`name`, `market`, `language`) are missing an
 
 Input: "Initialize Agentic SEO for Clínica Exemplo, Brasil, pt-BR."
 
-Output: "Create `project/` structure, write `.agentic-seo/project.json` with Brasil and `pt-BR`, copy 8 blank brain templates (revisao.md ships with universal editorial review rules pre-populated) and 4 content templates preserving pt-BR accents, append `tipo: decisao` log entry, return `status: complete`."
+Output: "Create `project/` structure, write `.agentic-seo/project.json` with Brasil and `pt-BR`, copy 8 blank brain templates (review.md ships with universal editorial review rules pre-populated) and 4 content templates preserving pt-BR accents, append `type: decision` log entry, return `status: complete`."
 
 ### Idempotent rerun
 

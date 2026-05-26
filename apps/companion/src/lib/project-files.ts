@@ -3,32 +3,60 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { REPORT_DIR_NAME, REPORT_MODULE_IDS } from '../../../../shared/report-modules';
-import { loadBrainSubpageTemplate } from './brain-templates';
+import { loadBrainSubpageTemplate, brainTopLevelTemplatePath } from './brain-templates';
 
+// EN canonical names + pt-BR aliases for compat with existing pt-BR projects.
+// New projects scaffold from BRAIN_PAGE_SCAFFOLD_ORDER (EN canonical only).
+// See docs/specs/en-rename-map.md.
 export const AUTHORIAL_BRAIN_PAGES = new Set([
   'brain/index.md',
+  'brain/identity.md',
+  'brain/voice.md',
+  'brain/technology.md',
+  'brain/editorial.md',
+  'brain/topic-clusters.md',
+  'brain/products.md',
+  'brain/review.md',
   'brain/identidade.md',
   'brain/voz.md',
   'brain/tecnologia.md',
-  'brain/editorial.md',
-  'brain/topic-clusters.md',
   'brain/produtos.md',
   'brain/revisao.md',
 ]);
 
 const BRAIN_PAGE_ORDER = [
   'brain/index.md',
+  'brain/identity.md',
   'brain/identidade.md',
+  'brain/voice.md',
   'brain/voz.md',
+  'brain/technology.md',
   'brain/tecnologia.md',
   'brain/editorial.md',
   'brain/topic-clusters.md',
+  'brain/products.md',
   'brain/produtos.md',
+  'brain/review.md',
   'brain/revisao.md',
   'brain/log.md',
 ];
 
-const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'outros']);
+// EN canonical scaffold order — used when creating a new brain. The language
+// of the file content comes from project.json.language; the loader picks the
+// `.pt-BR.md` template variant when language is pt-BR.
+const BRAIN_PAGE_SCAFFOLD_ORDER = [
+  'brain/index.md',
+  'brain/identity.md',
+  'brain/voice.md',
+  'brain/technology.md',
+  'brain/editorial.md',
+  'brain/topic-clusters.md',
+  'brain/products.md',
+  'brain/review.md',
+  'brain/log.md',
+];
+
+const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'other', 'outros']);
 const REPORT_MODULES = new Set<string>(REPORT_MODULE_IDS);
 const SUPPORTED_PROJECT_LANGUAGES = new Set(['pt-BR', 'en']);
 const ROOT = process.env.AGENTIC_SEO_PLUGIN_ROOT || process.env.SEO_BRAIN_PLUGIN_ROOT || join(/*turbopackIgnore: true*/ process.cwd(), '..', '..');
@@ -109,7 +137,7 @@ export function validateProjectFileRel(rawPath: unknown, { write = false } = {})
   const allowed =
     /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^brain\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
-    /^conteudos\/(blog|linkedin|podcast|outros)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
+    /^(content|conteudos)\/(blog|linkedin|podcast|other|outros)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel) ||
     new RegExp(`^${REPORT_DIR_NAME}\\/[A-Za-z0-9._-]+\\/[A-Za-z0-9._/-]+\\/report\\.md$`).test(rel);
   if (!allowed) return { ok: false as const, reason: 'path-not-allowed' };
@@ -123,7 +151,7 @@ export function validateProjectFileRel(rawPath: unknown, { write = false } = {})
 function resolveAllowedFile(projectRoot: string | undefined, rel: string) {
   const root = normalizeProjectRoot(projectRoot);
   const filePath = resolve(root, rel);
-  const allowedRoots = ['brain', 'conteudos', 'workbench', REPORT_DIR_NAME].map((dir) => resolve(root, dir));
+  const allowedRoots = ['brain', 'content', 'conteudos', 'workbench', REPORT_DIR_NAME].map((dir) => resolve(root, dir));
   if (!allowedRoots.some((allowed) => filePath === allowed || filePath.startsWith(`${allowed}${sep}`))) {
     throw new Error('path escaped project root');
   }
@@ -158,7 +186,7 @@ function readProjectConfig(root: string): Record<string, any> {
 
 import { normalizeLanguage as sharedNormalizeLanguage } from '../../../../shared/locale.mjs';
 
-function normalizeProjectLanguage(value: unknown, fallback: 'pt-BR' | 'en' = 'pt-BR') {
+function normalizeProjectLanguage(value: unknown, fallback: 'pt-BR' | 'en' = 'en') {
   return sharedNormalizeLanguage(value, fallback);
 }
 
@@ -266,7 +294,7 @@ function cleanFrontmatterRaw(raw: unknown) {
 }
 
 function frontmatterFieldsForPath(rel: string, incoming: Record<string, any>, existing: Record<string, any>, title?: string) {
-  if (rel.startsWith('conteudos/')) {
+  if (rel.startsWith('conteudos/') || rel.startsWith('content/')) {
     return {
       ...existing,
       ...incoming,
@@ -529,6 +557,7 @@ function renderBrainTemplate(rel: string, text: string, projectName: string) {
   const today = todayIso();
   let out = text.replaceAll('<YYYY-MM-DD>', today);
   if (rel === 'brain/index.md') {
+    out = out.replaceAll('<Project name>', projectName || 'Agentic SEO');
     out = out.replaceAll('<Nome do projeto>', projectName || 'Agentic SEO');
   }
   return out;
@@ -538,9 +567,10 @@ export function bootstrapBrainFiles({ projectRoot }: { projectRoot?: string }) {
   const root = normalizeProjectRoot(projectRoot);
   if (canonicalBrainExists(root)) return { ok: false, reason: 'brain-already-exists' };
   const projectName = projectDisplayName(root);
+  const language = normalizeProjectLanguage(readProjectConfig(root)?.language);
   const created: string[] = [];
-  for (const rel of BRAIN_PAGE_ORDER) {
-    const source = join(/*turbopackIgnore: true*/ BRAIN_TEMPLATE_DIR, basename(rel));
+  for (const rel of BRAIN_PAGE_SCAFFOLD_ORDER) {
+    const source = brainTopLevelTemplatePath(ROOT, basename(rel), language);
     if (!existsSync(source)) return { ok: false, reason: 'template-not-found', path: rel };
     const validation = validateProjectFileRel(rel, { write: rel !== 'brain/log.md' });
     if (!validation.ok && rel !== 'brain/log.md') return { ok: false, reason: validation.reason, path: rel };
@@ -552,9 +582,9 @@ export function bootstrapBrainFiles({ projectRoot }: { projectRoot?: string }) {
   appendLogEntry(join(root, 'brain', 'log.md'), {
     date: todayIso(),
     tipo: 'decisao',
-    titulo: 'Brain criado no Companion',
+    titulo: 'Brain created via Companion',
     escopo: created.join(', '),
-    decisao: 'Arquivos canônicos do Brain criados no Companion Web.',
+    decisao: 'Canonical Brain files created via the Web Companion.',
     evidencia: created.join(', '),
     aprovador: 'agent',
   });

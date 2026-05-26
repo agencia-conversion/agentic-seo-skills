@@ -6,31 +6,31 @@ updated: "<YYYY-MM-DD>"
 # Log
 
 <!--
-Append-only. Nunca reescreva entradas anteriores; corrija com nova entrada
-`tipo: errata` referenciando a entrada anterior por data e título.
+Append-only. Never rewrite previous entries; correct with a new entry
+`type: erratum` referencing the previous entry by date and title.
 
-Formato de cada entrada:
+Entry format (contract_version 2; see docs/specs/en-rename-map.md):
 
-## YYYY-MM-DD - <título curto>
+## YYYY-MM-DD - <short title>
 
-- tipo: aprovacao | decisao | errata | lint | ingestao | publicacao | prova
-- escopo: <arquivo(s) afetado(s) | área editorial | cluster | fonte>
-- decisao: <o que mudou ou foi decidido>
-- evidencia: <wikilinks, ../sources/..., urls>
-- aprovador: <nome humano | agent>
-- aprovado_em: <YYYY-MM-DD opcional para entradas legadas de aprovação>
-- notas: <opcional>
+- type: approval | decision | erratum | lint | ingestion | publication | proof
+- scope: <affected file(s) | editorial area | cluster | source>
+- decision: <what changed or was decided>
+- evidence: <wikilinks, ../sources/..., urls>
+- approver: <human name | agent>
+- approved_at: <YYYY-MM-DD optional, for legacy approval entries>
+- notes: <optional>
 
-Tipos:
-- aprovacao: valor legado para aprovações antigas; novas mudanças autorais
-  devem usar `tipo: decisao` com evidência e ator registrados.
-- decisao: mudança operacional registrada (escolha de stack, configuração,
-  processo, mudança de rota não-estratégica).
-- errata: correção de uma entrada anterior. Referencia entrada original.
-- lint: resultado de verificação automática (links quebrados, contradições,
-  fontes ausentes).
-- ingestao: catalogação de fonte nova em ../sources/.
-- publicacao: registro de conteúdo publicado em ../conteudos/.
-- prova: evidência de E-E-A-T (caso, credencial, citação, dado) que reforça
-  uma área editorial ou claim específico.
+Types:
+- approval: legacy value for old approvals; new authorial changes
+  should use `type: decision` with recorded evidence and actor.
+- decision: operational change recorded (stack choice, configuration,
+  process, non-strategic route change).
+- erratum: correction of a previous entry. References the original entry.
+- lint: result of automatic check (broken links, contradictions, missing
+  sources).
+- ingestion: cataloging of a new source in ../sources/.
+- publication: registration of content published in ../content/.
+- proof: E-E-A-T evidence (case, credential, citation, data) that
+  reinforces an editorial area or specific claim.
 -->

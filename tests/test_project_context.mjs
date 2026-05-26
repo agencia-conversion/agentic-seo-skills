@@ -20,19 +20,20 @@ const config = JSON.parse(readFileSync(join(project, ".agentic-seo", "project.js
 assert.equal(config.country, "Portugal");
 assert.equal(config.market, "Portugal");
 assert.equal(config.language, "pt-PT");
-assert.equal(config.schema_version, "2.0.0");
+assert.equal(config.schema_version, "3.0.0");
 assert.equal(config.single_project_root, "project");
 
 const brainIndex = readFileSync(join(project, "brain", "index.md"), "utf8");
 assert.ok(brainIndex.includes('title: "Context test"'));
 
+// Filenames are EN-canonical; titles come from the pt-BR variant when language=pt-BR.
 const expectedBrainTitles = {
-  "identidade.md": "Identidade",
-  "voz.md": "Tom de Voz",
-  "tecnologia.md": "Tecnologia",
+  "identity.md": "Identidade",
+  "voice.md": "Tom de Voz",
+  "technology.md": "Tecnologia",
   "editorial.md": "Editorial",
-  "topic-clusters.md": "Topic clusters",
-  "revisao.md": "Revisão",
+  "topic-clusters.md": "Topic Clusters",
+  "review.md": "Revisão",
   "log.md": "Log",
 };
 for (const [page, title] of Object.entries(expectedBrainTitles)) {
@@ -41,16 +42,16 @@ for (const [page, title] of Object.entries(expectedBrainTitles)) {
   assert.doesNotMatch(text, /title:\s*".+ — Context test"/, `brain/${page} should not include project suffix`);
 }
 
-for (const page of ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md", "topic-clusters.md", "revisao.md", "log.md"]) {
+for (const page of ["index.md", "identity.md", "voice.md", "technology.md", "editorial.md", "topic-clusters.md", "review.md", "log.md"]) {
   assert.ok(existsSync(join(project, "brain", page)), `missing brain/${page}`);
 }
-for (const origem of ["blog", "linkedin", "podcast", "outros"]) {
-  assert.ok(existsSync(join(project, "conteudos", origem, "_template.md")), `missing conteudos/${origem}/_template.md`);
+for (const origem of ["blog", "linkedin", "podcast", "other"]) {
+  assert.ok(existsSync(join(project, "content", origem, "_template.md")), `missing content/${origem}/_template.md`);
 }
 
 const log = readFileSync(join(project, "brain", "log.md"), "utf8");
 assert.match(log, /## \d{4}-\d{2}-\d{2} - Projeto criado/);
-assert.match(log, /tipo: decisao/);
+assert.match(log, /type: decision/);
 assert.match(log, /Portugal/);
 
 rmSync(tmp, { recursive: true, force: true });

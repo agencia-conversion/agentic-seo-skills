@@ -70,17 +70,17 @@ Every Agentic SEO project keeps authorial knowledge in one place: `project/brain
 project/
   brain/
     index.md              # mapa + dashboard curto
-    identidade.md         # brandbook narrativo (aposto, parágrafo, frase-marca, público, canais)
-    voz.md                # princípios de tom e registro
-    tecnologia.md         # contexto técnico observado + SEO técnico
+    identity.md         # brandbook narrativo (aposto, parágrafo, frase-marca, público, canais)
+    voice.md                # princípios de tom e registro
+    technology.md         # contexto técnico observado + SEO técnico
     editorial.md          # 5 áreas editoriais macro (camada estratégica)
     topic-clusters.md     # índice curto dos clusters ativos + dashboard
     topic-clusters/       # subpáginas por cluster (uma por cluster ativo)
       <slug>.md           # prosa autoral + tabela de conteúdos projetada
-    revisao.md            # sede canônica das regras de revisão (universal + projeto)
+    review.md            # sede canônica das regras de revisão (universal + projeto)
     log.md                # append-only, autoral
   sources/                # raw, imutável
-  conteudos/              # produto público (flat, sem subpastas por slug)
+  content/              # produto público (flat, sem subpastas por slug)
     blog/<slug>.md
     linkedin/<slug>.md
     podcast/<slug>.md
@@ -95,13 +95,13 @@ project/
   workbench/              # rascunhos antes de virar entrada no brain
 ```
 
-Topic Clusters são a espinha dorsal do projeto. Conteúdos vivem em relação N:N com clusters (um conteúdo pode pertencer a múltiplos clusters). Cada cluster ativo tem uma subpágina dedicada em `brain/topic-clusters/<slug>.md` que projeta a tabela de conteúdos do `cluster.yaml`. Pastas por slug em `conteudos/` (ex: `conteudos/blog/<slug>/`) não existem — o arquivo `.md` é o artefato.
+Topic Clusters são a espinha dorsal do projeto. Conteúdos vivem em relação N:N com clusters (um conteúdo pode pertencer a múltiplos clusters). Cada cluster ativo tem uma subpágina dedicada em `brain/topic-clusters/<slug>.md` que projeta a tabela de conteúdos do `cluster.yaml`. Pastas por slug em `content/` (ex: `content/blog/<slug>/`) não existem — o arquivo `.md` é o artefato.
 
 ### Frontmatter
 
-Brain pages: `title`, `updated`. No `status`, `judgment_level`, `pillar`, `owner`, `approved_by`, `approved_at`. Confiança vem do log. Vale para `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `topic-clusters/<slug>`, `revisao`.
+Brain pages: `title`, `updated`. No `status`, `judgment_level`, `pillar`, `owner`, `approved_by`, `approved_at`. Confiança vem do log. Vale para `index`, `identity`, `voice`, `technology`, `editorial`, `topic-clusters`, `topic-clusters/<slug>`, `review`.
 
-Public content (`conteudos/<origem>/<slug>.md`): `title`, `slug`, `published_at`, `source_url`, `origem` (`blog | linkedin | podcast | outros`), `clusters` (array de slugs que existem como pasta em `project/clusters/<slug>/`), `papel` (opcional; objeto `{cluster-slug: pilar | satelite}` quando o conteúdo desempenha papel específico em um cluster).
+Public content (`content/<origem>/<slug>.md`): `title`, `slug`, `published_at`, `source_url`, `origem` (`blog | linkedin | podcast | outros`), `clusters` (array de slugs que existem como pasta em `project/clusters/<slug>/`), `papel` (opcional; objeto `{cluster-slug: pilar | satelite}` quando o conteúdo desempenha papel específico em um cluster).
 
 O campo `area:` (singular) é legado; após a migração de clusters, o vínculo conteúdo→cluster é a única fonte de afiliação editorial. Cluster declara `area:` no `cluster.yaml` apontando para uma seção de `brain/editorial.md` (1 área : N clusters).
 
@@ -109,16 +109,16 @@ O campo `area:` (singular) é legado; após a migração de clusters, o vínculo
 
 Brain pages, conteúdos e reports são lidos por outros agentes em outras sessões. Cada arquivo precisa ser auto-suficiente.
 
-- Nunca deixar `gap`, `<preencher>`, `TODO`, "a confirmar", "a definir", `[?]`, células vazias ou cabeçalhos sem corpo em arquivos do brain, `conteudos/` ou `relatorios/`.
+- Nunca deixar `gap`, `<preencher>`, `TODO`, "a confirmar", "a definir", `[?]`, células vazias ou cabeçalhos sem corpo em arquivos do brain, `content/` ou `relatorios/`.
 - Se a evidência falta: buscar mais (scrape, provider call, fonte existente), reescrever a seção sem o item, ou mover o pendente para `brain/log.md` como `tipo: decisao` com critério de reintroduzir. O arquivo autoral fica limpo.
 - Estruturas obrigatórias podem omitir subseções inteiras quando não há base. O que não pode é cabeçalho com `gap` no corpo.
 
 ### Brain-first protocol
 
-- Mudança em arquivo autoral do brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `topic-clusters/<slug>`, `revisao`, `index`) pode ser aplicada diretamente quando a evidência e a decisão forem registradas em `brain/log.md` como `tipo: decisao` com `aprovador: agent` ou nome humano.
+- Mudança em arquivo autoral do brain (`identity`, `voice`, `technology`, `editorial`, `topic-clusters`, `topic-clusters/<slug>`, `review`, `index`) pode ser aplicada diretamente quando a evidência e a decisão forem registradas em `brain/log.md` como `tipo: decisao` com `aprovador: agent` ou nome humano.
 - Criação de subpágina nova em `brain/topic-clusters/<slug>.md` (cluster novo) exige aprovação humana via handoff Companion `approve-cluster` — agente nunca cria cluster novo no brain de forma autônoma. Atualização de cluster existente (mudar tabela, atualizar resumo, sincronizar conteúdos) o agente aplica brain-first com `tipo: decisao` no log.
 - Pedido explícito do usuário é soberano: usuário pode delegar criação de cluster ao agente; nesse caso o agente promove e registra `aprovador: <humano>` com o nome do usuário citado.
-- Para `revisao.md`: estilística menor (novo termo IA-slop, novo verbo Conversion-explainer, typo recorrente) o agente aplica direto com `aprovador: agent`. Mudança de checklist (princípio novo, entrada em "Erros comuns observados", item que altera comportamento do reviewer) vai a `log.md` como `tipo: lint` e aguarda decisão humana antes de tocar a página.
+- Para `review.md`: estilística menor (novo termo IA-slop, novo verbo Conversion-explainer, typo recorrente) o agente aplica direto com `aprovador: agent`. Mudança de checklist (princípio novo, entrada em "Erros comuns observados", item que altera comportamento do reviewer) vai a `log.md` como `tipo: lint` e aguarda decisão humana antes de tocar a página.
 - Mudança operacional (catalogar fonte, registrar lint, registrar publicação, anotar errata, sincronizar cluster↔conteúdo) vai direto pro `log.md` com `aprovador: agent` ou nome humano.
 - O log é append-only. Erratas são novas entradas referenciando a entrada anterior, não reescrita.
 
@@ -128,15 +128,15 @@ Brain pages, conteúdos e reports são lidos por outros agentes em outras sessõ
 
 ### Wikilinks
 
-Use Obsidian wikilinks `[[...]]` apenas para arquivos reais dentro de `brain/`. Use Markdown links normais para `../sources/`, `../conteudos/`, e URLs externas.
+Use Obsidian wikilinks `[[...]]` apenas para arquivos reais dentro de `brain/`. Use Markdown links normais para `../sources/`, `../content/`, e URLs externas.
 
 ### Regra editorial
 
-A sede canônica das regras de revisão é `brain/revisao.md`. A página carrega a regra editorial universal (lead na primeira frase, atribuição visível, sem opinião dissimulada, anti-IA-slop, anti-Conversion-explainer, preservação de acentos pt-BR) e particularidades do projeto que crescem com o aprendizado das revisões. Tom de voz e registro permanecem em `brain/voz.md`. A skill `brain-keeper` lê `brain/revisao.md` antes de revisar prosa e referencia a página em vez de duplicá-la.
+A sede canônica das regras de revisão é `brain/review.md`. A página carrega a regra editorial universal (lead na primeira frase, atribuição visível, sem opinião dissimulada, anti-IA-slop, anti-Conversion-explainer, preservação de acentos pt-BR) e particularidades do projeto que crescem com o aprendizado das revisões. Tom de voz e registro permanecem em `brain/voice.md`. A skill `brain-keeper` lê `brain/review.md` antes de revisar prosa e referencia a página em vez de duplicá-la.
 
 ### Public content
 
-Public content lives in `project/conteudos/<origem>/<slug>.md` as flat Markdown files — não há subpastas por slug. Drafts and reviews stay in `project/workbench/content/<slug>/` and `project/artifacts/contents/<slug>/` (workbench e artifacts permanecem por slug para preservar evidências do processo). The `clusters:` array in the frontmatter must list cluster slugs that exist as folders in `project/clusters/<slug>/`; conteúdo sem cluster é bloqueado em promote.
+Public content lives in `project/content/<origem>/<slug>.md` as flat Markdown files — não há subpastas por slug. Drafts and reviews stay in `project/workbench/content/<slug>/` and `project/artifacts/contents/<slug>/` (workbench e artifacts permanecem por slug para preservar evidências do processo). The `clusters:` array in the frontmatter must list cluster slugs that exist as folders in `project/clusters/<slug>/`; conteúdo sem cluster é bloqueado em promote.
 
 Cada conteúdo aparece na tabela do `brain/topic-clusters/<slug>.md` de cada cluster que declara — relação N:N denormalizada. O contrato completo está em `docs/specs/topic-clusters-contract.md` (contract_version 1, plugin 0.2). Frontmatter exige `contract_version: 1` + `clusters: [<slug>, ...]` (mínimo 1) + opcional `papel: { <cluster-slug>: pilar | satelite }`. `cluster.yaml` perde `satelites[]` para publicados (afiliação vive no frontmatter); usa `pilar`, `planned_satellites[]`, `satelite_overrides`. Tabelas materializadas no brain vivem entre sentinels `<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->` e `<!-- END cluster-content-table:auto -->` (subpáginas) e `<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->` / `<!-- END cluster-index-table:auto -->` (índice). Sincronização via `node scripts/cluster-sync.mjs [--cluster=<slug>] [--check]`. `cluster.yaml.pilar.slug` vence sobre `papel:` do frontmatter; conflito gera lint `cluster.pilar.divergence`. Pilar único por conteúdo (`cluster.unique-pilar` block). O Web Companion dispara `cluster-sync` server-side em `POST /api/project/file`.
 
@@ -152,7 +152,7 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 |---|---|---|
 | Content (workbench) | `project/workbench/content/<slug>/` | `research.yaml`, `competitor-evidence.yaml`, `context-evidence.yaml`, `market-consensus.md`, `brand-pov.md`, `outline.md`, `brief.yaml`, `brief.md` |
 | Content (artifacts) | `project/artifacts/contents/<slug>/` | `draft.md`, `checks.yaml` |
-| Content (published) | `project/conteudos/<origem>/<slug>.md` | arquivo único; nunca subpasta por slug |
+| Content (published) | `project/content/<origem>/<slug>.md` | arquivo único; nunca subpasta por slug |
 | Keywords | `project/keywords/<seed-slug>/` | `sources/`, `report.yaml` |
 | Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml` |
 | Topic cluster | `project/clusters/<slug>/` | `cluster.yaml` (ativo) ou `draft.yaml` (rascunho), `planejamento.md`, `sources/` |
@@ -160,11 +160,11 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 | Companion reports | `project/analyses/<module>/<run-slug>/` | `report.md` |
 | Brain (authorial) | `project/brain/` | direct edits allowed when recorded as `tipo: decisao` in `brain/log.md`; criação de subpágina nova em `brain/topic-clusters/<slug>/` exige handoff humano |
 
-A pasta legada `project/contents/<slug>/` foi removida do contrato. Toda fase de produção de conteúdo usa as três pastas acima (workbench → artifacts → conteudos).
+A pasta legada `project/contents/<slug>/` foi removida do contrato. Toda fase de produção de conteúdo usa as três pastas acima (workbench → artifacts → content).
 
 Topic cluster substitui o JSON antigo agrupando sub-clusters por seed. Cada cluster é autônomo (pasta própria), com `cluster.yaml` como fonte de verdade do dado operacional e `brain/topic-clusters/<slug>.md` como projeção autoral. Rascunho de cluster vive como `draft.yaml` na mesma pasta até promoção via handoff `approve-cluster`.
 
-Skills read the brain for context (identidade, tom de voz, tecnologia, editorial, topic-clusters, revisao) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`. `content-seo` specifically loads `brain/revisao.md` during the `check` phase as the canonical seat of editorial review rules, and reads `brain/topic-clusters/<slug>.md` for each cluster declared in `clusters:[]` to extract tese, satélites adjacentes (para links internos) e tom editorial herdado.
+Skills read the brain for context (identity, voice, technology, editorial, topic-clusters, review) and may write brain changes when the decision, evidence, and limitations are recorded in `brain/log.md`. `content-seo` specifically loads `brain/review.md` during the `check` phase as the canonical seat of editorial review rules, and reads `brain/topic-clusters/<slug>.md` for each cluster declared in `clusters:[]` to extract tese, satélites adjacentes (para links internos) e tom editorial herdado.
 
 ### Brain subpage templates
 

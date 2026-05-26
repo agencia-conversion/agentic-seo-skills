@@ -1,0 +1,31 @@
+---
+title: "Planning — <Cluster Name>"
+updated: "<YYYY-MM-DD>"
+---
+
+# <Cluster Name>
+
+Human-readable view of the cluster. Use short, clear prose, no AI-slop.
+
+## Thesis
+
+<2-3 lines explaining what the cluster defends and why it exists.>
+
+## Pillar
+
+- <pillar-slug> — <keyword> — <intent>.
+
+## Planned satellites
+
+| Slug | Role | Keyword | Intent | Volume | Note |
+| --- | --- | --- | --- | --- | --- |
+| <slug> | satellite | <keyword> | informational | — | Gap identified. |
+
+## Gaps and next actions
+
+- <Identified gap and corresponding action.>
+
+## Evidence
+
+- DataForSEO keyword suggestions: `clusters/<slug>/sources/<stamp>-keywords.json`
+- DataForSEO SERP: `clusters/<slug>/sources/<stamp>-serp.json`

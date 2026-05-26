@@ -28,7 +28,7 @@ Do not use this skill for ongoing SEO work after the project already has a defin
 
 ### 1. Detect Project State
 
-Check whether `project/` already exists and whether it contains `.agentic-seo/project.json`, `brain/`, `sources/`, `workbench/`, `artifacts/`, or `conteudos/`.
+Check whether `project/` already exists and whether it contains `.agentic-seo/project.json`, `brain/`, `sources/`, `workbench/`, `artifacts/`, or `content/`.
 
 If no project exists, the next meaningful step is `project-init`.
 
@@ -47,15 +47,15 @@ If the user is nontechnical, offer a local browser handoff for setup and decisio
 
 ### 3. Preserve Decision Boundaries
 
-First-run setup may create blank brain templates and operational log entries, but it must not treat authorial brain pages as evidence-backed. Changes are recorded through `tipo: decisao` entries in `project/brain/log.md`:
+First-run setup may create blank brain templates and operational log entries, but it must not treat authorial brain pages as evidence-backed. Changes are recorded through `type: decision` entries in `project/brain/log.md`:
 
 - `project/brain/index.md`
-- `project/brain/identidade.md`
-- `project/brain/voz.md`
-- `project/brain/tecnologia.md`
+- `project/brain/identity.md`
+- `project/brain/voice.md`
+- `project/brain/technology.md`
 - `project/brain/editorial.md`
 - `project/brain/topic-clusters.md`
-- `project/brain/revisao.md`
+- `project/brain/review.md`
 
 ### 4. Route The Next Action
 

@@ -21,8 +21,8 @@ function reportText(locale, pt, en) {
 
 function frontmatter(input) {
   const fields = {
-    title: input.title || "Relatório Agentic SEO",
-    slug: input.slug || "relatorio",
+    title: input.title || "Agentic SEO Report",
+    slug: input.slug || "report",
     report_type: input.reportType || input.report_type || "unknown",
     generated_at: input.generatedAt || input.generated_at || new Date().toISOString(),
     status: input.status || "ready",

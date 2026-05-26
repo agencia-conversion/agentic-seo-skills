@@ -41,6 +41,7 @@ function walk(dir, out = []) {
 function markdownProse(text) {
   return text
     .replace(/^---[\s\S]*?\n---\n/, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/```[\s\S]*?```/g, "")
     .replace(/`[^`]*`/g, "")
     .replace(/\[\[[^\]]+\]\]/g, "")
@@ -68,7 +69,7 @@ try {
   run("content-seo", "--phase", "approve", "--topic", "O que é SEO agêntico", "--approved-by", "Teste", "--approval-notes", "Tom de voz em draft reconhecido.");
   run("technical-seo", "--html-file", join(root, "tests", "fixtures", "technical-seo-valid.html"), "--page-type", "blog-post");
 
-  const markdown = [...walk(join(project, "brain")), ...walk(join(project, "conteudos")), ...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]
+  const markdown = [...walk(join(project, "brain")), ...walk(join(project, "content")), ...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]
     .filter((file) => file.endsWith(".md") && !file.endsWith("log.md"))
     .map((file) => markdownProse(readFileSync(file, "utf8")))
     .join("\n");

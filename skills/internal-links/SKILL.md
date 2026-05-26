@@ -86,7 +86,7 @@ Use LLM judgment only for semantic fit, reader value, anchor naturalness, best p
 
 **Weak:** "Return a list of source and target pairs with no context or validation."
 
-The default status for new recommendations is `needs_review`. Apply nothing unless apply mode is requested and the recommendation IDs or apply policy are clear. After any review or apply action, append an entry to `project/brain/log.md` with `tipo: decisao`.
+The default status for new recommendations is `needs_review`. Apply nothing unless apply mode is requested and the recommendation IDs or apply policy are clear. After any review or apply action, append an entry to `project/brain/log.md` with `type: decision`.
 
 ## Output Format
 

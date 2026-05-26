@@ -1,0 +1,11 @@
+{
+  "schema_version": "3.0.0",
+  "name": "<Project name>",
+  "site_url": "<https://example.com>",
+  "created_at": "<YYYY-MM-DDTHH:MM:SSZ>",
+  "updated_at": "<YYYY-MM-DDTHH:MM:SSZ>",
+  "language": "en",
+  "market": "<Country or region>",
+  "country": "<Country>",
+  "single_project_root": "project"
+}
