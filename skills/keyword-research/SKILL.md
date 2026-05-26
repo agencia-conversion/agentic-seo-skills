@@ -141,7 +141,7 @@ If blocked because DataForSEO is unavailable and no substitute is recorded, retu
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analises/keyword-research/report-skeleton.md`. The module-specific source artifact is the normalized keyword YAML/JSON under `keywords/`, `sources/keyword-research/`, or `workbench/`; the Companion page is `project/analises/keyword-research/<seed-or-topic-slug>/report.md`. Write an executive reading first, keep metrics and limitations in human-readable tables, translate labels/status/nulls, use friendly metric names, and never paste raw provider JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/keyword-research/report-skeleton.md`. The module-specific source artifact is the normalized keyword YAML/JSON under `keywords/`, `sources/keyword-research/`, or `workbench/`; the Companion page is `project/analyses/keyword-research/<seed-or-topic-slug>/report.md`. Write an executive reading first, keep metrics and limitations in human-readable tables, translate labels/status/nulls, use friendly metric names, and never paste raw provider JSON or object arrays into the visual report body.
 
 ## Examples
 

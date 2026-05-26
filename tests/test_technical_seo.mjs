@@ -27,7 +27,7 @@ assert.ok(home.score >= 90);
 assert.equal(home.browser_prompt.recommended, true);
 assert.equal(home.browser_prompt.message, "Posso abrir o Web Companion para você ver a análise?");
 assert.ok(home.report_md.endsWith("/report.md"));
-assert.ok(home.report_md.startsWith("analises/technical-seo/"));
+assert.ok(home.report_md.startsWith("analyses/technical-seo/"));
 assert.ok(existsSync(resolve(tmp, "project", home.report_md)));
 const totalWeight = home.checks.reduce((sum, check) => sum + check.weight, 0);
 const pointsAwarded = home.checks.reduce((sum, check) => sum + check.points_awarded, 0);

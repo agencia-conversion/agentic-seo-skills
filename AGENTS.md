@@ -26,6 +26,9 @@ This repository root is the plugin root.
 - Tools: `tools/` for deterministic provider CLIs.
 - Templates: `templates/`
 - Utility scripts: `scripts/`
+- Versioned reference data: `shared/ctr-curves/` for CTR distributions used by Share of Voice / Share of Clicks modeling. One file per published edition, validated by `shared/ctr-curves/loader.mjs`. See `shared/ctr-curves/_schema.md`.
+- Locale utilities: `shared/locale.mjs` (+ `shared/locale.d.ts`) exposes `getProjectLanguage`, `normalizeLanguage`, `formatNumber`, `formatPercent`, `canonicalKeyword`, `asciiFold`, `slugify`. Skills format numbers and dedupe near-duplicate keywords through this module; the Companion mirrors `formatNumber` / `formatPercent` via `useI18n()` for render-time formatting.
+- Competitive analysis orchestrator: `scripts/competitive-analysis.mjs`. Invoked via `node dist/agentic-seo.js competitive-analysis` (handler `commandCompetitiveAnalysis` in `src/commands/runtime.ts`). Composes M1-M7 from DataForSEO Labs + Backlinks, sitemaps, and homepage HTML; writes `audits/competitive-<run-slug>/report.yaml` + `analyses/competitive-analysis/<run-slug>/report.md` and appends `tipo: decisao` to `brain/log.md`.
 - Runtime project: `project/` and ignored by git except `project/.gitkeep`
 - Local persistence for ignored runtime projects is handled by `scripts/project-sync.mjs`; see `docs/project-persistence.md`.
 
@@ -139,7 +142,7 @@ Cada conteúdo aparece na tabela do `brain/topic-clusters/<slug>.md` de cada clu
 
 No Companion Web, a sidebar não lista conteúdos individuais. A seção `Conteúdos` abre uma página-tabela única com todos os conteúdos publicados, com filtros multi-select por Topic Cluster, origem (blog/linkedin/podcast/outros), status e busca textual. Clicar numa linha abre o conteúdo individual (rota preservada). Topic Clusters aparecem na sidebar dentro de `Brain → Topic Clusters → <Nome>` (índice + uma subpágina por cluster ativo).
 
-Canonical report pages live in `project/analises/<module>/<run-slug>/report.md` and are displayed by the Web Companion under the virtual `Análises` section. The shared `page-report` skill owns this contract. Report pages are editable presentation Markdown with structured fences (`agentic-kpis`, `agentic-chart`, `agentic-table`); new fence payloads use YAML with `version: 1`, while JSON fence bodies are legacy compatibility only. Creation and deletion of reports stay blocked in the Companion v1. Reports must be human-first, use the project language from `project/.agentic-seo/project.json.language` (`pt-BR` and `en` fully supported in v1), keep raw evidence separate in `source_artifact` plus `sources/`, `audits/`, `workbench/`, or module-specific normalized files, and never paste raw JSON/object dumps into the visual body.
+Canonical report pages live in `project/analyses/<module>/<run-slug>/report.md` and are displayed by the Web Companion under the virtual `Análises` section. The shared `page-report` skill owns this contract. Report pages are editable presentation Markdown with structured fences (`agentic-kpis`, `agentic-chart`, `agentic-table`); new fence payloads use YAML with `version: 1`, while JSON fence bodies are legacy compatibility only. Creation and deletion of reports stay blocked in the Companion v1. Reports must be human-first, use the project language from `project/.agentic-seo/project.json.language` (`pt-BR` and `en` fully supported in v1), keep raw evidence separate in `source_artifact` plus `sources/`, `audits/`, `workbench/`, or module-specific normalized files, and never paste raw JSON/object dumps into the visual body.
 
 ### Project Subfolders
 
@@ -154,7 +157,7 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 | Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml` |
 | Topic cluster | `project/clusters/<slug>/` | `cluster.yaml` (ativo) ou `draft.yaml` (rascunho), `planejamento.md`, `sources/` |
 | EEAT | `project/eeat/<entity-or-run-slug>/` | `sources/`, `report.md` |
-| Companion reports | `project/analises/<module>/<run-slug>/` | `report.md` |
+| Companion reports | `project/analyses/<module>/<run-slug>/` | `report.md` |
 | Brain (authorial) | `project/brain/` | direct edits allowed when recorded as `tipo: decisao` in `brain/log.md`; criação de subpágina nova em `brain/topic-clusters/<slug>/` exige handoff humano |
 
 A pasta legada `project/contents/<slug>/` foi removida do contrato. Toda fase de produção de conteúdo usa as três pastas acima (workbench → artifacts → conteudos).

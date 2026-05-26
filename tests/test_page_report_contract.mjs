@@ -39,7 +39,7 @@ function bypassArgs(reason) {
 
 function assertReport(result, moduleId) {
   assert.ok(result.report_md, `${moduleId} missing report_md`);
-  assert.ok(result.report_md.startsWith(join("analises", moduleId)), `${moduleId} report path mismatch`);
+  assert.ok(result.report_md.startsWith(join("analyses", moduleId)), `${moduleId} report path mismatch`);
   assert.equal(result.browser_prompt?.recommended, true);
   assert.equal(result.browser_prompt.message, "Posso abrir o Web Companion para você ver a análise?");
   assert.equal(existsSync(join(projectDir, result.report_md)), true, `${moduleId} report file missing`);
@@ -107,6 +107,11 @@ try {
   }
   const eeat = runNode(eeatEngine, ["consensus", "--run", init.run_id]);
   assertReport(eeat, "eeat");
+
+  const competitive = run(["competitive-analysis", "--target", "example.com", "--competitors", "competitor-a.com", "--offline"]);
+  assertReport(competitive, "competitive-analysis");
+  assert.ok(Array.isArray(competitive.modules_run) && competitive.modules_run.length > 0, "competitive-analysis must report modules_run");
+  assert.equal(competitive.log_appended, true, "competitive-analysis must append a brain log entry");
 
   const review = spawnSync("node", [resolve(root, "scripts", "review_reports.mjs"), projectDir], { cwd: root, encoding: "utf8" });
   assert.equal(review.status, 0, review.stderr || review.stdout);

@@ -40,7 +40,10 @@ const fs = await import('node:fs');
 function patchSharedImport(file) {
   fs.writeFileSync(
     file,
-    fs.readFileSync(file, 'utf8').replaceAll("from '../../../../shared/report-modules'", "from '../../shared/report-modules.js'")
+    fs
+      .readFileSync(file, 'utf8')
+      .replaceAll("from '../../../../shared/report-modules'", "from '../../shared/report-modules.js'")
+      .replaceAll("from '../../../../shared/locale.mjs'", "from '../../shared/locale.mjs'")
   );
 }
 patchSharedImport(mjsFile);

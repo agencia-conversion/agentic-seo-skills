@@ -47,7 +47,7 @@ mkdirSync(join(projectRoot, "conteudos", "blog"), { recursive: true });
 mkdirSync(join(projectRoot, "conteudos", "linkedin"), { recursive: true });
 mkdirSync(join(projectRoot, "clusters", "seo-agentico"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "drafts"), { recursive: true });
-mkdirSync(join(projectRoot, "analises", "technical-seo", "run-1"), { recursive: true });
+mkdirSync(join(projectRoot, "analyses", "technical-seo", "run-1"), { recursive: true });
 mkdirSync(join(projectRoot, ".agentic-seo"), { recursive: true });
 writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Projeto Teste" }), "utf8");
 
@@ -177,7 +177,7 @@ try {
   // Symlink creation can be unavailable in some restricted environments.
 }
 writeFileSync(
-  join(projectRoot, "analises", "technical-seo", "run-1", "report.md"),
+  join(projectRoot, "analyses", "technical-seo", "run-1", "report.md"),
   `---
 title: "Análise técnico"
 slug: "run-1"
@@ -201,9 +201,9 @@ assert.deepEqual(validateProjectFileRel("brain/../../AGENTS.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/voz.md").ok, true);
 assert.deepEqual(validateProjectFileRel("conteudos/blog/post-teste.md").ok, true);
 assert.deepEqual(validateProjectFileRel("workbench/drafts/ideia.md").ok, true);
-assert.deepEqual(validateProjectFileRel("analises/technical-seo/run-1/report.md").ok, true);
-assert.deepEqual(validateProjectFileRel("analises/technical-seo/run-1/report.md", { write: true }).ok, true);
-assert.deepEqual(validateProjectFileRel("analises/not-a-module/run-1/report.md").ok, false);
+assert.deepEqual(validateProjectFileRel("analyses/technical-seo/run-1/report.md").ok, true);
+assert.deepEqual(validateProjectFileRel("analyses/technical-seo/run-1/report.md", { write: true }).ok, true);
+assert.deepEqual(validateProjectFileRel("analyses/not-a-module/run-1/report.md").ok, false);
 assert.deepEqual(validateProjectFileRel("workbench/../brain/voz.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/log.md", { write: true }), { ok: false, reason: "read-only-log" });
 
@@ -356,14 +356,14 @@ assert.equal(log.ok, true);
 assert.ok(log.readOnly);
 assert.ok(log.entries.length >= 2);
 
-const reportFile = readProjectFile({ projectRoot, fileRel: "analises/technical-seo/run-1/report.md" });
+const reportFile = readProjectFile({ projectRoot, fileRel: "analyses/technical-seo/run-1/report.md" });
 assert.equal(reportFile.ok, true);
 assert.equal(reportFile.readOnly, false);
 assert.doesNotMatch(reportFile.body, /^# Análise técnico/m);
 assert.match(reportFile.body, /Conteúdo do análise/);
 const reportSave = saveProjectFile({
   projectRoot,
-  fileRel: "analises/technical-seo/run-1/report.md",
+  fileRel: "analyses/technical-seo/run-1/report.md",
   expectedHash: reportFile.hash,
   title: "Análise técnico editado",
   frontmatter: { ...reportFile.frontmatter, title: "Análise técnico editado" },
@@ -371,13 +371,13 @@ const reportSave = saveProjectFile({
 });
 assert.equal(reportSave.ok, true);
 assert.equal(reportSave.logAppended, true);
-const editedReport = readFileSync(join(projectRoot, "analises", "technical-seo", "run-1", "report.md"), "utf8");
+const editedReport = readFileSync(join(projectRoot, "analyses", "technical-seo", "run-1", "report.md"), "utf8");
 assert.match(editedReport, /title: "Análise técnico editado"/);
 assert.match(editedReport, /edited_at: "\d{4}-\d{2}-\d{2}T/);
 assert.match(readFileSync(join(brain, "log.md"), "utf8"), /Análise editada no Companion/);
 const reportDelete = deleteProjectFile({
   projectRoot,
-  fileRel: "analises/technical-seo/run-1/report.md",
+  fileRel: "analyses/technical-seo/run-1/report.md",
   expectedHash: reportSave.hash,
 });
 assert.deepEqual({ ok: reportDelete.ok, reason: reportDelete.reason }, { ok: false, reason: "report-delete-not-allowed" });

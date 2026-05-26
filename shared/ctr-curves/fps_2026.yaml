@@ -1,0 +1,56 @@
+id: fps_2026
+name: FirstPageSage 2026 CTR Report (clean SERP)
+type: absolute
+source:
+  publisher: FirstPageSage
+  url: https://firstpagesage.com/reports/google-click-through-rates-ctrs-by-ranking-position/
+  published_at: 2025-05-28
+  license: free
+methodology:
+  summary: Meta-analysis aggregating Backlinko, Sistrix, Wordstream, BrightLocal and FirstPageSage internal data into a single SERP-clean curve.
+  sample_size: null
+  coverage:
+    locale: ""
+    device: mixed
+    intent: mixed
+    aio_aware: false
+captured_at: 2026-05-25
+positions:
+  - position: 1
+    ctr_pct: 39.8
+    note: null
+  - position: 2
+    ctr_pct: 18.7
+    note: null
+  - position: 3
+    ctr_pct: 10.2
+    note: null
+  - position: 4
+    ctr_pct: 7.2
+    note: null
+  - position: 5
+    ctr_pct: 5.1
+    note: null
+  - position: 6
+    ctr_pct: 4.4
+    note: null
+  - position: 7
+    ctr_pct: 3.0
+    note: null
+  - position: 8
+    ctr_pct: 2.1
+    note: null
+  - position: 9
+    ctr_pct: 1.9
+    note: null
+  - position: 10
+    ctr_pct: 1.6
+    note: null
+caveats:
+  - Clean SERP curve. SERPs with AI Overview, Featured Snippet or Local Pack diverge sharply; apply a delta curve when those features are present.
+  - Meta-analysis without disclosed sample size; treat top-of-curve values (pos 1 = 39.8%) as optimistic.
+  - Aggregated across intent and device; consider intent-specific overrides for branded vs unbranded.
+provenance:
+  added_by: agent
+  evidence_refs:
+    - https://firstpagesage.com/reports/google-click-through-rates-ctrs-by-ranking-position/

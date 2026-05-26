@@ -1,0 +1,57 @@
+id: awr_2026_q2
+name: Advanced Web Ranking — Google Organic CTR Study (placeholder)
+type: absolute
+source:
+  publisher: Advanced Web Ranking
+  url: https://www.advancedwebranking.com/ctrstudy/
+  published_at: 2026-04-01
+  license: api-only
+methodology:
+  summary: Aggregated GSC data across thousands of sites and millions of keywords, refreshed monthly with quarterly snapshots; values are not redistributable as a static table.
+  sample_size: null
+  coverage:
+    locale: ""
+    device: mixed
+    intent: mixed
+    aio_aware: false
+captured_at: null
+positions:
+  - position: 1
+    ctr_pct: null
+    note: "Populate from AWR API or paid widget on first run; this file is a placeholder so the loader knows AWR is the preferred primary."
+  - position: 2
+    ctr_pct: null
+    note: null
+  - position: 3
+    ctr_pct: null
+    note: null
+  - position: 4
+    ctr_pct: null
+    note: null
+  - position: 5
+    ctr_pct: null
+    note: null
+  - position: 6
+    ctr_pct: null
+    note: null
+  - position: 7
+    ctr_pct: null
+    note: null
+  - position: 8
+    ctr_pct: null
+    note: null
+  - position: 9
+    ctr_pct: null
+    note: null
+  - position: 10
+    ctr_pct: null
+    note: null
+caveats:
+  - AWR publishes the curve as an interactive widget and API; values are not redistributable in a static repository.
+  - To activate, copy this file to `awr_2026_q2.yaml` and fill positions from the AWR API output, then add a `tipo: decisao` entry in `brain/log.md`.
+  - Quarterly cadence: replace with `awr_<year>_q<n>.yaml` per quarter; never edit a previous edition in place.
+provenance:
+  added_by: agent
+  evidence_refs:
+    - https://www.advancedwebranking.com/ctrstudy/
+    - https://www.advancedwebranking.com/blog/ctr-google-2025-q4

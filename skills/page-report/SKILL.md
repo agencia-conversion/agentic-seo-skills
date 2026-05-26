@@ -11,13 +11,13 @@ Use this skill whenever an Agentic SEO workflow generates a report page for the 
 
 ## When To Use
 
-Use `page-report` from report-producing skills and runtime code when creating or reviewing `report.md` for Technical SEO, Internal Links, SEO Analysis, Keyword Research, SERP Extract, Backlink Analysis, Topic Cluster, or E-E-A-T.
+Use `page-report` from report-producing skills and runtime code when creating or reviewing `report.md` for Technical SEO, Internal Links, SEO Analysis, Keyword Research, SERP Extract, Backlink Analysis, Topic Cluster, E-E-A-T, or Competitive Analysis.
 
 Do not use this skill for public content drafts, approval handoffs, inline chat answers, raw provider captures, or authorial Brain updates that are not report pages.
 
 ## Critical Points
 
-- The canonical report path is `project/analises/<module>/<run-slug>/report.md`.
+- The canonical report path is `project/analyses/<module>/<run-slug>/report.md`.
 - The report is the editable human presentation layer. Raw evidence, normalized YAML/JSON, logs, and operational artifacts stay in `sources/`, `audits/`, `keywords/`, `clusters/`, `eeat/`, or `workbench/`.
 - Frontmatter must include `title`, `slug`, `report_type`, `generated_at`, `status`, `source_artifact`, and `summary`; include `score` only when the module has a real score.
 - Do not write `# <title>` in the Markdown body. The Companion renders the title from frontmatter.
@@ -25,9 +25,10 @@ Do not use this skill for public content drafts, approval handoffs, inline chat 
 - New visual fences must be YAML with `version: 1`: `agentic-kpis`, `agentic-chart`, and `agentic-table`. JSON fences are legacy read compatibility only.
 - Tables must use stable lower-snake ASCII `key` values. User-facing `label` values may be translated or edited without changing keys.
 - Calculation tables must mark columns with `role: weight`, `role: points`, and `role: loss` so score recalculation survives label edits.
-- Each report-producing module has `skills/<module>/contract.yaml` and `templates/analises/<module>/report-skeleton.md`; keep required H2 sections and table keys from the skeleton.
+- Each report-producing module has `skills/<module>/contract.yaml` and `templates/analyses/<module>/report-skeleton.md`; keep required H2 sections and table keys from the skeleton.
 - Before declaring a manual report done, run `npm run validate:reports -- --module=<module> --slug=<run-slug>` or use `scripts/lib/report-writer.mjs`, which refuses invalid reports before writing.
 - Never paste raw provider JSON, object arrays, `[object Object]`, internal IDs, or snake_case evidence into the visual body. Convert evidence into natural language and readable tables.
+- Format numbers per the project language. The canonical source is `shared/locale.mjs` (`getProjectLanguage`, `formatNumber`, `formatPercent`, `canonicalKeyword`). Skills either ship locale-formatted strings in `agentic-table`/`agentic-kpis` cells, or leave numbers raw for the Companion (`useI18n().formatNumber` / `formatPercent`) to format on render. Percent-bearing columns use the `_pct` key suffix on the 0..100 scale.
 - Always return `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`.
 - Register the generated report in `project/brain/log.md` as `tipo: decisao` unless a more specific log type is required.
 
@@ -35,7 +36,7 @@ Do not use this skill for public content drafts, approval handoffs, inline chat 
 
 ### 1. Build The Source Artifact
 
-Write the module's authoritative machine-readable artifact first. It may be YAML or JSON, but it must remain outside `project/analises/` and be referenced by frontmatter `source_artifact`.
+Write the module's authoritative machine-readable artifact first. It may be YAML or JSON, but it must remain outside `project/analyses/` and be referenced by frontmatter `source_artifact`.
 
 ### 2. Render The Human Page
 
@@ -75,7 +76,7 @@ items:
 ```
 ````
 
-Use only supported `report_type` values: `technical-seo`, `internal-links`, `seo-analysis`, `keyword-research`, `serp-extract`, `backlink-analysis`, `topic-cluster`, and `eeat`.
+Use only supported `report_type` values: `technical-seo`, `internal-links`, `seo-analysis`, `keyword-research`, `serp-extract`, `backlink-analysis`, `topic-cluster`, `eeat`, and `competitive-analysis`.
 
 ## Done Criteria
 

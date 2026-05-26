@@ -156,12 +156,10 @@ function readProjectConfig(root: string): Record<string, any> {
   }
 }
 
-function normalizeProjectLanguage(value: unknown, fallback = 'pt-BR') {
-  if (!value) return fallback;
-  const normalized = String(value).trim().toLowerCase();
-  if (normalized.startsWith('pt')) return 'pt-BR';
-  if (normalized.startsWith('en')) return 'en';
-  return 'en';
+import { normalizeLanguage as sharedNormalizeLanguage } from '../../../../shared/locale.mjs';
+
+function normalizeProjectLanguage(value: unknown, fallback: 'pt-BR' | 'en' = 'pt-BR') {
+  return sharedNormalizeLanguage(value, fallback);
 }
 
 function readCompanionUi(root: string) {

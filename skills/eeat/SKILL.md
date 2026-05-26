@@ -170,7 +170,7 @@ If the user asks to register proof in `project/brain/editorial.md` or `project/b
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analises/eeat/report-skeleton.md`. The module-specific source artifact is the consensus JSON under `workbench/eeat/<run-id>/report.json`; the Companion page is `project/analises/eeat/<run-id>/report.md`. Present the proof inventory, gaps, confidence, and do-not-claim items in human-readable prose and tables with friendly risk/check names; never paste raw evidence JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/eeat/report-skeleton.md`. The module-specific source artifact is the consensus JSON under `workbench/eeat/<run-id>/report.json`; the Companion page is `project/analyses/eeat/<run-id>/report.md`. Present the proof inventory, gaps, confidence, and do-not-claim items in human-readable prose and tables with friendly risk/check names; never paste raw evidence JSON or object arrays into the visual report body.
 
 ## Examples
 

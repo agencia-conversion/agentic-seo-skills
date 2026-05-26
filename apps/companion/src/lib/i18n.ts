@@ -1065,3 +1065,30 @@ export function formatDateForLocale(
 ): string {
   return new Intl.DateTimeFormat(locale, options).format(value);
 }
+
+export function formatNumberForLocale(
+  locale: SupportedLocale,
+  value: number | string | null | undefined,
+  options?: Intl.NumberFormatOptions
+): string {
+  if (value == null || value === '') return '—';
+  const num = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(num)) return String(value);
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 2, ...options }).format(num);
+}
+
+export function formatPercentForLocale(
+  locale: SupportedLocale,
+  value: number | string | null | undefined,
+  options?: Intl.NumberFormatOptions
+): string {
+  if (value == null || value === '') return '—';
+  const num = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(num)) return String(value);
+  // Value is on the 0..100 scale (matches sov_pct / ctr_uplift_modeled_pct).
+  return new Intl.NumberFormat(locale, {
+    style: 'percent',
+    maximumFractionDigits: 1,
+    ...options,
+  }).format(num / 100);
+}

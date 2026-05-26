@@ -165,6 +165,8 @@ next_action: ""
 
 `next_action` always names the next concrete step the user can take.
 
+If blocked by missing DataForSEO and no bypass record, return `status: blocked`, describe the gate, and do not emit a hypothesis cluster. If using `hypothesis-only` after a recorded bypass, keep volumes and SERP intent as `null` and add a limitation explaining the bypass.
+
 ## Examples
 
 ### Data-backed run (new cluster)

@@ -1,0 +1,26 @@
+version: 1
+module: competitive-analysis
+canonical_path: "${report_dir}/competitive-analysis/${run_slug}/report.md"
+source_artifact_pattern: "audits/competitive-${run_slug}/report.yaml"
+required_frontmatter: []
+required_sections:
+  - id: executive_summary
+    headings: ["Resumo executivo", "Executive summary"]
+  - id: players
+    headings: ["Players", "Participantes"]
+  - id: limitations
+    headings: ["Limitações", "Limitations"]
+  - id: next_actions
+    headings: ["Próximas ações", "Next actions"]
+required_tables:
+  - id: players
+    section:
+      headings: ["Players", "Participantes"]
+    min_rows: 2
+    columns:
+      - key: player
+        aliases: ["participante"]
+      - key: role
+        aliases: ["papel"]
+      - key: type
+        aliases: ["tipo"]

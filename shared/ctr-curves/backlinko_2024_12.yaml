@@ -1,0 +1,55 @@
+id: backlinko_2024_12
+name: Backlinko Google CTR Stats (4M results)
+type: absolute
+source:
+  publisher: Backlinko
+  url: https://backlinko.com/google-ctr-stats
+  published_at: 2024-12-01
+  license: free
+methodology:
+  summary: Clickstream and scraping analysis across roughly 4 million Google search results, last republished in December 2024.
+  sample_size: 4000000
+  coverage:
+    locale: ""
+    device: mixed
+    intent: mixed
+    aio_aware: false
+captured_at: 2026-05-25
+positions:
+  - position: 1
+    ctr_pct: 27.6
+    note: null
+  - position: 2
+    ctr_pct: 15.8
+    note: null
+  - position: 3
+    ctr_pct: 11.0
+    note: null
+  - position: 4
+    ctr_pct: 8.4
+    note: null
+  - position: 5
+    ctr_pct: 7.0
+    note: null
+  - position: 6
+    ctr_pct: 5.1
+    note: null
+  - position: 7
+    ctr_pct: 4.1
+    note: null
+  - position: 8
+    ctr_pct: 3.2
+    note: null
+  - position: 9
+    ctr_pct: 2.8
+    note: null
+  - position: 10
+    ctr_pct: 2.5
+    note: null
+caveats:
+  - Pre-AI Overview baseline; not representative of 2025+ SERPs in informational verticals.
+  - Clickstream methodology differs from GSC-derived curves; expect mid-curve drift.
+provenance:
+  added_by: agent
+  evidence_refs:
+    - https://backlinko.com/google-ctr-stats
