@@ -1,0 +1,26 @@
+apps/companion/src/components/listing/listing-filters.tsx
+  s_e30d4f198a04fe::t_12a1d90576a59d 38,44,68
+apps/companion/src/features/contents/content-index-panel.tsx
+  s_e30d4f198a04fe::t_b013e7d126e7b9 137
+  s_e30d4f198a04fe::t_61b7d1064e7762 11
+  s_e30d4f198a04fe::t_a349ab5d80e48d 175-176,179,183-188
+  s_e30d4f198a04fe::t_774eba0484d5ab 57
+apps/companion/src/components/listing/listing-panel.tsx
+  s_e30d4f198a04fe::t_1323103640decf 54-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "7db965cea2c7d7955b6dbe7e51f113beec1f81a0",
+  "prompts": {},
+  "sessions": {
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
