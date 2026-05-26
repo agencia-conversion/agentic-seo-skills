@@ -1,0 +1,20 @@
+apps/companion/src/features/clusters/cluster-row-cells.tsx
+  s_e30d4f198a04fe::t_d4d3bab3671b8c 3,8-12
+  s_e30d4f198a04fe::t_02f4443e0fde5c 36,40-61,65-67,69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "f51df569ca34bada0da036dba3595097b1c21baf",
+  "prompts": {},
+  "sessions": {
+    "s_e30d4f198a04fe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48f94a7d-86ec-4838-a309-1ea80fe66f5e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
