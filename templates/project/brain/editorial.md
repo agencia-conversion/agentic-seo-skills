@@ -6,33 +6,33 @@ updated: "<YYYY-MM-DD>"
 # Editorial
 
 <!--
-Áreas editoriais do projeto. Cada área é uma seção (## <Nome da área>) com
-slug, tese, diferenciação e audiência. Lista de conteúdos publicados vive
-na subpágina do cluster em `brain/topic-clusters/<slug>.md`, não aqui —
-áreas são camada estratégica macro, clusters são unidades operacionais
-(1 área : N clusters).
+Editorial areas of the project. Each area is a section (## <Area name>)
+with slug, thesis, differentiation and audience. The list of published
+content lives in the cluster subpage `brain/topic-clusters/<slug>.md`,
+not here — areas are the macro strategic layer, clusters are operational
+units (1 area : N clusters).
 -->
 
-## <Área 1>
+## <Area 1>
 
 - slug: <slug-kebab-case>
-- tese: <em uma linha, o que esta área defende>
-- diferenciação: <o ângulo que só este projeto tem>
-- audiência: <quem lê esta área>
+- thesis: <in one line, what this area defends>
+- differentiation: <the angle only this project has>
+- audience: <who reads this area>
 
-### Provas
+### Proof
 
-<!-- Casos, dados, credenciais, citações que reforçam a autoridade desta área. Cada prova relevante vai como entrada `tipo: prova` em [[log]]. -->
+<!-- Cases, data, credentials, citations that reinforce the authority of this area. Each relevant proof goes as a `tipo: prova` entry in [[log]]. -->
 
-- <prova> — [[log#YYYY-MM-DD - título]]
+- <proof> — [[log#YYYY-MM-DD - title]]
 
-## <Área 2>
+## <Area 2>
 
 - slug: <slug-kebab-case>
-- tese: <em uma linha>
-- diferenciação: <ângulo>
-- audiência: <quem>
+- thesis: <in one line>
+- differentiation: <angle>
+- audience: <who>
 
-### Provas
+### Proof
 
-- <prova>
+- <proof>

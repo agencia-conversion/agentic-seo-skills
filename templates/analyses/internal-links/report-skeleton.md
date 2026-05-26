@@ -8,36 +8,36 @@ source_artifact: "audits/internal-links-{{run_slug}}/report.yaml"
 summary: "{{summary}}"
 ---
 
-## Resumo executivo
+## Executive summary
 
 {{executive_summary}}
 
 ```agentic-kpis
 version: 1
 items:
-  - label: Oportunidades
+  - label: Opportunities
     value: "{{recommendation_count}}"
 ```
 
-## Recomendações
+## Recommendations
 
 ```agentic-table
 version: 1
 columns:
   - key: source_url
-    label: Fonte
+    label: Source
   - key: target_url
-    label: Destino
+    label: Destination
   - key: anchor_text
     label: Anchor
   - key: before
-    label: Antes
+    label: Before
   - key: after
-    label: Depois
+    label: After
   - key: status
     label: Status
   - key: action
-    label: Ação recomendada
+    label: Recommended action
 rows:
   - source_url: "{{source_url}}"
     target_url: "{{target_url}}"
@@ -48,10 +48,10 @@ rows:
     action: "{{recommended_action}}"
 ```
 
-## Candidatos bloqueados
+## Blocked candidates
 
 {{blocked_candidates}}
 
-## Limitações
+## Limitations
 
 {{limitations}}

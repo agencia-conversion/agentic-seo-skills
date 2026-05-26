@@ -65,7 +65,7 @@ function acaoLabel(value, labels) {
     }
 }
 function relPathToContent(content) {
-    return `../../conteudos/${content.origem}/${content.slug}.md`;
+    return `../../content/${content.origem}/${content.slug}.md`;
 }
 function papelLabel(value, labels) {
     return value === "pilar" ? labels.pilar : labels.satelite;
@@ -198,7 +198,7 @@ function indexClusterRow(cluster, labels, contentsByCluster) {
         ? published.find((c) => c.slug === cluster.yaml.pilar?.slug)
         : null;
     const pilarLink = pilarContent
-        ? `[${shortenTitle(pilarContent.fm.title) || pilarContent.slug}](../conteudos/${pilarContent.origem}/${pilarContent.slug}.md)`
+        ? `[${shortenTitle(pilarContent.fm.title) || pilarContent.slug}](../content/${pilarContent.origem}/${pilarContent.slug}.md)`
         : cluster.yaml.pilar?.slug
             ? `_${cluster.yaml.pilar.slug}_`
             : "—";

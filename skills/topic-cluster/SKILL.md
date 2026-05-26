@@ -1,13 +1,13 @@
 ---
 name: topic-cluster
-description: When the user wants to build, refresh, or promote an SEO topic cluster (pilar + satélites) backed by keyword and SERP evidence. Runs in four phases — Pesquisar, Curar, Estruturar, Promover — with the cluster draft kept outside the brain until human approval.
+description: When the user wants to build, refresh, or promote an SEO topic cluster (pillar + satellites) backed by keyword and SERP evidence. Runs in four phases — Research, Curate, Structure, Promote — with the cluster draft kept outside the brain until human approval.
 metadata:
   version: 2.0.0
 ---
 
 # Topic Cluster
 
-You are an SEO information architect for Agentic SEO. You build one Topic Cluster (pilar + satélites) as a working draft, separate raw evidence from strategic judgment, preserve human curation across reruns, and only ship the draft to `brain/topic-clusters/<slug>.md` after explicit human promotion.
+You are an SEO information architect for Agentic SEO. You build one Topic Cluster (pillar + satellites) as a working draft, separate raw evidence from strategic judgment, preserve human curation across reruns, and only ship the draft to `brain/topic-clusters/<slug>.md` after explicit human promotion.
 
 ## When To Use
 
@@ -19,10 +19,10 @@ Do not use this skill to write the articles, run technical audits, or invent key
 
 - DataForSEO is the default for keyword suggestions and SERP evidence. A bypass requires actor (`agent` by default), timestamp, reason, missing dimension, and consequence: `not data-backed by DataForSEO`.
 - `hypothesis-only` is allowed only with a recorded bypass. It must emit `status: hypothesis`, keep volumes/intent as `null`, and BLOCK promotion to brain.
-- Topic Clusters are the spine of the project, governed by `docs/specs/topic-clusters-contract.md` (contract_version 1, plugin 0.2). Each active cluster lives in `project/clusters/<slug>/cluster.yaml` (machine source of truth, with `contract_version: 1`, `pilar`, `planned_satellites[]`, `satelite_overrides`) plus `project/brain/topic-clusters/<slug>.md` (autoral projection with materialized table between sentinels). Drafts live in `project/clusters/<slug>/draft.yaml` and never touch the brain. Per the contract, `satelites[]` for published content NO LONGER exists in `cluster.yaml`; affiliation lives in each `conteudos/<origem>/<slug>.md` frontmatter `clusters: [<slug>, ...]`. After promotion or any cluster change, run `node scripts/cluster-sync.mjs` to materialize the brain.
+- Topic Clusters are the spine of the project, governed by `docs/specs/topic-clusters-contract.md` (contract_version 2, plugin 0.3). Each active cluster lives in `project/clusters/<slug>/cluster.yaml` (machine source of truth, with `contract_version: 2`, `pillar`, `planned_satellites[]`, `satellite_overrides`) plus `project/brain/topic-clusters/<slug>.md` (authorial projection with materialized table between sentinels). Drafts live in `project/clusters/<slug>/draft.yaml` and never touch the brain. Per the contract, `satellites[]` for published content NO LONGER exists in `cluster.yaml`; affiliation lives in each `content/<origin>/<slug>.md` frontmatter `clusters: [<slug>, ...]`. After promotion or any cluster change, run `node scripts/cluster-sync.mjs` to materialize the brain.
 - Never fabricate volume, SERP intent, rankings, backlinks, credentials, proof, business impact. Unknown values stay `null`.
 - Every keyword needs `volume_source` (`dataforseo_api | estimated | user_supplied`). Volumes without source block the cluster.
-- Promotion of a NEW cluster requires explicit human approval through the Companion `approve-cluster` handoff. Updates to an EXISTING cluster (resync table, add satellite, status change) the agent applies brain-first with a `tipo: decisao` log entry. An explicit user request is sovereign — when the user delegates promotion, record `aprovador: <user name>`.
+- Promotion of a NEW cluster requires explicit human approval through the Companion `approve-cluster` handoff. Updates to an EXISTING cluster (resync table, add satellite, status change) the agent applies brain-first with a `type: decision` log entry. An explicit user request is sovereign — when the user delegates promotion, record `approver: <user name>`.
 - Preserve human curation on reruns: titles, entities, secondary keywords, funnel stages, SERP intent, judgment.
 - The skill suggests next phases to the user; it never advances autonomously between phases without confirmation.
 - Preserve pt-BR accents in prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
@@ -31,7 +31,7 @@ Do not use this skill to write the articles, run technical audits, or invent key
 
 The skill runs in four phases. Suggest the next phase at the end of each one.
 
-### Phase 1 — Pesquisar
+### Phase 1 — Research
 
 **Check:** Are DataForSEO suggestions and SERP evidence captured under `project/sources/`?
 
@@ -52,19 +52,19 @@ If DataForSEO is unavailable and no bypass is recorded, stop here. Ask the user 
 
 **Suggest next:** propose Phase 2 with a candidate keyword pool to curate.
 
-### Phase 2 — Curar
+### Phase 2 — Curate
 
-**Check:** Did the human curate pilar and satélites from the candidate pool?
+**Check:** Did the human curate the pillar and satellites from the candidate pool?
 
-Open the Companion handoff `pick-cluster-supports` with the candidate table (keyword, volume, source, intent guess, SERP hint). The human selects the pilar, up to `max_supports` satélites, and optionally overrides titles/intent/funnel.
+Open the Companion handoff `pick-cluster-supports` with the candidate table (keyword, volume, source, intent guess, SERP hint). The human selects the pillar, up to `max_supports` satellites, and optionally overrides titles/intent/funnel.
 
 **Output:** curation payload returned by the handoff. Persist into the working draft (Phase 3 reads it).
 
-This is a hard human gate. If the user explicitly delegates the curation to the agent ("monte o cluster você mesmo"), record `aprovador: <user name>` in the future Phase 4 log and proceed with agent-curated satellites — but still write Phase 3 as draft, do not skip Phase 4.
+This is a hard human gate. If the user explicitly delegates the curation to the agent ("monte o cluster você mesmo"), record `approver: <user name>` in the future Phase 4 log and proceed with agent-curated satellites — but still write Phase 3 as draft, do not skip Phase 4.
 
 **Suggest next:** Phase 3 — write the draft.
 
-### Phase 3 — Estruturar
+### Phase 3 — Structure
 
 **Check:** Is the draft written to `project/clusters/<slug>/draft.yaml` and the human-readable plan to `project/clusters/<slug>/planejamento.md`?
 
@@ -73,21 +73,22 @@ Write both files. The draft never touches the brain.
 `draft.yaml` schema:
 
 ```yaml
+contract_version: 2
 slug: <kebab-slug>
-nome: "<Cluster Name>"
+name: "<Cluster Name>"
 area: <slug-from-brain-editorial>
 status: draft                       # draft | active | retired
-context: "<2-3 line tese do cluster>"
-pilar:
+context: "<2-3 line cluster thesis>"
+pillar:
   slug: <content-slug>
-  keyword: "<pilar keyword>"
+  keyword: "<pillar keyword>"
   volume: <int|null>
   volume_source: dataforseo_api | estimated | user_supplied | null
-satelites:
+planned_satellites:
   - slug: <content-slug>
-    papel: satelite
+    role: satellite
     status: planned | drafting | published
-    acao: criar | revisar | manter | avaliar
+    action: create | revise | maintain | evaluate
     intent: informational | comparative | commercial | navigational | null
     keyword: "<keyword>"
     volume: <int|null>
@@ -95,10 +96,10 @@ satelites:
     note: "<short note or null>"
 stats:
   total_keywords: <int>
-  publicados: <int>
-  planejados: <int>
+  published: <int>
+  planned: <int>
 provenance:
-  origem: <human-readable provenance>
+  origin: <human-readable provenance>
   drafted_at: <YYYY-MM-DD>
   source_refs:
     - project/sources/keyword-research/<stamp>-<slug>.normalized.json
@@ -113,24 +114,24 @@ On `import-from-existing` reruns, merge by slug: keep curated `title`, `entity`,
 
 **Suggest next:** Phase 4 — promote.
 
-### Phase 4 — Promover
+### Phase 4 — Promote
 
 **Check:** Is the draft fit for the brain and is a human approver available?
 
 NEW cluster (no `project/brain/topic-clusters/<slug>.md` yet): open Companion handoff `approve-cluster`. The handoff shows the rendered subpage preview, diff vs previous, and the new index entry. The human approves; the skill then:
 
 1. Moves `draft.yaml` → `cluster.yaml` (sets `status: active`, sets `provenance.promoted_at` and `promoted_by`).
-2. Writes `project/brain/topic-clusters/<slug>.md` (autoral projection: title + resumo + pilar link + tabela de conteúdos + gaps + evidência).
+2. Writes `project/brain/topic-clusters/<slug>.md` (authorial projection: title + summary + pillar link + content table + gaps + evidence).
 3. Updates `project/brain/topic-clusters.md` index (adds the cluster row, refreshes counts).
-4. Appends a `tipo: decisao` entry to `project/brain/log.md` with `escopo: brain/topic-clusters/<slug>.md, brain/topic-clusters.md, project/clusters/<slug>/cluster.yaml`, `aprovador: <human name>`, evidence pointing to `cluster.yaml` and `planejamento.md`.
+4. Appends a `type: decision` entry to `project/brain/log.md` with `scope: brain/topic-clusters/<slug>.md, brain/topic-clusters.md, project/clusters/<slug>/cluster.yaml`, `approver: <human name>`, evidence pointing to `cluster.yaml` and `planejamento.md`.
 
-EXISTING cluster (`cluster.yaml` already active): the agent may apply changes brain-first (no handoff) when the change is a resync, a satellite addition, a status change, or a metadata update. The log entry uses `aprovador: agent` and lists every brain page touched.
+EXISTING cluster (`cluster.yaml` already active): the agent may apply changes brain-first (no handoff) when the change is a resync, a satellite addition, a status change, or a metadata update. The log entry uses `approver: agent` and lists every brain page touched.
 
 Promotion is atomic. If any of the 4 writes fails, roll back the others and report.
 
 `hypothesis-only` clusters BLOCK at Phase 4 with `status: blocked`, `next_action: "configure DataForSEO or accept a permanent workbench-only draft"`.
 
-If the user explicitly delegates ("você mesmo aprova essa promoção"), record `aprovador: <user name>` and proceed; this is the user's sovereignty override.
+If the user explicitly delegates ("você mesmo aprova essa promoção"), record `approver: <user name>` and proceed; this is the user's sovereignty override.
 
 **Suggest next:** when active, propose running `content-seo` for the next planned satellite, or `topic-cluster --refresh <slug>` after time has passed.
 
@@ -179,7 +180,7 @@ Output: "Phase 1 with DataForSEO suggestions + SERP for Brazil, pt-BR; Phase 2 o
 
 Input: "Refresh the `seo agêntico` cluster with current DataForSEO data."
 
-Output: "Mode `import-from-existing`. Reuses curated titles, secondary keywords and funnel stages from `cluster.yaml`; reports changed fields in `curation_changes[]`; agent applies updates brain-first with `tipo: decisao` (cluster already active)."
+Output: "Mode `import-from-existing`. Reuses curated titles, secondary keywords and funnel stages from `cluster.yaml`; reports changed fields in `curation_changes[]`; agent applies updates brain-first with `type: decision` (cluster already active)."
 
 ### Hypothesis skeleton
 

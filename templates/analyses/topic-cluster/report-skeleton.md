@@ -8,7 +8,7 @@ source_artifact: "clusters/{{run_slug}}/cluster.json"
 summary: "{{summary}}"
 ---
 
-## Resumo executivo
+## Executive summary
 
 {{executive_summary}}
 
@@ -19,13 +19,13 @@ items:
     value: "{{support_count}}"
 ```
 
-## Pilar
+## Pillar
 
 ```agentic-table
 version: 1
 columns:
   - key: role
-    label: Papel
+    label: Role
   - key: slug
     label: Slug
   - key: keyword
@@ -33,7 +33,7 @@ columns:
   - key: volume
     label: Volume
   - key: intent
-    label: Intenção
+    label: Intent
 rows:
   - role: "pillar"
     slug: "{{pillar_slug}}"
@@ -48,7 +48,7 @@ rows:
 version: 1
 columns:
   - key: role
-    label: Papel
+    label: Role
   - key: slug
     label: Slug
   - key: keyword
@@ -56,7 +56,7 @@ columns:
   - key: volume
     label: Volume
   - key: intent
-    label: Intenção
+    label: Intent
 rows:
   - role: "support"
     slug: "{{support_slug_1}}"

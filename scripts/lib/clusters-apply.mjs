@@ -3,6 +3,8 @@ import { dirname, join } from "node:path";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
 import { parseFrontmatter, appendLogEntry } from "./brain-page.mjs";
 import { loadBrainSubpageTemplate } from "./brain-templates.mjs";
+import { normalizeClusterYaml } from "./cluster-yaml.mjs";
+export { normalizeClusterYaml };
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -22,7 +24,7 @@ export function writeClusterYaml(root, entry) {
   let existing = {};
   if (existsSync(filePath)) {
     try {
-      existing = yamlParse(readFileSync(filePath, "utf8")) || {};
+      existing = normalizeClusterYaml(yamlParse(readFileSync(filePath, "utf8")) || {});
     } catch {}
   }
   const yaml = {
@@ -110,7 +112,7 @@ function buildContentsTableLines(entry, publishedByCluster) {
   const pilarContent = published.find((c) => c.papel === "pilar");
   if (pilarContent) {
     const pilarShort = yaml.pilar?.display_title || shortenTitle(pilarContent.title);
-    const link = `[${pilarShort}](../../conteudos/${pilarContent.origin}/${pilarContent.slug}.md)`;
+    const link = `[${pilarShort}](../../content/${pilarContent.origin}/${pilarContent.slug}.md)`;
     rows.push({
       papel: "Pilar",
       conteudo: link,
@@ -137,7 +139,7 @@ function buildContentsTableLines(entry, publishedByCluster) {
     const titleShort = sat.display_title || shortenTitle(content.title);
     rows.push({
       papel: "Satélite",
-      conteudo: `[${titleShort}](../../conteudos/${content.origin}/${content.slug}.md)`,
+      conteudo: `[${titleShort}](../../content/${content.origin}/${content.slug}.md)`,
       keyword: renderKeyword(sat.keyword, sat.volume),
       intent: sat.intent || content.intent || "—",
       status: "publicado",
@@ -180,7 +182,7 @@ function pluginRootFromHere() {
 function buildPilarLine(yaml, publishedPilar) {
   if (publishedPilar) {
     const pilarShort = yaml.pilar?.display_title || shortenTitle(publishedPilar.title);
-    return `[${pilarShort}](../../conteudos/${publishedPilar.origin}/${publishedPilar.slug}.md)`;
+    return `[${pilarShort}](../../content/${publishedPilar.origin}/${publishedPilar.slug}.md)`;
   }
   if (yaml.pilar?.slug) {
     return `_${yaml.pilar.slug}_ — pilar planejado, conteúdo a criar.`;
@@ -318,7 +320,7 @@ function buildBrainIndex(plan, publishedByCluster) {
     const pilar = published.find((c) => c.papel === "pilar");
     const pilarShort = pilar ? entry.yaml.pilar?.display_title || shortenTitle(pilar.title) : "";
     const pilarLink = pilar
-      ? `[${pilarShort}](../conteudos/${pilar.origin}/${pilar.slug}.md)`
+      ? `[${pilarShort}](../content/${pilar.origin}/${pilar.slug}.md)`
       : entry.yaml.pilar?.slug
         ? `_${entry.yaml.pilar.slug}_`
         : "—";
@@ -376,7 +378,7 @@ export function logMigrationEntry(root, touched) {
     date: todayIso(),
     tipo: "decisao",
     titulo: "Refator clusters-as-spine — cutover de dados aplicado (Fase 4)",
-    escopo: "project/brain/topic-clusters.md, project/brain/topic-clusters/, project/brain/editorial.md, project/conteudos/blog/, project/clusters/",
+    escopo: "project/brain/topic-clusters.md, project/brain/topic-clusters/, project/brain/editorial.md, project/content/blog/, project/clusters/",
     decisao:
       `Migração clusters-spine aplicada. ${touched.clusters.length} clusters criados (${touched.clusters.join(", ")}), ${touched.contents.length} conteúdos com frontmatter atualizado (area: → clusters:[]), ${touched.subpages.length} subpáginas brain criadas, índice brain/topic-clusters.md reescrito, brain/editorial.md simplificado (remove '### Conteúdos publicados' por área). Tag git pre-cluster-migration criada antes do apply.`,
     evidencia: "project/workbench/migrations/clusters-spine/plan.yaml, .context/backups/project-pre-cluster-migration-*.tar.gz, tag git pre-cluster-migration",

@@ -4,7 +4,11 @@ import { createHash } from 'node:crypto';
 import { parse as parseYaml } from 'yaml';
 import { parseFrontmatter } from './project-files';
 
-const CONTENT_ORIGINS = ['blog', 'linkedin', 'podcast', 'outros'] as const;
+// EN canonical 'other' alongside pt-BR 'outros' alias during the rename transition.
+// Both folders ('content/' and 'conteudos/') are scanned for compat with the
+// existing pt-BR brain. See docs/specs/en-rename-map.md.
+const CONTENT_ORIGINS = ['blog', 'linkedin', 'podcast', 'other', 'outros'] as const;
+const CONTENT_ROOTS = ['content', 'conteudos'] as const;
 const NONE_CLUSTER = '__none__';
 
 interface ClusterContentMeta {
@@ -249,13 +253,14 @@ export function listProjectContents({
   const root = resolve(projectRoot);
   const clusters = readTopicClusters(root);
   const rows: any[] = [];
+  for (const contentRoot of CONTENT_ROOTS) {
   for (const contentOrigin of CONTENT_ORIGINS) {
-    const dir = resolve(root, 'conteudos', contentOrigin);
+    const dir = resolve(root, contentRoot, contentOrigin);
     if (!existsSync(dir)) continue;
     const realDir = realpathSync(dir);
     if (!realDir.startsWith(`${realpathSync(root)}${sep}`)) continue;
     for (const child of walkMarkdown(dir)) {
-      const path = `conteudos/${contentOrigin}/${child}`;
+      const path = `${contentRoot}/${contentOrigin}/${child}`;
       const filePath = resolve(root, path);
       const realFile = realpathSync(filePath);
       if (!realFile.startsWith(`${realDir}${sep}`)) continue;
@@ -320,6 +325,7 @@ export function listProjectContents({
         hash: sha256(text),
       });
     }
+  }
   }
 
   const q = query.trim().toLowerCase();

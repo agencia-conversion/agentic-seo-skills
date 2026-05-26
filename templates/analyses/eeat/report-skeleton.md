@@ -9,7 +9,7 @@ summary: "{{summary}}"
 score: "{{score}}"
 ---
 
-## Resumo executivo
+## Executive summary
 
 {{executive_summary}}
 
@@ -20,39 +20,39 @@ items:
     value: "{{score}}/100"
 ```
 
-## Avaliação por pilar
+## Score by pillar
 
 ```agentic-table
 version: 1
 columns:
   - key: pillar
-    label: Pilar
+    label: Pillar
   - key: score
     label: Score
 rows:
-  - pillar: Experiência
+  - pillar: Experience
     score: "{{experience_score}}"
   - pillar: Expertise
     score: "{{expertise_score}}"
-  - pillar: Autoridade
+  - pillar: Authority
     score: "{{authority_score}}"
-  - pillar: Confiança
+  - pillar: Trust
     score: "{{trust_score}}"
 ```
 
-## Lacunas priorizadas
+## Prioritized gaps
 
 ```agentic-table
 version: 1
 columns:
   - key: gap
-    label: Lacuna
+    label: Gap
   - key: pillar
-    label: Pilar
+    label: Pillar
   - key: impact
-    label: Impacto
+    label: Impact
   - key: action
-    label: Ação recomendada
+    label: Recommended action
 rows:
   - gap: "{{gap}}"
     pillar: "{{pillar}}"
@@ -60,6 +60,6 @@ rows:
     action: "{{action}}"
 ```
 
-## Limitações
+## Limitations
 
 {{limitations}}

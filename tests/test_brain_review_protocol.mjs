@@ -8,13 +8,13 @@ const skill = readFileSync(resolve(root, "skills", "brain-keeper", "SKILL.md"), 
 // Brain-first protocol rules
 for (const required of [
   "Authorial brain pages",
-  "tipo: aprovacao",
-  "tipo: decisao",
-  "aprovador: agent",
-  "aprovado_em",
+  "type: approval",
+  "type: decision",
+  "approver: agent",
+  "approved_at",
   "project/brain/log.md",
   "project/workbench/brain-keeper/",
-  "project/conteudos/",
+  "project/content/",
   "Wikilinks",
   "Markdown links",
 ]) {
@@ -22,17 +22,17 @@ for (const required of [
 }
 
 // Full log entry schema
-for (const field of ["tipo:", "escopo:", "decisao:", "evidencia:", "aprovador:", "aprovado_em:", "notas:"]) {
+for (const field of ["type:", "scope:", "decision:", "evidence:", "approver:", "approved_at:", "notes:"]) {
   assert.ok(skill.includes(field), `log schema missing field: ${field}`);
 }
 
 // All seven log entry types
-for (const tipo of ["aprovacao", "decisao", "errata", "lint", "ingestao", "publicacao", "prova"]) {
-  assert.ok(skill.includes(tipo), `log tipo enum missing: ${tipo}`);
+for (const type of ["approval", "decision", "erratum", "lint", "ingestion", "publication", "proof"]) {
+  assert.ok(skill.includes(type), `log type enum missing: ${type}`);
 }
 
 // Eight canonical brain pages (seven authorial + log)
-for (const page of ["index", "identidade", "voz", "tecnologia", "editorial", "topic-clusters", "revisao", "log"]) {
+for (const page of ["index", "identity", "voice", "technology", "editorial", "topic-clusters", "review", "log"]) {
   assert.ok(skill.includes(`\`${page}\``), `brain page enum missing: ${page}`);
 }
 

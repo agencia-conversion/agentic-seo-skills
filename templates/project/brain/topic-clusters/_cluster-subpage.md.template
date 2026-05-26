@@ -1,27 +1,30 @@
 ---
-title: "<Nome do Cluster>"
-contract_version: 1
-updated: "<YYYY-MM-DD>"
+title: "{{title}}"
+updated: "{{updated}}"
 ---
 
-## Resumo
+# {{title}}
 
-<resumo>
+{{resumo}}
 
-## Tese editorial
+## Editorial area
 
-<Tese editorial — prosa autoral, preservada por cluster-sync.>
+{{area}}
 
-## Pilar
+## Pillar
 
-<pilar_line>
+{{pilar_line}}
 
-<content_block>
+## Content
 
-## Próximas ações
+<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->
+{{contents_table}}
+<!-- END cluster-content-table:auto -->
 
-<next_actions>
+## Next actions
 
-## Evidência
+{{next_actions}}
 
-<evidence_block>
+## Evidence
+
+{{provenance}}

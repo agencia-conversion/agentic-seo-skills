@@ -10,7 +10,7 @@ PROPOSITO: Brandbook narrativo do projeto. Cada skill da Agentic SEO le
 este arquivo como contexto inicial: quem e a marca, com qual publico fala,
 como referencia-la em aposto e em paragrafo, onde ela vive. Identidade
 tecnica fica restrita ao observavel; tese editorial sobre stack vive em
-[[editorial]]. Toda afirmacao factual aqui tem fonte em ## Evidencia no
+[[editorial]]. Toda afirmacao factual aqui tem fonte em ## Evidência no
 rodape. Comentarios <!-- REGRA: --> sao instrucoes vinculantes para o
 agente preenchedor e devem ser REMOVIDOS quando o arquivo for preenchido.
 -->
@@ -60,7 +60,7 @@ artigo X defende", "segundo o site", "conforme o blog", "o autor diz
 que", "a pagina sobre nos diz", "a marca apresenta X como".
 
 O paragrafo afirma o que a marca e e faz. A fonte que sustenta cada
-afirmacao vai em ## Evidencia no rodape, com link. Se a evidencia nao
+afirmacao vai em ## Evidência no rodape, com link. Se a evidência não
 existe ou e fraca, a afirmacao nao entra.
 
 Estrutura sugerida:
@@ -133,7 +133,7 @@ pessoa a procurar a marca.
 <!--
 REGRA: Publico que a marca explicitamente nao atende. Protege contra
 deriva editorial e contra leitores que vao se frustrar. Se voce nao tem
-clareza disso, busque evidencia em paginas de servicos, em conteudos
+clareza disso, busque evidência em paginas de servicos, em conteudos
 publicados, ou pergunte ao humano. Sem este campo, fica facil escrever
 para "todo mundo" e o brain perde foco.
 -->
@@ -212,5 +212,5 @@ Exemplo:
   paragrafo de apresentacao e a secao Publico.
 -->
 
-- <bullet evidencia 1>
-- <bullet evidencia 2>
+- <bullet evidência 1>
+- <bullet evidência 2>

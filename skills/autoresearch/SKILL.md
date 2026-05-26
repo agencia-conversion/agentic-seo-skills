@@ -22,7 +22,7 @@ Do not use this skill for open-ended SEO analysis, writing authorial brain pages
 - Commit metrics before the first variation and do not add, remove, rename, or relax metrics mid-run. If the metrics are wrong, stop and start a new run.
 - Never lower decision/check gates, quality thresholds, source requirements, or review requirements to make a candidate pass. A blocked gate is a result, not a reason to weaken the gate.
 - Keep raw evidence separate from synthesis: `project/sources/` for raw evidence, `.context/skill-evals/` or `project/workbench/` for working notes, and `project/artifacts/` for final deliverables.
-- Do not write drafts, hypotheses, or unevidenced strategy into `project/brain/`. Authorial brain pages require a `tipo: decisao` entry in `project/brain/log.md` with evidence, limitations, and actor.
+- Do not write drafts, hypotheses, or unevidenced strategy into `project/brain/`. Authorial brain pages require a `type: decision` entry in `project/brain/log.md` with evidence, limitations, and actor.
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, or proof. Unknown values stay `unknown` or `null`.
 - Preserve the requested output language in human-facing prose, including pt-BR accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Save reviewable run notes for skill-development runs under `.context/skill-evals/<skill-name>/<run-id>/`.

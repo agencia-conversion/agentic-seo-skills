@@ -17,7 +17,7 @@ const node_fs_1 = require("node:fs");
 const node_path_1 = require("node:path");
 const yaml_1 = require("yaml");
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
-const ORIGEMS = ["blog", "linkedin", "podcast", "outros"];
+const ORIGEMS = ["blog", "linkedin", "podcast", "other"];
 function parseFrontmatter(text) {
     const cleaned = text.replace(/^﻿/, "");
     const match = cleaned.match(FRONTMATTER_RE);
@@ -66,35 +66,48 @@ function loadClusters(projectRoot) {
     }
     return out.sort((a, b) => a.slug.localeCompare(b.slug));
 }
+// Bilingual content roots and origin aliases. EN canonical is content/ with
+// origin: other; pt-BR alias is conteudos/ with origin: outros.
+const CONTENT_ROOTS = ["content", "conteudos"];
+const ORIGIN_ALIASES = { outros: "other", other: "outros" };
 function loadContents(projectRoot) {
     const out = [];
-    for (const origem of ORIGEMS) {
-        const dir = (0, node_path_1.join)(projectRoot, "conteudos", origem);
-        if (!(0, node_fs_1.existsSync)(dir))
-            continue;
-        for (const name of (0, node_fs_1.readdirSync)(dir)) {
-            if (!name.endsWith(".md"))
-                continue;
-            if (name.startsWith("_"))
-                continue;
-            const filePath = (0, node_path_1.join)(dir, name);
-            const stat = (0, node_fs_1.statSync)(filePath);
-            let fm = {};
-            try {
-                fm = parseFrontmatter((0, node_fs_1.readFileSync)(filePath, "utf8")).data;
+    const seen = new Set();
+    for (const root of CONTENT_ROOTS) {
+        for (const origem of ORIGEMS) {
+            const dirCandidates = [origem, ORIGIN_ALIASES[origem]].filter(Boolean);
+            for (const folderName of dirCandidates) {
+                const dir = (0, node_path_1.join)(projectRoot, root, folderName);
+                if (!(0, node_fs_1.existsSync)(dir))
+                    continue;
+                for (const name of (0, node_fs_1.readdirSync)(dir)) {
+                    if (!name.endsWith(".md"))
+                        continue;
+                    if (name.startsWith("_"))
+                        continue;
+                    const filePath = (0, node_path_1.join)(dir, name);
+                    if (seen.has(filePath))
+                        continue;
+                    seen.add(filePath);
+                    const stat = (0, node_fs_1.statSync)(filePath);
+                    let fm = {};
+                    try {
+                        fm = parseFrontmatter((0, node_fs_1.readFileSync)(filePath, "utf8")).data;
+                    }
+                    catch {
+                        fm = {};
+                    }
+                    const slug = fm.slug || name.replace(/\.md$/, "");
+                    out.push({
+                        slug,
+                        origem,
+                        filePath,
+                        relPath: (0, node_path_1.relative)(projectRoot, filePath).replace(/\\/g, "/"),
+                        fm,
+                        mtimeMs: stat.mtimeMs,
+                    });
+                }
             }
-            catch {
-                fm = {};
-            }
-            const slug = fm.slug || name.replace(/\.md$/, "");
-            out.push({
-                slug,
-                origem,
-                filePath,
-                relPath: (0, node_path_1.relative)(projectRoot, filePath).replace(/\\/g, "/"),
-                fm,
-                mtimeMs: stat.mtimeMs,
-            });
         }
     }
     return out.sort((a, b) => a.slug.localeCompare(b.slug));

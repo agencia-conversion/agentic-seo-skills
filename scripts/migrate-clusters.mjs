@@ -40,7 +40,7 @@ function ensureTag() {
         throw new Error("not-found");
       })();
   } catch {
-    console.error(`Tag git \`${TAG}\` não existe. Crie com \`git tag ${TAG}\` antes de rodar --apply.`);
+    console.error(`Git tag \`${TAG}\` does not exist. Create it with \`git tag ${TAG}\` before running --apply.`);
     process.exit(2);
   }
 }
@@ -82,17 +82,17 @@ function writePlan(plan) {
 function runDryRun() {
   const plan = buildPlan({ mode: "dry-run", seedPath: SEED_CLUSTER, blogDir: BLOG_DIR });
   const out = writePlan(plan);
-  console.log(`Plano gravado em ${out}`);
-  console.log(`Clusters a criar: ${plan.summary.clusters_to_create}`);
-  console.log(`Conteúdos a atualizar: ${plan.summary.contents_to_update}`);
-  console.log(`Subpáginas brain a criar: ${plan.summary.brain_subpages_to_create}`);
-  console.log(`Páginas brain a reescrever: ${plan.summary.brain_pages_to_rewrite}`);
+  console.log(`Plan written to ${out}`);
+  console.log(`Clusters to create: ${plan.summary.clusters_to_create}`);
+  console.log(`Content files to update: ${plan.summary.contents_to_update}`);
+  console.log(`Brain subpages to create: ${plan.summary.brain_subpages_to_create}`);
+  console.log(`Brain pages to rewrite: ${plan.summary.brain_pages_to_rewrite}`);
   if (plan.summary.blockers > 0) {
     console.log(`\nBLOCKERS (${plan.summary.blockers}):`);
     plan.blockers.forEach((b) => console.log(`  - ${b}`));
     process.exit(1);
   }
-  console.log(`\nSem blockers. Revise ${out} antes de prosseguir para a Fase 4.`);
+  console.log(`\nNo blockers. Review ${out} before proceeding to Phase 4.`);
 }
 
 function runApply() {
@@ -118,9 +118,9 @@ function runApply() {
   logMigrationEntry(ROOT, touched);
   console.log(`Cutover aplicado.`);
   console.log(`Clusters: ${touched.clusters.length}`);
-  console.log(`Conteúdos: ${touched.contents.length}`);
-  console.log(`Subpáginas brain: ${touched.subpages.length}`);
-  console.log(`Índice brain/topic-clusters.md reescrito.`);
+  console.log(`Content files: ${touched.contents.length}`);
+  console.log(`Brain subpages: ${touched.subpages.length}`);
+  console.log(`brain/topic-clusters.md index rewritten.`);
   console.log(`brain/editorial.md simplificado.`);
   console.log(`Log mestra gravada. Tag git: ${TAG}.`);
 }

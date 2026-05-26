@@ -12,7 +12,7 @@ foi decidido, o que falta verificar. NAO documenta opiniao editorial sobre stack
 ("preferimos sites estaticos", "rejeitamos WordPress", "acreditamos em
 edge rendering"). Tese editorial sobre tecnologia vive em [[editorial]]
 ou em conteudos publicados em `conteudos/`. Cada linha factual aqui tem
-evidencia de observacao direta em ## Evidencia no rodape ou ancora para
+evidência de observação direta em ## Evidência no rodape ou ancora para
 [[log]]. Comentarios <!-- REGRA: --> sao vinculantes e devem ser
 REMOVIDOS quando o arquivo for preenchido.
 -->
@@ -88,5 +88,5 @@ externas (ex.: relatorio do PageSpeed, snapshot do Wayback). Cada
 bullet referencia 1 fonte e diz, em uma frase, o que ela sustenta.
 -->
 
-- <bullet evidencia 1>
-- <bullet evidencia 2>
+- <bullet evidência 1>
+- <bullet evidência 2>

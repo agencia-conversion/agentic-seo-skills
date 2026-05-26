@@ -298,7 +298,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
 
   const language = useWorkspace((s) => s.settings.language);
   const customIntents = useWorkspace((s) => s.settings.customIntents);
-  const locale: 'pt-BR' | 'en' = language === 'en' ? 'en' : 'pt-BR';
+  const locale: 'pt-BR' | 'en' = language === 'pt-BR' ? 'pt-BR' : 'en';
   const intentOptions = useMemo(() => {
     const canonical = INTENT_CANONICAL_OPTIONS.map((opt) => ({
       value: opt.value,

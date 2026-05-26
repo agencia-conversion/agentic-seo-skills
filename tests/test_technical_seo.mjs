@@ -9,7 +9,7 @@ const bin = resolve(root, "bin", "agentic-seo");
 const tmp = mkdtempSync(resolve(tmpdir(), "agentic-seo-technical-"));
 const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: resolve(tmp, "project") };
 
-execFileSync(bin, ["project-init", "Technical test"], { cwd: root, encoding: "utf8", env });
+execFileSync(bin, ["project-init", "Technical test", "--language", "pt-BR"], { cwd: root, encoding: "utf8", env });
 
 function runTechnical(fixture, pageType) {
   const stdout = execFileSync(bin, ["technical-seo", "--html-file", resolve(root, fixture), "--page-type", pageType], {

@@ -26,18 +26,18 @@ export const EDITORIAL_STATUS_LABELS_EN: Record<string, string> = {
   published: 'Published',
 };
 
-export function intentLabel(value: string, locale: 'pt-BR' | 'en' = 'pt-BR'): string {
+export function intentLabel(value: string, locale: 'pt-BR' | 'en' = 'en'): string {
   if (!value) return '—';
-  const map = locale === 'en' ? INTENT_LABELS_EN : INTENT_LABELS_PT;
+  const map = locale === 'pt-BR' ? INTENT_LABELS_PT : INTENT_LABELS_EN;
   return map[value] || value;
 }
 
 export function editorialStatusLabel(
   value: string,
-  locale: 'pt-BR' | 'en' = 'pt-BR',
+  locale: 'pt-BR' | 'en' = 'en',
 ): string {
   if (!value) return '—';
-  const map = locale === 'en' ? EDITORIAL_STATUS_LABELS_EN : EDITORIAL_STATUS_LABELS_PT;
+  const map = locale === 'pt-BR' ? EDITORIAL_STATUS_LABELS_PT : EDITORIAL_STATUS_LABELS_EN;
   return map[value] || value;
 }
 

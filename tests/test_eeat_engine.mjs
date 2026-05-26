@@ -12,6 +12,8 @@ const projectDir = join(tmp, "project");
 const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: projectDir };
 
 mkdirSync(join(projectDir, "brain"), { recursive: true });
+mkdirSync(join(projectDir, ".agentic-seo"), { recursive: true });
+writeFileSync(join(projectDir, ".agentic-seo", "project.json"), JSON.stringify({ language: "pt-BR" }), "utf8");
 writeFileSync(join(projectDir, "brain", "identidade.md"), "# Identidade\n", "utf8");
 
 function runEngine(args) {

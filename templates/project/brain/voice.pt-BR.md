@@ -46,7 +46,7 @@ Frases curtas. Sujeito + verbo + objeto. Sem proemio retorico ("neste
 artigo vamos entender", "voce ja se perguntou"). Em paginas autorais
 do brain, a apresentacao da marca ou da entidade NUNCA descreve a
 fonte ("a home diz", "o site afirma") — afirma diretamente e poe a
-fonte na secao de evidencia. Particularidade deste projeto:
+fonte na seção de evidência. Particularidade deste projeto:
 -->
 
 <como este projeto trata leads e aberturas, em 2-4 linhas>
@@ -56,7 +56,7 @@ fonte na secao de evidencia. Particularidade deste projeto:
 <!--
 REGRA GLOBAL: Toda afirmacao factual cita fonte. Atribuicao vai no
 corpo quando se trata de numero, metrica, opiniao sobre terceiros,
-ou citacao direta. Atribuicao vai no rodape (## Evidencia) quando se
+ou citacao direta. Atribuicao vai no rodape (## Evidência) quando se
 trata da propria marca afirmando sobre si mesma. NAO inventar
 endosso, premio, cliente, citacao.
 
@@ -124,7 +124,7 @@ REGRA GLOBAL: "Lider", "principal", "maior", "melhor", "unico",
 "pioneiro", "referencia", "consagrado", "renomado", "reconhecido",
 "premiado", "respeitado", "inovador", "vanguardista", "completo",
 "exclusivo", "definitivo", "historico", "marcante", "memoravel" so
-entram com prova citada na mesma frase ou em ## Evidencia, com fonte
+entram com prova citada na mesma frase ou em ## Evidência, com fonte
 externa nominal e data. Adjetivos de tamanho ("grande", "pequeno",
 "medio") so com criterio explicito ("acima de 500 funcionarios,
 definicao IBGE"). Particularidades:
