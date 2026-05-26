@@ -28,6 +28,7 @@ Do not use this skill for public content drafts, approval handoffs, inline chat 
 - Each report-producing module has `skills/<module>/contract.yaml` and `templates/analyses/<module>/report-skeleton.md`; keep required H2 sections and table keys from the skeleton.
 - Before declaring a manual report done, run `npm run validate:reports -- --module=<module> --slug=<run-slug>` or use `scripts/lib/report-writer.mjs`, which refuses invalid reports before writing.
 - Never paste raw provider JSON, object arrays, `[object Object]`, internal IDs, or snake_case evidence into the visual body. Convert evidence into natural language and readable tables.
+- Format numbers per the project language. The canonical source is `shared/locale.mjs` (`getProjectLanguage`, `formatNumber`, `formatPercent`, `canonicalKeyword`). Skills either ship locale-formatted strings in `agentic-table`/`agentic-kpis` cells, or leave numbers raw for the Companion (`useI18n().formatNumber` / `formatPercent`) to format on render. Percent-bearing columns use the `_pct` key suffix on the 0..100 scale.
 - Always return `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`.
 - Register the generated report in `project/brain/log.md` as `tipo: decisao` unless a more specific log type is required.
 

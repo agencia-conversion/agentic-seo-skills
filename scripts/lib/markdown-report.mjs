@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import YAML from "yaml";
+import { normalizeLanguage } from "../../shared/locale.mjs";
 
 function yamlString(value) {
   return JSON.stringify(String(value ?? ""));
@@ -11,11 +12,7 @@ function safeYaml(value) {
 }
 
 function reportLocale(value) {
-  const normalized = String(value || "").trim().toLowerCase();
-  if (!normalized) return "pt-BR";
-  if (normalized.startsWith("pt")) return "pt-BR";
-  if (normalized.startsWith("en")) return "en";
-  return "en";
+  return normalizeLanguage(value);
 }
 
 function reportText(locale, pt, en) {

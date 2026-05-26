@@ -5,6 +5,7 @@ import { join, resolve, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 import { load as loadCurve, selectPrimary as selectPrimaryCurve } from "../shared/ctr-curves/loader.mjs";
+import { getProjectLanguage, formatNumber, formatPercent, canonicalKeyword } from "../shared/locale.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PROJECT = process.env.AGENTIC_SEO_PROJECT_DIR || join(ROOT, "project");
@@ -85,17 +86,28 @@ function pathPrefix(url) { try { return new URL(url).pathname.split("/").filter(
 
 // Offline fixtures keep the CLI runnable without DataForSEO/credentials/network. Mark every artifact as `is_offline_fixture: true` and never present these as live conclusions.
 function offlineFixtureItems(player) {
+  const isTarget = !player.includes("competitor");
+  // The four "landing page" variants share volume 6600 and end up on a single
+  // canonical key — exercises the near-duplicate dedup path. Only emitted for
+  // competitor players so the target is "out of top 100" and the rows enter
+  // gap_table.
+  const landingVariants = isTarget ? [] : [
+    { keyword: "o'que é landing page", volume: 6600, position: 9 },
+    { keyword: "o que e landing page", volume: 6600, position: 14 },
+    { keyword: "o'que e landing pages", volume: 6600, position: 17 },
+    { keyword: "o que é landing page ", volume: 6600, position: 11 },
+  ];
   const base = [
     { keyword: "seo agêntico", volume: 720, position: 3 },
-    { keyword: "agência seo", volume: 9900, position: player.includes("conversion") ? 2 : 7 },
-    { keyword: "consultoria seo", volume: 2400, position: player.includes("conversion") ? 1 : 25 },
-    { keyword: "ferramentas seo", volume: 5400, position: player.includes("conversion") ? 4 : 11 },
-    { keyword: "auditoria seo", volume: 1900, position: player.includes("conversion") ? null : 8 },
+    { keyword: "agência seo", volume: 9900, position: isTarget ? 2 : 7 },
+    { keyword: "consultoria seo", volume: 2400, position: isTarget ? 1 : 25 },
+    { keyword: "ferramentas seo", volume: 5400, position: isTarget ? 4 : 11 },
+    { keyword: "auditoria seo", volume: 1900, position: isTarget ? null : 8 },
     { keyword: "seo enterprise", volume: 880, position: null },
-    { keyword: "google search console", volume: 60500, position: player.includes("conversion") ? null : 12 },
-    { keyword: "landing page", volume: 6600, position: player.includes("conversion") ? null : 14 },
-    { keyword: "core web vitals", volume: 720, position: player.includes("conversion") ? 9 : null },
-    { keyword: "schema markup", volume: 480, position: player.includes("conversion") ? null : 6 },
+    { keyword: "google search console", volume: 60500, position: isTarget ? null : 12 },
+    { keyword: "core web vitals", volume: 720, position: isTarget ? 9 : null },
+    { keyword: "schema markup", volume: 480, position: isTarget ? null : 6 },
+    ...landingVariants,
   ];
   return base.filter((r) => r.position != null).map((r) => ({
     keyword_data: { keyword: r.keyword, keyword_info: { search_volume: r.volume } },
@@ -175,29 +187,111 @@ function buildM2(curve, playersIdx) {
   }));
   return { universe: { total: universe.size, with_volume: withVol, without_volume: withoutVol }, sov_table };
 }
+// Pick the canonical row from a group of near-duplicates:
+// (1) highest volume → (2) shortest surface form → (3) lexical.
+function pickCanonicalRow(rows) {
+  return [...rows].sort((a, b) =>
+    (b.volume || 0) - (a.volume || 0)
+    || (a.keyword?.length || 0) - (b.keyword?.length || 0)
+    || String(a.keyword || "").localeCompare(String(b.keyword || "")),
+  )[0];
+}
+// Merge competitor lists when collapsing variants, deduping by `${name}|${position}`.
+function mergeCompetitors(groups) {
+  const seen = new Map();
+  for (const group of groups) {
+    for (const entry of group) {
+      const key = `${entry.name}|${entry.position ?? ""}`;
+      if (!seen.has(key)) seen.set(key, entry);
+    }
+  }
+  return [...seen.values()];
+}
+
 function buildM3(targetIdx, competitorIdxs, curve) {
-  const gapMap = new Map();
+  // Collect raw gap rows first (one per keyword found in any competitor top 20)
+  // then collapse near-duplicate surface forms via canonicalKeyword().
+  const rawGap = new Map();
   for (const [name, idx] of competitorIdxs) {
     for (const [kw, row] of idx) {
       if (!row.position || row.position > 20) continue;
       const t = targetIdx.get(kw);
       if (!t || (t.position && t.position > 100)) {
-        const existing = gapMap.get(kw);
+        const existing = rawGap.get(kw);
         const entry = { name, position: row.position, url: row.url };
         if (existing) existing.competitors.push(entry);
-        else gapMap.set(kw, { keyword: kw, volume: row.volume, target_position: t?.position ?? null, competitors: [entry] });
+        else rawGap.set(kw, { keyword: kw, volume: row.volume, target_position: t?.position ?? null, competitors: [entry] });
       }
     }
   }
-  const gap_table = [...gapMap.values()].sort((a, b) => (b.volume || 0) - (a.volume || 0));
-  const striking = [];
+  // Group raw rows by canonical key; keep one canonical row per group.
+  const gapGroups = new Map();
+  for (const row of rawGap.values()) {
+    const key = canonicalKeyword(row.keyword);
+    if (!gapGroups.has(key)) gapGroups.set(key, []);
+    gapGroups.get(key).push(row);
+  }
+  const gap_table = [];
+  for (const group of gapGroups.values()) {
+    const canonical = pickCanonicalRow(group);
+    const merged = {
+      keyword: canonical.keyword,
+      volume: canonical.volume,
+      target_position: canonical.target_position,
+      competitors: mergeCompetitors(group.map((r) => r.competitors)),
+    };
+    if (group.length > 1) {
+      const allSameVolume = group.every((r) => r.volume === canonical.volume);
+      merged.variant_count = group.length;
+      // Suppress variant evidence when the volume tie confirms aliasing; surface up to 3 otherwise.
+      if (!allSameVolume) {
+        merged.variants = group.filter((r) => r.keyword !== canonical.keyword).slice(0, 3).map((r) => ({ keyword: r.keyword, volume: r.volume }));
+      }
+    }
+    gap_table.push(merged);
+  }
+  gap_table.sort((a, b) => (b.volume || 0) - (a.volume || 0));
+
+  // Same canonical dedup for striking distance; tiebreak picks the row with the
+  // BEST target position (lowest number), then highest volume.
+  const rawStriking = [];
   for (const [kw, r] of targetIdx) {
     if (!r.position || r.position < 4 || r.position > 20) continue;
-    const uplift = ctrAt(curve, 1) - ctrAt(curve, r.position);
-    striking.push({ keyword: kw, volume: r.volume, position: r.position, ctr_uplift_modeled: Math.round(uplift * 1000) / 1000, opportunity_score: Math.round((r.volume || 0) * uplift), tag: "Modelado", curve_id: curve.id });
+    const upliftDecimal = ctrAt(curve, 1) - ctrAt(curve, r.position);
+    rawStriking.push({
+      keyword: kw,
+      volume: r.volume,
+      position: r.position,
+      ctr_uplift_modeled_pct: Math.round(upliftDecimal * 1000) / 10,
+      opportunity_score: Math.round((r.volume || 0) * upliftDecimal),
+      tag: "Modelado",
+      curve_id: curve.id,
+    });
   }
-  striking.sort((a, b) => b.opportunity_score - a.opportunity_score);
-  return { gap_table, striking_distance: striking };
+  const strikingGroups = new Map();
+  for (const row of rawStriking) {
+    const key = canonicalKeyword(row.keyword);
+    if (!strikingGroups.has(key)) strikingGroups.set(key, []);
+    strikingGroups.get(key).push(row);
+  }
+  const striking_distance = [];
+  for (const group of strikingGroups.values()) {
+    const canonical = [...group].sort((a, b) =>
+      (a.position || 999) - (b.position || 999)
+      || (b.volume || 0) - (a.volume || 0)
+      || (a.keyword?.length || 0) - (b.keyword?.length || 0),
+    )[0];
+    const merged = { ...canonical };
+    if (group.length > 1) {
+      merged.variant_count = group.length;
+      const allSameVolume = group.every((r) => r.volume === canonical.volume);
+      if (!allSameVolume) merged.variants = group.filter((r) => r.keyword !== canonical.keyword).slice(0, 3).map((r) => ({ keyword: r.keyword, volume: r.volume, position: r.position }));
+    }
+    striking_distance.push(merged);
+  }
+  striking_distance.sort((a, b) => (b.opportunity_score || 0) - (a.opportunity_score || 0));
+
+  return { gap_table, striking_distance };
 }
 function buildM4(backlinks, attachRun) {
   const players = Object.entries(backlinks);
@@ -273,11 +367,12 @@ function appendBrainLog({ projectRoot, runSlug, target, competitors, modulesRun 
   return true;
 }
 
-function fmt(n) { if (n == null) return "—"; if (typeof n === "number") return n.toLocaleString("pt-BR"); return String(n); }
 function safe(s) { return String(s ?? "").replace(/"/g, "\\\""); }
 
 function composeReport(ctx) {
-  const { target, competitors, runYaml } = ctx;
+  const { target, competitors, runYaml, locale } = ctx;
+  const fmt = (n) => formatNumber(n, locale);
+  const fmtPct = (n, opts = { maximumFractionDigits: 1 }) => formatPercent(n, locale, opts);
   const players = [target, ...competitors];
   const m = runYaml.modules;
   const out = [];
@@ -331,35 +426,37 @@ ${players.map((p, i) => `  - player: ${p}\n    role: ${i === 0 ? "alvo" : "conco
       const r = m.m1_footprint.by_player?.[p];
       if (!r) return null;
       const b = r.position_buckets || {};
-      return `  - player: ${p}\n    keywords_total: ${r.keywords_total}\n    estimated_traffic_etv: ${r.estimated_traffic_etv}\n    top_3: ${b["1_3"] || 0}\n    top_4_10: ${b["4_10"] || 0}\n    top_11_20: ${b["11_20"] || 0}\n    top_21_50: ${b["21_50"] || 0}`;
+      return `  - player: ${p}\n    keywords_total: ${JSON.stringify(fmt(r.keywords_total))}\n    estimated_traffic_etv: ${JSON.stringify(fmt(r.estimated_traffic_etv))}\n    top_3: ${JSON.stringify(fmt(b["1_3"] || 0))}\n    top_4_10: ${JSON.stringify(fmt(b["4_10"] || 0))}\n    top_11_20: ${JSON.stringify(fmt(b["11_20"] || 0))}\n    top_21_50: ${JSON.stringify(fmt(b["21_50"] || 0))}`;
     }).filter(Boolean).join("\n");
     out.push(`\n## Footprint orgânico\n\nUniverso de palavras-chave por domínio e tráfego orgânico estimado (ETV) do DataForSEO Labs.\n\n\`\`\`agentic-table\nversion: 1\ncolumns:\n  - key: player\n    label: Participante\n  - key: keywords_total\n    label: Keywords no top 100\n  - key: estimated_traffic_etv\n    label: Tráfego estimado (ETV)\n  - key: top_3\n    label: Top 1-3\n  - key: top_4_10\n    label: Top 4-10\n  - key: top_11_20\n    label: Top 11-20\n  - key: top_21_50\n    label: Top 21-50\nrows:\n${rows}\n\`\`\``);
   }
 
   if (m.m2_share_of_voice?.status === "complete") {
     const rows = m.m2_share_of_voice.sov_table.map((r) =>
-      `  - player: ${r.player}\n    keywords_in_top_20: ${r.keywords_in_top_20}\n    keywords_in_top_3: ${r.keywords_in_top_3}\n    sov_pct: ${r.sov_pct ?? 0}\n    soc_modeled: ${r.soc_modeled}`
+      `  - player: ${r.player}\n    keywords_in_top_20: ${JSON.stringify(fmt(r.keywords_in_top_20))}\n    keywords_in_top_3: ${JSON.stringify(fmt(r.keywords_in_top_3))}\n    sov_pct: ${JSON.stringify(fmtPct(r.sov_pct ?? 0))}\n    soc_modeled: ${JSON.stringify(fmt(r.soc_modeled))}`
     ).join("\n");
     const u = m.m2_share_of_voice.universe;
-    out.push(`\n## Share of Voice (modelado)\n\nUniverso de ${u.total} palavras-chave únicas (${u.with_volume} com volume, ${u.without_volume} sem volume — excluídas do peso). SoV = soma de \`volume × CTR(posição)\` dividida pelo total do mercado modelado pela curva ${runYaml.provider.ctr_curve.primary_id}.\n\n\`\`\`agentic-table\nversion: 1\ncolumns:\n  - key: player\n    label: Participante\n  - key: keywords_in_top_20\n    label: Keywords top 20\n  - key: keywords_in_top_3\n    label: Keywords top 1-3\n  - key: sov_pct\n    label: SoV (%) [Modelado]\n  - key: soc_modeled\n    label: Cliques modelados [Modelado]\nrows:\n${rows}\n\`\`\``);
+    out.push(`\n## Share of Voice (modelado)\n\nUniverso de ${fmt(u.total)} palavras-chave únicas (${fmt(u.with_volume)} com volume, ${fmt(u.without_volume)} sem volume — excluídas do peso). SoV = soma de \`volume × CTR(posição)\` dividida pelo total do mercado modelado pela curva ${runYaml.provider.ctr_curve.primary_id}.\n\n\`\`\`agentic-table\nversion: 1\ncolumns:\n  - key: player\n    label: Participante\n  - key: keywords_in_top_20\n    label: Keywords top 20\n  - key: keywords_in_top_3\n    label: Keywords top 1-3\n  - key: sov_pct\n    label: SoV [Modelado]\n  - key: soc_modeled\n    label: Cliques modelados [Modelado]\nrows:\n${rows}\n\`\`\``);
   }
 
   if (m.m3_keyword_gap?.status === "complete") {
     const gap = m.m3_keyword_gap.gap_table.slice(0, 15);
     const gapRows = gap.map((row) => {
       const comps = row.competitors.map((c) => `${c.name.split(".")[0]} #${c.position}`).join(" · ");
-      return `  - keyword: ${JSON.stringify(row.keyword)}\n    volume: ${row.volume ?? "—"}\n    target_position: ${row.target_position ?? "—"}\n    competitors: ${JSON.stringify(comps)}`;
+      const variantBadge = row.variant_count && row.variant_count > 1 ? ` (+${row.variant_count - 1} variantes)` : "";
+      return `  - keyword: ${JSON.stringify(row.keyword + variantBadge)}\n    volume: ${JSON.stringify(fmt(row.volume))}\n    target_position: ${JSON.stringify(row.target_position == null ? "—" : fmt(row.target_position))}\n    competitors: ${JSON.stringify(comps)}`;
     }).join("\n");
     const striking = m.m3_keyword_gap.striking_distance.slice(0, 10);
-    const stRows = striking.map((row) =>
-      `  - keyword: ${JSON.stringify(row.keyword)}\n    volume: ${row.volume ?? "—"}\n    position: ${row.position}\n    ctr_uplift_modeled: ${row.ctr_uplift_modeled}\n    opportunity_score: ${row.opportunity_score}`
-    ).join("\n");
-    out.push(`\n## Gap de palavras-chave (top 15 por volume)\n\nKeywords nas quais algum concorrente rankeia top 20 e o alvo está fora do top 100 (ou ausente).\n\n\`\`\`agentic-table\nversion: 1\ncolumns:\n  - key: keyword\n    label: Palavra-chave\n  - key: volume\n    label: Volume\n  - key: target_position\n    label: Posição alvo\n  - key: competitors\n    label: Concorrentes (posição)\nrows:\n${gapRows}\n\`\`\`\n\n## Oportunidades de avanço (striking distance — top 10)\n\nPosições 4-20 do alvo, ordenadas pelo ganho potencial modelado de subir até #1 (curva ${runYaml.provider.ctr_curve.primary_id}).\n\n\`\`\`agentic-table\nversion: 1\ncolumns:\n  - key: keyword\n    label: Palavra-chave\n  - key: volume\n    label: Volume\n  - key: position\n    label: Posição atual\n  - key: ctr_uplift_modeled\n    label: Uplift CTR [Modelado]\n  - key: opportunity_score\n    label: Score de oportunidade\nrows:\n${stRows}\n\`\`\``);
+    const stRows = striking.map((row) => {
+      const variantBadge = row.variant_count && row.variant_count > 1 ? ` (+${row.variant_count - 1} variantes)` : "";
+      return `  - keyword: ${JSON.stringify(row.keyword + variantBadge)}\n    volume: ${JSON.stringify(fmt(row.volume))}\n    position: ${JSON.stringify(fmt(row.position))}\n    ctr_uplift_modeled_pct: ${JSON.stringify(fmtPct(row.ctr_uplift_modeled_pct))}\n    opportunity_score: ${JSON.stringify(fmt(row.opportunity_score))}`;
+    }).join("\n");
+    out.push(`\n## Gap de palavras-chave (top 15 por volume)\n\nKeywords nas quais algum concorrente rankeia top 20 e o alvo está fora do top 100 (ou ausente). Variantes ortográficas com mesma intenção são mescladas; o sufixo \`(+N variantes)\` indica grupos colapsados.\n\n\`\`\`agentic-table\nversion: 1\ncolumns:\n  - key: keyword\n    label: Palavra-chave\n  - key: volume\n    label: Volume\n  - key: target_position\n    label: Posição alvo\n  - key: competitors\n    label: Concorrentes (posição)\nrows:\n${gapRows}\n\`\`\`\n\n## Oportunidades de avanço (striking distance — top 10)\n\nPosições 4-20 do alvo, ordenadas pelo ganho potencial modelado de subir até #1 (curva ${runYaml.provider.ctr_curve.primary_id}).\n\n\`\`\`agentic-table\nversion: 1\ncolumns:\n  - key: keyword\n    label: Palavra-chave\n  - key: volume\n    label: Volume\n  - key: position\n    label: Posição atual\n  - key: ctr_uplift_modeled_pct\n    label: Uplift CTR [Modelado]\n  - key: opportunity_score\n    label: Score de oportunidade\nrows:\n${stRows}\n\`\`\``);
   }
 
   if (m.m4_link_gap?.status === "referenced") {
     const rows = m.m4_link_gap.players.map((r) =>
-      `  - player: ${r.player}\n    backlinks: ${r.backlinks ?? "—"}\n    referring_domains: ${r.referring_domains ?? "—"}\n    backlinks_per_rd: ${r.backlinks_per_referring_domain ?? "—"}\n    rank: ${r.rank ?? "—"}\n    spam_score: ${r.spam_score ?? "—"}`
+      `  - player: ${r.player}\n    backlinks: ${JSON.stringify(fmt(r.backlinks))}\n    referring_domains: ${JSON.stringify(fmt(r.referring_domains))}\n    backlinks_per_rd: ${JSON.stringify(fmt(r.backlinks_per_referring_domain))}\n    rank: ${JSON.stringify(fmt(r.rank))}\n    spam_score: ${JSON.stringify(fmt(r.spam_score))}`
     ).join("\n");
     out.push(`\n## Perfil de backlinks\n\nHeadline KPIs a partir de \`/v3/backlinks/summary/live\`. Link Gap por RD entre os players, anchor diff cross-player e velocity delta exigem \`backlink-analysis\` em modo multi-competitor — referenciado, não duplicado neste módulo.\n\n\`\`\`agentic-table\nversion: 1\ncolumns:\n  - key: player\n    label: Participante\n  - key: backlinks\n    label: Backlinks\n  - key: referring_domains\n    label: Domínios referenciadores\n  - key: backlinks_per_rd\n    label: Backlinks por RD\n  - key: rank\n    label: Rank DataForSEO\n  - key: spam_score\n    label: Spam score\nrows:\n${rows}\n\`\`\``);
   }
@@ -367,7 +464,7 @@ ${players.map((p, i) => `  - player: ${p}\n    role: ${i === 0 ? "alvo" : "conco
   if (m.m5_content_footprint?.status === "complete") {
     const rows = m.m5_content_footprint.players.map((r) => {
       const tops = r.top_paths.map((p) => `${p.path} (${fmt(p.urls)})`).join(", ");
-      return `  - player: ${r.player}\n    total_urls: ${fmt(r.total_urls)}\n    discovery_method: ${r.discovery_method || "—"}\n    top_paths: ${JSON.stringify(tops)}`;
+      return `  - player: ${r.player}\n    total_urls: ${JSON.stringify(fmt(r.total_urls))}\n    discovery_method: ${r.discovery_method || "—"}\n    top_paths: ${JSON.stringify(tops)}`;
     }).join("\n");
     out.push(`\n## Cobertura editorial (sitemap)\n\nInventário de URLs por seção do sitemap. Indica profundidade editorial; não é juízo de qualidade.\n\n\`\`\`agentic-table\nversion: 1\ncolumns:\n  - key: player\n    label: Participante\n  - key: total_urls\n    label: URLs no sitemap\n  - key: discovery_method\n    label: Método de descoberta\n  - key: top_paths\n    label: Seções principais\nrows:\n${rows}\n\`\`\``);
   }
@@ -396,30 +493,32 @@ ${players.map((p, i) => `  - player: ${p}\n    role: ${i === 0 ? "alvo" : "conco
   return out.join("\n");
 }
 
-function synthesize({ target, competitors, runYaml }) {
+function synthesize({ target, competitors, runYaml, locale }) {
   const lines = [];
+  const fmt = (n) => formatNumber(n, locale);
+  const fmtPct = (n) => formatPercent(n, locale);
   const m = runYaml.modules;
   const sov = m.m2_share_of_voice?.sov_table || [];
   const sovT = sov.find((r) => r.player === target); const sovC = sov.find((r) => r.player === competitors[0]);
   if (sovT && sovC) {
-    if (sovT.sov_pct > sovC.sov_pct) lines.push(`No universo amostrado, **${target}** lidera o Share of Voice modelado (${sovT.sov_pct}% vs ${sovC.sov_pct}% de ${competitors[0]}).`);
-    else if (sovT.sov_pct < sovC.sov_pct) lines.push(`No universo amostrado, **${competitors[0]}** lidera o SoV modelado (${sovC.sov_pct}% vs ${sovT.sov_pct}% de ${target}).`);
+    if (sovT.sov_pct > sovC.sov_pct) lines.push(`No universo amostrado, **${target}** lidera o Share of Voice modelado (${fmtPct(sovT.sov_pct)} vs ${fmtPct(sovC.sov_pct)} de ${competitors[0]}).`);
+    else if (sovT.sov_pct < sovC.sov_pct) lines.push(`No universo amostrado, **${competitors[0]}** lidera o SoV modelado (${fmtPct(sovC.sov_pct)} vs ${fmtPct(sovT.sov_pct)} de ${target}).`);
   }
   const bl = m.m4_link_gap?.players || [];
   const bT = bl.find((r) => r.player === target); const bC = bl.find((r) => r.player === competitors[0]);
   if (bT?.referring_domains && bC?.referring_domains) {
     const ratio = Math.round((bT.referring_domains / bC.referring_domains) * 10) / 10;
-    if (ratio >= 1.5) lines.push(`**${target}** tem ${ratio}× mais domínios referenciadores que **${competitors[0]}** (${bT.referring_domains} vs ${bC.referring_domains}).`);
-    else if (ratio <= 0.66) lines.push(`**${competitors[0]}** tem ${Math.round(1 / ratio * 10) / 10}× mais domínios referenciadores que **${target}**.`);
+    if (ratio >= 1.5) lines.push(`**${target}** tem ${fmt(ratio)}× mais domínios referenciadores que **${competitors[0]}** (${fmt(bT.referring_domains)} vs ${fmt(bC.referring_domains)}).`);
+    else if (ratio <= 0.66) lines.push(`**${competitors[0]}** tem ${fmt(Math.round(1 / ratio * 10) / 10)}× mais domínios referenciadores que **${target}**.`);
   }
   if (bT?.spam_score != null && bC?.spam_score != null && Math.abs(bT.spam_score - bC.spam_score) > 5) {
     const dirty = bT.spam_score > bC.spam_score ? target : competitors[0];
     lines.push(`Spam score divergente: **${dirty}** carrega o maior; recomenda-se auditoria de RDs antes de qualquer decisão de disavow.`);
   }
   const gap = m.m3_keyword_gap?.gap_table || [];
-  if (gap.length) lines.push(`${gap.length} keywords gap relevantes; top 3 por volume: ${gap.slice(0, 3).map((r) => `\`${r.keyword}\``).join(", ")}.`);
+  if (gap.length) lines.push(`${fmt(gap.length)} keywords gap relevantes; top 3 por volume: ${gap.slice(0, 3).map((r) => `\`${r.keyword}\``).join(", ")}.`);
   const st = m.m3_keyword_gap?.striking_distance || [];
-  if (st.length) lines.push(`${st.length} oportunidades em striking distance; o top do ranking de oportunidade é \`${st[0].keyword}\` (volume ${fmt(st[0].volume)}, posição ${st[0].position}).`);
+  if (st.length) lines.push(`${fmt(st.length)} oportunidades em striking distance; o top do ranking de oportunidade é \`${st[0].keyword}\` (volume ${fmt(st[0].volume)}, posição ${fmt(st[0].position)}).`);
   const claims = m.m7_brand?.claims_unverified || [];
   if (claims.length) lines.push(`A home de **${claims[0].player}** carrega claim superlativo sem fonte verificável adjacente — investigação recomendada antes de virar prova competitiva.`);
   return lines.length ? lines.map((l) => `- ${l}`).join("\n") : "- Sem leituras automáticas geradas; ver tabelas acima.";
@@ -455,6 +554,8 @@ async function main() {
     process.exit(2);
   }
   const mode = modeResolution.mode;
+  // Project language resolves locale-aware formatting across the report.
+  const locale = getProjectLanguage(PROJECT);
   const presetName = String(args.preset || "domain-full");
   const enabledModules = new Set(PRESETS[presetName] || PRESETS["domain-full"]);
   if (args.modules) for (const m of String(args.modules).split(",")) enabledModules.add(m.trim());
@@ -588,8 +689,8 @@ async function main() {
     "Validar claims declarados na homepage (superlativos) com fontes verificáveis antes de promover para a brain do projeto.",
   ];
 
-  const synthesis = synthesize({ target, competitors, runYaml });
-  const md = composeReport({ target, competitors, runYaml, lead, synthesis, limitations, nextActions });
+  const synthesis = synthesize({ target, competitors, runYaml, locale });
+  const md = composeReport({ target, competitors, runYaml, lead, synthesis, limitations, nextActions, locale });
   writeText(reportPath, md);
 
   // Brain decision gate: M7 (brand synthesis) is the module that proposes brain

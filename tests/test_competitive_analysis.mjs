@@ -102,6 +102,35 @@ try {
   const curveYaml = YAML.parse(readFileSync(join(projectDir, "audits", `competitive-${curveRun.run_slug}`, "report.yaml"), "utf8"));
   assert.equal(curveYaml.provider.ctr_curve.primary_id, "fps_2026", "AWR placeholder must fall back to fps_2026");
 
+  // 6. Near-duplicate dedup: the 4 "landing page" variants in the offline fixture
+  //    must collapse to a single gap row with variant_count = 4 (or at least > 1).
+  const dedupRun = runRaw(["competitive-analysis", "--target", "example.com", "--competitors", "competitor-a.com", "--offline"]);
+  const dedupYaml = YAML.parse(readFileSync(join(projectDir, "audits", `competitive-${dedupRun.run_slug}`, "report.yaml"), "utf8"));
+  const gapRows = dedupYaml.modules.m3_keyword_gap?.gap_table || [];
+  const landingRows = gapRows.filter((r) => /landing\s*page/i.test(r.keyword || ""));
+  assert.equal(landingRows.length, 1, `expected one collapsed landing-page row, got ${landingRows.length}: ${landingRows.map((r) => r.keyword).join(" | ")}`);
+  assert.ok(landingRows[0].variant_count && landingRows[0].variant_count > 1, "collapsed row must carry variant_count > 1");
+
+  // 7. CTR-as-%: striking distance rows expose ctr_uplift_modeled_pct (0..100), never the
+  //    legacy ctr_uplift_modeled decimal.
+  const striking = dedupYaml.modules.m3_keyword_gap?.striking_distance || [];
+  if (striking.length > 0) {
+    for (const row of striking) {
+      assert.ok("ctr_uplift_modeled_pct" in row, `striking row must include ctr_uplift_modeled_pct, got: ${Object.keys(row).join(", ")}`);
+      assert.ok(!("ctr_uplift_modeled" in row), "legacy ctr_uplift_modeled must be removed");
+      if (row.ctr_uplift_modeled_pct != null) {
+        assert.ok(row.ctr_uplift_modeled_pct >= 0 && row.ctr_uplift_modeled_pct <= 100, `pct must be 0..100, got ${row.ctr_uplift_modeled_pct}`);
+      }
+    }
+  }
+
+  // 8. Locale formatting in the generated report.md (pt-BR default): the body must
+  //    contain at least one number with a dot thousands separator OR a comma decimal,
+  //    and not contain bare unformatted thousands like "60500".
+  const reportBody = readFileSync(join(projectDir, dedupRun.report_md), "utf8");
+  assert.match(reportBody, /\d\.\d{3}(\b|[",])|\d,\d/, "report must contain pt-BR locale-formatted number");
+  assert.doesNotMatch(reportBody, /\bvolume:\s*60500\b/, "report must not contain raw unformatted thousands");
+
   console.log("competitive-analysis ok");
 } finally {
   rmSync(tmp, { recursive: true, force: true });

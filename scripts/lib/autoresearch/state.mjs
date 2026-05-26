@@ -1,21 +1,9 @@
 import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { join } from "node:path";
-
-const ASCII_FOLD = {
-  á: "a", à: "a", ã: "a", â: "a", ä: "a", å: "a",
-  é: "e", è: "e", ê: "e", ë: "e",
-  í: "i", ì: "i", î: "i", ï: "i",
-  ó: "o", ò: "o", õ: "o", ô: "o", ö: "o",
-  ú: "u", ù: "u", û: "u", ü: "u",
-  ç: "c", ñ: "n",
-};
+import { slugify as baseSlugify } from "../../../shared/locale.mjs";
 
 export function slugify(text, maxLen = 32) {
-  const folded = text.toLowerCase().replace(/./g, (ch) => ASCII_FOLD[ch] ?? ch);
-  const kebab = folded
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return kebab.slice(0, maxLen).replace(/-+$/, "");
+  return baseSlugify(text).slice(0, maxLen).replace(/-+$/, "");
 }
 
 function timestamp(d = new Date()) {
