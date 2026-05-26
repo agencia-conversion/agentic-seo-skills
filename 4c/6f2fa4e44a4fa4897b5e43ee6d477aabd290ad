@@ -1,0 +1,52 @@
+skills/competitive-analysis/references/modules/M5-content-footprint.md
+  s_529b03f3f0def1::t_530cae901212a2 1-78
+skills/competitive-analysis/references/modules/M1-footprint.md
+  s_529b03f3f0def1::t_37e57abf30bd86 1-52
+skills/competitive-analysis/references/modules/M4-link-gap.md
+  s_529b03f3f0def1::t_dff6247315adea 1-42
+templates/analyses/competitive-analysis/report-skeleton.md
+  s_529b03f3f0def1::t_b07343fc8895f0 1-244
+skills/competitive-analysis/contract.yaml
+  s_529b03f3f0def1::t_21b4d4f0a6a4e6 1-26
+shared/report-modules.js
+  s_529b03f3f0def1::t_ea6afe03f1833d 17
+skills/competitive-analysis/references/modules/M7-brand.md
+  s_529b03f3f0def1::t_ee67776f24608d 1-93
+skills/competitive-analysis/evals/fixture.md
+  s_529b03f3f0def1::t_3158319aef4d41 1-67
+skills/agentic-seo/SKILL.md
+  s_529b03f3f0def1::t_b071580ea0ca6b 30
+  s_529b03f3f0def1::t_9465fdc40a2628 100-101
+shared/report-modules.d.ts
+  s_529b03f3f0def1::t_b6e2b74966a200 8-14
+skills/page-report/SKILL.md
+  s_529b03f3f0def1::t_0590ba81204e18 14
+  s_529b03f3f0def1::t_6408ff6afde2f9 78
+skills/competitive-analysis/SKILL.md
+  s_529b03f3f0def1::t_578258e14b895d 1-250
+skills/competitive-analysis/references/modules/M3-keyword-gap.md
+  s_529b03f3f0def1::t_2a6abfcb8a7b6c 1-62
+skills/competitive-analysis/references/modules/M6-head-to-head.md
+  s_529b03f3f0def1::t_c03ba123791d82 1-68
+skills/competitive-analysis/references/modules/M2-share-of-voice.md
+  s_529b03f3f0def1::t_0d96cd878aaaef 1-78
+scripts/lib/report-contract.mjs
+  s_529b03f3f0def1::t_d9ca9cf1fe0a3a 8,10-12
+  s_529b03f3f0def1::t_49e9ea4679d80f 340
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "4c6f2fa4e44a4fa4897b5e43ee6d477aabd290ad",
+  "prompts": {},
+  "sessions": {
+    "s_529b03f3f0def1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "df019ed3-d1e7-4d1b-8c87-45ef6ed101cd",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
