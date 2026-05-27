@@ -1,0 +1,27 @@
+apps/companion/e2e/crud-full-flow.spec.ts
+  s_add44d6c3a39cb::t_81e89d371865c4 2,138,141-144,153,156-168,170-171
+apps/companion/e2e/cluster-sync.spec.ts
+  s_add44d6c3a39cb::t_81e89d371865c4 2-4,325-327,341-349
+apps/companion/e2e/crud-empty-state.spec.ts
+  s_add44d6c3a39cb::t_81e89d371865c4 91-95,104,107-113,120,126
+apps/companion/e2e/inline-edits-persist.spec.ts
+  s_add44d6c3a39cb::t_81e89d371865c4 198,201-207,209,240-246,253,256-268,271-277
+apps/companion/e2e/crud-content-lifecycle.spec.ts
+  s_add44d6c3a39cb::t_81e89d371865c4 98,101-104,116-121,175-183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "fdffd9f2e7e61246dae4dc9fe4b4543404b83f2b",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
