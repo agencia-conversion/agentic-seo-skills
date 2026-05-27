@@ -795,8 +795,10 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                         </td>
                       )}
                       {isColVisible('content') && (
-                        <td className="px-2.5 py-1.5 align-top max-w-[280px]">
-                          <ContentLink row={row} />
+                        <td className="px-2.5 py-1.5 align-top">
+                          <div className="max-w-[280px] overflow-hidden">
+                            <ContentLink row={row} />
+                          </div>
                         </td>
                       )}
                       {isColVisible('keyword') && (
