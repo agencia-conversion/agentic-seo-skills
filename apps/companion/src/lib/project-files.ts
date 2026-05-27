@@ -65,10 +65,46 @@ function nowIso() {
 
 function normalizeProjectRoot(projectRoot?: string | null) {
   const root = resolve(/*turbopackIgnore: true*/ projectRoot || process.env.AGENTIC_SEO_PROJECT_ROOT || 'project');
+  // Auto-fix legacy project/content/ → project/contents/ before any read so
+  // the watcher and downstream APIs see the canonical layout. Safe to call
+  // repeatedly (no-op when already canonical).
+  applyLegacyContentRename(root);
   // Lazily start the external-edit watcher on the first API call that
   // resolves a project root. Idempotent.
   ensureWatcherStarted(root);
   return root;
+}
+
+// Tracks one-time auto-renames per project root so we log only once.
+const AUTO_RENAMED_ROOTS = new Set<string>();
+
+export function applyLegacyContentRename(root: string) {
+  const legacy = join(root, 'content');
+  const canonical = join(root, 'contents');
+  let legacyExists = false;
+  let canonicalExists = false;
+  try {
+    legacyExists = existsSync(legacy) && statSync(legacy).isDirectory();
+  } catch {
+    legacyExists = false;
+  }
+  try {
+    canonicalExists = existsSync(canonical) && statSync(canonical).isDirectory();
+  } catch {
+    canonicalExists = false;
+  }
+  if (!legacyExists || canonicalExists) return false;
+  try {
+    renameSync(legacy, canonical);
+  } catch {
+    return false;
+  }
+  if (!AUTO_RENAMED_ROOTS.has(root)) {
+    AUTO_RENAMED_ROOTS.add(root);
+    // eslint-disable-next-line no-console
+    console.warn(`[agentic-seo] auto-renamed ${legacy} → ${canonical}`);
+  }
+  return true;
 }
 
 function yamlString(value: unknown) {
@@ -481,10 +517,13 @@ export function detectProjectWarnings(root: string): ProjectWarning[] {
   const legacyExists = existsSync(legacy) && statSync(legacy).isDirectory();
   const canonicalExists = existsSync(canonical) && statSync(canonical).isDirectory();
   if (legacyExists && !canonicalExists) {
+    // Should be rare since normalizeProjectRoot() auto-renames. Only seen
+    // when the rename failed (permissions, locked files). Keep the warning
+    // as a fallback so the user notices.
     warnings.push({
       code: 'legacy-content-dir',
       message:
-        'project/content/ existe (legado). O Companion só lê project/contents/. Rode `mv project/content project/contents` para migrar.',
+        'project/content/ existe (legado) e o auto-rename para project/contents/ falhou. Rode `mv project/content project/contents` manualmente.',
       details: { legacy, canonical },
     });
   } else if (legacyExists && canonicalExists) {
