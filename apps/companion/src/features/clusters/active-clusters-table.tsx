@@ -40,15 +40,17 @@ function SortableHeader({
   label,
   sort,
   onToggle,
+  width,
 }: {
   column: string;
   label: string;
   sort: SortState | null;
   onToggle: (column: string) => void;
+  width?: string;
 }) {
   const active = sort?.column === column;
   return (
-    <th className="px-2.5 py-1.5 font-medium">
+    <th className={`px-2.5 py-1.5 font-medium${width ? ` ${width}` : ''}`}>
       <button
         type="button"
         onClick={() => onToggle(column)}
@@ -130,8 +132,6 @@ function readValue(row: ClusterSummary, column: string): string {
       return row.pillar_title || row.pillar_slug || '';
     case 'published':
       return String(row.published || 0);
-    case 'planned':
-      return String(row.planned || 0);
     case 'status':
       return row.status || '';
     case 'updated':
@@ -233,7 +233,6 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
     { id: 'cluster', label: 'Cluster', filterKind: 'text' },
     { id: 'pillar', label: 'Pilar', filterKind: 'text' },
     { id: 'published', label: 'Publicados', filterKind: 'text' },
-    { id: 'planned', label: 'Planejados', filterKind: 'text' },
     { id: 'status', label: 'Status', filterKind: 'select', filterOptions: [
       { value: 'active', label: 'active' },
       { value: 'drafting', label: 'drafting' },
@@ -354,11 +353,10 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                   </th>
                   {isVisible('cluster') && <SortableHeader column="cluster" label="Cluster" sort={sort} onToggle={cycleSort} />}
                   {isVisible('pillar') && <SortableHeader column="pillar" label="Pilar" sort={sort} onToggle={cycleSort} />}
-                  {isVisible('published') && <SortableHeader column="published" label="Publicados" sort={sort} onToggle={cycleSort} />}
-                  {isVisible('planned') && <SortableHeader column="planned" label="Planejados" sort={sort} onToggle={cycleSort} />}
+                  {isVisible('published') && <SortableHeader column="published" label="Publicados" sort={sort} onToggle={cycleSort} width="w-[90px]" />}
                   {isVisible('status') && <SortableHeader column="status" label="Status" sort={sort} onToggle={cycleSort} />}
                   {isVisible('updated') && <SortableHeader column="updated" label="Atualizado" sort={sort} onToggle={cycleSort} />}
-                  <th className="px-2.5 py-1.5 font-medium" />
+                  <th className="w-10 px-1 py-1.5 font-medium" />
                 </tr>
               </thead>
               <tbody>
@@ -380,7 +378,7 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                       />
                     </td>
                     {isVisible('cluster') && (
-                      <td className="px-2.5 py-1.5 align-top min-w-[220px]">
+                      <td className="px-2.5 py-1.5 align-top min-w-[320px]">
                         <div className="flex items-center gap-1.5">
                           {editingClusterSlug === row.slug ? (
                             <RenameClusterInput
@@ -435,8 +433,14 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                         </div>
                       </td>
                     )}
-                    {isVisible('published') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.published}</td>}
-                    {isVisible('planned') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.planned}</td>}
+                    {isVisible('published') && (
+                      <td
+                        className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted tabular-nums w-[90px]"
+                        title={`${row.published} publicado(s) / ${row.published + row.planned} total (publicados + planejados)`}
+                      >
+                        {row.published}/{row.published + row.planned}
+                      </td>
+                    )}
                     {isVisible('status') && (
                       <td className="px-2.5 py-1.5 align-top min-w-[120px]">
                         <EditableSelectCell
@@ -454,7 +458,7 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                       </td>
                     )}
                     {isVisible('updated') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.updated || '—'}</td>}
-                    <td className="px-2.5 py-1.5 align-top text-right">
+                    <td className="w-10 px-1 py-1.5 align-top text-right">
                       <ClusterRowActionsMenu
                         slug={row.slug}
                         name={row.name}
