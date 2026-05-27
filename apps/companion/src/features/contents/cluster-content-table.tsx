@@ -82,6 +82,8 @@ function useClusterData(slug: string | null) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [tick, setTick] = useState(0);
+  const dataRef = useRef<ClusterResponse | null>(null);
+  dataRef.current = data;
 
   useEffect(() => {
     if (!slug) {
@@ -95,7 +97,8 @@ function useClusterData(slug: string | null) {
       setError('missing-token');
       return;
     }
-    setLoading(true);
+    const silent = dataRef.current !== null;
+    if (!silent) setLoading(true);
     fetch(`/api/project/cluster/${encodeURIComponent(slug)}?token=${encodeURIComponent(token)}`, {
       headers: { 'x-companion-token': token },
     })
@@ -105,7 +108,7 @@ function useClusterData(slug: string | null) {
         setError(null);
       })
       .catch((err) => setError(String(err?.message || err)))
-      .finally(() => setLoading(false));
+      .finally(() => { if (!silent) setLoading(false); });
   }, [slug, tick]);
 
   const refetch = useCallback(() => setTick((n) => n + 1), []);
@@ -134,6 +137,9 @@ function useAllContentsData(
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [tick, setTick] = useState(0);
+  const dataRef = useRef<AllContentsResponse | null>(null);
+  dataRef.current = data;
+  const lastParamsRef = useRef<string>('');
 
   useEffect(() => {
     if (!enabled) {
@@ -155,7 +161,11 @@ function useAllContentsData(
       params.set('sort', mapped);
       params.set('direction', sort.direction);
     }
-    setLoading(true);
+    const paramsKey = params.toString();
+    const paramsChanged = paramsKey !== lastParamsRef.current;
+    const silent = dataRef.current !== null && !paramsChanged;
+    lastParamsRef.current = paramsKey;
+    if (!silent) setLoading(true);
     fetch(`/api/project/contents?${params}`, {
       headers: { 'x-companion-token': token },
     })
@@ -165,7 +175,7 @@ function useAllContentsData(
         setError(null);
       })
       .catch((err) => setError(String(err?.message || err)))
-      .finally(() => setLoading(false));
+      .finally(() => { if (!silent) setLoading(false); });
   }, [enabled, query, topicCluster, page, sort, tick]);
 
   const refetch = useCallback(() => setTick((n) => n + 1), []);

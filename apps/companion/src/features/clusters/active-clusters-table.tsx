@@ -169,10 +169,12 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
   const hiddenColumns = useMemo(() => new Set(hiddenByTable[tableKey] || []), [hiddenByTable]);
   const locale: 'pt-BR' | 'en' = settings.language === 'en' ? 'en' : 'pt-BR';
 
-  const fetchClusters = useCallback(async () => {
+  const hasLoadedOnce = useRef(false);
+  const fetchClusters = useCallback(async (opts?: { silent?: boolean }) => {
     const companionToken = getCompanionToken();
     if (!companionToken) return;
-    setLoading(true);
+    const silent = opts?.silent ?? hasLoadedOnce.current;
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const res = await fetch(`/api/project/clusters?token=${encodeURIComponent(companionToken)}`, {
@@ -181,10 +183,11 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
       const json = await res.json();
       if (!json.ok) throw new Error(json.reason || 'cluster-load-failed');
       setClusters(json.clusters || []);
+      hasLoadedOnce.current = true;
     } catch (err) {
       setError(String((err as Error).message || err));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -347,9 +350,9 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
           </div>
         </header>
         {error && <div className="px-4 py-3 text-xs text-red-600">Erro ao carregar: {error}</div>}
-        {loading && <div className="px-4 py-3 text-xs text-notion-text-muted">Carregando…</div>}
+        {loading && clusters.length === 0 && <div className="px-4 py-3 text-xs text-notion-text-muted">Carregando…</div>}
         {!loading && activeRows.length === 0 && <div className="px-4 py-3 text-xs text-notion-text-muted">Nenhum cluster ativo.</div>}
-        {!loading && activeRows.length > 0 && (
+        {activeRows.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -401,9 +404,14 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                               initial={row.name}
                               onCancel={() => setEditingClusterSlug(null)}
                               onCommit={async (value) => {
-                                const result = await patchCluster(row.slug, { name: value });
+                                const previous = row.name;
+                                setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, name: value } : c)));
                                 setEditingClusterSlug(null);
-                                if (!result.ok) showToast(formatRowError('cluster', result.reason, locale), 'error');
+                                const result = await patchCluster(row.slug, { name: value });
+                                if (!result.ok) {
+                                  setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, name: previous } : c)));
+                                  showToast(formatRowError('cluster', result.reason, locale), 'error');
+                                }
                               }}
                             />
                           ) : (
@@ -467,8 +475,13 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                             { value: 'proposed', label: 'proposed' },
                           ]}
                           onCommit={async (value) => {
+                            const previous = row.status;
+                            setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, status: value } : c)));
                             const result = await patchCluster(row.slug, { status: value });
-                            if (!result.ok) showToast(formatRowError('status', result.reason, locale), 'error');
+                            if (!result.ok) {
+                              setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, status: previous } : c)));
+                              showToast(formatRowError('status', result.reason, locale), 'error');
+                            }
                           }}
                         />
                       </td>
@@ -485,8 +498,11 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                         }}
                         onRename={() => setEditingClusterSlug(row.slug)}
                         onStatusChange={async (next) => {
+                          const previous = row.status;
+                          setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, status: next } : c)));
                           const result = await patchCluster(row.slug, { status: next });
                           if (!result.ok) {
+                            setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, status: previous } : c)));
                             showToast(formatRowError('status', result.reason, locale), 'error');
                           } else {
                             showToast(`Status atualizado: ${next}`, 'success');
