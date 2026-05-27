@@ -1,0 +1,20 @@
+apps/companion/e2e/sync-3-views.spec.ts
+  s_add44d6c3a39cb::t_b787522902803d 231-233
+  s_add44d6c3a39cb::t_9739f138d5ed11 1-230,234-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1079a962804e1e05fb02c14b2bff29c0b9e50991",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
