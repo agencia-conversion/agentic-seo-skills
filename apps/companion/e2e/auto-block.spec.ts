@@ -205,14 +205,9 @@ test.describe('auto-block API + reverse-sync', () => {
     const afterYaml = readClusterYaml();
     expect(afterYaml.name).toBe('Sample Cluster — Reverse-Sync');
 
-    // Restore.
-    writeFileSync(topicClustersPath, original, 'utf8');
-    const restore = spawnSync('node', [
-      join(PLUGIN_ROOT, 'scripts', 'cluster-sync.mjs'),
-      `--root=${PROJECT_ROOT}`,
-    ]);
-    expect(restore.status).toBe(0);
-    // Manually set name back via mutate API style (write directly via YAML).
+    // Restore. Set cluster.yaml.name FIRST so the subsequent cluster-sync
+    // re-renders brain tables with the original name (otherwise sync would
+    // re-materialize them using the modified name, leaking into later tests).
     const restoreYaml = readClusterYaml();
     restoreYaml.name = beforeYaml.name;
     writeFileSync(
@@ -220,6 +215,12 @@ test.describe('auto-block API + reverse-sync', () => {
       YAML.stringify(restoreYaml, { lineWidth: 0 }),
       'utf8',
     );
+    writeFileSync(topicClustersPath, original, 'utf8');
+    const restore = spawnSync('node', [
+      join(PLUGIN_ROOT, 'scripts', 'cluster-sync.mjs'),
+      `--root=${PROJECT_ROOT}`,
+    ]);
+    expect(restore.status).toBe(0);
   });
 });
 
