@@ -1,0 +1,35 @@
+apps/companion/e2e/fixtures/sample-project/brain/companion-cluster-content-demo.md
+  s_add44d6c3a39cb::t_59e6c11fa622e4 15-21
+  s_add44d6c3a39cb::t_7bb6a22ad4b070 1-14,22
+apps/companion/e2e/auto-block-row-drag.spec.ts
+  s_add44d6c3a39cb::t_c24b84747a0837 49-54,94
+  s_add44d6c3a39cb::t_9a69f45b76d857 1-42,95-122,166-178
+  s_add44d6c3a39cb::t_484d3a6dac4310 43-48,55-93
+  s_add44d6c3a39cb::t_4e7d2ade763211 143-145
+  s_add44d6c3a39cb::t_dfac9376b716b8 123-127,165
+  s_add44d6c3a39cb::t_71810d8c45f2b7 128-142,146-164
+apps/companion/e2e/auto-block-cell-edit.spec.ts
+  s_add44d6c3a39cb::t_1a385ecf4465af 1-99,105-107,109-168
+  s_add44d6c3a39cb::t_a938afd3c8d864 100-104,108
+apps/companion/e2e/fixtures/sample-project/brain/companion-row-drag-demo.md
+  s_add44d6c3a39cb::t_59e6c11fa622e4 17-23,31-34
+  s_add44d6c3a39cb::t_4ab678a0177a8a 1-16,24-30,35
+apps/companion/e2e/auto-block.spec.ts
+  s_add44d6c3a39cb::t_b690d125d5042b 208-210,218-223
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "889afc3e2d522ed56ddfb18ba07da441b1f72ed5",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
