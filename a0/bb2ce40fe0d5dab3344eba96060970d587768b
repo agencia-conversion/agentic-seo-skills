@@ -1,0 +1,24 @@
+apps/companion/src/features/workspace/store.ts
+  s_add44d6c3a39cb::t_4e54ef37ccf5d1 699-700,703-733,735
+apps/companion/e2e/rename-cluster-no-freeze.spec.ts
+  s_add44d6c3a39cb::t_8603519e6766e3 17-21
+  s_add44d6c3a39cb::t_fbdb20d3382d12 38
+  s_add44d6c3a39cb::t_6058f11b618afe 1-16,22-34,39-57
+  s_add44d6c3a39cb::t_69b3b9d5f15ba6 35-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a0bb2ce40fe0d5dab3344eba96060970d587768b",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
