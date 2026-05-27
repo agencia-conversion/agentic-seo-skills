@@ -49,6 +49,16 @@ function deriveRelPath(projectRoot: string, absPath: string): string | null {
   return rel || null;
 }
 
+// Serializing flag: multiple handleEvent calls can fire in the same tick
+// (e.g. one for a brain/ path and one for a clusters/ path). The brain
+// branch awaits runReverseSyncForFile before calling runClusterSyncHook,
+// which yields the event loop and lets the second handleEvent pass the
+// `isCompanionSyncActive` gate before the first one has called
+// `beginCompanionSync`. Two concurrent cluster-sync subprocesses then race
+// over the same cluster.yaml. This flag closes that window so handleEvent
+// runs at most one at a time.
+let handleEventInFlight = false;
+
 async function handleEvent(projectRoot: string, absPath: string): Promise<void> {
   const filePath = normalize(absPath);
   // Silence guard: own writes should not bounce back through reverse-sync.
@@ -57,36 +67,47 @@ async function handleEvent(projectRoot: string, absPath: string): Promise<void> 
   // the watcher entirely. Reverse-sync would otherwise race the spawn and
   // bounce file changes back through unrelated test workflows.
   if (isCompanionSyncActive()) return;
+  if (handleEventInFlight) return;
   const rel = deriveRelPath(projectRoot, filePath);
   if (!rel) return;
+  handleEventInFlight = true;
 
-  // Brain markdown with potential auto-block fences: run reverse-sync.
-  if (rel.startsWith('brain/') && rel.endsWith('.md')) {
-    reverseSyncCount++;
-    // Silence the file we may rewrite at the end of reverse-sync so the
-    // resulting change event does not trigger a second run.
-    silenceWrite(filePath);
-    try {
-      await runReverseSyncForFile(filePath);
-    } catch {
-      // Errors are non-fatal; keep watcher alive.
+  try {
+    // Brain markdown with potential auto-block fences: run reverse-sync.
+    if (rel.startsWith('brain/') && rel.endsWith('.md')) {
+      reverseSyncCount++;
+      // Silence the file we may rewrite at the end of reverse-sync so the
+      // resulting change event does not trigger a second run.
+      silenceWrite(filePath);
+      try {
+        await runReverseSyncForFile(filePath);
+      } catch {
+        // Errors are non-fatal; keep watcher alive.
+      }
     }
-  }
 
-  // Content markdown or cluster yaml: trigger cluster-sync so materialized
-  // brain tables refresh to match the new canonical state.
-  if (
-    (rel.startsWith('contents/') && rel.endsWith('.md')) ||
-    (rel.startsWith('clusters/') && rel.endsWith('/cluster.yaml')) ||
-    (rel.startsWith('brain/topic-clusters/') && rel.endsWith('.md')) ||
-    rel === 'brain/topic-clusters.md'
-  ) {
-    clusterSyncCount++;
-    try {
-      await runClusterSyncHook(projectRoot, rel);
-    } catch {
-      // Errors are non-fatal; keep watcher alive.
+    // Content markdown or cluster yaml: trigger cluster-sync so materialized
+    // brain tables refresh to match the new canonical state.
+    if (
+      (rel.startsWith('contents/') && rel.endsWith('.md')) ||
+      (rel.startsWith('clusters/') && rel.endsWith('/cluster.yaml')) ||
+      (rel.startsWith('brain/topic-clusters/') && rel.endsWith('.md')) ||
+      rel === 'brain/topic-clusters.md'
+    ) {
+      // Re-check the silence + global sync flags right before spawning a
+      // cluster-sync subprocess. An API path may have started its own
+      // runClusterSyncHook while we were waiting on reverseSync above; if so,
+      // we would race two subprocesses over the same cluster.yaml.
+      if (isSilenced(filePath) || isCompanionSyncActive()) return;
+      clusterSyncCount++;
+      try {
+        await runClusterSyncHook(projectRoot, rel);
+      } catch {
+        // Errors are non-fatal; keep watcher alive.
+      }
     }
+  } finally {
+    handleEventInFlight = false;
   }
 }
 
