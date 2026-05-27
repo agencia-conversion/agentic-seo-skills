@@ -245,39 +245,32 @@ function normalizeStringValue(value: string): string | null {
   return trimmed === '' || trimmed === '—' ? null : trimmed;
 }
 
+// Cluster-scoped attributes for published rows. `keyword`, `intent`, and
+// `volume` are sourced from the content's `.md` frontmatter and are NOT
+// written to overrides — see `editClusterRow` for the published-row branch.
+const PUBLISHED_OVERRIDE_FIELDS = new Set<EditRowInput['field']>([
+  'display_title',
+  'editorial_status',
+  'action',
+  'note',
+]);
+
 function editPublishedOverride(
   data: Record<string, any>,
   contentSlug: string,
   field: EditRowInput['field'],
   value: string,
 ): boolean {
-  if (
-    field !== 'display_title' &&
-    field !== 'keyword' &&
-    field !== 'intent' &&
-    field !== 'editorial_status' &&
-    field !== 'volume'
-  ) {
+  if (!PUBLISHED_OVERRIDE_FIELDS.has(field)) {
     return false;
   }
   const overrides = (data.satellite_overrides && typeof data.satellite_overrides === 'object'
     ? data.satellite_overrides
     : {}) as Record<string, Record<string, unknown>>;
   const current = { ...(overrides[contentSlug] || {}) };
-  if (field === 'volume') {
-    const num = Number((value || '').replace(/[^\d.-]/g, ''));
-    if (!Number.isFinite(num) || num <= 0) {
-      delete current.volume;
-      delete current.volume_source;
-    } else {
-      current.volume = Math.round(num);
-      current.volume_source = 'manual';
-    }
-  } else {
-    const normalized = normalizeStringValue(value);
-    if (normalized === null) delete current[field];
-    else current[field] = normalized;
-  }
+  const normalized = normalizeStringValue(value);
+  if (normalized === null) delete current[field];
+  else current[field] = normalized;
   if (Object.keys(current).length === 0) {
     const next = { ...overrides };
     delete next[contentSlug];
@@ -423,6 +416,10 @@ export function editClusterRow(
     return { ok: true, affected };
   }
 
+  // Source of truth for keyword/intent/volume on published rows is the
+  // content's `.md` frontmatter, NOT cluster.yaml.satellite_overrides.
+  // Writing only the frontmatter keeps the 3 sync views consistent and
+  // lets cluster-sync re-materialize the brain table on the next run.
   if (input.field === 'keyword' || input.field === 'intent' || input.field === 'volume') {
     const contentResult = updateContentMetadata(projectRoot, contentSlug, {
       [input.field]: input.value,
@@ -431,6 +428,8 @@ export function editClusterRow(
     return { ok: true, affected: [contentResult.path] };
   }
 
+  // display_title, editorial_status, action, note are cluster-scoped and
+  // belong in cluster.yaml.satellite_overrides[contentSlug].
   if (!editPublishedOverride(data, contentSlug, input.field, input.value)) {
     return { ok: false, reason: 'unsupported-field' };
   }
