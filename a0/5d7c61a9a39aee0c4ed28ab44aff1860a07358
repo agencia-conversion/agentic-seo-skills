@@ -1,0 +1,25 @@
+apps/companion/src/components/auto-block-config-modal.tsx
+  s_add44d6c3a39cb::t_2e0a43cd4d09fc 1-111
+apps/companion/src/components/prompt-modal.tsx
+  s_add44d6c3a39cb::t_4cd8095599b8f7 1-139
+apps/companion/src/components/cluster-pick-modal.tsx
+  s_add44d6c3a39cb::t_8252c45ad125f8 1-166
+apps/companion/src/components/image-embed-modal.tsx
+  s_add44d6c3a39cb::t_f0aa9555cbfec5 1-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a05d7c61a9a39aee0c4ed28ab44aff1860a07358",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
