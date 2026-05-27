@@ -1,8 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 import { useRouter } from 'next/navigation';
+import { showToast } from '@/components/toast';
 import { useWorkspace } from '@/features/workspace/store';
+import { patchContentMetadata } from '@/features/clusters/cluster-row-api';
+import { formatRowError } from '@/lib/row-error-messages';
 import { cn } from '@/lib/utils';
 
 export interface ClusterRow {
@@ -25,18 +34,50 @@ export interface ClusterRow {
 export function ContentLink({
   row,
   onOpenContent: _onOpenContent,
+  onTitleChange,
 }: {
   row: ClusterRow;
   onOpenContent?: (slug: string) => void;
+  onTitleChange?: (slug: string, nextTitle: string) => void;
 }) {
   const router = useRouter();
   const token = useWorkspace((s) => s.token);
+  const locale: 'pt-BR' | 'en' = useWorkspace((s) =>
+    s.settings.language === 'en' ? 'en' : 'pt-BR',
+  );
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const closedRef = useRef(false);
+
+  useEffect(
+    () => () => {
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!editing) return;
+    const input = inputRef.current;
+    if (!input) return;
+    input.focus();
+    input.select();
+    closedRef.current = false;
+  }, [editing]);
+
   if (row.content.kind === 'planned') {
     return <span className="italic text-notion-text-muted">{row.content.slug}</span>;
   }
   const origin = row.content.origin;
   const targetPath =
     token && `/project/${encodeURIComponent(token)}/contents-${encodeURIComponent(origin)}-${encodeURIComponent(row.slug)}`;
+  const currentTitle = row.content.title;
+
   const handleClick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
@@ -44,16 +85,89 @@ export function ContentLink({
     }
     if (!targetPath) return;
     e.preventDefault();
-    router.push(targetPath);
+    // Debounce navigation by 250ms so onDoubleClick can cancel it.
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
+    clickTimerRef.current = setTimeout(() => {
+      clickTimerRef.current = null;
+      router.push(targetPath);
+    }, 250);
   };
+
+  const handleDoubleClick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
+    setEditing(true);
+  };
+
+  const commit = async (rawValue: string) => {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    const trimmed = rawValue.trim();
+    if (!trimmed || trimmed === currentTitle) {
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await patchContentMetadata(row.slug, 'title', trimmed);
+      if (!res.ok) {
+        showToast(formatRowError('title', res.reason, locale), 'error');
+        return;
+      }
+      onTitleChange?.(row.slug, trimmed);
+    } finally {
+      setSaving(false);
+      setEditing(false);
+    }
+  };
+
+  const cancel = () => {
+    closedRef.current = true;
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        defaultValue={currentTitle}
+        disabled={saving}
+        data-testid="content-title-input"
+        onClick={(e) => e.stopPropagation()}
+        onBlur={(e) => void commit(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            void commit((e.target as HTMLInputElement).value);
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancel();
+          }
+        }}
+        className={cn(
+          'w-full rounded border border-notion-border bg-background px-1 py-0.5 text-sm text-notion-text outline-none focus:ring-2 focus:ring-notion-text/10',
+          saving && 'opacity-60',
+        )}
+      />
+    );
+  }
+
   return (
     <a
       href={targetPath || '#'}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       className="text-left text-sm text-notion-text underline-offset-2 hover:underline truncate cursor-pointer w-full"
-      title={row.content.title}
+      title={currentTitle}
     >
-      {row.content.title}
+      {currentTitle}
     </a>
   );
 }

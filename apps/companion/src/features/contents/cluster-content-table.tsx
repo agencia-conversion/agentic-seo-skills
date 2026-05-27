@@ -851,7 +851,25 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                       {isColVisible('content') && (
                         <td className="px-2.5 py-1.5 align-top">
                           <div className="max-w-[280px] overflow-hidden">
-                            <ContentLink row={row} />
+                            <ContentLink
+                              row={row}
+                              onTitleChange={(slug, nextTitle) => {
+                                if (row.content.kind === 'published') {
+                                  applyOptimistic(slug, {
+                                    content: { ...row.content, title: nextTitle },
+                                  });
+                                }
+                                syncBus.emit({
+                                  type: 'content:changed',
+                                  slug,
+                                  fields: ['title'],
+                                });
+                                if (editCluster) {
+                                  syncBus.emit({ type: 'cluster:changed', slug: editCluster });
+                                }
+                                refetch();
+                              }}
+                            />
                           </div>
                         </td>
                       )}

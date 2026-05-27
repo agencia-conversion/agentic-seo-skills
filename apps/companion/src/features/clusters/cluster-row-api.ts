@@ -52,7 +52,7 @@ export async function postSatellite(
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
-      body: JSON.stringify({ slug, keyword: title, syncWait: true }),
+      body: JSON.stringify({ slug, syncWait: true }),
     },
   );
   return readApiResult(res);
@@ -80,7 +80,7 @@ export async function patchRow(
 
 export async function patchContentMetadata(
   contentSlug: string,
-  field: 'keyword' | 'intent' | 'volume',
+  field: 'title' | 'keyword' | 'intent' | 'volume',
   value: string,
 ): Promise<ClusterApiResult> {
   const token = getCompanionToken();
