@@ -1,0 +1,23 @@
+apps/companion/e2e/cluster-page-cell-edit.spec.ts
+  s_add44d6c3a39cb::t_65395a01575260 1-29,35-79
+  s_add44d6c3a39cb::t_45afd2ebd03752 30-34
+apps/companion/e2e/cluster-stats-live.spec.ts
+  s_add44d6c3a39cb::t_ca0cebebef14b1 1-36,42-55
+  s_add44d6c3a39cb::t_f0f565dce9c30d 37-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7bd2da8582fdb7b79461875b7b925492d734d4ba",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
