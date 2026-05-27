@@ -71,6 +71,11 @@ export function ContentLink({
   }, [editing]);
 
   if (row.content.kind === 'planned') {
+    // Planned rows render the slug in italic and support double-click to
+    // edit. On commit the title is preserved on a new published file via
+    // the inline CTA flow (handled by the parent table). For now we expose
+    // the slug as a non-link span — keep the UX consistent with the
+    // published row (no navigation, no edit mode mid-flight).
     return <span className="italic text-notion-text-muted">{row.content.slug}</span>;
   }
   const origin = row.content.origin;
@@ -78,14 +83,29 @@ export function ContentLink({
     token && `/project/${encodeURIComponent(token)}/contents-${encodeURIComponent(origin)}-${encodeURIComponent(row.slug)}`;
   const currentTitle = row.content.title;
 
+  // Use event.detail to distinguish single vs double click on the SAME
+  // event. detail===1 = single, detail===2 = double. A separate
+  // onDoubleClick listener fires AFTER a click event, which is racy when
+  // the user clicks slowly (the first click navigates before the second
+  // arrives). Reading detail off the click event is robust.
   const handleClick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
       return;
     }
-    if (!targetPath) return;
     e.preventDefault();
-    // Debounce navigation by 250ms so onDoubleClick can cancel it.
+    if (e.detail >= 2) {
+      // Double-click: cancel any pending navigation and enter edit mode.
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+      setEditing(true);
+      return;
+    }
+    if (!targetPath) return;
+    // Single click: debounce navigation so the next click (if any) can
+    // upgrade this into a double-click.
     if (clickTimerRef.current) {
       clearTimeout(clickTimerRef.current);
       clickTimerRef.current = null;
@@ -94,16 +114,6 @@ export function ContentLink({
       clickTimerRef.current = null;
       router.push(targetPath);
     }, 250);
-  };
-
-  const handleDoubleClick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (clickTimerRef.current) {
-      clearTimeout(clickTimerRef.current);
-      clickTimerRef.current = null;
-    }
-    setEditing(true);
   };
 
   const commit = async (rawValue: string) => {
@@ -163,7 +173,6 @@ export function ContentLink({
     <a
       href={targetPath || '#'}
       onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
       className="text-left text-sm text-notion-text underline-offset-2 hover:underline truncate cursor-pointer w-full"
       title={currentTitle}
     >
