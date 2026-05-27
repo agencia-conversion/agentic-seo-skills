@@ -1,5 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
-import { TEST_TOKEN } from './test-constants';
+import { existsSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { TEST_TOKEN, PROJECT_ROOT } from './test-constants';
 
 const PATH_TO_CONTENT = 'contents/blog/sample-satellite.md';
 const SECOND_CLUSTER = 'second-cluster';
@@ -320,7 +322,9 @@ test.describe('cluster-sync end-to-end', () => {
     expect(body.cluster.pillar_slug).toBe('sample-satellite');
   });
 
-  test('adding a planned satellite via inline row appears after refetch', async ({ page }) => {
+  test('adding a published content via inline row appears after refetch', async ({ page }) => {
+    // Inline CTA semantic v2: creates a published content with title
+    // preserved verbatim. The row shows the typed title (not the slug).
     await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
     await page.waitForLoadState('domcontentloaded');
     const node = page.locator('[data-cluster-table="sample-cluster"]');
@@ -334,7 +338,15 @@ test.describe('cluster-sync end-to-end', () => {
     await page.waitForTimeout(1_500);
     const finalRows = await node.locator('[data-cluster-row]').count();
     expect(finalRows).toBeGreaterThan(initialRows);
-    await expect(node).toContainText('teste-de-adicao-inline');
+    await expect(node).toContainText('Teste de adição inline');
+    // The new row exists in the DOM with the slug as data-cluster-row.
+    await expect(node.locator('[data-cluster-row="teste-de-adicao-inline"]')).toBeVisible();
+
+    // Cleanup: this spec runs serially without a per-test fixture reset.
+    // Remove the file so downstream tests (sort assertion at line 395+)
+    // see only the canonical Sample Pilar / Sample Satellite pair.
+    const createdPath = join(PROJECT_ROOT, 'contents', 'blog', 'teste-de-adicao-inline.md');
+    if (existsSync(createdPath)) rmSync(createdPath);
   });
 
   test('selecting rows + Copy button writes TSV to clipboard', async ({ page, context, browserName }) => {

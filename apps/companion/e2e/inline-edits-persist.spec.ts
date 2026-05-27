@@ -195,17 +195,18 @@ test.describe('inline edits persist across reloads', () => {
     await expect(rowAfter).toContainText(next, { timeout: 8_000 });
   });
 
-  test('keyword (planned satellite) persists to cluster.yaml + UI on reload', async ({ page }) => {
+  test('keyword (planned satellite) persists to cluster.yaml + UI on reload', async ({ page, request }) => {
     const plannedSlug = 'planned-persist-keyword';
+
+    // Seed a planned satellite via the API directly — inline CTA now
+    // creates published content, not planned satellites.
+    const apiRes = await request.post(
+      `/api/project/cluster/${CLUSTER_SLUG}/satellite?token=${require('./test-constants').TEST_TOKEN}`,
+      { data: { slug: plannedSlug, syncWait: true } },
+    );
+    expect(apiRes.ok()).toBe(true);
+
     const table = await openClusterTable(page);
-
-    // Seed a planned satellite via the inline CTA.
-    await page.locator('[data-testid="cluster-add-row"]').first().click();
-    const ghost = page.locator('[data-cluster-row-ghost] input');
-    await ghost.waitFor({ state: 'visible', timeout: 3_000 });
-    await ghost.fill('Planned Persist Keyword');
-    await ghost.press('Enter');
-
     const plannedRow = table.locator(`[data-cluster-row="${plannedSlug}"]`);
     await plannedRow.waitFor({ state: 'visible', timeout: 8_000 });
 
@@ -236,41 +237,41 @@ test.describe('inline edits persist across reloads', () => {
     await expect(plannedAfter).toContainText('planned-kw-final', { timeout: 8_000 });
   });
 
-  test('inline-CTA satellite has empty keyword in cluster.yaml (Bug 1 regression)', async ({ page }) => {
-    const plannedTitle = 'Satellite Empty Keyword Test';
-    const plannedSlug = 'satellite-empty-keyword-test';
+  test('inline-CTA creates published content with title preserved (Bug 1 v2)', async ({ page }) => {
+    // Inline CTA semantic v2: typing a title + Enter creates a real
+    // published content at contents/<origin>/<slug>.md with the title
+    // verbatim and the cluster linked via frontmatter.clusters[]. The
+    // keyword field stays EMPTY — it is not derived from the title.
+    const title = 'Satellite Inline V2';
+    const newSlug = 'satellite-inline-v2';
 
     const table = await openClusterTable(page);
 
     await page.locator('[data-testid="cluster-add-row"]').first().click();
     const ghost = page.locator('[data-cluster-row-ghost] input');
     await ghost.waitFor({ state: 'visible', timeout: 3_000 });
-    await ghost.fill(plannedTitle);
+    await ghost.fill(title);
     await ghost.press('Enter');
 
-    // Wait for the new planned row to appear in the table.
-    const plannedRow = table.locator(`[data-cluster-row="${plannedSlug}"]`);
-    await plannedRow.waitFor({ state: 'visible', timeout: 8_000 });
+    // Wait for the published row.
+    const row = table.locator(`[data-cluster-row="${newSlug}"]`);
+    await row.waitFor({ state: 'visible', timeout: 8_000 });
+    expect(await row.getAttribute('data-cluster-row-kind')).toBe('published');
 
-    // cluster.yaml entry exists with EMPTY keyword (string-empty or undefined).
-    await expect
-      .poll(
-        () => {
-          const yaml = readClusterYaml() as {
-            planned_satellites?: Array<{ slug: string; keyword?: string }>;
-          };
-          return (yaml.planned_satellites || []).find((s) => s.slug === plannedSlug);
-        },
-        { timeout: 8_000 },
-      )
-      .toBeTruthy();
-
-    const yaml = readClusterYaml() as {
-      planned_satellites?: Array<{ slug: string; keyword?: string | null }>;
-    };
-    const entry = (yaml.planned_satellites || []).find((s) => s.slug === plannedSlug);
-    // Keyword must NOT equal the title — Bug 1 was that the UI was sending
-    // the title as the keyword.
-    expect(entry?.keyword == null || entry.keyword === '').toBe(true);
+    // Disk: title preserved verbatim, keyword empty.
+    const newPath = join(PROJECT_ROOT, 'contents', 'blog', `${newSlug}.md`);
+    const fm = readPillarFrontmatterFrom(newPath);
+    expect(fm.title).toBe(title);
+    expect(fm.origin).toBe('blog');
+    expect(Array.isArray(fm.clusters) && (fm.clusters as string[]).includes(CLUSTER_SLUG)).toBe(true);
+    // keyword is omitted from frontmatter (no carry-over from title).
+    expect(fm.keyword == null || fm.keyword === '').toBe(true);
   });
 });
+
+function readPillarFrontmatterFrom(path: string): Record<string, unknown> {
+  const text = readFileSync(path, 'utf8');
+  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) throw new Error(`no frontmatter in ${path}`);
+  return parseYaml(match[1]) as Record<string, unknown>;
+}

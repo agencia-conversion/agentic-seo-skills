@@ -95,9 +95,13 @@ test.describe('CRUD lifecycle — create content, click row, propagate keyword',
     });
   });
 
-  test('create planned satellite via cluster page inline CTA writes to cluster.yaml', async ({
+  test('create published content via cluster page inline CTA writes to contents + frontmatter clusters', async ({
     page,
   }) => {
+    // Inline CTA semantic v2: creates a published content (not a planned
+    // satellite). The cluster is linked via the new file's frontmatter
+    // clusters: []. Planned satellites can still be created via the API
+    // directly; see crud-100-percent.spec.ts for that path.
     await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-${CLUSTER_SLUG}`);
     await page.waitForLoadState('domcontentloaded');
     const table = page.locator(`[data-cluster-table="${CLUSTER_SLUG}"]`);
@@ -109,15 +113,12 @@ test.describe('CRUD lifecycle — create content, click row, propagate keyword',
     await ghost.fill('Satélite CRUD B');
     await ghost.press('Enter');
 
-    await expect
-      .poll(
-        () => {
-          const yaml = readClusterYaml() as { planned_satellites?: Array<{ slug?: string }> };
-          return (yaml.planned_satellites || []).some((s) => s.slug === 'satelite-crud-b');
-        },
-        { timeout: 8_000 },
-      )
-      .toBe(true);
+    const newPath = join(CONTENTS_BLOG_DIR, 'satelite-crud-b.md');
+    await expect.poll(() => existsSync(newPath), { timeout: 8_000 }).toBe(true);
+    const fm = readFrontmatter(newPath);
+    expect(fm.title).toBe('Satélite CRUD B');
+    expect(fm.origin).toBe('blog');
+    expect(Array.isArray(fm.clusters) && (fm.clusters as string[]).includes(CLUSTER_SLUG)).toBe(true);
   });
 
   test('Bug 1: clicking ANY cell in a published row opens the content single page', async ({
@@ -171,18 +172,19 @@ test.describe('CRUD lifecycle — create content, click row, propagate keyword',
     await editInput.press('Escape');
   });
 
-  test('Bug 1: planned rows (no published file) do NOT navigate', async ({ page }) => {
+  test('Bug 1: planned rows (no published file) do NOT navigate', async ({ page, request }) => {
+    // Seed a planned satellite via the satellite API directly. The inline
+    // CTA no longer creates planned satellites — see new semantic v2.
+    const apiRes = await request.post(
+      `/api/project/cluster/${CLUSTER_SLUG}/satellite?token=${TEST_TOKEN}`,
+      { data: { slug: 'planned-no-nav', syncWait: true } },
+    );
+    expect(apiRes.ok()).toBe(true);
+
     await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-${CLUSTER_SLUG}`);
     await page.waitForLoadState('domcontentloaded');
     const table = page.locator(`[data-cluster-table="${CLUSTER_SLUG}"]`);
     await table.waitFor({ state: 'visible', timeout: 10_000 });
-
-    // Seed a planned satellite via the inline CTA.
-    await page.locator('[data-testid="cluster-add-row"]').first().click();
-    const ghost = page.locator('[data-cluster-row-ghost] input');
-    await ghost.waitFor({ state: 'visible', timeout: 3_000 });
-    await ghost.fill('Planned No Nav');
-    await ghost.press('Enter');
 
     const plannedRow = table.locator('[data-cluster-row="planned-no-nav"]');
     await plannedRow.waitFor({ state: 'visible', timeout: 8_000 });

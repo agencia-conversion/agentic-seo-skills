@@ -1,5 +1,5 @@
 import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
-import { cpSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
@@ -135,9 +135,13 @@ test.describe('full CRUD across single page / contents list / cluster page', () 
     await pollFrontmatterKeyword('crud-from-cluster');
   });
 
-  test('add planned satellite via cluster page + cluster.yaml + brain subpage all updated', async ({
+  test('add published content via cluster page + frontmatter + brain subpage all updated', async ({
     page,
   }) => {
+    // Inline CTA on a cluster page now creates a real published content
+    // at contents/blog/<slug>.md with the title preserved and the cluster
+    // linked via clusters: []. The cluster brain subpage table picks up
+    // the new content via cluster-sync.
     await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-${CLUSTER_SLUG}`);
     await page.waitForLoadState('domcontentloaded');
     const table = page.locator(`[data-cluster-table="${CLUSTER_SLUG}"]`);
@@ -146,24 +150,25 @@ test.describe('full CRUD across single page / contents list / cluster page', () 
     await page.locator('[data-testid="cluster-add-row"]').first().click();
     const ghost = page.locator('[data-cluster-row-ghost] input');
     await ghost.waitFor({ state: 'visible', timeout: 3_000 });
-    await ghost.fill('Crud Planned Item');
+    await ghost.fill('Crud Inline Item');
     await ghost.press('Enter');
 
-    await expect
-      .poll(
-        () => {
-          const yaml = readClusterYaml() as { planned_satellites?: Array<{ slug?: string }> };
-          return (yaml.planned_satellites || []).some((s) => s.slug === 'crud-planned-item');
-        },
-        { timeout: 8_000 },
-      )
-      .toBe(true);
+    // File created on disk with the title preserved verbatim.
+    const newPath = join(PROJECT_ROOT, 'contents', 'blog', 'crud-inline-item.md');
+    await expect.poll(() => existsSync(newPath), { timeout: 8_000 }).toBe(true);
+    const fm = readFrontmatter(newPath);
+    expect(fm.title).toBe('Crud Inline Item');
+    expect(fm.origin).toBe('blog');
+    expect(Array.isArray(fm.clusters) && (fm.clusters as string[]).includes(CLUSTER_SLUG)).toBe(true);
 
-    const brainSubpage = readFileSync(
-      join(PROJECT_ROOT, 'brain', 'topic-clusters', `${CLUSTER_SLUG}.md`),
-      'utf8',
-    );
-    expect(brainSubpage).toContain('crud-planned-item');
+    // Cluster brain subpage updated via cluster-sync hook. The hook runs
+    // server-side after POST /api/project/file/create with syncWait=true,
+    // but the chokidar watcher can race with it. Poll until the brain
+    // subpage table reflects the new slug.
+    const brainSubpagePath = join(PROJECT_ROOT, 'brain', 'topic-clusters', `${CLUSTER_SLUG}.md`);
+    await expect
+      .poll(() => readFileSync(brainSubpagePath, 'utf8'), { timeout: 10_000 })
+      .toContain('crud-inline-item');
   });
 
   test('rename cluster + change status + archive via kebab', async ({ page }) => {
