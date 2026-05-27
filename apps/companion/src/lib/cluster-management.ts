@@ -256,6 +256,13 @@ export function createCluster(projectRoot: string, input: Record<string, unknown
 export function updateCluster(projectRoot: string, slug: string, updates: Record<string, unknown>) {
   const entry = readClusters(projectRoot).find(({ data }) => data.slug === slug);
   if (!entry) return { ok: false as const, reason: 'cluster-not-found' };
+  // Name is required: reject empty/whitespace renames before touching disk so
+  // downstream sync (which rewrites the brain subpage title from the YAML
+  // name) never inherits a blank label.
+  if (Object.prototype.hasOwnProperty.call(updates, 'name')) {
+    const candidate = String(updates.name ?? '').trim();
+    if (!candidate) return { ok: false as const, reason: 'invalid-name' };
+  }
   const next = { ...entry.data };
   for (const field of ['name', 'icon', 'area', 'thesis', 'status'] as const) {
     if (Object.prototype.hasOwnProperty.call(updates, field)) {
