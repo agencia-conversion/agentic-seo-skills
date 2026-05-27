@@ -1,0 +1,19 @@
+apps/companion/src/features/contents/cluster-content-table.tsx
+  s_add44d6c3a39cb::t_eb137902302c17 4,315,335,788-800,808,813,816,823,829,847,859,900,933
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "fc884fb28c2908fed48eedc88ce31d9ff3930664",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
