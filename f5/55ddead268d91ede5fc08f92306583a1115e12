@@ -1,0 +1,20 @@
+apps/companion/src/lib/cluster-mutations.ts
+  s_add44d6c3a39cb::t_a0c4a1f787e51a 419-422,431-432
+  s_add44d6c3a39cb::t_34f826a2b1f154 248-257,264,271-273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f555ddead268d91ede5fc08f92306583a1115e12",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
