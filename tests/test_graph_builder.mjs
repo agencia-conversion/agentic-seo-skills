@@ -32,6 +32,13 @@ for (const name of ['graph-builder', 'backlink-index', 'project-files', 'brain-t
   const mjs = join(outDir, `${name}.mjs`);
   if (existsSync(js)) renameSync(js, mjs);
 }
+// Stub for `auto-block-watcher` (uses chokidar; not available in this test).
+writeFileSync(
+  join(outDir, 'auto-block-watcher.mjs'),
+  `export function ensureWatcherStarted() {}
+export function silenceWrite() {}
+`,
+);
 const fs = await import('node:fs');
 function patchSharedImport(file) {
   fs.writeFileSync(
@@ -57,6 +64,7 @@ fs.writeFileSync(
   fs
     .readFileSync(join(outDir, 'project-files.mjs'), 'utf8')
     .replace("from './brain-templates'", "from './brain-templates.mjs'")
+    .replace("from './auto-block-watcher'", "from './auto-block-watcher.mjs'")
 );
 fs.writeFileSync(
   join(outDir, 'backlink-index.mjs'),

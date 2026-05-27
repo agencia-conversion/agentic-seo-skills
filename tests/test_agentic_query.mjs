@@ -31,6 +31,15 @@ for (const name of ['agentic-query', 'project-files', 'brain-templates']) {
   const mjs = join(outDir, `${name}.mjs`);
   if (existsSync(js)) renameSync(js, mjs);
 }
+// Stub for `auto-block-watcher` — the watcher uses chokidar which is not
+// available in this test pipeline. The test only exercises pure read/write of
+// brain pages, so noop stubs suffice.
+writeFileSync(
+  join(outDir, 'auto-block-watcher.mjs'),
+  `export function ensureWatcherStarted() {}
+export function silenceWrite() {}
+`,
+);
 const fs = await import('node:fs');
 function patchSharedImport(file) {
   fs.writeFileSync(
@@ -54,6 +63,7 @@ fs.writeFileSync(
   fs
     .readFileSync(join(outDir, 'project-files.mjs'), 'utf8')
     .replace("from './brain-templates'", "from './brain-templates.mjs'")
+    .replace("from './auto-block-watcher'", "from './auto-block-watcher.mjs'")
 );
 
 const { parseQuerySource, executeQuery } = await import(`../${outDir}/agentic-query.mjs`);

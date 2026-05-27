@@ -35,6 +35,13 @@ if (existsSync(pfJs)) renameSync(pfJs, pfMjs);
 const btJs = join(outDir, 'brain-templates.js');
 const btMjs = join(outDir, 'brain-templates.mjs');
 if (existsSync(btJs)) renameSync(btJs, btMjs);
+// Stub for `auto-block-watcher` (uses chokidar; not available in this test).
+writeFileSync(
+  join(outDir, 'auto-block-watcher.mjs'),
+  `export function ensureWatcherStarted() {}
+export function silenceWrite() {}
+`,
+);
 // Patch import in tag-index.mjs to use .mjs extension.
 const fs = await import('node:fs');
 function patchSharedImport(file) {
@@ -54,7 +61,10 @@ fs.writeFileSync(
 );
 fs.writeFileSync(
   pfMjs,
-  fs.readFileSync(pfMjs, 'utf8').replace("from './brain-templates'", "from './brain-templates.mjs'")
+  fs
+    .readFileSync(pfMjs, 'utf8')
+    .replace("from './brain-templates'", "from './brain-templates.mjs'")
+    .replace("from './auto-block-watcher'", "from './auto-block-watcher.mjs'")
 );
 
 const { buildTagIndex, extractFrontmatterTags, extractInlineTags } = await import(`../${mjsFile}`);
