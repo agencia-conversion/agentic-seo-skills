@@ -9,8 +9,8 @@ updated: "<YYYY-MM-DD>"
 PROPOSITO: Brandbook narrativo do projeto. Cada skill da Agentic SEO le
 este arquivo como contexto inicial: quem e a marca, com qual publico fala,
 como referencia-la em aposto e em paragrafo, onde ela vive. Identidade
-tecnica fica restrita ao observavel; tese editorial sobre stack vive em
-[[editorial]]. Toda afirmacao factual aqui tem fonte em ## Evidencia no
+técnica fica restrita ao observavel; tese editorial sobre stack vive em
+[[topic-clusters]]. Toda afirmacao factual aqui tem fonte em ## Evidência no
 rodape. Comentarios <!-- REGRA: --> sao instrucoes vinculantes para o
 agente preenchedor e devem ser REMOVIDOS quando o arquivo for preenchido.
 -->
@@ -21,7 +21,7 @@ agente preenchedor e devem ser REMOVIDOS quando o arquivo for preenchido.
 REGRA: Maximo 15 palavras. Sujeito + funcao + escopo principal. Sem lista
 enumerativa (sem virgulas que enumeram dominios). Sem adjetivo avaliativo
 ("lider", "referencia", "consagrado", "robusto"). Pense em legenda de
-foto: identifica, nao vende. Detalhe de tom em [[voz#lead-e-apresentacao]].
+foto: identifica, não vende. Detalhe de tom em [[voz#lead-e-apresentacao]].
 
 Bom: "Consultoria de cultura organizacional para empresas brasileiras de
 medio porte."
@@ -37,9 +37,9 @@ times modernos em transformacao digital."
 
 <!--
 REGRA: Aposto = oracao reduzida que segue o nome proprio na primeira
-mencao. 3 a 12 palavras. Identifica, nao qualifica. Sem adjetivo
+mencao. 3 a 12 palavras. Identifica, não qualifica. Sem adjetivo
 avaliativo. Sem lista enumerativa. Teste do concorrente: um concorrente
-direto assinaria embaixo sem reclamar? Se nao, esta vendendo.
+direto assinaria embaixo sem reclamar? Se não, esta vendendo.
 
 Bom: "Acme, consultoria de RH para empresas de tecnologia"
 Ruim: "Acme, referencia consagrada e lider em gestao, pessoas, cultura e
@@ -57,11 +57,11 @@ REGRA: 60 a 100 palavras. Afirmacao direta sobre a marca, em terceira
 pessoa, no tempo presente. NUNCA descreve onde a informacao foi lida.
 Proibido (lint bloqueia): "a home afirma", "o site posiciona", "o
 artigo X defende", "segundo o site", "conforme o blog", "o autor diz
-que", "a pagina sobre nos diz", "a marca apresenta X como".
+que", "a página sobre nos diz", "a marca apresenta X como".
 
 O paragrafo afirma o que a marca e e faz. A fonte que sustenta cada
-afirmacao vai em ## Evidencia no rodape, com link. Se a evidencia nao
-existe ou e fraca, a afirmacao nao entra.
+afirmacao vai em ## Evidência no rodape, com link. Se a evidência não
+existe ou e fraca, a afirmacao não entra.
 
 Estrutura sugerida:
 1. Identificacao (quem, onde, escopo).
@@ -78,7 +78,7 @@ clientes. Defende cultura como vantagem competitiva mensuravel e recusa
 projetos que tratam clima como evento isolado."
 
 Ruim: "A home da Acme afirma que a empresa transforma a gestao de pessoas.
-O site diz que combina consultoria, cursos e software. A pagina
+O site diz que combina consultoria, cursos e software. A página
 institucional defende que cultura e vantagem competitiva."
 -->
 
@@ -98,8 +98,8 @@ declarativo de marca. Maximo 12 palavras.
 
 <!--
 REGRA: O que a marca entrega ao publico, em uma linha, do ponto de vista
-do publico (nao do produto). Sem adjetivo promocional. Verificavel: o
-publico pode dizer "recebi isso" ou "nao recebi isso".
+do publico (não do produto). Sem adjetivo promocional. Verificavel: o
+publico pode dizer "recebi isso" ou "não recebi isso".
 -->
 
 <promessa em uma linha>
@@ -109,7 +109,7 @@ publico pode dizer "recebi isso" ou "nao recebi isso".
 <!--
 REGRA: 2 a 4 itens do que a marca recusa ser. Cada item em uma linha,
 factual, sem ironia. Serve para proteger contra dispersao editorial e
-para que outros agentes saibam o que NAO escrever em nome da marca.
+para que outros agentes saibam o que NÃO escrever em nome da marca.
 -->
 
 - <item recusado 1>
@@ -131,23 +131,23 @@ pessoa a procurar a marca.
 ### Para quem não fala
 
 <!--
-REGRA: Publico que a marca explicitamente nao atende. Protege contra
-deriva editorial e contra leitores que vao se frustrar. Se voce nao tem
-clareza disso, busque evidencia em paginas de servicos, em conteudos
+REGRA: Publico que a marca explicitamente não atende. Protege contra
+deriva editorial e contra leitores que vao se frustrar. Se voce não tem
+clareza disso, busque evidência em páginas de servicos, em conteúdos
 publicados, ou pergunte ao humano. Sem este campo, fica facil escrever
 para "todo mundo" e o brain perde foco.
 -->
 
-<publico nao atendido>
+<publico não atendido>
 
 ## Identidade técnica
 
 <!--
 REGRA: Apenas o que e observavel sem inferencia editorial: dominio,
-idioma, mercado, frontend identificado, presenca de analytics. NAO citar
+idioma, mercado, frontend identificado, presenca de analytics. NÃO citar
 tese editorial sobre stack ("acreditamos em estatico", "rejeitamos
 WordPress", "preferimos edge rendering"). Tese editorial vive em
-[[editorial]] ou em conteudos publicados. Detalhe operacional vive em
+[[topic-clusters]] ou em conteúdos publicados. Detalhe operacional vive em
 [[tecnologia]].
 -->
 
@@ -162,8 +162,8 @@ WordPress", "preferimos edge rendering"). Tese editorial vive em
 <!--
 REGRA: Cada linha referencia um canal real e ativo. Papel editorial = o
 que esse canal faz na operacao (publicacao primaria, distribuicao,
-relacionamento, captura, etc). Canais inativos ou sem URL real nao
-entram. Se um canal ainda nao existe mas e planejado, registra como
+relacionamento, captura, etc). Canais inativos ou sem URL real não
+entram. Se um canal ainda não existe mas e planejado, registra como
 decisao em [[log]] em vez de listar aqui.
 -->
 
@@ -175,14 +175,15 @@ decisao em [[log]] em vez de listar aqui.
 ## Áreas editoriais
 
 <!--
-REGRA: Resumo curto das areas. O detalhe (tese, diferenciacao, exemplos)
-vive em [[editorial]]. Mantenha 1 linha por area aqui. Use wikilinks
-com ancora para a secao em [[editorial]]. Se uma area ainda nao tem
-secao em [[editorial]], crie a secao primeiro (com decisao em [[log]]).
+REGRA: Resumo curto das áreas. O detalhe (tese, diferenciação, exemplos,
+provas com fontes) vive em [[topic-clusters]] como seção H2 por área.
+Mantenha 1 linha por área aqui. Use wikilinks com âncora para a seção em
+[[topic-clusters]]. Se uma área ainda não tem seção em [[topic-clusters]],
+crie a seção primeiro (com decisão em [[log]]).
 -->
 
-- [[editorial#<Área 1>]] — <linha resumo>
-- [[editorial#<Área 2>]] — <linha resumo>
+- [[topic-clusters#<Área 1>]] — <linha resumo>
+- [[topic-clusters#<Área 2>]] — <linha resumo>
 
 ## Topic clusters principais
 
@@ -198,10 +199,10 @@ por cluster.
 
 <!--
 REGRA: Aqui ficam as fontes que sustentam as afirmacoes acima. Use
-Markdown links normais para `../sources/`, `../conteudos/`, e URLs
+Markdown links normais para `../sources/`, `../conteúdos/`, e URLs
 externas. Wikilinks `[[...]]` so para arquivos dentro de `brain/`.
 Cada bullet referencia 1 fonte e diz, em uma frase, o que essa fonte
-sustenta. Se uma afirmacao acima nao tem fonte aqui, ou a afirmacao
+sustenta. Se uma afirmacao acima não tem fonte aqui, ou a afirmacao
 sai, ou a fonte e adicionada.
 
 Exemplo:
@@ -212,5 +213,5 @@ Exemplo:
   paragrafo de apresentacao e a secao Publico.
 -->
 
-- <bullet evidencia 1>
-- <bullet evidencia 2>
+- <bullet evidência 1>
+- <bullet evidência 2>

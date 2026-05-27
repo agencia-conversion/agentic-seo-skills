@@ -15,6 +15,7 @@ import { PageEmbed } from './page-embed-extension';
 import { Callout } from './callout-extension';
 import { Mermaid } from './mermaid-extension';
 import { AgenticQuery } from './agentic-query-extension';
+import { AutoBlock } from './auto-block-extension';
 import { RawMarkdown } from './raw-markdown-extension';
 import { ReportBlock } from './report-block-extension';
 import { ActiveClustersTableNode, ClusterTable } from './cluster-table-extension';
@@ -160,6 +161,7 @@ export const getExtensions = (options: { onReportScoreRecalculated?: (result: Re
   Callout,
   Mermaid,
   AgenticQuery,
+  AutoBlock,
   SlashCommand,
   ReportBlock.configure({
     onScoreRecalculated: options.onReportScoreRecalculated || null,

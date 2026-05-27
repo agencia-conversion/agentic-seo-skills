@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic SEO · Aprovar cluster</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; background: #f7f5f0; color: #1d1b16; }
+    main { max-width: 920px; margin: 0 auto; padding: 32px 22px 56px; }
+    h1 { margin: 0 0 6px; font-size: 28px; line-height: 1.15; letter-spacing: 0; }
+    h2 { margin: 22px 0 8px; font-size: 18px; }
+    .slug { display: inline-block; background: #eee8dc; border-radius: 4px; padding: 2px 8px; font-family: ui-monospace, SF Mono, Menlo, monospace; font-size: 14px; }
+    p, li { line-height: 1.55; }
+    .panel { border: 1px solid #d8d1c4; border-radius: 8px; background: #fffdf8; padding: 18px 20px; margin: 14px 0; }
+    .panel.warning { background: #fff6e6; border-color: #d8b779; }
+    dl { display: grid; grid-template-columns: 150px 1fr; gap: 8px 18px; margin: 0; }
+    dt { font-weight: 700; color: #5a5041; }
+    dd { margin: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e5dfd0; }
+    th { background: #ede6d3; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+    code { background: #eee8dc; border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .badge.hypothesis { background: #fff1c2; color: #6b5300; }
+    .badge.active { background: #d6eed8; color: #245c2a; }
+    .badge.archived { background: #e9e6dd; color: #5a5041; }
+    label { display: block; font-weight: 700; margin: 18px 0 7px; }
+    input, textarea, select { box-sizing: border-box; width: 100%; border: 1px solid #bdb4a4; border-radius: 6px; background: white; color: inherit; padding: 10px 12px; font: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .hint { color: #655d51; font-size: 13px; margin-top: 4px; }
+    .actions { display: flex; gap: 12px; margin-top: 22px; }
+    button { border: 1px solid #1d1b16; border-radius: 6px; padding: 10px 16px; font: inherit; font-weight: 700; cursor: pointer; }
+    button.primary { background: #1d1b16; color: white; }
+    button.secondary { background: transparent; color: #1d1b16; }
+    button.danger { background: white; color: #8a1f11; border-color: #8a1f11; }
+    .error { display: none; margin-top: 16px; color: #8a1f11; font-weight: 700; }
+    .done { display: none; margin-top: 16px; color: #245c2a; font-weight: 700; }
+    details { margin-top: 8px; }
+    pre { background: #2b2a26; color: #f7f5f0; padding: 12px 14px; border-radius: 6px; overflow: auto; font-size: 12px; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <!--CONTEXT-->
+  <main>
+    <h1>Aprovar cluster <span class="slug" id="hdr-slug"></span></h1>
+    <p>Esta promoção move o cluster de <code>draft.yaml</code> para <code>cluster.yaml</code>, cria/atualiza a subpágina <code>brain/topic-clusters/&lt;slug&gt;.md</code> via <code>cluster-sync</code> e registra <code>tipo: aprovacao</code> em <code>brain/log.md</code>. Ação reversível apenas via novo log + edição manual.</p>
+
+    <section class="panel">
+      <h2>Identidade do cluster</h2>
+      <dl>
+        <dt>Nome</dt><dd id="nome"></dd>
+        <dt>Área editorial</dt><dd id="area"></dd>
+        <dt>Status atual</dt><dd id="status-current"></dd>
+        <dt>Contract version</dt><dd id="contract"></dd>
+      </dl>
+      <h2>Tese</h2>
+      <p id="tese"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Pilar</h2>
+      <dl>
+        <dt>Slug</dt><dd><code id="pilar-slug"></code></dd>
+        <dt>Keyword</dt><dd id="pilar-keyword"></dd>
+        <dt>Intent</dt><dd id="pilar-intent"></dd>
+        <dt>Volume</dt><dd id="pilar-volume"></dd>
+      </dl>
+    </section>
+
+    <section class="panel">
+      <h2>Satélites planejados</h2>
+      <table id="satellites"><thead><tr><th>Slug</th><th>Keyword</th><th>Intent</th><th>Volume</th><th>Nota</th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <section class="panel warning" id="bypass-panel" style="display:none">
+      <h2>Bypass DataForSEO registrado</h2>
+      <dl>
+        <dt>Razão</dt><dd id="bypass-reason"></dd>
+        <dt>Dimensão ausente</dt><dd id="bypass-missing"></dd>
+        <dt>Consequência</dt><dd id="bypass-consequence"></dd>
+      </dl>
+      <p class="hint">Promover sem evidência DataForSEO é permitido por pedido explícito do usuário; o cluster permanece marcado como dado não validado.</p>
+    </section>
+
+    <details>
+      <summary>YAML bruto do draft (referência)</summary>
+      <pre id="raw-yaml"></pre>
+    </details>
+
+    <form id="form">
+      <div class="row">
+        <div>
+          <label for="approved_by">Aprovador</label>
+          <input id="approved_by" name="approved_by" autocomplete="name" required>
+          <div class="hint">Nome humano que está aprovando a promoção.</div>
+        </div>
+        <div>
+          <label for="status">Status alvo</label>
+          <select id="status" name="status">
+            <option value="active">active</option>
+            <option value="proposed">proposed</option>
+            <option value="hypothesis">hypothesis (manter)</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="notes">Notas (opcional)</label>
+      <textarea id="notes" name="notes" placeholder="O que motiva a promoção? Qualquer ressalva?"></textarea>
+
+      <div class="actions">
+        <button class="primary" type="submit" data-decision="approve">Aprovar e promover</button>
+        <button class="danger" type="submit" data-decision="reject">Rejeitar</button>
+        <button class="secondary" type="button" id="cancel">Cancelar</button>
+      </div>
+      <div class="error" id="error"></div>
+      <div class="done" id="done">Cluster promovido. Esta janela pode ser fechada.</div>
+    </form>
+  </main>
+
+  <script>
+    const ctx = window.__CONTEXT__;
+    const $ = (id) => document.getElementById(id);
+    const txt = (id, value, fallback = "—") => { $(id).textContent = (value === 0 || value) ? value : fallback; };
+
+    txt("hdr-slug", ctx.slug);
+    txt("nome", ctx.nome);
+    txt("area", ctx.area);
+    txt("contract", ctx.contract_version);
+    txt("tese", ctx.tese, "(sem tese registrada no draft)");
+
+    const statusEl = $("status-current");
+    statusEl.innerHTML = `<span class="badge ${ctx.status}">${ctx.status}</span>${ctx.has_existing_cluster ? " (cluster.yaml já existe; será sobrescrito)" : ""}`;
+
+    if (ctx.pilar) {
+      txt("pilar-slug", ctx.pilar.slug);
+      txt("pilar-keyword", ctx.pilar.keyword);
+      txt("pilar-intent", ctx.pilar.intent);
+      txt("pilar-volume", ctx.pilar.volume == null ? "null (sem DataForSEO)" : ctx.pilar.volume);
+    }
+
+    const tbody = $("satellites").querySelector("tbody");
+    if (!ctx.planned_satellites || ctx.planned_satellites.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="hint">Nenhum satélite planejado registrado no draft.</td></tr>';
+    } else {
+      tbody.innerHTML = ctx.planned_satellites.map((s) => `<tr>
+        <td><code>${s.slug || ""}</code></td>
+        <td>${s.keyword || ""}</td>
+        <td>${s.intent || ""}</td>
+        <td>${s.volume == null ? "—" : s.volume}</td>
+        <td>${s.note || ""}</td>
+      </tr>`).join("");
+    }
+
+    if (ctx.bypass) {
+      $("bypass-panel").style.display = "block";
+      txt("bypass-reason", ctx.bypass.reason);
+      txt("bypass-missing", ctx.bypass.missing_dimension);
+      txt("bypass-consequence", ctx.bypass.consequence);
+    }
+
+    $("raw-yaml").textContent = ctx.raw_yaml || "";
+    if (ctx.identity && ctx.identity.name) $("approved_by").value = ctx.identity.name;
+
+    document.querySelectorAll("button[type=submit]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        $("form").dataset.decision = btn.dataset.decision;
+      });
+    });
+
+    $("form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      $("error").style.display = "none";
+      const decision = $("form").dataset.decision || "approve";
+      const payload = {
+        decision,
+        approved_by: $("approved_by").value.trim(),
+        notes: $("notes").value.trim(),
+        status: $("status").value,
+      };
+      const res = await fetch(location.pathname + "/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        $("error").textContent = data.error || data.reason || "Não foi possível registrar.";
+        $("error").style.display = "block";
+        return;
+      }
+      $("done").style.display = "block";
+      $("done").textContent = decision === "approve"
+        ? `Cluster promovido. cluster.yaml em ${data.cluster_path}.`
+        : "Promoção rejeitada. Nada foi alterado.";
+    });
+
+    $("cancel").addEventListener("click", async () => {
+      await fetch(location.pathname + "/cancel", { method: "POST" });
+      window.close();
+    });
+  </script>
+</body>
+</html>

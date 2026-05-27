@@ -13,6 +13,9 @@ const cluster_io_1 = require("../lib/cluster-io");
 const cluster_render_1 = require("../lib/cluster-render");
 const cluster_labels_1 = require("../lib/cluster-labels");
 Object.defineProperty(exports, "CLUSTER_LABELS", { enumerable: true, get: function () { return cluster_labels_1.CLUSTER_LABELS; } });
+const auto_block_scanner_1 = require("../lib/auto-block-scanner");
+const auto_blocks_1 = require("../lib/auto-blocks");
+(0, auto_blocks_1.registerBuiltinAutoBlocks)();
 function defaultNow() {
     return new Date().toISOString().slice(0, 10);
 }
@@ -415,6 +418,15 @@ async function clusterSync(options) {
     if (!indexRes.noop)
         allNoop = false;
     allLints.push(...indexRes.lints);
+    const autoBlockRes = (0, auto_block_scanner_1.scanAndSyncAutoBlocks)(inputs, {
+        dryRun: options.dryRun,
+        check: options.check,
+    });
+    if (autoBlockRes.changedFiles.length > 0) {
+        changedFiles.push(...autoBlockRes.changedFiles);
+        allNoop = false;
+    }
+    allLints.push(...autoBlockRes.lints);
     const hasBlock = allLints.some((l) => l.severity === "block");
     const exitCode = options.check
         ? hasBlock || !allNoop

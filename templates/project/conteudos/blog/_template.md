@@ -1,10 +1,13 @@
 ---
+contract_version: 1
 title: "<título do conteúdo>"
 slug: "<slug-kebab-case>"
 published_at: "<YYYY-MM-DD>"
 source_url: "<url canônica do post no site>"
 origem: "blog"
-area: "<slug da área editorial em ../../brain/editorial.md>"
+clusters: []
+# papel:
+#   <cluster-slug>: pilar | satelite
 ---
 
 # <título do conteúdo>
@@ -14,8 +17,10 @@ Modelo de artigo de blog publicado. Mantém o conteúdo fiel ao publicado: este
 arquivo é arquivo, não rascunho. Errata vai como nota no final + entrada
 `tipo: errata` em [[../../brain/log]].
 
-`area:` deve corresponder exatamente ao slug de uma seção em
-../../brain/editorial.md. Se a área não existe, crie-a antes com evidência e `tipo: decisao` no log.
+`clusters:` é obrigatório com no mínimo 1 slug que exista como pasta em
+../../clusters/<slug>/. Para declarar o papel do conteúdo no cluster
+(pilar ou satelite), descomente o bloco `papel:` e preencha; sem `papel`,
+o conteúdo entra na tabela do cluster como satélite por padrão.
 -->
 
 <conteúdo do artigo>

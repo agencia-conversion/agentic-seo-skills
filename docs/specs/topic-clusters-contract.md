@@ -51,7 +51,7 @@ Plus:
 contract_version: 1
 slug: seo-agentico                # kebab-case lowercase; deve casar com nome da pasta
 nome: SEO Agêntico                # exibição humana, com acentos
-area: fundamentos-do-seo-agentico # aponta para seção em brain/editorial.md
+area: fundamentos-do-seo-agentico # aponta para seção H2 em brain/topic-clusters.md
 status: active                    # active | drafting | proposed | archived
 tese: |
   Tese editorial em 1-3 parágrafos. Quem é, para quem, por que importa.

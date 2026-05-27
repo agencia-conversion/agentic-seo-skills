@@ -213,6 +213,8 @@ export function markdownToDoc(
         content.push({ type: 'mermaid', attrs: { source: body } });
       } else if (language === 'agentic-query') {
         content.push({ type: 'agenticQuery', attrs: { source: body } });
+      } else if (/^agentic-(clusters-by-area|cluster-content|cluster-index)$/.test(language)) {
+        content.push({ type: 'autoBlock', attrs: { kind: language, body } });
       } else {
         content.push({ type: 'codeBlock', attrs: { language: language || null }, content: [textNode(body)] });
       }
@@ -523,6 +525,10 @@ export function docToMarkdown(doc: any, resolver?: MentionResolver): string {
     } else if (node.type === 'agenticQuery') {
       const source = String(node.attrs?.source || '').replace(/\s+$/, '');
       out.push(`\`\`\`agentic-query\n${source}\n\`\`\``);
+    } else if (node.type === 'autoBlock') {
+      const kind = String(node.attrs?.kind || 'agentic-clusters-by-area');
+      const body = String(node.attrs?.body || '').replace(/\s+$/, '');
+      out.push(`\`\`\`${kind}\n${body}\n\`\`\``);
     } else {
       out.push(paragraphText(node, resolver));
     }

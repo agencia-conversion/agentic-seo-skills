@@ -13,7 +13,6 @@ import {
   applyContentFrontmatter,
   writeBrainSubpages,
   writeBrainIndex,
-  simplifyEditorial,
   logMigrationEntry,
 } from "./lib/clusters-apply.mjs";
 
@@ -114,14 +113,13 @@ function runApply() {
   const publishedByCluster = buildPublishedByCluster(plan);
   touched.subpages = writeBrainSubpages(ROOT, plan, publishedByCluster);
   writeBrainIndex(ROOT, plan, publishedByCluster);
-  simplifyEditorial(ROOT);
   logMigrationEntry(ROOT, touched);
   console.log(`Cutover aplicado.`);
   console.log(`Clusters: ${touched.clusters.length}`);
   console.log(`Conteúdos: ${touched.contents.length}`);
   console.log(`Subpáginas brain: ${touched.subpages.length}`);
   console.log(`Índice brain/topic-clusters.md reescrito.`);
-  console.log(`brain/editorial.md simplificado.`);
+  console.log(`Nota: brain/editorial.md foi consolidado em brain/topic-clusters.md no refactor 2 (2026-05-26); a função simplifyEditorial não é mais necessária.`);
   console.log(`Log mestra gravada. Tag git: ${TAG}.`);
 }
 

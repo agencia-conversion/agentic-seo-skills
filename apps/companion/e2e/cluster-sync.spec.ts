@@ -1,8 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { TEST_TOKEN } from './test-constants';
 
 const PATH_TO_CONTENT = 'conteudos/blog/sample-satellite.md';
 const SECOND_CLUSTER = 'second-cluster';
+
+async function chooseGlobalWidth(page: Page, menuTestId: string, width: 'sm' | 'md' | 'lg' | 'full') {
+  await page.locator(`[data-testid="${menuTestId}"]`).click();
+  await page.locator('[data-testid="layout-width-menu"]').click();
+  await page.locator(`[data-testid="layout-width-option-${width}"]`).click();
+}
 
 test.describe('cluster-sync end-to-end', () => {
   test('short companion token works in routes and APIs', async ({ page, request }) => {
@@ -35,6 +41,23 @@ test.describe('cluster-sync end-to-end', () => {
   });
 
   test('POST /api/project/file triggers cluster-sync hook', async ({ request }) => {
+    // Reset clusters[] to [] first so the subsequent POST genuinely adds
+    // sample-cluster and forces the sync hook to regenerate downstream files.
+    const initial = await request.get(
+      `/api/project/file?path=${encodeURIComponent(PATH_TO_CONTENT)}&token=${TEST_TOKEN}`,
+    );
+    const initialData = await initial.json();
+    await request.post(`/api/project/file?token=${TEST_TOKEN}`, {
+      data: {
+        path: PATH_TO_CONTENT,
+        hash: initialData.hash,
+        title: initialData.title,
+        body: initialData.body,
+        frontmatter: { ...initialData.frontmatter, title: initialData.title, clusters: [] },
+        syncWait: true,
+      },
+    });
+
     const get = await request.get(
       `/api/project/file?path=${encodeURIComponent(PATH_TO_CONTENT)}&token=${TEST_TOKEN}`,
     );
@@ -140,6 +163,53 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(table).not.toContainText('fundamentos');
     await table.getByRole('link', { name: 'Sample Cluster', exact: true }).click();
     await page.waitForURL(/brain-topic-clusters-sample-cluster/, { timeout: 5_000 });
+  });
+
+  test('brain index and topic clusters use the same global width default', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-index`);
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[960px\]/);
+
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-active-clusters-table]').waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[960px\]/);
+  });
+
+  test('changing global width in the editor header affects another brain page', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-index`);
+    await page.waitForLoadState('domcontentloaded');
+    await chooseGlobalWidth(page, 'editor-layout-menu', 'lg');
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[1200px\]/);
+
+    await page.goto(`/project/${TEST_TOKEN}/brain-voz`);
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[1200px\]/);
+  });
+
+  test('table width toggle widens data table without changing prose frame', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const frame = page.locator('[data-testid="page-width-frame"]');
+    const table = page.locator('[data-cluster-table="sample-cluster"]');
+    await table.waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(frame).toHaveClass(/max-w-\[960px\]/);
+
+    const frameBefore = await frame.boundingBox();
+    const tableBefore = await table.boundingBox();
+    expect(frameBefore).toBeTruthy();
+    expect(tableBefore).toBeTruthy();
+    expect(tableBefore!.width).toBeLessThanOrEqual(frameBefore!.width + 4);
+
+    await page.locator('[data-testid="editor-layout-menu"]').click();
+    await page.locator('[data-testid="layout-table-follow-toggle"]').click();
+    await expect(frame).toHaveClass(/max-w-\[960px\]/);
+    await expect(table).toHaveClass(/-mx-20/);
+
+    const tableAfter = await table.boundingBox();
+    expect(tableAfter).toBeTruthy();
+    expect(tableAfter!.width).toBeGreaterThan(frameBefore!.width + 120);
   });
 
   test('companion home renders without server error', async ({ page }) => {
@@ -304,6 +374,21 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(table.locator('[data-testid="cluster-filter-select"]')).toBeVisible();
     await expect(table.locator('thead')).toContainText('Cluster(s)');
     await expect(table).not.toContainText('Pesquisar volume');
+  });
+
+  test('/contents and /contents-sample-cluster use the global width control', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/contents`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-cluster-table="all"]').waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[960px\]/);
+
+    await chooseGlobalWidth(page, 'workspace-layout-menu', 'sm');
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[640px\]/);
+
+    await page.goto(`/project/${TEST_TOKEN}/contents-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-cluster-table="sample-cluster"]').waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[640px\]/);
   });
 
   test('GET /api/project/contents sorts server-side before pagination', async ({ request }) => {

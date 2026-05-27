@@ -50,19 +50,19 @@ const resolver = {
     seenTargets.push(target);
     const clean = target.toLowerCase();
     if (clean === "voz") return "brain/voz.md";
-    if (clean === "editorial") return "brain/editorial.md";
+    if (clean === "topic-clusters") return "brain/topic-clusters.md";
     return null;
   },
   labelForPageId(id) {
     if (id === "brain/voz.md") return "voz";
-    if (id === "brain/editorial.md") return "editorial";
+    if (id === "brain/topic-clusters.md") return "topic-clusters";
     return id;
   },
 };
 
 const markdown = `# Título
 
-Conteúdo com acentuação: página, análise e aprovação. Veja [[voz]], [[voz|tom editorial]], [[editorial#SEO estratégico]] e [[editorial#SEO estratégico|SEO estratégico]].
+Conteúdo com acentuação: página, análise e aprovação. Veja [[voz]], [[voz|tom editorial]], [[topic-clusters#SEO estratégico]] e [[topic-clusters#SEO estratégico|SEO estratégico]].
 
 Inline: link para [conversion](https://conversion.com.br/), código \`gap\` inline, **negrito** e *itálico*.
 
@@ -84,7 +84,7 @@ URL nua: https://conversion.com.br/blog/backlinks/ vira link automaticamente.
 
 ![[voz]]
 
-![[editorial#SEO estratégico|área SEO]]
+![[topic-clusters#SEO estratégico|área SEO]]
 
 \`\`\`mermaid
 flowchart TD
@@ -126,7 +126,7 @@ assert.equal(doc.type, "doc");
 const serializedDoc = JSON.stringify(doc);
 assert.match(serializedDoc, /pageMention/);
 assert.match(serializedDoc, /"anchor":"SEO estratégico"/);
-assert.equal(seenTargets.includes("editorial#SEO estratégico"), false);
+assert.equal(seenTargets.includes("topic-clusters#SEO estratégico"), false);
 assert.match(JSON.stringify(doc), /rawMarkdown/);
 assert.match(JSON.stringify(doc), /reportBlock/);
 assert.match(JSON.stringify(doc), /"type":"table"/);
@@ -148,8 +148,8 @@ const out = docToMarkdown(doc, resolver);
 assert.match(out, /página, análise e aprovação/);
 assert.match(out, /\[\[voz\]\]/);
 assert.match(out, /\[\[voz\|tom editorial\]\]/);
-assert.match(out, /\[\[editorial#SEO estratégico\]\]/);
-assert.match(out, /\[\[editorial#SEO estratégico\|SEO estratégico\]\]/);
+assert.match(out, /\[\[topic-clusters#SEO estratégico\]\]/);
+assert.match(out, /\[\[topic-clusters#SEO estratégico\|SEO estratégico\]\]/);
 assert.match(out, /\[conversion\]\(https:\/\/conversion\.com\.br\/\)/);
 assert.match(out, /`gap`/);
 assert.match(out, /\*\*negrito\*\*/);
@@ -179,7 +179,7 @@ assert.match(out, /> \[!warning\] Atenção/);
 assert.match(out, /> Este é um aviso editorial\./);
 assert.match(out, /> \[!tip\]/);
 assert.match(out, /!\[\[voz\]\]/);
-assert.match(out, /!\[\[editorial#SEO estratégico\|área SEO\]\]/);
+assert.match(out, /!\[\[topic-clusters#SEO estratégico\|área SEO\]\]/);
 assert.match(out, /```mermaid/);
 assert.match(out, /flowchart TD/);
 // M3: agentic-query serialization
@@ -213,6 +213,9 @@ assert.match(reportBlockDataSource, /calculateScoreFromTable/);
 const pageWidthSource = readFileSync("apps/companion/src/features/workspace/page-width.ts", "utf8");
 assert.match(pageWidthSource, /REPORT_DIR_NAME/);
 assert.match(pageWidthSource, /return 'lg'/);
+assert.doesNotMatch(pageWidthSource, /topic-clusters[^;]+return 'full'/);
+assert.match(pageWidthSource, /pageHasDataTable/);
+assert.match(pageWidthSource, /resolveDataTableFollowPage/);
 
 const globalCssSource = readFileSync("apps/companion/src/app/globals.css", "utf8");
 assert.doesNotMatch(globalCssSource, /left:\s*-76px/);

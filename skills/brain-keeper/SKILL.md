@@ -7,7 +7,7 @@ metadata:
 
 # Brain Keeper
 
-You are the steward of the Agentic SEO `project/brain/`. The brain is the only authorial knowledge layer of the project: the canonical pages `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `log` plus one subpage per active topic cluster in `topic-clusters/<slug>.md`. `log.md` is the append-only chronicle. There is no separate `wiki/` layer. The brain is read by every Agentic SEO skill as initial context. The editorial review rules (universal + project-specific) live in `brain/revisao.md`; this skill references that page instead of duplicating it.
+You are the steward of the Agentic SEO `project/brain/`. The brain is the only authorial knowledge layer of the project: the canonical pages `index`, `identidade`, `voz`, `tecnologia`, `topic-clusters`, `revisao`, `log` plus one subpage per active topic cluster in `topic-clusters/<slug>.md`. `log.md` is the append-only chronicle. Editorial areas (strategic macro layer) live as H2 sections inside `topic-clusters.md` above the auto-generated cluster index — the old standalone `brain/editorial.md` was consolidated there in 2026-05-26. There is no separate `wiki/` layer. The brain is read by every Agentic SEO skill as initial context. The editorial review rules (universal + project-specific) live in `brain/revisao.md`; this skill references that page instead of duplicating it.
 
 ## When To Use
 
@@ -27,7 +27,7 @@ Allowed writes:
 - `project/workbench/brain-keeper/**` — drafts of proposed changes, lint reports, contradiction notes.
 - `project/conteudos/**` — register a published content with the canonical frontmatter.
 
-Authorial brain pages (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `topic-clusters/<slug>`, `revisao`) may be written directly when the change is backed by evidence and a `tipo: decisao` entry is appended to `log.md`. For `revisao.md` specifically: minor stylistic additions (new IA-slop term, new Conversion-explainer verb, recurring typo) are auto-applied with `aprovador: agent`; checklist changes (new editorial principle, new entry in "Erros comuns observados") are proposed as `tipo: lint` and wait for human approval before editing the page.
+Authorial brain pages (`index`, `identidade`, `voz`, `tecnologia`, `topic-clusters`, `topic-clusters/<slug>`, `revisao`) may be written directly when the change is backed by evidence and a `tipo: decisao` entry is appended to `log.md`. For `revisao.md` specifically: minor stylistic additions (new IA-slop term, new Conversion-explainer verb, recurring typo) are auto-applied with `aprovador: agent`; checklist changes (new editorial principle, new entry in "Erros comuns observados") are proposed as `tipo: lint` and wait for human approval before editing the page.
 
 Creating a NEW topic cluster subpage (`brain/topic-clusters/<slug>.md` for a cluster that does not yet exist) requires explicit human approval through the Companion `approve-cluster` handoff. Updating an existing subpage (resync the contents table after `content-seo promote`, refresh the resumo, mark a satellite `retired`) is auto-applied with `aprovador: agent` and a `tipo: decisao` log entry. An explicit user request always overrides this gate — when the user delegates promotion, record `aprovador: <user name>`.
 
@@ -55,7 +55,7 @@ Use Obsidian Wikilinks `[[...]]` only for real files inside `project/brain/`. Us
 
 **Fonte autoral vs. fonte interna.** O brain é a voz da própria marca falando de si mesma. Frases como "a home afirma", "o site diz", "o artigo X defende" tratam a marca como objeto narrado e estão proibidas no corpo de qualquer arquivo autoral. A procedência interna vai sempre para a seção `## Evidência` no rodapé da página, com link. Veja `## Lint editorial` abaixo para a regra completa.
 
-**Stack observado vs. tese editorial.** `tecnologia.md` é estritamente descritivo do que foi observado no site (frontend, CMS, headers, JSON-LD). Tese editorial sobre stack ("a marca defende Next.js", "preferimos sites estáticos") vive em `editorial.md` como área editorial ou em conteúdos publicados em `conteudos/`. Nunca em `tecnologia.md`.
+**Stack observado vs. tese editorial.** `tecnologia.md` é estritamente descritivo do que foi observado no site (frontend, CMS, headers, JSON-LD). Tese editorial sobre stack ("a marca defende Next.js", "preferimos sites estáticos") vive em `topic-clusters.md` como seção da área editorial Tecnologia ou em conteúdos publicados em `conteudos/`. Nunca em `tecnologia.md`.
 
 **Brain Index.** `index.md` é uma porta de entrada autoral: começa em prosa, resume as páginas centrais e aponta para elas. Ao resumir `[[tecnologia]]`, use apenas tecnologia observada do site da marca. Não descreva o Companion, o plugin, tokens locais, rotas internas, testes automatizados ou `cluster-sync` como se fossem a stack do site, exceto quando o projeto analisado for explicitamente o próprio Companion.
 
@@ -115,7 +115,7 @@ Hard rule. Brain pages, conteúdos públicos e logs são consumidos por outros a
 2. Reescrever a seção para descrever o que foi observado e omitir o item que não tem suporte. Não escrever "não foi observado X" como linha solta. Quando o item não cabe, ele simplesmente não entra.
 3. Mover o item para `log.md` como `tipo: decisao` explicando a omissão e o critério para reintroduzir o item depois. O arquivo autoral em si fica limpo.
 
-Estruturas obrigatórias do schema brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `revisao`, `index`) podem omitir subseções inteiras quando não há base. O que não pode é manter o cabeçalho com `gap` no corpo, célula de tabela vazia, ou linha "Para quem não fala: `gap`".
+Estruturas obrigatórias do schema brain (`identidade`, `voz`, `tecnologia`, `topic-clusters`, `revisao`, `index`) podem omitir subseções inteiras quando não há base. O que não pode é manter o cabeçalho com `gap` no corpo, célula de tabela vazia, ou linha "Para quem não fala: `gap`".
 
 Aplicar a regra em:
 - Brain pages.
@@ -127,7 +127,7 @@ Logs (`log.md`) podem citar lacunas observadas como `tipo: lint` ou `tipo: decis
 
 ## Lint editorial
 
-Run before declaring done in any change to an authorial brain page (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) and to `conteudos/<origem>/<slug>.md`. Does not run on `log.md`, `sources/`, or `workbench/`. Severity `block` interrupts the run with `status: blocked`; severity `warn` is logged as `tipo: lint` and the author decides.
+Run before declaring done in any change to an authorial brain page (`identidade`, `voz`, `tecnologia`, `topic-clusters`, `index`) and to `conteudos/<origem>/<slug>.md`. Does not run on `log.md`, `sources/`, or `workbench/`. Severity `block` interrupts the run with `status: blocked`; severity `warn` is logged as `tipo: lint` and the author decides.
 
 Lexicons per language live in `skills/brain-keeper/references/lint-lexicon.<lang>.json`, loaded by `project/.agentic-seo/project.json.language`. Languages without a lexicon get only language-agnostic checks plus a `warn` listing skipped checks.
 

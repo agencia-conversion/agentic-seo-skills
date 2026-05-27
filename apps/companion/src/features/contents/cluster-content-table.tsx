@@ -21,6 +21,7 @@ import {
   patchRow,
   postSatellite,
 } from '@/features/clusters/cluster-row-api';
+import { dataTableWidthClass } from '@/features/workspace/page-width';
 import {
   intentLabel,
   editorialStatusLabel,
@@ -276,9 +277,10 @@ function keywordDisplay(row: ClusterRow): string {
 export interface ClusterContentTableProps {
   clusterSlug?: string;
   bleedMargin?: boolean;
+  followPageWidth?: boolean;
 }
 
-export function ClusterContentTable({ clusterSlug, bleedMargin = false }: ClusterContentTableProps) {
+export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPageWidth = true }: ClusterContentTableProps) {
   const isClusterScopedByProp = Boolean(clusterSlug);
   const [localClusterFilter, setLocalClusterFilter] = useState<string>('');
   const effectiveCluster = clusterSlug || localClusterFilter || null;
@@ -616,7 +618,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
   return (
     <div
       data-cluster-table={dataTableAttr || 'unknown'}
-      className={cn('my-2 not-prose', bleedMargin && '-mx-12 md:-mx-16')}
+      className={cn('my-2 not-prose', dataTableWidthClass(followPageWidth), bleedMargin && '-mx-12 md:-mx-16')}
     >
       <div ref={wrapperRef} tabIndex={-1} className="overflow-hidden rounded-md bg-background">
         <header className="flex items-center justify-between gap-2 bg-background px-2.5 py-1.5">

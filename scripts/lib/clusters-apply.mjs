@@ -344,33 +344,6 @@ export function writeBrainIndex(root, plan, publishedByCluster) {
   return "project/brain/topic-clusters.md";
 }
 
-export function simplifyEditorial(root) {
-  const filePath = join(root, "project", "brain", "editorial.md");
-  if (!existsSync(filePath)) return null;
-  const text = readFileSync(filePath, "utf8");
-  const lines = text.split(/\r?\n/);
-  const out = [];
-  let dropping = false;
-  for (const line of lines) {
-    if (/^###\s+Conteúdos publicados/.test(line)) {
-      dropping = true;
-      continue;
-    }
-    if (dropping) {
-      if (/^##\s/.test(line) || /^###\s/.test(line)) {
-        dropping = false;
-        out.push(line);
-        continue;
-      }
-      continue;
-    }
-    out.push(line);
-  }
-  let cleaned = out.join("\n").replace(/\n{3,}/g, "\n\n");
-  writeFileSync(filePath, cleaned, "utf8");
-  return "project/brain/editorial.md";
-}
-
 export function logMigrationEntry(root, touched) {
   appendLogEntry(join(root, "project", "brain", "log.md"), {
     date: todayIso(),

@@ -333,9 +333,9 @@ const messages = {
       generalDescription: 'Workspace-wide preferences.',
       languageDescription: 'Load the interface from the browser language, or force a specific locale.',
       languageBrowserHint: 'Current browser language: {locale}',
-      defaultPageWidth: 'Default page width',
+      defaultPageWidth: 'Global page width',
       defaultPageWidthDescription:
-        'Applied when a page does not override its width. Individual pages can still have their own.',
+        'Applied to Companion pages unless a protected page type needs a narrower layout.',
       aiTitle: 'AI Provider',
       aiDescription:
         'Bring your own key. Keys are encrypted with your account salt and follow you across devices. Signing out clears the local copy.',
@@ -366,7 +366,9 @@ const messages = {
       inheritLabel: 'Inherit',
       inheritDescription: 'Follows parent / workspace default',
       auto: 'Auto',
-      pageWidth: 'Page width',
+      pageWidth: 'Global width',
+      tablesFollowPage: 'Tables follow page width',
+      tablesFollowPageDescription: 'Turn off to give data tables a wider operational frame.',
     },
     editor: {
       loadingWorkspace: 'Loading workspace...',
@@ -830,9 +832,9 @@ const messages = {
       generalDescription: 'Preferências do workspace.',
       languageDescription: 'Carregue a interface a partir do idioma do navegador ou force um idioma específico.',
       languageBrowserHint: 'Idioma atual do navegador: {locale}',
-      defaultPageWidth: 'Largura padrão da página',
+      defaultPageWidth: 'Largura global das páginas',
       defaultPageWidthDescription:
-        'Aplicada quando uma página não define sua própria largura. Páginas individuais ainda podem sobrescrever.',
+        'Aplicada às páginas do Companion, exceto quando um tipo protegido precisa de layout mais estreito.',
       aiTitle: 'Provedor de IA',
       aiDescription:
         'Traga sua própria chave. As chaves são criptografadas com o salt da sua conta e acompanham você entre dispositivos. Ao sair, a cópia local é removida.',
@@ -863,7 +865,9 @@ const messages = {
       inheritLabel: 'Herdar',
       inheritDescription: 'Segue o padrão do pai / workspace',
       auto: 'Auto',
-      pageWidth: 'Largura da página',
+      pageWidth: 'Largura global',
+      tablesFollowPage: 'Tabelas acompanham largura',
+      tablesFollowPageDescription: 'Desative para dar às tabelas de dados um frame operacional mais amplo.',
     },
     editor: {
       loadingWorkspace: 'Carregando workspace...',

@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, Archive, Pencil, Plus, Search, Sliders } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { showToast } from '@/components/toast';
+import { cn } from '@/lib/utils';
 import { getCompanionToken } from './cluster-row-api';
 import { EditableSelectCell } from './editable-select-cell';
 import { TableSettingsMenu, type SortState, type TableColumnDef } from '@/features/contents/table-settings-menu';
+import { dataTableWidthClass } from '@/features/workspace/page-width';
 import { useWorkspace } from '@/features/workspace/store';
 import { CreateClusterModal } from './create-cluster-modal';
 
@@ -138,7 +140,7 @@ function readValue(row: ClusterSummary, column: string): string {
 
 const EMPTY_HIDDEN_COLUMNS_BY_TABLE: Record<string, string[]> = {};
 
-export function ActiveClustersTable() {
+export function ActiveClustersTable({ followPageWidth = true }: { followPageWidth?: boolean }) {
   const router = useRouter();
   const token = useWorkspace((s) => s.token);
   const refreshProjectTree = useWorkspace((s) => s.refreshProjectTree);
@@ -286,7 +288,7 @@ export function ActiveClustersTable() {
   };
 
   return (
-    <div data-active-clusters-table className="my-2 not-prose">
+    <div data-active-clusters-table className={cn('my-2 not-prose', dataTableWidthClass(followPageWidth))}>
       <div className="overflow-hidden rounded-md bg-background">
         <header className="flex items-center justify-between gap-2 px-2.5 py-1.5">
           <label className="flex h-8 w-48 shrink-0 items-center gap-2 rounded-md border border-notion-border bg-background px-2 text-xs">

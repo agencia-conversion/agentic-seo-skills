@@ -177,7 +177,7 @@ function defaultPagesForBrain(projDir) {
   return [
     { id: "brain/identidade", path: "brain/identidade.md", page_type: "about" },
     { id: "brain/index", path: "brain/index.md", page_type: "homepage" },
-    { id: "brain/editorial", path: "brain/editorial.md", page_type: "service" },
+    { id: "brain/topic-clusters", path: "brain/topic-clusters.md", page_type: "service" },
     { id: "brain/voz", path: "brain/voz.md", page_type: "policy" },
     { id: "brain/tecnologia", path: "brain/tecnologia.md", page_type: "policy" },
   ].filter((p) => fs.existsSync(path.join(projDir, p.path)));

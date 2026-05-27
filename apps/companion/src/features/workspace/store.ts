@@ -132,6 +132,7 @@ interface WorkspaceState {
     advancedExpanded?: boolean;
     hiddenColumns?: string[];
     hiddenColumnsByTable?: Record<string, string[]>;
+    dataTableFollowPageByPage?: Record<string, boolean>;
   };
   _hasHydrated: boolean;
 
@@ -192,6 +193,7 @@ const DEFAULT_SETTINGS: WorkspaceState['settings'] = {
   usageLimit: 10 * 1024 * 1024,
   defaultPageWidth: 'md',
   language: 'system',
+  dataTableFollowPageByPage: {},
 };
 const SETTINGS_STORAGE_KEY = 'agentic-seo-companion-settings';
 
@@ -207,6 +209,16 @@ function readInitialSettings(): WorkspaceState['settings'] {
       defaultPageWidth: ['sm', 'md', 'lg', 'full'].includes(parsed?.defaultPageWidth)
         ? parsed.defaultPageWidth
         : DEFAULT_SETTINGS.defaultPageWidth,
+      dataTableFollowPageByPage:
+        parsed?.dataTableFollowPageByPage &&
+        typeof parsed.dataTableFollowPageByPage === 'object' &&
+        !Array.isArray(parsed.dataTableFollowPageByPage)
+          ? Object.fromEntries(
+              Object.entries(parsed.dataTableFollowPageByPage).filter(
+                ([key, value]) => typeof key === 'string' && typeof value === 'boolean'
+              )
+            )
+          : {},
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -255,7 +267,6 @@ const BRAIN_PAGE_ICONS: Record<string, string> = {
   'brain/identidade.md': '🪪',
   'brain/voz.md': '🗣️',
   'brain/tecnologia.md': '🛠️',
-  'brain/editorial.md': '📐',
   'brain/topic-clusters.md': '🧩',
   'brain/produtos.md': '📦',
   'brain/revisao.md': '📝',

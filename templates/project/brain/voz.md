@@ -6,8 +6,8 @@ updated: "<YYYY-MM-DD>"
 # Tom de Voz
 
 <!--
-PROPOSITO: Guideline editorial executavel deste projeto. Nao e um
-brandbook de adjetivos. Define o que e publicavel e o que nao e, com
+PROPOSITO: Guideline editorial executavel deste projeto. Não e um
+brandbook de adjetivos. Define o que e publicavel e o que não e, com
 exemplos especificos deste projeto. A regra global jornalistica (lead,
 atribuicao, anti-IA-slop, anti-Conversion-explainer, acentuacao pt-BR,
 banimento de em-dash em prosa pt-BR) vive em `skills/brain-keeper/SKILL.md`
@@ -22,7 +22,7 @@ REMOVIDOS quando o arquivo for preenchido.
 <!--
 REGRA: 3 a 7 principios editoriais ESPECIFICOS deste projeto. Cada
 principio em uma linha imperativa, em pt-BR ou no idioma do projeto.
-NAO repita a regra global jornalistica aqui (lead, atribuicao, etc) —
+NÃO repita a regra global jornalistica aqui (lead, atribuicao, etc) —
 ela ja vale. Aqui ficam as escolhas que diferenciam este projeto:
 registro, ponto de vista, posicionamento de autor, tabu editorial.
 
@@ -30,7 +30,7 @@ Exemplos do tipo certo:
 - "Escrever em primeira pessoa do singular, com o autor assumindo a
   posicao."
 - "Nunca usar caso de cliente sem autorizacao explicita."
-- "Tratar a disciplina como pratica em construcao, nao como produto
+- "Tratar a disciplina como pratica em construcao, não como produto
   pronto."
 -->
 
@@ -43,10 +43,10 @@ Exemplos do tipo certo:
 <!--
 REGRA: Lead na primeira frase: o que e, para quem, por que importa.
 Frases curtas. Sujeito + verbo + objeto. Sem proemio retorico ("neste
-artigo vamos entender", "voce ja se perguntou"). Em paginas autorais
+artigo vamos entender", "voce ja se perguntou"). Em páginas autorais
 do brain, a apresentacao da marca ou da entidade NUNCA descreve a
 fonte ("a home diz", "o site afirma") — afirma diretamente e poe a
-fonte na secao de evidencia. Particularidade deste projeto:
+fonte na secao de evidência. Particularidade deste projeto:
 -->
 
 <como este projeto trata leads e aberturas, em 2-4 linhas>
@@ -56,8 +56,8 @@ fonte na secao de evidencia. Particularidade deste projeto:
 <!--
 REGRA GLOBAL: Toda afirmacao factual cita fonte. Atribuicao vai no
 corpo quando se trata de numero, metrica, opiniao sobre terceiros,
-ou citacao direta. Atribuicao vai no rodape (## Evidencia) quando se
-trata da propria marca afirmando sobre si mesma. NAO inventar
+ou citacao direta. Atribuicao vai no rodape (## Evidência) quando se
+trata da propria marca afirmando sobre si mesma. NÃO inventar
 endosso, premio, cliente, citacao.
 
 Particularidade deste projeto (preencher):
@@ -76,8 +76,8 @@ projeto.
 ### Quando a atribuição vai para a Evidência (rodapé)
 
 <!--
-Exemplo: "Marca afirmando sobre si mesma em pagina institucional",
-"informacao de pagina sobre nos". Preencha com casos especificos.
+Exemplo: "Marca afirmando sobre si mesma em página institucional",
+"informacao de página sobre nos". Preencha com casos especificos.
 -->
 
 - <caso 1>
@@ -92,7 +92,7 @@ REGRA GLOBAL: Evite "crucial", "robusto", "compreensivo", "nuançado",
 "sinergico", "escalavel" (sem vetor), "revolucionario", "disruptivo",
 "inovador" (autoreferente), "alavancar", "otimizar" (sem objeto),
 "maximizar", "garantir" (vazio), "entregar valor", "ecossistema"
-(fora de biologia/tecnico), "jornada" (marketing), "empoderar",
+(fora de biologia/técnico), "jornada" (marketing), "empoderar",
 "acionavel", "estrategico" (alibi), "inteligente" (produto),
 "transformacional", "next-gen", "end-to-end" (prefira "de ponta a
 ponta" e so se for verdade). Particularidades deste projeto (adjetivos
@@ -106,13 +106,13 @@ especificos que agentes vem tentando usar e voce quer banir):
 
 <!--
 REGRA GLOBAL: Evite "vamos entender", "neste artigo", "como voce pode
-ver", "como vimos", "vale lembrar", "e importante notar", "nao
+ver", "como vimos", "vale lembrar", "e importante notar", "não
 esqueca", "fique atento", "agora que vimos", "em outras palavras",
 "simplificando", "basicamente", "em resumo" (na abertura), "voce vai
 aprender", "descubra como", "continue lendo para saber", "antes de
 mais nada", "sem mais delongas", "voce ja deve ter ouvido falar", "a
 resposta e simples", "a verdade e que", "o segredo esta em". O texto
-explica afirmando, nao conduzindo o leitor pela mao. Particularidades:
+explica afirmando, não conduzindo o leitor pela mao. Particularidades:
 -->
 
 - <padrao banido 1>
@@ -124,7 +124,7 @@ REGRA GLOBAL: "Lider", "principal", "maior", "melhor", "unico",
 "pioneiro", "referencia", "consagrado", "renomado", "reconhecido",
 "premiado", "respeitado", "inovador", "vanguardista", "completo",
 "exclusivo", "definitivo", "historico", "marcante", "memoravel" so
-entram com prova citada na mesma frase ou em ## Evidencia, com fonte
+entram com prova citada na mesma frase ou em ## Evidência, com fonte
 externa nominal e data. Adjetivos de tamanho ("grande", "pequeno",
 "medio") so com criterio explicito ("acima de 500 funcionarios,
 definicao IBGE"). Particularidades:
@@ -150,7 +150,7 @@ por area editorial ativa.
 
 <!--
 REGRA GLOBAL: pt-BR preserva acentos em prosa, titulos, slugs autorais
-e logs ("pagina" e errado; o correto e "página"). ASCII so para slugs
+e logs ("página" e errado; o correto e "página"). ASCII so para slugs
 de arquivo, IDs e codigo. en preserva apostrofes e formatacao
 canonica. Outros idiomas seguem suas regras canonicas. Em dash (—) em
 prosa pt-BR e proibido; use virgula, ponto ou dois-pontos.
@@ -178,7 +178,7 @@ referencia a [[log]] como mecanismo de registro>
 
 <!--
 REGRA: PELO MENOS 2 pares "Bom vs Ruim" especificos deste projeto.
-Nao copiar exemplos genericos do brain-keeper. Tirar de paginas reais,
+Não copiar exemplos genericos do brain-keeper. Tirar de páginas reais,
 de drafts ja escritos, ou de tentativas anteriores que falharam o
 lint.
 

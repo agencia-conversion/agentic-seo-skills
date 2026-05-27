@@ -30,8 +30,7 @@ const expectedBrainTitles = {
   "identidade.md": "Identidade",
   "voz.md": "Tom de Voz",
   "tecnologia.md": "Tecnologia",
-  "editorial.md": "Editorial",
-  "topic-clusters.md": "Topic clusters",
+  "topic-clusters.md": "Topic Clusters",
   "revisao.md": "Revisão",
   "log.md": "Log",
 };
@@ -41,7 +40,7 @@ for (const [page, title] of Object.entries(expectedBrainTitles)) {
   assert.doesNotMatch(text, /title:\s*".+ — Context test"/, `brain/${page} should not include project suffix`);
 }
 
-for (const page of ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md", "topic-clusters.md", "revisao.md", "log.md"]) {
+for (const page of ["index.md", "identidade.md", "voz.md", "tecnologia.md", "topic-clusters.md", "revisao.md", "log.md"]) {
   assert.ok(existsSync(join(project, "brain", page)), `missing brain/${page}`);
 }
 for (const origem of ["blog", "linkedin", "podcast", "outros"]) {

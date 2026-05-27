@@ -4,6 +4,7 @@ import { runApprovePage } from "./lib/companion-types/approve-page.mjs";
 import { runApproveBriefing } from "./lib/companion-types/approve-briefing.mjs";
 import { runDataforseoBypass } from "./lib/companion-types/dataforseo-bypass.mjs";
 import { runPickCluster } from "./lib/companion-types/pick-cluster.mjs";
+import { runApproveCluster } from "./lib/companion-types/approve-cluster.mjs";
 import { runReviewChanges } from "./lib/companion-types/review-changes.mjs";
 import { runProjectBrowser } from "./lib/project-browser-server.mjs";
 
@@ -13,6 +14,7 @@ const HANDOFFS = {
   "approve-briefing": runApproveBriefing,
   "dataforseo-bypass": runDataforseoBypass,
   "pick-cluster": runPickCluster,
+  "approve-cluster": runApproveCluster,
   "review-changes": runReviewChanges,
   "project-browser": runProjectBrowser,
 };

@@ -19,10 +19,17 @@ const AUTHORIAL_BRAIN_PAGES = new Set([
   "brain/identidade.md",
   "brain/voz.md",
   "brain/tecnologia.md",
-  "brain/editorial.md",
   "brain/topic-clusters.md",
+  "brain/produtos.md",
   "brain/revisao.md",
 ]);
+
+// Any other top-level brain/<name>.md page is also authorial when registered
+// as `tipo: decisao` in brain/log.md (contract: extensible brain).
+function isExtensibleBrainPage(rel) {
+  if (typeof rel !== "string") return false;
+  return /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) && rel !== "brain/log.md";
+}
 
 function parseArgs(argv) {
   const out = {};
@@ -56,7 +63,7 @@ export function buildContext({ projectRoot, fileRel }) {
   const missingSources = findMissingSources(body, logFile);
   const brokenLinks = findBrokenWikilinks(body, brainRoot);
   const diff = diffAgainstSnapshot(projectRoot, fileRel, body);
-  const isAuthorial = AUTHORIAL_BRAIN_PAGES.has(fileRel);
+  const isAuthorial = AUTHORIAL_BRAIN_PAGES.has(fileRel) || isExtensibleBrainPage(fileRel);
   return {
     filePath,
     fileRel,

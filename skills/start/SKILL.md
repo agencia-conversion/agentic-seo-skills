@@ -53,7 +53,6 @@ First-run setup may create blank brain templates and operational log entries, bu
 - `project/brain/identidade.md`
 - `project/brain/voz.md`
 - `project/brain/tecnologia.md`
-- `project/brain/editorial.md`
 - `project/brain/topic-clusters.md`
 - `project/brain/revisao.md`
 

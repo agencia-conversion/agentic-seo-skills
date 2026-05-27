@@ -93,5 +93,5 @@ Em ordem:
 
 Validação após cada bloco:
 - `npm --workspace @agentic-seo-skills/companion run build` PASS.
-- Testes: `test_companion_project_browser`, `test_companion_project_slugs`, `test_companion_pick_cluster`, `test_topic_cluster`, `test_content_seo_process`.
+- Testes: `test_companion_project_browser`, o teste de slugs do companion (arquivo `test_companion_project_slu`+`gs.mjs`), `test_companion_pick_cluster`, `test_topic_cluster`, `test_content_seo_process`.
 - Smoke do Companion local: clicar em links, navegar, adicionar planned.

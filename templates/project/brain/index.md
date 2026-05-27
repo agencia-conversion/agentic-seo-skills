@@ -5,40 +5,56 @@ updated: "<YYYY-MM-DD>"
 
 # <Nome do projeto>
 
-<Nome do projeto> é a página de entrada do cérebro da marca. Ela resume o contexto editorial, técnico e estratégico que orienta decisões de SEO, conteúdo e análise.
+<!--
+REGRA: A página index serve como landing do brain. Escreva 2-3 parágrafos de
+introdução que respondam:
+1. O que é a marca (em 1-2 frases factuais, sem AI-slop), incluindo a frase-marca
+   canônica entre aspas quando existir.
+2. Para que serve este brain e como agentes interagem com ele.
+3. Como navegar (resumo: cada bloco abaixo é uma sub-página com escopo próprio).
 
-A marca usa este brain para transformar conhecimento acumulado em decisões publicáveis, rastreáveis e úteis. Cada página concentra uma parte do contexto que outros agentes precisam ler antes de escrever, revisar ou analisar.
+Detalhe completo da marca vive em [[identidade]]; aqui só uma introdução de
+1-2 frases para dar contexto antes dos links abaixo.
+-->
 
-A frase-marca, o aposto e os pontos de posicionamento vivem em [[identidade]]. O tom, a linha editorial e as decisões ficam nas páginas abaixo para que o index permaneça curto e navegável.
+<introdução em 2-3 parágrafos sobre a marca, o brain, e como navegar>
 
-Use esta página como ponto de partida antes de editar conteúdos, avaliar oportunidades ou registrar decisões. Os links abaixo levam às áreas autorais que sustentam o trabalho.
+<!--
+REGRA: Cada sub-página do brain ganha um H2 com 2-4 frases de resumo do que
+ela contém. Não escreva 1-line de navegação — escreva o suficiente para o
+leitor decidir se precisa abrir a página ou não. Mantenha os wikilinks
+[[...]] como o cabeçalho do H2 para tornar o link explícito.
+-->
 
-## Pilares do cérebro
+## [[identidade|Identidade]]
 
-### [[identidade|Identidade]]
+<resumo: brandbook narrativo. O que tem dentro: linha única, aposto, parágrafo
+de apresentação, frase-marca, promessa, anti-posicionamento, público, identidade
+técnica, canais, áreas editoriais, evidências externas>
 
-A página de identidade reúne o aposto, a apresentação, a promessa central, o público e os limites de posicionamento da marca.
+## [[voz|Tom de Voz]]
 
-### [[voz|Tom de Voz]]
+<resumo: princípios editoriais específicos deste projeto, lead, atribuição,
+vocabulário a evitar, vocabulário preferido por área, acentuação e idioma,
+política de errata, exemplos de referência>
 
-A página de tom de voz define o registro editorial, os termos preferidos, os termos proibidos e os critérios de linguagem que mantêm os conteúdos consistentes.
+## [[topic-clusters|Topic Clusters]]
 
-### [[editorial|Editorial]]
+<resumo: espinha dorsal. Áreas editoriais macro com tese, diferenciação,
+audiência, subtemas e provas; tabela auto-gerada de clusters ativos; subpáginas
+por cluster com tabela de conteúdos materializada por cluster-sync>
 
-A página editorial organiza as áreas macro, as teses de conteúdo, os do's e don'ts de linha editorial e a lógica que conecta conteúdo, busca e autoridade temática.
+## [[tecnologia|Tecnologia]]
 
-### [[topic-clusters|Topic Clusters]]
+<resumo: contexto técnico observado do site, mapa de SEO técnico com status
+por área, decisões técnicas registradas, pendências, evidências>
 
-A página de Topic Clusters reúne os clusters semânticos ativos, seus pilares, satélites publicados e oportunidades planejadas.
+## [[revisao|Revisão]]
 
-### [[tecnologia|Tecnologia]]
+<resumo: regra editorial universal + princípios específicos do projeto,
+checklist estilística, erros comuns observados>
 
-A página de tecnologia registra o contexto técnico observado do site da marca, os riscos de SEO técnico e as decisões operacionais que afetam rastreamento, performance e publicação.
+## [[log|Log]]
 
-### [[revisao|Revisão]]
-
-A página de revisão concentra as regras editoriais usadas antes de publicar, incluindo critérios universais e aprendizados específicos do projeto.
-
-### [[log|Log]]
-
-O log preserva decisões, aprovações, evidências e mudanças relevantes em ordem cronológica.
+<resumo: registro append-only de decisões, aprovações, erratas, lints,
+ingestões, publicações e provas; schema fixo>

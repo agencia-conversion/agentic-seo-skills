@@ -49,6 +49,27 @@ export function resolvePageWidth(
     current = pages.find((p) => p.id === current!.parentId);
   }
   if (page?.path?.startsWith(`${REPORT_DIR_NAME}/`) && defaultWidth === 'full') return 'lg';
-  if (page?.path === 'brain/topic-clusters.md' || page?.path?.startsWith('brain/topic-clusters/')) return 'full';
   return defaultWidth;
+}
+
+export function pageHasDataTable(page: Page | null | undefined): boolean {
+  if (!page) return false;
+  return (
+    page.kind === 'contentIndex' ||
+    page.kind === 'contentByCluster' ||
+    page.path === 'brain/topic-clusters.md' ||
+    page.path?.startsWith('brain/topic-clusters/')
+  );
+}
+
+export function resolveDataTableFollowPage(
+  pageId: string | null | undefined,
+  preferences: Record<string, boolean> | null | undefined
+): boolean {
+  if (!pageId) return true;
+  return preferences?.[pageId] !== false;
+}
+
+export function dataTableWidthClass(followPageWidth: boolean): string {
+  return followPageWidth ? '' : 'md:-mx-20 lg:-mx-32 xl:-mx-40';
 }

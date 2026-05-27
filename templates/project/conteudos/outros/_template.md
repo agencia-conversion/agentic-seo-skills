@@ -1,10 +1,13 @@
 ---
+contract_version: 1
 title: "<título>"
 slug: "<slug-kebab-case>"
 published_at: "<YYYY-MM-DD>"
 source_url: "<url>"
 origem: "outros"
-area: "<slug da área editorial>"
+clusters: []
+# papel:
+#   <cluster-slug>: pilar | satelite
 ---
 
 # <título>

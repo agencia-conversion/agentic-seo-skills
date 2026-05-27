@@ -41,10 +41,20 @@ const AUTHORIAL_BRAIN_PAGES = new Set([
   "identidade.md",
   "voz.md",
   "tecnologia.md",
-  "editorial.md",
   "topic-clusters.md",
+  "produtos.md",
   "revisao.md",
 ]);
+
+// Brain is extensible: any other brain/<name>.md page is authorial when
+// registered as `tipo: decisao` in brain/log.md (contract: extensible brain).
+// The canonical set above is the required minimum; new top-level subpages
+// (e.g., `produtos.md`, `parcerias.md`, `metricas.md`) join via decision log.
+function isAuthorialBrainName(name: string): boolean {
+  if (typeof name !== "string") return false;
+  if (AUTHORIAL_BRAIN_PAGES.has(name)) return true;
+  return /^[A-Za-z0-9._-]+\.md$/.test(name) && name !== "log.md";
+}
 const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "outros"]);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sharedReportModules = require("../../shared/report-modules.js") as {
@@ -2606,8 +2616,8 @@ function validatePublicContentDraft(text: string, brief: AnyRecord): string[] {
 async function commandBrainApprove(args: AnyRecord): Promise<void> {
   const rel = required(args, "page").replace(/^\/+/, "");
   const by = String(args.by || "agent").trim() || "agent";
-  if (!AUTHORIAL_BRAIN_PAGES.has(rel)) {
-    throw new CliError(`brain-approve only accepts authorial brain pages (${[...AUTHORIAL_BRAIN_PAGES].join(", ")}). Got: ${rel}`);
+  if (!isAuthorialBrainName(rel)) {
+    throw new CliError(`brain-approve only accepts top-level brain pages (canonical set: ${[...AUTHORIAL_BRAIN_PAGES].join(", ")}; or any other brain/<name>.md registered via tipo: decisao in log). Got: ${rel}`);
   }
   const file = path.join(ensureProject(), "brain", rel);
   if (!fs.existsSync(file)) throw new CliError(`Brain page not found: ${file}`);
@@ -3517,7 +3527,7 @@ function readBrainEvidencePage(projectDir: string, rel: string): AnyRecord {
       filled: false,
       content_hash_sha256: null,
       excerpts_used: [],
-      authorial: AUTHORIAL_BRAIN_PAGES.has(rel),
+      authorial: isAuthorialBrainName(rel),
     };
   }
   const text = fs.readFileSync(file, "utf8");

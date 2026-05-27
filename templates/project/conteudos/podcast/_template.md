@@ -1,10 +1,13 @@
 ---
+contract_version: 1
 title: "<título do episódio>"
 slug: "<slug-kebab-case>"
 published_at: "<YYYY-MM-DD>"
 source_url: "<url do episódio>"
 origem: "podcast"
-area: "<slug da área editorial>"
+clusters: []
+# papel:
+#   <cluster-slug>: pilar | satelite
 ---
 
 # <título do episódio>

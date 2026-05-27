@@ -191,4 +191,56 @@ export const buildSuggestionItems = (t?: Translator): SuggestionItem[] => [
         .run();
     },
   },
+  {
+    title: 'Clusters por área',
+    description: 'Tabela dinâmica de clusters filtrados por área editorial.',
+    icon: <Sparkles className="w-4 h-4" />,
+    searchTerms: ['cluster', 'area', 'área', 'topic', 'tabela'],
+    testId: 'slash-item-clusters-by-area',
+    command: ({ editor, range }) => {
+      const area = window.prompt('Slug da área editorial (ex: fundamentos-do-seo-agentico):');
+      if (!area || !area.trim()) return;
+      const body = `version: 1\narea: ${area.trim()}\n`;
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({ type: 'autoBlock', attrs: { kind: 'agentic-clusters-by-area', body } })
+        .run();
+    },
+  },
+  {
+    title: 'Conteúdos do cluster',
+    description: 'Tabela dinâmica de conteúdos publicados + planejados de um cluster.',
+    icon: <Sparkles className="w-4 h-4" />,
+    searchTerms: ['cluster', 'conteudo', 'conteúdo', 'pilar', 'satelite'],
+    testId: 'slash-item-cluster-content',
+    command: ({ editor, range }) => {
+      const slug = window.prompt('Slug do cluster:');
+      if (!slug || !slug.trim()) return;
+      const body = `version: 1\ncluster: ${slug.trim()}\n`;
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({ type: 'autoBlock', attrs: { kind: 'agentic-cluster-content', body } })
+        .run();
+    },
+  },
+  {
+    title: 'Índice de clusters',
+    description: 'Painel + tabela de todos os clusters ativos do projeto.',
+    icon: <Sparkles className="w-4 h-4" />,
+    searchTerms: ['cluster', 'indice', 'índice', 'painel', 'todos'],
+    testId: 'slash-item-cluster-index',
+    command: ({ editor, range }) => {
+      const body = 'version: 1\n';
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({ type: 'autoBlock', attrs: { kind: 'agentic-cluster-index', body } })
+        .run();
+    },
+  },
 ];

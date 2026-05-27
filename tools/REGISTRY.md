@@ -4,6 +4,7 @@
 |---|---|---|---|---|---|
 | `dataforseo` | SEO data provider | `coreyhaines31/marketingskills@906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | forked | 0.1.0-phase2 | SERP, keyword volume, suggestions, backlinks, on-page, labs. |
 | `extract` | HTML/Markdown extractor | original | shipped | 0.1.0 | Fetch (Chrome UA) → Playwright (lazy install) → Readability + Turndown. Used by content-seo, seo-analysis, technical-seo. |
+| `site-import` | Batch site importer | original | shipped | 0.2.0 | Sitemap discovery + extract.js + URL classification → `project/conteudos/<origem>/<slug>.md` com frontmatter `contract_version: 1`. Idempotente. Usado pela skill `content-import`. |
 | `google-search-console` | Search performance | `coreyhaines31/marketingskills@906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | candidate | pending | Candidate after dependency and auth audit. |
 | `ahrefs` | Backlinks | `coreyhaines31/marketingskills@906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | candidate | pending | Candidate for users with existing Ahrefs credentials. |
 | `semrush` | Competitive SEO | `coreyhaines31/marketingskills@906c2fb28e471c5b1d149d4159ec5ddb40b7c364` | candidate | pending | Candidate after dependency audit. |

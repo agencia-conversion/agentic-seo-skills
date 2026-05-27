@@ -1,6 +1,6 @@
 # Fixture: E-E-A-T evidence review
 
-Assess whether evidence is sufficient to add E-E-A-T proof to `project/brain/editorial.md` for a consulting site.
+Assess whether evidence is sufficient to add E-E-A-T proof to `project/brain/topic-clusters.md` (Authority area H2) for a consulting site.
 
 Available evidence:
 
@@ -14,7 +14,7 @@ Expected output:
 - Evidence inventory.
 - Claims that can be used.
 - Claims that must remain gaps.
-- Consensus notes and decision/evidence requirement before any `tipo: prova` entry in `project/brain/log.md` or reference in `project/brain/editorial.md`.
+- Consensus notes and decision/evidence requirement before any `tipo: prova` entry in `project/brain/log.md` or reference in `project/brain/topic-clusters.md`.
 
 Constraints:
 

@@ -64,6 +64,8 @@ Agentic SEO is English-first and supports Brazilian Portuguese as an official se
 
 Every Agentic SEO project keeps authorial knowledge in one place: `project/brain/`. Open it as the Obsidian vault. Public content, evidence, and intermediate artifacts live outside `brain/` so the brain stays small and editable.
 
+The brain is extensible. The canonical pages in the layout below are the required minimum present in every project. New top-level pages (`brain/<name>.md` such as `brain/produtos.md`, `brain/parcerias.md`, `brain/metricas.md`) and subpages under canonical parents (`brain/<parent>/<sub>.md`) are also valid authorial pages when they (a) carry frontmatter `title` + `updated`, (b) are wikilinked from `brain/index.md` (or from a parent subpage index), and (c) have their creation registered as `tipo: decisao` in `brain/log.md` with `aprovador: <human>`. The Companion sidebar auto-discovers any `.md` directly under `brain/` (excluding files prefixed with `_` or `.`); CLI commands `brain-approve` and approve-page validate both the canonical set and the extensible `brain/<name>.md` pattern.
+
 ### Layout
 
 ```
@@ -73,8 +75,7 @@ project/
     identidade.md         # brandbook narrativo (aposto, parágrafo, frase-marca, público, canais)
     voz.md                # princípios de tom e registro
     tecnologia.md         # contexto técnico observado + SEO técnico
-    editorial.md          # 5 áreas editoriais macro (camada estratégica)
-    topic-clusters.md     # índice curto dos clusters ativos + dashboard
+    topic-clusters.md     # áreas editoriais macro (H2) + índice auto-gerado de clusters ativos
     topic-clusters/       # subpáginas por cluster (uma por cluster ativo)
       <slug>.md           # prosa autoral + tabela de conteúdos projetada
     revisao.md            # sede canônica das regras de revisão (universal + projeto)
@@ -103,7 +104,7 @@ Brain pages: `title`, `updated`. No `status`, `judgment_level`, `pillar`, `owner
 
 Public content (`conteudos/<origem>/<slug>.md`): `title`, `slug`, `published_at`, `source_url`, `origem` (`blog | linkedin | podcast | outros`), `clusters` (array de slugs que existem como pasta em `project/clusters/<slug>/`), `papel` (opcional; objeto `{cluster-slug: pilar | satelite}` quando o conteúdo desempenha papel específico em um cluster).
 
-O campo `area:` (singular) é legado; após a migração de clusters, o vínculo conteúdo→cluster é a única fonte de afiliação editorial. Cluster declara `area:` no `cluster.yaml` apontando para uma seção de `brain/editorial.md` (1 área : N clusters).
+O campo `area:` (singular) no frontmatter de conteúdo é legado; após a migração de clusters, o vínculo conteúdo→cluster é a única fonte de afiliação editorial. Cluster declara `area:` no `cluster.yaml` apontando para uma seção H2 de `brain/topic-clusters.md` (1 área : N clusters). A página `topic-clusters.md` consolidou editorial e clusters em 2026-05-26: as áreas estratégicas (tese, diferenciação, audiência, subtemas, provas) ficam acima da tabela auto-gerada de clusters; o arquivo `brain/editorial.md` foi removido.
 
 ### Consumível (no-gap)
 

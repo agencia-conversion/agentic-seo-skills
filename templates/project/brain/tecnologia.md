@@ -6,13 +6,13 @@ updated: "<YYYY-MM-DD>"
 # Tecnologia
 
 <!--
-PROPOSITO: Stack observado e mapa de SEO tecnico do site da marca. Este
+PROPOSITO: Stack observado e mapa de SEO técnico do site da marca. Este
 arquivo e exclusivamente operacional: o que foi observado no site, o que
-foi decidido, o que falta verificar. NAO documenta opiniao editorial sobre stack
+foi decidido, o que falta verificar. NÃO documenta opiniao editorial sobre stack
 ("preferimos sites estaticos", "rejeitamos WordPress", "acreditamos em
 edge rendering"). Tese editorial sobre tecnologia vive em [[editorial]]
 ou em conteudos publicados em `conteudos/`. Cada linha factual aqui tem
-evidencia de observacao direta em ## Evidencia no rodape ou ancora para
+evidência de observacao direta em ## Evidência no rodape ou ancora para
 [[log]]. Comentarios <!-- REGRA: --> sao vinculantes e devem ser
 REMOVIDOS quando o arquivo for preenchido.
 -->
@@ -21,9 +21,9 @@ REMOVIDOS quando o arquivo for preenchido.
 
 <!--
 REGRA: Cada linha = uma observacao direta com fonte. Estado observado:
-o que voce viu rodando, nao o que voce supos. Quando algo nao foi
+o que voce viu rodando, não o que voce supos. Quando algo não foi
 verificado, deixa "pendente" e registra a pendencia em
-## Pendencias tecnicas. NAO escrever "tese sobre stack" aqui.
+## Pendencias tecnicas. NÃO escrever "tese sobre stack" aqui.
 -->
 
 | Área | Estado observado | Evidência |
@@ -41,7 +41,7 @@ verificado, deixa "pendente" e registra a pendencia em
 <!--
 REGRA: Lista de decisoes tecnicas tomadas no projeto, cada uma com
 ancora para a entrada correspondente em [[log]] (tipo: decisao). A
-decisao em si vive no log; aqui fica apenas o titulo navegavel. NAO
+decisao em si vive no log; aqui fica apenas o titulo navegavel. NÃO
 escrever justificativa editorial aqui — ela esta no log.
 -->
 
@@ -51,11 +51,11 @@ escrever justificativa editorial aqui — ela esta no log.
 
 <!--
 REGRA: Mapa de verificacao continua. "Ultima verificacao" exige data;
-sem data, fica "pendente". "Evidencia" exige link para um audit em
+sem data, fica "pendente". "Evidência" exige link para um audit em
 `project/audits/` ou para uma nota em sources/. Status:
 - ok: verificado e dentro do esperado.
 - gap: verificado e fora do esperado, com problema conhecido.
-- pendente: ainda nao verificado.
+- pendente: ainda não verificado.
 -->
 
 | Área | Status | Última verificação | Evidência |
@@ -82,11 +82,11 @@ resolvido, ele sai daqui e (se for decisao) vira entrada em
 ## Evidência
 
 <!--
-REGRA: Fontes que sustentam o "Contexto tecnico" e o "Mapa de SEO
-tecnico". Markdown links para `../audits/`, `../sources/`, e URLs
+REGRA: Fontes que sustentam o "Contexto técnico" e o "Mapa de SEO
+técnico". Markdown links para `../audits/`, `../sources/`, e URLs
 externas (ex.: relatorio do PageSpeed, snapshot do Wayback). Cada
 bullet referencia 1 fonte e diz, em uma frase, o que ela sustenta.
 -->
 
-- <bullet evidencia 1>
-- <bullet evidencia 2>
+- <bullet evidência 1>
+- <bullet evidência 2>

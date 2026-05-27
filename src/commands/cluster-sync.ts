@@ -35,6 +35,10 @@ import {
   resolveLanguage,
   type Language,
 } from "../lib/cluster-labels";
+import { scanAndSyncAutoBlocks } from "../lib/auto-block-scanner";
+import { registerBuiltinAutoBlocks } from "../lib/auto-blocks";
+
+registerBuiltinAutoBlocks();
 
 interface ResolvedInputs {
   clusters: ClusterRecord[];
@@ -510,6 +514,16 @@ export async function clusterSync(
   changedFiles.push(...indexRes.changed);
   if (!indexRes.noop) allNoop = false;
   allLints.push(...indexRes.lints);
+
+  const autoBlockRes = scanAndSyncAutoBlocks(inputs, {
+    dryRun: options.dryRun,
+    check: options.check,
+  });
+  if (autoBlockRes.changedFiles.length > 0) {
+    changedFiles.push(...autoBlockRes.changedFiles);
+    allNoop = false;
+  }
+  allLints.push(...autoBlockRes.lints);
 
   const hasBlock = allLints.some((l) => l.severity === "block");
   const exitCode = options.check
