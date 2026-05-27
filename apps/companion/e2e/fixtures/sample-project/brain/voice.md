@@ -17,7 +17,7 @@ O tom de voz do Sample Project é direto, curto e verificável. Ele existe para 
 - Evitar adjetivos promocionais.
 - Separar exemplo de prova real.
 - Usar links internos apenas para páginas existentes.
-- Manter a relação com [[identidade]] e [[index]].
+- Manter a relação com [[identity]] e [[index]].
 
 > [!tip] Dica
 > Use tom direto e atribua dados.

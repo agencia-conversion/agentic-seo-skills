@@ -77,7 +77,7 @@ run(["project-init", "Process Test"]);
   assert.equal(json.status, "ready_for_writing");
   assert.equal(json.brief.approval.status, "not_required");
   assert.equal(json.brief.draft_status, "ready-for-writing");
-  assert.equal(json.brief.process_bypass[0].aprovador, "Diego Ivo");
+  assert.equal(json.brief.process_bypass[0].approver, "Diego Ivo");
   assert.match(json.brief.process_bypass[0].confirmation_text, /DataForSEO/);
   assert.equal("next_handoff_command" in json, false);
   const workDir = join(projectDir, "workbench", "content", "seo-sem-serp");
@@ -138,8 +138,8 @@ run(["project-init", "Process Test"]);
 
   const promoted = run(["content-seo", "--phase", "promote", "--topic", "SEO sem SERP"]);
   assert.equal(promoted.status, 0, promoted.stderr);
-  const published = readFileSync(join(projectDir, "conteudos", "blog", "seo-sem-serp.md"), "utf8");
-  assert.match(published, /origem: "blog"/);
+  const published = readFileSync(join(projectDir, "contents", "blog", "seo-sem-serp.md"), "utf8");
+  assert.match(published, /origin: "blog"/);
   assert.match(published, /published_at:/);
 }
 
@@ -272,7 +272,7 @@ run(["project-init", "Process Test"]);
   const allowed = run(["content-seo", "--topic", "Conteúdo WebSearch", "--keyword", "conteúdo websearch", "--provider-bypass-reason", "usuário aceitou WebSearch"]);
   assert.equal(allowed.status, 0, allowed.stderr);
   const brief = YAML.parse(readFileSync(join(projectDir, "workbench", "content", "conteudo-websearch", "brief.yaml"), "utf8"));
-  assert.equal(brief.process_bypass[0].aprovador, "agent");
+  assert.equal(brief.process_bypass[0].approver, "agent");
   assert.equal(brief.process_bypass[0].reason, "usuário aceitou WebSearch");
   assert.match(brief.process_bypass[0].consequence, /not DataForSEO-backed/);
   assert.match(brief.process_bypass[0].confirmation_text, /sem DataForSEO/);

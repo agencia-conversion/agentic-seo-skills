@@ -78,7 +78,7 @@ const supportingInput = (proposal, decisions) =>
   assert.ok(existsSync(result.report));
   assert.equal(existsSync(join(projectRoot, "brain", "topic-clusters.md")), false);
   const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
-  assert.match(log, /tipo: decisao/);
+  assert.match(log, /type: decision/);
   assert.match(log, /hypothesis/);
 }
 

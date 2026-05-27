@@ -15,4 +15,4 @@ Esta página concentra critérios editoriais simples para a fixture do Companion
 
 ## Relações
 
-As regras de revisão se conectam a [[voz]], [[editorial]] e [[log]].
+As regras de revisão se conectam a [[voice]], [[topic-clusters]] e [[log]].

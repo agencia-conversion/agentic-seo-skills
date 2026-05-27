@@ -13,12 +13,12 @@ test.describe('Tags index', () => {
 
     const exemplo = body.tags.find((t: any) => t.tag === 'exemplo');
     expect(exemplo, 'exemplo tag must exist').toBeTruthy();
-    // Appears in identidade.md (fm + inline = both) and voz.md (fm only)
+    // Appears in identity.md (fm + inline = both) and voice.md (fm only)
     expect(exemplo.count).toBeGreaterThanOrEqual(2);
 
-    const identidadeFile = exemplo.files.find((f: any) => f.path === 'brain/identidade.md');
-    expect(identidadeFile, 'identidade.md must reference exemplo').toBeTruthy();
-    expect(identidadeFile.source).toBe('both');
+    const identityFile = exemplo.files.find((f: any) => f.path === 'brain/identity.md');
+    expect(identityFile, 'identity.md must reference exemplo').toBeTruthy();
+    expect(identityFile.source).toBe('both');
   });
 
   test('Tags page renders list, click drills into files', async ({ page }) => {

@@ -27,11 +27,11 @@ const brainIndex = readFileSync(join(project, "brain", "index.md"), "utf8");
 assert.ok(brainIndex.includes('title: "Context test"'));
 
 const expectedBrainTitles = {
-  "identidade.md": "Identidade",
-  "voz.md": "Tom de Voz",
-  "tecnologia.md": "Tecnologia",
+  "identity.md": "Identidade",
+  "voice.md": "Tom de Voz",
+  "technology.md": "Tecnologia",
   "topic-clusters.md": "Topic Clusters",
-  "revisao.md": "Revisão",
+  "review.md": "Revisão",
   "log.md": "Log",
 };
 for (const [page, title] of Object.entries(expectedBrainTitles)) {
@@ -40,16 +40,16 @@ for (const [page, title] of Object.entries(expectedBrainTitles)) {
   assert.doesNotMatch(text, /title:\s*".+ — Context test"/, `brain/${page} should not include project suffix`);
 }
 
-for (const page of ["index.md", "identidade.md", "voz.md", "tecnologia.md", "topic-clusters.md", "revisao.md", "log.md"]) {
+for (const page of ["index.md", "identity.md", "voice.md", "technology.md", "topic-clusters.md", "review.md", "log.md"]) {
   assert.ok(existsSync(join(project, "brain", page)), `missing brain/${page}`);
 }
-for (const origem of ["blog", "linkedin", "podcast", "outros"]) {
-  assert.ok(existsSync(join(project, "conteudos", origem, "_template.md")), `missing conteudos/${origem}/_template.md`);
+for (const origin of ["blog", "linkedin", "podcast", "other"]) {
+  assert.ok(existsSync(join(project, "contents", origin, "_template.md")), `missing contents/${origin}/_template.md`);
 }
 
 const log = readFileSync(join(project, "brain", "log.md"), "utf8");
 assert.match(log, /## \d{4}-\d{2}-\d{2} - Projeto criado/);
-assert.match(log, /tipo: decisao/);
+assert.match(log, /type: decision/);
 assert.match(log, /Portugal/);
 
 rmSync(tmp, { recursive: true, force: true });

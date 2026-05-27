@@ -82,10 +82,10 @@ const tmp = mkdtempSync(join(tmpdir(), 'agentic-seo-tags-'));
 const projectRoot = join(tmp, 'project');
 const brain = join(projectRoot, 'brain');
 mkdirSync(brain, { recursive: true });
-mkdirSync(join(projectRoot, 'conteudos', 'blog'), { recursive: true });
+mkdirSync(join(projectRoot, 'contents', 'blog'), { recursive: true });
 
 writeFileSync(
-  join(brain, 'identidade.md'),
+  join(brain, 'identity.md'),
   `---
 title: "Identidade"
 updated: "2026-05-24"
@@ -102,7 +102,7 @@ Frase #exemplo inline.
 );
 
 writeFileSync(
-  join(brain, 'voz.md'),
+  join(brain, 'voice.md'),
   `---
 title: "Voz"
 tags: [voz-editorial, exemplo]
@@ -116,11 +116,11 @@ Tom #voz-editorial e #exemplo.
 );
 
 writeFileSync(
-  join(projectRoot, 'conteudos', 'blog', 'post.md'),
+  join(projectRoot, 'contents', 'blog', 'post.md'),
   `---
 title: "Post"
 slug: "post"
-origem: "blog"
+origin: "blog"
 tags: "geo, exemplo"
 ---
 
@@ -140,7 +140,7 @@ assert.equal(exemplo.count, 3);
 const exemploSources = exemplo.files.map((f) => f.source).sort();
 assert.deepEqual(exemploSources, ['both', 'both', 'both']);
 
-// Tag 'identidade-marca' only in identidade.md frontmatter
+// Tag 'identidade-marca' only in identity.md frontmatter
 const idMarca = index.tags.find((t) => t.tag === 'identidade-marca');
 assert.ok(idMarca);
 assert.equal(idMarca.count, 1);

@@ -28,7 +28,7 @@ try {
   assert.ok(existsSync(path.join(PROJECT_DIR, cluster.report_md)));
   assert.equal(existsSync(path.join(PROJECT_DIR, "clusters", "agentic-seo", "report.html")), false);
   assert.equal(cluster.data_provenance.hypothesis_only, true);
-  assert.equal(cluster.data_provenance.provider_bypass.aprovador, "agent");
+  assert.equal(cluster.data_provenance.provider_bypass.approver, "agent");
   assert.match(cluster.data_provenance.provider_bypass.confirmation_text, /DataForSEO/);
   assert.equal(cluster.data_provenance.suggestions, null);
   assert.equal(cluster.data_provenance.serp, null);

@@ -28,10 +28,10 @@ const { resolveMentionHydration } = await import(`../.context/mention-hydration-
 
 const pages = [
   {
-    id: 'brain/voz.md',
+    id: 'brain/voice.md',
     title: 'Tom de Voz',
     icon: '🧠',
-    slug: 'brain-voz',
+    slug: 'brain-voice',
   },
   {
     id: 'brain/topic-clusters.md',
@@ -41,13 +41,13 @@ const pages = [
   },
 ];
 
-const resolved = resolveMentionHydration('brain/voz.md', pages);
+const resolved = resolveMentionHydration('brain/voice.md', pages);
 assert.equal(resolved.text, '🧠 Tom de Voz');
 assert.equal(resolved.broken, false);
-assert.equal(resolved.slug, 'brain-voz');
+assert.equal(resolved.slug, 'brain-voice');
 assert.equal(resolved.hash, '');
 
-const aliased = resolveMentionHydration('brain/voz.md', pages, 'tom editorial');
+const aliased = resolveMentionHydration('brain/voice.md', pages, 'tom editorial');
 assert.equal(aliased.text, '🧠 tom editorial');
 assert.equal(aliased.broken, false);
 

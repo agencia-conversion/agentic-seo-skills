@@ -19,10 +19,10 @@ const { buildContext, handleSubmit } = await import("../scripts/lib/companion-ty
 const contextEvidence = {
   path: "workbench/content/context-evidence.yaml",
   brain_pages_read: [
-    { path: "brain/identidade.md", title: "Identidade", filled: true, updated: "2026-05-05", content_hash_sha256: "abc123", excerpts_used: ["Contexto registrado"] },
+    { path: "brain/identity.md", title: "Identidade", filled: true, updated: "2026-05-05", content_hash_sha256: "abc123", excerpts_used: ["Contexto registrado"] },
   ],
   voice_evidence: {
-    path: "brain/voz.md",
+    path: "brain/voice.md",
     title: "Tom de Voz",
     filled: true,
     updated: "2026-05-05",
@@ -69,8 +69,8 @@ const baseBrief = {
     ],
     outline_capacity: { target_words: 2000, min_h2_sections: 4, planned_h2_sections: 4, planned_words: 2000, can_support_target: true, iterations: [] },
   },
-  voice_context: { path: "brain/voz.md", filled: true, title: "Tom de Voz", updated: "2026-05-05" },
-  approval: { phase: "briefing", mode: "handoff", status: "pending", aprovador: null, aprovado_em: null, decided_at: null, notes: null },
+  voice_context: { path: "brain/voice.md", filled: true, title: "Tom de Voz", updated: "2026-05-05" },
+  approval: { phase: "briefing", mode: "handoff", status: "pending", approver: null, approved_at: null, decided_at: null, notes: null },
   draft_status: "briefing",
 };
 
@@ -111,21 +111,21 @@ function writeJsonBrief(name, override = {}) {
   assert.equal(existsSync(result.draft), true);
   const updated = YAML.parse(readFileSync(file, "utf8"));
   assert.equal(updated.approval.status, "ready");
-  assert.equal(updated.approval.aprovador, "Diego Ivo");
+  assert.equal(updated.approval.approver, "Diego Ivo");
   assert.equal(updated.draft_status, "draft");
   assert.equal(updated.draft_path, "artifacts/contents/o-que-e-seo-agentico/draft.md");
   const draft = readFileSync(result.draft, "utf8");
   assert.match(draft, /source_policy: frontmatter-consulted-sources/);
   assert.doesNotMatch(draft, /\]\(https?:\/\//);
   const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
-  assert.match(log, /tipo: decisao/);
-  assert.match(log, /aprovador: Diego Ivo/);
+  assert.match(log, /type: decision/);
+  assert.match(log, /approver: Diego Ivo/);
   assert.match(log, /draft gerado em artifacts/);
 }
 
 {
   const draftVoice = { ...contextEvidence, voice_evidence: { ...contextEvidence.voice_evidence, filled: false } };
-  const file = writeBrief("voice-draft.brief.yaml", { context_evidence: draftVoice, voice_context: { path: "brain/voz.md", filled: false, title: "Tom de Voz" } });
+  const file = writeBrief("voice-draft.brief.yaml", { context_evidence: draftVoice, voice_context: { path: "brain/voice.md", filled: false, title: "Tom de Voz" } });
   const ctx = buildContext({ projectRoot, briefPath: file });
   const accepted = await handleSubmit({ decision: "ready", approver: "Diego", notes: "" }, ctx);
   assert.equal(accepted.ok, true);
@@ -139,7 +139,7 @@ function writeJsonBrief(name, override = {}) {
   assert.equal(result.ok, true);
   const updated = YAML.parse(readFileSync(file, "utf8"));
   assert.equal(updated.approval.status, "needs-rewrite");
-  assert.equal(updated.approval.aprovador, "Diego");
+  assert.equal(updated.approval.approver, "Diego");
   assert.equal(updated.draft_status, "needs-rewrite");
 }
 

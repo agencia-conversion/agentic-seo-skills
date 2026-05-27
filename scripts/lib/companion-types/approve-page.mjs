@@ -16,12 +16,12 @@ import {
 const VALID_DECISIONS = new Set(["approved", "rejected", "needs-evidence"]);
 const AUTHORIAL_BRAIN_PAGES = new Set([
   "brain/index.md",
-  "brain/identidade.md",
-  "brain/voz.md",
-  "brain/tecnologia.md",
+  "brain/identity.md",
+  "brain/voice.md",
+  "brain/technology.md",
   "brain/topic-clusters.md",
-  "brain/produtos.md",
-  "brain/revisao.md",
+  "brain/products.md",
+  "brain/review.md",
 ]);
 
 // Any other top-level brain/<name>.md page is also authorial when registered

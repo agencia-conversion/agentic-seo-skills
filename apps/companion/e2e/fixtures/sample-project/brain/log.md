@@ -14,11 +14,11 @@ updated: "2026-05-24"
 - approver: agent
 
 
-## 2026-05-24 - identidade editado no Companion
+## 2026-05-24 - identity editado no Companion
 
 - type: decision
-- scope: brain/identidade.md
-- decision: brain/identidade.md editado no Companion Web.
-- evidence: brain/identidade.md
+- scope: brain/identity.md
+- decision: brain/identity.md editado no Companion Web.
+- evidence: brain/identity.md
 - approver: agent
 - notes: autosave no companion Noteon local

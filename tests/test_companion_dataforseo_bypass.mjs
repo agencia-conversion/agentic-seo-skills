@@ -21,7 +21,7 @@ const ctx = buildContext({
 
 const defaultActor = await handleSubmit({ reason: "x", confirmation_text: "Confirmo seguir sem DataForSEO." }, ctx, projectRoot);
 assert.equal(defaultActor.ok, true);
-assert.equal(defaultActor.approval.aprovador, "agent");
+assert.equal(defaultActor.approval.approver, "agent");
 
 const genericConfirmation = await handleSubmit({ approver: "Diego", reason: "x", confirmation_text: "Confirmo seguir assim." }, ctx, projectRoot);
 assert.equal(genericConfirmation.ok, true);
@@ -32,14 +32,14 @@ const ok = await handleSubmit({
   confirmation_text: "Confirmo seguir sem DataForSEO neste fluxo.",
 }, ctx, projectRoot);
 assert.equal(ok.ok, true);
-assert.equal(ok.approval.aprovador, "Diego Ivo");
+assert.equal(ok.approval.approver, "Diego Ivo");
 assert.equal(ok.approval.reason, "teste sem provider");
 assert.equal(ok.approval.provider_used, "websearch");
 assert.match(ok.approval.confirmation_text, /sem DataForSEO/);
 assert.ok(ok.approval.confirmado_em);
 
 const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
-assert.match(log, /tipo: decisao/);
+assert.match(log, /type: decision/);
 assert.match(log, /DataForSEO bypass · seo técnico/);
 assert.match(log, /Briefing usa provedor secundário/);
 

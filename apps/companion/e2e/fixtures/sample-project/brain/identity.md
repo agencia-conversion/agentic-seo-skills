@@ -34,7 +34,7 @@ Sample Project valida fluxos editoriais do Companion em um projeto pequeno. A fi
 - Uso de dados fictícios sem reivindicação de mercado.
 - Navegação pensada para validar páginas reais do brain.
 
-Reciprocidade: [[index]] e [[voz]].
+Reciprocidade: [[index]] e [[voice]].
 
 Tag inline: #exemplo e #voz-editorial.
 

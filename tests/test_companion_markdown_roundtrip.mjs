@@ -49,12 +49,12 @@ const resolver = {
   findPageId(target) {
     seenTargets.push(target);
     const clean = target.toLowerCase();
-    if (clean === "voz") return "brain/voz.md";
+    if (clean === "voice") return "brain/voice.md";
     if (clean === "topic-clusters") return "brain/topic-clusters.md";
     return null;
   },
   labelForPageId(id) {
-    if (id === "brain/voz.md") return "voz";
+    if (id === "brain/voice.md") return "voice";
     if (id === "brain/topic-clusters.md") return "topic-clusters";
     return id;
   },
@@ -62,7 +62,7 @@ const resolver = {
 
 const markdown = `# Título
 
-Conteúdo com acentuação: página, análise e aprovação. Veja [[voz]], [[voz|tom editorial]], [[topic-clusters#SEO estratégico]] e [[topic-clusters#SEO estratégico|SEO estratégico]].
+Conteúdo com acentuação: página, análise e aprovação. Veja [[voice]], [[voice|tom editorial]], [[topic-clusters#SEO estratégico]] e [[topic-clusters#SEO estratégico|SEO estratégico]].
 
 Inline: link para [conversion](https://conversion.com.br/), código \`gap\` inline, **negrito** e *itálico*.
 
@@ -82,7 +82,7 @@ URL nua: https://conversion.com.br/blog/backlinks/ vira link automaticamente.
 > [!tip]
 > Dica curta sem título.
 
-![[voz]]
+![[voice]]
 
 ![[topic-clusters#SEO estratégico|área SEO]]
 
@@ -93,7 +93,7 @@ flowchart TD
 
 \`\`\`agentic-query
 version: 1
-from: "conteudos/blog"
+from: "contents/blog"
 where:
   status: "draft"
 sort: updated desc
@@ -142,12 +142,12 @@ assert.match(JSON.stringify(doc), /"type":"mermaid"/);
 assert.match(JSON.stringify(doc), /flowchart TD/);
 // M3: agentic-query node
 assert.match(JSON.stringify(doc), /"type":"agenticQuery"/);
-assert.match(JSON.stringify(doc), /from: \\"conteudos\/blog\\"/);
+assert.match(JSON.stringify(doc), /from: \\"contents\/blog\\"/);
 
 const out = docToMarkdown(doc, resolver);
 assert.match(out, /página, análise e aprovação/);
-assert.match(out, /\[\[voz\]\]/);
-assert.match(out, /\[\[voz\|tom editorial\]\]/);
+assert.match(out, /\[\[voice\]\]/);
+assert.match(out, /\[\[voice\|tom editorial\]\]/);
 assert.match(out, /\[\[topic-clusters#SEO estratégico\]\]/);
 assert.match(out, /\[\[topic-clusters#SEO estratégico\|SEO estratégico\]\]/);
 assert.match(out, /\[conversion\]\(https:\/\/conversion\.com\.br\/\)/);
@@ -178,13 +178,13 @@ assert.match(out, /"title": "Score"/);
 assert.match(out, /> \[!warning\] Atenção/);
 assert.match(out, /> Este é um aviso editorial\./);
 assert.match(out, /> \[!tip\]/);
-assert.match(out, /!\[\[voz\]\]/);
+assert.match(out, /!\[\[voice\]\]/);
 assert.match(out, /!\[\[topic-clusters#SEO estratégico\|área SEO\]\]/);
 assert.match(out, /```mermaid/);
 assert.match(out, /flowchart TD/);
 // M3: agentic-query serialization
 assert.match(out, /```agentic-query/);
-assert.match(out, /from: "conteudos\/blog"/);
+assert.match(out, /from: "contents\/blog"/);
 
 const reportBlockSource = readFileSync("apps/companion/src/features/editor/report-block-extension.tsx", "utf8");
 const editorExtensionSource = readFileSync("apps/companion/src/features/editor/editor-extensions.ts", "utf8");
@@ -236,7 +236,7 @@ algo
 
 | Papel | Conteúdo |
 | --- | --- |
-| Pilar | [GEO](../../conteudos/blog/geo.md) |
+| Pilar | [GEO](../../contents/blog/geo.md) |
 
 <!-- END cluster-content-table:auto -->
 

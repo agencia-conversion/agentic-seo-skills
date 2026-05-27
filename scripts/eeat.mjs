@@ -88,10 +88,14 @@ function naturalIdCompare(a, b) {
 }
 
 function reportTable(columns, rows) {
-  const normalizedColumns = columns.map((label, index) => ({
-    key: String(label || `c${index}`).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || `c${index}`,
-    label: String(label || `Coluna ${index + 1}`),
-  }));
+  const normalizedColumns = columns.map((entry, index) => {
+    if (entry && typeof entry === "object" && entry.key) {
+      return { key: String(entry.key), label: String(entry.label || entry.key) };
+    }
+    const label = String(entry || `Column ${index + 1}`);
+    const key = label.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || `c${index}`;
+    return { key, label };
+  });
   const normalizedRows = rows.map((row) => Object.fromEntries(normalizedColumns.map((column, index) => [column.key, String(row?.[index] ?? "")])));
   return ["```agentic-table", YAML.stringify({ version: 1, columns: normalizedColumns, rows: normalizedRows }, { lineWidth: 0 }).replace(/\s+$/, ""), "```"].join("\n");
 }
@@ -165,9 +169,9 @@ function renderCompanionReport(report) {
     }],
     sections: [
       { heading: "Análise", body_markdown: report.consolidated_narrative || "_Narrativa consolidada ainda não foi sintetizada._" },
-      { heading: "Score por pilar", body_markdown: reportTable(["Pilar", "Score"], pillarRows) },
-      { heading: "Issues priorizadas", body_markdown: issueRows.length ? reportTable(["Severidade", "Tipo", "Critério", "Página", "Recomendação", "Evidência"], issueRows) : "Nenhuma issue estruturada." },
-      { heading: "Evidência por pilar", body_markdown: evidenceRows.length ? reportTable(["Pilar", "Check", "Aplicabilidade", "Estado", "Score", "Evidência"], evidenceRows) : "Nenhuma evidência estruturada." },
+      { heading: "Score por pilar", body_markdown: reportTable([{ key: "pillar", label: "Pilar" }, { key: "score", label: "Score" }], pillarRows) },
+      { heading: "Issues priorizadas", body_markdown: issueRows.length ? reportTable([{ key: "severity", label: "Severidade" }, { key: "type", label: "Tipo" }, { key: "criterion", label: "Critério" }, { key: "page", label: "Página" }, { key: "recommendation", label: "Recomendação" }, { key: "evidence", label: "Evidência" }], issueRows) : "Nenhuma issue estruturada." },
+      { heading: "Evidência por pilar", body_markdown: evidenceRows.length ? reportTable([{ key: "pillar", label: "Pilar" }, { key: "check", label: "Check" }, { key: "applicability", label: "Aplicabilidade" }, { key: "state", label: "Estado" }, { key: "score", label: "Score" }, { key: "evidence", label: "Evidência" }], evidenceRows) : "Nenhuma evidência estruturada." },
       { heading: "Limitações", body_markdown: (report.limitations || []).length ? (report.limitations || []).map((item) => `- ${item}`).join("\n") : "Nenhuma limitação registrada." },
     ],
   }, { locale: "pt-BR" });
@@ -175,11 +179,11 @@ function renderCompanionReport(report) {
 
 function defaultPagesForBrain(projDir) {
   return [
-    { id: "brain/identidade", path: "brain/identidade.md", page_type: "about" },
+    { id: "brain/identity", path: "brain/identity.md", page_type: "about" },
     { id: "brain/index", path: "brain/index.md", page_type: "homepage" },
     { id: "brain/topic-clusters", path: "brain/topic-clusters.md", page_type: "service" },
-    { id: "brain/voz", path: "brain/voz.md", page_type: "policy" },
-    { id: "brain/tecnologia", path: "brain/tecnologia.md", page_type: "policy" },
+    { id: "brain/voice", path: "brain/voice.md", page_type: "policy" },
+    { id: "brain/technology", path: "brain/technology.md", page_type: "policy" },
   ].filter((p) => fs.existsSync(path.join(projDir, p.path)));
 }
 
@@ -209,7 +213,7 @@ const SUBCOMMANDS = {
   init(args, cwd) {
     const mode = args.mode || (args.url ? "url" : "brain");
     if (!["brain", "url"].includes(mode)) fail("--mode must be brain|url");
-    const value = mode === "url" ? args.url : (args.value || path.join(projectDir(cwd), "brain", "identidade.md"));
+    const value = mode === "url" ? args.url : (args.value || path.join(projectDir(cwd), "brain", "identity.md"));
     if (mode === "url" && !value) fail("--url required for url mode");
     const targetSlug = slugify(args.slug || (mode === "url" ? new URL(value).hostname : "brain"));
     const proj = projectDir(cwd);

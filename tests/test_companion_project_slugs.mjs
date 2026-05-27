@@ -33,11 +33,11 @@ if (existsSync(jsFile)) renameSync(jsFile, mjsFile);
 
 const { projectPageSlug, projectSlugMatches } = await import(`../${mjsFile}`);
 
-assert.equal(projectPageSlug("conteudos/outros/nova-pagina.md"), "conteudos-outros-nova-pagina");
-assert.equal(projectPageSlug("brain/identidade.md"), "brain-identidade");
-assert.equal(projectSlugMatches("conteudos-outros-nova-pagina", "conteudos-outros-nova-pagina"), true);
-assert.equal(projectSlugMatches("tes-conteudos-outros-nova-pagina", "conteudos-outros-nova-pagina"), true);
-assert.equal(projectSlugMatches("identidade-conversion-brain-identidade", "brain-identidade"), true);
-assert.equal(projectSlugMatches("brain-voz", "brain-identidade"), false);
+assert.equal(projectPageSlug("contents/other/nova-pagina.md"), "contents-other-nova-pagina");
+assert.equal(projectPageSlug("brain/identity.md"), "brain-identity");
+assert.equal(projectSlugMatches("contents-other-nova-pagina", "contents-other-nova-pagina"), true);
+assert.equal(projectSlugMatches("tes-contents-other-nova-pagina", "contents-other-nova-pagina"), true);
+assert.equal(projectSlugMatches("identity-conversion-brain-identity", "brain-identity"), true);
+assert.equal(projectSlugMatches("brain-voice", "brain-identity"), false);
 
 console.log("companion project slugs ok");

@@ -70,7 +70,7 @@ const tmp = mkdtempSync(join(tmpdir(), 'agentic-seo-graph-'));
 const projectRoot = join(tmp, 'project');
 const brain = join(projectRoot, 'brain');
 mkdirSync(brain, { recursive: true });
-mkdirSync(join(projectRoot, 'conteudos', 'blog'), { recursive: true });
+mkdirSync(join(projectRoot, 'contents', 'blog'), { recursive: true });
 
 writeFileSync(
   join(brain, 'index.md'),
@@ -81,14 +81,14 @@ updated: "2026-05-24"
 
 # Index
 
-- [[identidade]]
-- [[voz]]
+- [[identity]]
+- [[voice]]
 - [[fantasma]]
 `,
   'utf8',
 );
 writeFileSync(
-  join(brain, 'identidade.md'),
+  join(brain, 'identity.md'),
   `---
 title: "Identidade"
 updated: "2026-05-24"
@@ -96,12 +96,12 @@ updated: "2026-05-24"
 
 # Identidade
 
-Linka [[voz]].
+Linka [[voice]].
 `,
   'utf8',
 );
 writeFileSync(
-  join(brain, 'voz.md'),
+  join(brain, 'voice.md'),
   `---
 title: "Voz"
 updated: "2026-05-24"
@@ -114,11 +114,11 @@ Sem links aqui.
   'utf8',
 );
 writeFileSync(
-  join(projectRoot, 'conteudos', 'blog', 'post.md'),
+  join(projectRoot, 'contents', 'blog', 'post.md'),
   `---
 title: "Post"
 slug: "post"
-origem: "blog"
+origin: "blog"
 ---
 
 # Post
@@ -138,15 +138,15 @@ assert.ok(indexNode);
 assert.equal(indexNode.section, 'brain');
 assert.equal(indexNode.outgoingCount, 3);
 
-const vozNode = graph.nodes.find((n) => n.id === 'brain/voz.md');
-assert.ok(vozNode);
-assert.equal(vozNode.incomingCount, 2, 'voz referenced from index and identidade');
+const voiceNode = graph.nodes.find((n) => n.id === 'brain/voice.md');
+assert.ok(voiceNode);
+assert.equal(voiceNode.incomingCount, 2, 'voice referenced from index and identity');
 
 const brokenNode = graph.nodes.find((n) => n.broken);
 assert.ok(brokenNode);
 assert.match(brokenNode.id, /__broken__\/fantasma/);
 
-// Edges: 2 from index (identidade, voz) + 1 broken + 1 from identidade (voz) = 4
+// Edges: 2 from index (identity, voice) + 1 broken + 1 from identity (voice) = 4
 assert.equal(graph.edges.length, 4);
 assert.equal(graph.totalBroken, 1);
 
@@ -155,7 +155,7 @@ assert.equal(brokenEdges.length, 1);
 assert.equal(brokenEdges[0].source, 'brain/index.md');
 
 const sections = graph.sections.map((s) => s.id).sort();
-assert.deepEqual(sections, ['brain', 'conteudos', 'other'].sort());
+assert.deepEqual(sections, ['brain', 'contents', 'other'].sort());
 
 rmSync(tmp, { recursive: true, force: true });
 console.log('graph-builder ok');

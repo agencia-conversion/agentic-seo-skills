@@ -28,28 +28,27 @@ const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
 const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
 const REQUIRED_BRAIN_PAGES = [
   "index.md",
-  "identidade.md",
-  "voz.md",
-  "tecnologia.md",
-  "editorial.md",
+  "identity.md",
+  "voice.md",
+  "technology.md",
   "topic-clusters.md",
-  "revisao.md",
+  "review.md",
   "log.md",
 ];
 const AUTHORIAL_BRAIN_PAGES = new Set([
   "index.md",
-  "identidade.md",
-  "voz.md",
-  "tecnologia.md",
+  "identity.md",
+  "voice.md",
+  "technology.md",
   "topic-clusters.md",
-  "produtos.md",
-  "revisao.md",
+  "products.md",
+  "review.md",
 ]);
 
 // Brain is extensible: any other brain/<name>.md page is authorial when
 // registered as `type: decision` in brain/log.md (contract: extensible brain).
 // The canonical set above is the required minimum; new top-level subpages
-// (e.g., `produtos.md`, `parcerias.md`, `metricas.md`) join via decision log.
+// (e.g., `products.md`, `partnerships.md`, `metrics.md`) join via decision log.
 function isAuthorialBrainName(name: string): boolean {
   if (typeof name !== "string") return false;
   if (AUTHORIAL_BRAIN_PAGES.has(name)) return true;
@@ -2409,7 +2408,7 @@ async function commandProjectInit(args: AnyRecord): Promise<void> {
   for (const origin of PUBLIC_CONTENT_ORIGINS) mkdirp(path.join(p, "contents", origin));
   for (const moduleId of REPORT_MODULE_IDS) mkdirp(path.join(p, REPORT_DIR_NAME, moduleId));
   copyDir(path.join(TEMPLATES_DIR, "brain"), path.join(p, "brain"));
-  copyDir(path.join(TEMPLATES_DIR, "conteudos"), path.join(p, "contents"));
+  copyDir(path.join(TEMPLATES_DIR, "contents"), path.join(p, "contents"));
   writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
   const brainIndex = path.join(p, "brain", "index.md");
   if (fs.existsSync(brainIndex)) {
@@ -3545,10 +3544,10 @@ function readBrainEvidencePage(projectDir: string, rel: string): AnyRecord {
 }
 
 function buildContentContextEvidence(projectDir: string, topicSlug: string): AnyRecord {
-  const pageRels = ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md", "revisao.md"];
+  const pageRels = ["index.md", "identity.md", "voice.md", "technology.md", "topic-clusters.md", "review.md"];
   const brainPages = pageRels.map((rel) => readBrainEvidencePage(projectDir, rel));
-  const voicePage = brainPages.find((page) => page.path === "brain/voz.md") || readBrainEvidencePage(projectDir, "voz.md");
-  const voiceFile = path.join(projectDir, "brain", "voz.md");
+  const voicePage = brainPages.find((page) => page.path === "brain/voice.md") || readBrainEvidencePage(projectDir, "voice.md");
+  const voiceFile = path.join(projectDir, "brain", "voice.md");
   let voiceBody = "";
   if (fs.existsSync(voiceFile)) voiceBody = parseFrontmatter(fs.readFileSync(voiceFile, "utf8"))[1];
   const limitations = brainPages
@@ -3802,7 +3801,7 @@ async function buildContentResearchPacket(topic: string, keyword: string, topicS
 }
 
 function contentVoiceContext(projectDir: string): AnyRecord {
-  const voicePath = path.join(projectDir, "brain", "voz.md");
+  const voicePath = path.join(projectDir, "brain", "voice.md");
   const [voiceFm, voiceBody] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
   const filled = voiceBody.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]+>/g, "").trim().length > 50;
   return {

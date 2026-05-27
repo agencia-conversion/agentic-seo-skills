@@ -147,7 +147,7 @@ export function resolveWikilinkTarget(
     if (fileSet.has(brainCandidate)) return brainCandidate;
   }
 
-  // 2. Try exact match (handles "brain/voz" or "contents/blog/post")
+  // 2. Try exact match (handles "brain/voice" or "contents/blog/post")
   if (fileSet.has(withExt)) return withExt;
   if (fileSet.has(candidate)) return candidate;
 
