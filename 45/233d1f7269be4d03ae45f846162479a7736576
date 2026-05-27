@@ -1,0 +1,19 @@
+apps/companion/src/lib/auto-block-watcher.ts
+  s_add44d6c3a39cb::t_e52ae23b029c60 52-61,70,73,75-86,89-107,109-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "45233d1f7269be4d03ae45f846162479a7736576",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
