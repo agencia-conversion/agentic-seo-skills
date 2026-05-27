@@ -1,0 +1,299 @@
+dist/lib/auto-block-registry.js
+  s_639e180cba7620::t_3abced2dab8117 1-23
+skills/project-init/references/seed-from-doc.md
+  s_639e180cba7620::t_3b850b04d37f3d 65
+  s_639e180cba7620::t_7976fc7310b4e9 29
+  s_639e180cba7620::t_66f715d6d6dce7 31
+  s_639e180cba7620::t_c9029654c5152b 1-28,30,32-64,66-92
+apps/companion/e2e/auto-block.spec.ts
+  s_639e180cba7620::t_2215d843ad2fab 259-263
+  s_639e180cba7620::t_8351209bb678a1 2-4,6
+  s_639e180cba7620::t_89b2465ed82a73 165-226,237,243-245,248,256-258,264-273
+  s_639e180cba7620::t_ee46640cbc73d9 227,231-236
+  s_639e180cba7620::t_db3b311ad4956c 1,5,7-164,274
+  s_639e180cba7620::t_3b750a2c2567d1 228-230
+  s_639e180cba7620::t_4948d528869fca 238-242,246-247,249-255
+src/lib/auto-block-diff.ts
+  s_639e180cba7620::t_93fdbc84953048 1-124
+dist/lib/auto-block-diff.js
+  s_639e180cba7620::t_5b5affc6b496f4 1-108
+skills/content-import/SKILL.md
+  s_639e180cba7620::t_98a8cfb3ae11a6 1-139
+templates/project/conteudos/blog/_template.md
+  s_639e180cba7620::t_595c361e5cbbb3 2,8-10,20-23
+skills/brain-keeper/SKILL.md
+  s_639e180cba7620::t_f5dac18e72f27b 118
+  s_639e180cba7620::t_eb2abb47bc5c6d 30
+  s_639e180cba7620::t_e355205e276cd1 58
+  s_639e180cba7620::t_ed64d4d542af88 10
+  s_639e180cba7620::t_840a9ca9059ce7 130
+apps/companion/src/app/api/project/auto-block/mutate/route.ts
+  s_639e180cba7620::t_e0a0526060e6c4 1-109
+docs/specs/topic-clusters-contract.md
+  s_639e180cba7620::t_1a827846603c66 54
+apps/companion/src/app/api/project/auto-block/schema/route.ts
+  s_639e180cba7620::t_caa455e1bb4757 1-54
+dist/lib/auto-blocks/cluster-index.js
+  s_639e180cba7620::t_1d5afdd071b18b 1-71
+apps/companion/src/features/contents/cluster-content-table.tsx
+  s_fe12c950a01f1c::t_bb95f9a9da9584 24,280,283,621
+tests/test_companion_project_browser.mjs
+  s_639e180cba7620::t_549705a37cf3ce 31
+scripts/companion.mjs
+  s_639e180cba7620::t_5cf277892ac499 7,17
+dist/lib/auto-blocks/index.js
+  s_639e180cba7620::t_3abced2dab8117 1-7,10-15,18
+  s_639e180cba7620::t_1d5afdd071b18b 8-9,16-17
+tests/test_project_context.mjs
+  s_639e180cba7620::t_fe2a0f5597f3e9 43
+  s_639e180cba7620::t_8a0ceb43f61687 33
+src/lib/auto-blocks/index.ts
+  s_639e180cba7620::t_8ac602ed62cf20 1-5,8-14,17
+  s_639e180cba7620::t_7cf2423116fcf4 6-7,15-16
+apps/companion/src/features/clusters/active-clusters-table.tsx
+  s_fe12c950a01f1c::t_7d898c9f3641a3 11,143,291
+  s_fe12c950a01f1c::t_c07fce495a98c2 7
+dist/lib/auto-blocks/cluster-content.js
+  s_639e180cba7620::t_1d5afdd071b18b 1-33
+skills/project-init/SKILL.md
+  s_639e180cba7620::t_97a536a67c0491 23
+  s_639e180cba7620::t_866f041650fa51 29-30,32
+  s_639e180cba7620::t_0977df86e82912 31
+  s_639e180cba7620::t_ebbc5a3d870a66 103
+  s_639e180cba7620::t_5d0e75fc4e96ca 138,183
+  s_639e180cba7620::t_21c227b91ac80f 172
+  s_639e180cba7620::t_6cc3c03301fa9c 22
+apps/companion/src/features/editor/auto-block-extension.ts
+  s_639e180cba7620::t_ef843e438afb04 1-61
+agents/eeat.md
+  s_639e180cba7620::t_4f37b59710f4c7 19
+dist/lib/auto-block-reverse-parser.js
+  s_639e180cba7620::t_5b5affc6b496f4 1-58
+src/lib/auto-block-mutate.ts
+  s_639e180cba7620::t_46515474c96792 1-204
+src/lib/auto-blocks/cluster-content.ts
+  s_639e180cba7620::t_7ddad3f7fe7138 1-42
+scripts/auto-block-mutate.mjs
+  s_639e180cba7620::t_20d042e43977ae 1-220
+apps/companion/src/lib/markdown.ts
+  s_639e180cba7620::t_e62867d5a11408 216-217
+  s_639e180cba7620::t_3edfcdb8bf8e60 528-531
+scripts/migrate-clusters.mjs
+  s_639e180cba7620::t_8984394aab1e66 122
+src/commands/cluster-sync.ts
+  s_639e180cba7620::t_b6908a36e0cef2 38-41
+  s_639e180cba7620::t_b73094c61935e6 518-527
+scripts/eeat.mjs
+  s_639e180cba7620::t_c77bcf4a309ddf 180
+apps/companion/src/features/workspace/layout-menu.tsx
+  s_fe12c950a01f1c::t_37eea976cdc2e6 1-41,43-98,100-102,104-136,138-142,144-151,153-165
+  s_fe12c950a01f1c::t_631c0e5afacb8b 99
+  s_fe12c950a01f1c::t_8f91bae7c7ef32 103,137,143,152
+  s_fe12c950a01f1c::t_f94a38d253ce3a 42
+dist/lib/auto-block-scanner.js
+  s_639e180cba7620::t_3abced2dab8117 1-138
+templates/project/brain/identidade.md
+  s_639e180cba7620::t_85c48900d5118b 63
+  s_639e180cba7620::t_8b93d62c1abcab 150
+  s_639e180cba7620::t_24487e9039cb9e 13
+  s_639e180cba7620::t_d18df5f6918e3f 202
+  s_639e180cba7620::t_cfcc0124ce2080 178-182,185-186
+  s_639e180cba7620::t_8517705f165e51 136,216-217
+  s_639e180cba7620::t_0df6b5ad6d5242 24,40,42,64,101-102,134-135,141,165-166,205
+  s_639e180cba7620::t_4928651cbb95de 60,81
+  s_639e180cba7620::t_00f8d4b68b8320 12
+  s_639e180cba7620::t_a226a99526b606 112,147
+apps/companion/e2e/fixtures/sample-project/brain/topic-clusters.md
+  s_639e180cba7620::t_3293e137c2ec11 10-16
+src/lib/auto-block-reverse-parser.ts
+  s_639e180cba7620::t_4476f0cb3d1fd7 1-67
+templates/companion/approve-cluster.html
+  s_639e180cba7620::t_9c6969586c8150 1-205
+tools/clis/site-import.js
+  s_639e180cba7620::t_35317ac11fc323 1-72
+src/commands/runtime.ts
+  s_639e180cba7620::t_4061ef9941dd40 3530
+  s_639e180cba7620::t_4177f2dee48dca 45,48-57
+  s_639e180cba7620::t_e62ac92759f439 2619-2620
+tools/REGISTRY.md
+  s_639e180cba7620::t_7a4d117fc6695c 7
+templates/project/conteudos/outros/_template.md
+  s_639e180cba7620::t_54cdd6cf9fddf4 2,8-10
+src/lib/auto-blocks/clusters-by-area.ts
+  s_639e180cba7620::t_bf63df7627492a 108-110
+  s_639e180cba7620::t_9b75eb828f0548 6-7,9-10,23-35,37-49,63-80,82,98,102,112-137
+  s_639e180cba7620::t_40cf897230e27c 1-5,8,11-22,36,81,83-97,99-101,103-107,111,138-141
+  s_639e180cba7620::t_9f58d8751b1df4 50-62
+apps/companion/src/features/editor/auto-block-hydrator.tsx
+  s_639e180cba7620::t_50fc8d3db1363a 1-25,63,95-96,103,106-107,126,128-129,131-132,134-176,178-195,197-200,207-218,220-227,229-233,235,265,330-349,352-359,362-364,366-372,381-394,396,398-402,422-423,562,565-567
+  s_639e180cba7620::t_4f513ec6a3d152 293-306,312
+  s_639e180cba7620::t_8df40cc7b25652 365,373-375,380,395,397,403-421
+  s_639e180cba7620::t_0bcaaf6b6e0f29 546-561,563-564
+  s_639e180cba7620::t_145433207c338f 26-62,64-94,97,102,104-105,108-110,118-125,127
+  s_639e180cba7620::t_8823cfce40efda 177,196
+  s_639e180cba7620::t_3a7cb500ececb0 98-101,111-117,130,133
+  s_639e180cba7620::t_6e9cfd87cbed92 424-545
+  s_639e180cba7620::t_291ddbb9a5a1d9 376-379
+  s_639e180cba7620::t_0ef668e3eeddc5 360-361
+  s_639e180cba7620::t_42d0f66fc614bc 201-206,219,228,234,236-264,266-292,307-311,313-329
+  s_639e180cba7620::t_b96031397e2996 350-351
+dist/commands/runtime.js
+  s_639e180cba7620::t_c2a93af3419e60 84,87-97,2643-2644,3565
+apps/companion/src/features/editor/editor-commands.tsx
+  s_639e180cba7620::t_c27557a51cbd88 194-245
+apps/companion/src/features/editor/editor-panel.tsx
+  s_639e180cba7620::t_2563ff9b15e308 52
+  s_fe12c950a01f1c::t_df15a25995cccb 60-61,191,331
+  s_fe12c950a01f1c::t_410440f418d4d9 455-460,973-983,988
+  s_fe12c950a01f1c::t_0fa549960e3dbc 496-500
+  s_fe12c950a01f1c::t_de147c3d70e63f 528
+  s_fe12c950a01f1c::t_92c995357b871b 467
+  s_639e180cba7620::t_2c96a821b57890 889
+src/lib/auto-block-render.ts
+  s_639e180cba7620::t_873c4e802a7ae9 1-29
+templates/project/conteudos/podcast/_template.md
+  s_639e180cba7620::t_799b3c3c81c5ec 2,8-10
+apps/companion/src/app/api/project/clusters/[slug]/area/route.ts
+  s_639e180cba7620::t_4fdc5d0fa0dae0 1-70
+skills/eeat/evals/fixture.md
+  s_639e180cba7620::t_979f61e876c99d 17
+  s_639e180cba7620::t_899c8b317c031e 3
+apps/companion/src/features/clusters/cluster-table-view.tsx
+  s_fe12c950a01f1c::t_1a8f2f710b45b3 5-6,10-13,16
+scripts/import-site.mjs
+  s_639e180cba7620::t_5364c518d5519d 1-69,72-181
+  s_639e180cba7620::t_05524f80b7e2a7 70-71
+tests/test_brain_review_protocol.mjs
+  s_639e180cba7620::t_0f1da46f8db6fe 34-35
+templates/project/brain/topic-clusters.md
+  s_639e180cba7620::t_dbf116d8143226 9-44
+scripts/promote-drafts.mjs
+  s_639e180cba7620::t_a66241e4155f3a 1-93
+scripts/assign-clusters.mjs
+  s_639e180cba7620::t_8d85f6e5aeb9d1 1-80
+apps/companion/src/features/workspace/store.ts
+  s_fe12c950a01f1c::t_900bf45214ea72 135,196,212-221
+scripts/migrate-area-clusters.mjs
+  s_639e180cba7620::t_99024bddd7225d 1-95
+templates/project/brain/index.md
+  s_639e180cba7620::t_9c71e80e04ee46 8-14,16-18,20,22-27,29,31-33,35,37-39,41,43-45,47,49-50,52,54-55,57,59-60
+apps/companion/src/app/api/project/auto-block/expand/route.ts
+  s_639e180cba7620::t_9c5e5e06b54475 1-76
+skills/eeat/SKILL.md
+  s_639e180cba7620::t_2ebdb38921d851 36,179
+  s_639e180cba7620::t_bd20b1f5120d1b 3,14,24,104,106,108,121,169
+templates/project/brain/tecnologia.md
+  s_639e180cba7620::t_058bb030d56634 11,26,44
+  s_639e180cba7620::t_55efedf580662e 15,54
+  s_639e180cba7620::t_fc11e71963a044 24,58
+  s_639e180cba7620::t_f75e44774bb615 91-92
+  s_639e180cba7620::t_7d047f3b475a27 9,85-86
+apps/companion/src/features/clusters/active-clusters-table-view.tsx
+  s_fe12c950a01f1c::t_d37430260c9a87 4-5,9-12,15
+apps/companion/src/features/workspace/virtual-page-shell.tsx
+  s_fe12c950a01f1c::t_fc390b5c4eb47c 7-8,14-15,20
+  s_fe12c950a01f1c::t_04383df8ae3064 23
+tests/test_companion_markdown_roundtrip.mjs
+  s_639e180cba7620::t_2ffe378182639e 65,87,129,151-152,182
+  s_639e180cba7620::t_fd356b2d53c0ed 53,58
+  s_fe12c950a01f1c::t_45430c3dbbf990 216-218
+scripts/auto-block-expand.mjs
+  s_639e180cba7620::t_05428909c7b428 1-99
+apps/companion/src/features/contents/content-index-panel.tsx
+  s_fe12c950a01f1c::t_d471fc16fbb4e6 4-5,15-19
+AGENTS.md
+  s_639e180cba7620::t_5c1e6c911ccfc2 67-68
+  s_639e180cba7620::t_35755f29fcad0d 78
+  s_639e180cba7620::t_75b06d6a0153c6 107
+docs/specs/topic-clusters-iteracao-3.md
+  s_639e180cba7620::t_e5922a02425e73 96
+src/lib/auto-block-registry.ts
+  s_639e180cba7620::t_48c3a9c6a5bd88 32-37,39-40,44,47-61,64,69-75,80
+  s_639e180cba7620::t_7897cea5451e56 1-31,38,41-43,45-46,62-63,65-68,76-79,81-84,86-99
+  s_639e180cba7620::t_61fdd65d7af5f4 85
+dist/commands/cluster-sync.js
+  s_639e180cba7620::t_3abced2dab8117 16-18,421-429
+templates/project/brain/log.md
+  s_639e180cba7620::t_351828f8682c76 14,16-22,25,27,29-30,32-34
+docs/refactor-status.md
+  s_639e180cba7620::t_7626e28c685f79 41-42
+  s_639e180cba7620::t_9a4736de8b29f8 5
+  s_639e180cba7620::t_d14a49f2f06f18 40
+  s_639e180cba7620::t_b55f03bb8bfc94 62
+src/lib/auto-block-scanner.ts
+  s_639e180cba7620::t_ee72cca30fc714 1-166
+scripts/auto-block-reverse-sync.mjs
+  s_639e180cba7620::t_5aeed64c89f982 1-186
+templates/project/conteudos/linkedin/_template.md
+  s_639e180cba7620::t_a1c5f3965bf1a8 2,8-10
+scripts/lib/companion-types/approve-page.mjs
+  s_639e180cba7620::t_47a9a95f36a10f 66
+  s_639e180cba7620::t_a9ea911bf059bc 23,27-32
+dist/lib/auto-block-mutate.js
+  s_639e180cba7620::t_1cce9a9d2b48bb 1-175
+apps/companion/src/lib/i18n.ts
+  s_fe12c950a01f1c::t_c1ab5759efa282 336,338,369-371,835,837,868-870
+dist/lib/auto-block-render.js
+  s_639e180cba7620::t_b7de3bd6406916 1-22
+apps/companion/e2e/cluster-sync.spec.ts
+  s_fe12c950a01f1c::t_1938ef7f39467b 1,7
+  s_fe12c950a01f1c::t_e5b14f04438f79 8-12,168-214,379-391
+  s_639e180cba7620::t_6377508aff7db3 44-60
+scripts/auto-block-schema.mjs
+  s_639e180cba7620::t_3c47e420eb7741 1-61
+hooks/hooks.json
+  s_639e180cba7620::t_8e622ca667c63a 13-23
+apps/companion/src/features/workspace/page-width.ts
+  s_fe12c950a01f1c::t_31408230a6b767 54-74
+dist/lib/auto-blocks/clusters-by-area.js
+  s_639e180cba7620::t_b7de3bd6406916 4,14-38,52-69,85,87,97-124,126
+  s_639e180cba7620::t_3abced2dab8117 1-3,5-13,70-84,86,88-92,96,125,127-128
+  s_639e180cba7620::t_95f4edc5c17575 93-95
+  s_639e180cba7620::t_7b3af4f88c208f 39-51
+docs/project-persistence.md
+  s_639e180cba7620::t_cb8457595c4979 15
+  s_639e180cba7620::t_78bd70142089ff 14,16
+apps/companion/src/features/editor/editor-extensions.ts
+  s_639e180cba7620::t_f348b6f4ced570 18
+  s_639e180cba7620::t_537263acc5a9a0 164
+templates/project/brain/voz.md
+  s_639e180cba7620::t_b778555afa7710 46,79-80,153
+  s_639e180cba7620::t_9333c0b8c8c886 9,181
+  s_639e180cba7620::t_ff9d1b000161ec 95
+  s_639e180cba7620::t_4f7001885a3282 49
+  s_639e180cba7620::t_6987657ffd5b58 59,127
+  s_639e180cba7620::t_016aa3af366189 25,60
+  s_639e180cba7620::t_3c76c72bdf77cd 10,33,109,115
+scripts/lib/companion-types/approve-cluster.mjs
+  s_639e180cba7620::t_68e98a965fcf8a 1-161
+tests/test_companion_mention_hydration.mjs
+  s_639e180cba7620::t_eb06710bc78e4a 38,40
+  s_639e180cba7620::t_145ce022b4a151 57
+  s_639e180cba7620::t_98e3f3f7b90c66 37,54,60
+src/lib/auto-blocks/cluster-index.ts
+  s_639e180cba7620::t_57a75571d1f8f2 1-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a639c74c8318b2c2ceefc06201acce49d56958cd",
+  "prompts": {},
+  "sessions": {
+    "s_639e180cba7620": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "02159d97-8c22-4034-b64e-cfce7d21f541",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    },
+    "s_fe12c950a01f1c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6630-a4d3-7781-866b-141f13332c42",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
