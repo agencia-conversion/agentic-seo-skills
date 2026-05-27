@@ -133,6 +133,7 @@ interface WorkspaceState {
     hiddenColumns?: string[];
     hiddenColumnsByTable?: Record<string, string[]>;
     dataTableFollowPageByPage?: Record<string, boolean>;
+    clusterAreaFiltersByTable?: Record<string, string[]>;
   };
   _hasHydrated: boolean;
 

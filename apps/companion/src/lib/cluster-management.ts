@@ -11,6 +11,7 @@ export interface ClusterSummary {
   name: string;
   icon: string | null;
   area: string | null;
+  area_name: string | null;
   thesis: string | null;
   status: string;
   pillar_slug: string | null;
@@ -142,7 +143,8 @@ export function readClusterSummaries(projectRoot: string): ClusterSummary[] {
       slug,
       name: String(data.name || slug),
       icon: typeof data.icon === 'string' && data.icon ? data.icon : null,
-      area: typeof data.area_name === 'string' && data.area_name ? data.area_name : typeof data.area === 'string' ? data.area : null,
+      area: typeof data.area === 'string' && data.area ? data.area : null,
+      area_name: typeof data.area_name === 'string' && data.area_name ? data.area_name : null,
       thesis: typeof data.thesis === 'string' ? data.thesis : typeof data.context === 'string' ? data.context : null,
       status: typeof data.status === 'string' ? data.status : 'drafting',
       pillar_slug: pillarSlug,
