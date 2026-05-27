@@ -192,24 +192,6 @@ export const buildSuggestionItems = (t?: Translator): SuggestionItem[] => [
     },
   },
   {
-    title: 'Clusters por área',
-    description: 'Tabela dinâmica de clusters filtrados por área editorial.',
-    icon: <Sparkles className="w-4 h-4" />,
-    searchTerms: ['cluster', 'area', 'área', 'topic', 'tabela'],
-    testId: 'slash-item-clusters-by-area',
-    command: ({ editor, range }) => {
-      const area = window.prompt('Slug da área editorial (ex: fundamentos-do-seo-agentico):');
-      if (!area || !area.trim()) return;
-      const body = `version: 1\narea: ${area.trim()}\n`;
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertContent({ type: 'autoBlock', attrs: { kind: 'agentic-clusters-by-area', body } })
-        .run();
-    },
-  },
-  {
     title: 'Conteúdos do cluster',
     description: 'Tabela dinâmica de conteúdos publicados + planejados de um cluster.',
     icon: <Sparkles className="w-4 h-4" />,
