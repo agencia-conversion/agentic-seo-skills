@@ -29,7 +29,20 @@ export interface SuggestionItem {
 
 type Translator = (key: string, vars?: Record<string, string | number>) => string;
 
-export const buildSuggestionItems = (t?: Translator): SuggestionItem[] => [
+export interface SuggestionHandlers {
+  openImageEmbed?: (
+    onInsert: (url: string, alt?: string) => void
+  ) => void;
+  openClusterPick?: (
+    title: string,
+    onPick: (slug: string) => void
+  ) => void;
+}
+
+export const buildSuggestionItems = (
+  t?: Translator,
+  handlers?: SuggestionHandlers
+): SuggestionItem[] => [
   {
     title: 'Text',
     description: 'Plain text block.',
@@ -125,9 +138,16 @@ export const buildSuggestionItems = (t?: Translator): SuggestionItem[] => [
     description: 'Embed an image URL.',
     icon: <ImageIcon className="w-4 h-4" />,
     searchTerms: ['img', 'photo'],
+    testId: 'slash-item-image',
     command: ({ editor, range }) => {
-      const url = window.prompt('Image URL');
-      if (url) editor.chain().focus().deleteRange(range).setImage({ src: url }).run();
+      // First remove the slash query so the modal opens on a stable state.
+      editor.chain().focus().deleteRange(range).run();
+      handlers?.openImageEmbed?.((url, alt) => {
+        if (!url) return;
+        const attrs: { src: string; alt?: string } = { src: url };
+        if (alt) attrs.alt = alt;
+        editor.chain().focus().setImage(attrs).run();
+      });
     },
   },
   {
@@ -198,15 +218,16 @@ export const buildSuggestionItems = (t?: Translator): SuggestionItem[] => [
     searchTerms: ['cluster', 'conteudo', 'conteúdo', 'pilar', 'satelite'],
     testId: 'slash-item-cluster-content',
     command: ({ editor, range }) => {
-      const slug = window.prompt('Slug do cluster:');
-      if (!slug || !slug.trim()) return;
-      const body = `version: 1\ncluster: ${slug.trim()}\n`;
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertContent({ type: 'autoBlock', attrs: { kind: 'agentic-cluster-content', body } })
-        .run();
+      editor.chain().focus().deleteRange(range).run();
+      handlers?.openClusterPick?.('Selecione o cluster', (slug) => {
+        if (!slug) return;
+        const body = `version: 1\ncluster: ${slug}\n`;
+        editor
+          .chain()
+          .focus()
+          .insertContent({ type: 'autoBlock', attrs: { kind: 'agentic-cluster-content', body } })
+          .run();
+      });
     },
   },
   {

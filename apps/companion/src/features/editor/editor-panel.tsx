@@ -55,6 +55,8 @@ import { FrontmatterDrawer } from './frontmatter-drawer';
 import { LinkedMentionsPanel } from './linked-mentions-panel';
 import { useI18n } from '@/components/i18n-provider';
 import { ConfirmModal } from '@/components/confirm-modal';
+import { ImageEmbedModal } from '@/components/image-embed-modal';
+import { ClusterPickModal } from '@/components/cluster-pick-modal';
 import { BreadcrumbTrail } from '../workspace/breadcrumb-trail';
 import { WorkspaceHeader } from '../workspace/workspace-header';
 import { LayoutMenuSection } from '../workspace/layout-menu';
@@ -201,6 +203,12 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
   const [deleting, setDeleting] = useState(false);
   const [pendingPasteHtml, setPendingPasteHtml] = useState<{ html?: string; text?: string } | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [imageEmbedOpen, setImageEmbedOpen] = useState(false);
+  const imageEmbedCallbackRef = useRef<((url: string, alt?: string) => void) | null>(null);
+  const [clusterPickOpen, setClusterPickOpen] = useState(false);
+  const [clusterPickTitle, setClusterPickTitle] = useState('Selecione o cluster');
+  const clusterPickCallbackRef = useRef<((slug: string) => void) | null>(null);
+  const workspaceToken = useWorkspace((s) => s.token);
 
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -333,7 +341,17 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
     activePage.content && typeof activePage.content === 'object' && 'type' in activePage.content
       ? (activePage.content as JSONContent)
       : (INITIAL_DOC as JSONContent);
-  const suggestionItems: SuggestionItem[] = buildSuggestionItems(t);
+  const suggestionItems: SuggestionItem[] = buildSuggestionItems(t, {
+    openImageEmbed: (onInsert) => {
+      imageEmbedCallbackRef.current = onInsert;
+      setImageEmbedOpen(true);
+    },
+    openClusterPick: (title, onPick) => {
+      clusterPickCallbackRef.current = onPick;
+      setClusterPickTitle(title);
+      setClusterPickOpen(true);
+    },
+  });
 
   const statusLabel = activePage.saving
     ? t('editor.saving')
@@ -706,6 +724,30 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
           destructive
         />
       )}
+      <ImageEmbedModal
+        isOpen={imageEmbedOpen}
+        onInsert={(url, alt) => {
+          imageEmbedCallbackRef.current?.(url, alt);
+          imageEmbedCallbackRef.current = null;
+        }}
+        onClose={() => {
+          setImageEmbedOpen(false);
+          imageEmbedCallbackRef.current = null;
+        }}
+      />
+      <ClusterPickModal
+        isOpen={clusterPickOpen}
+        title={clusterPickTitle}
+        token={workspaceToken || ''}
+        onPick={(slug) => {
+          clusterPickCallbackRef.current?.(slug);
+          clusterPickCallbackRef.current = null;
+        }}
+        onClose={() => {
+          setClusterPickOpen(false);
+          clusterPickCallbackRef.current = null;
+        }}
+      />
     </div>
   );
 }
