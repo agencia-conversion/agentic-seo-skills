@@ -10,6 +10,7 @@ import { Select } from '@/components/select';
 import { useI18n } from '@/components/i18n-provider';
 import { getCompanionToken } from '@/features/clusters/cluster-row-api';
 import { INTENT_CANONICAL_OPTIONS, intentLabel } from '@/lib/cluster-labels';
+import { syncBus } from '@/lib/sync-bus';
 
 const ORIGIN_OPTIONS = [
   { value: 'blog', label: 'blog' },
@@ -106,6 +107,23 @@ export function FrontmatterDrawer({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, onClose]);
 
+  // Listen for content:changed coming from other views (contents list /
+  // cluster table) and reload the current page so the drawer reflects
+  // the new frontmatter values.
+  const contentSlugForBus = String(
+    (page.frontmatter as Record<string, unknown> | undefined)?.slug
+      || page.path.split('/').pop()?.replace(/\.md$/, '')
+      || '',
+  );
+  useEffect(() => {
+    if (!open || !isContent || !contentSlugForBus) return;
+    return syncBus.on((event) => {
+      if (event.type === 'content:changed' && event.slug === contentSlugForBus) {
+        void loadPage(page.id, { force: true });
+      }
+    });
+  }, [open, isContent, contentSlugForBus, page.id, loadPage]);
+
   if (!open) return null;
 
   const isBrain = page.path.startsWith('brain/');
@@ -173,6 +191,8 @@ export function FrontmatterDrawer({
         : 'Não foi possível atualizar o vínculo com o cluster.');
       return false;
     }
+    syncBus.emit({ type: 'cluster:changed', slug: clusterSlug });
+    syncBus.emit({ type: 'content:changed', slug: contentSlug, fields: ['clusters', 'role'] });
     return true;
   };
 
@@ -204,6 +224,8 @@ export function FrontmatterDrawer({
         : 'Não foi possível criar o cluster a partir deste conteúdo.');
       return false;
     }
+    syncBus.emit({ type: 'clusters:changed' });
+    syncBus.emit({ type: 'content:changed', slug: contentSlug, fields: ['clusters', 'role'] });
     await reloadCurrentPage();
     return true;
   };

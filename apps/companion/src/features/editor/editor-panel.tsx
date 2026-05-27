@@ -48,6 +48,7 @@ import { BlockHandleMenu } from './block-handle-menu';
 import { usePagePath } from '@/hooks/use-page-path';
 import { MentionPopup } from './mention-popup';
 import { MentionChipHydrator } from './mention-chip-hydrator';
+import { syncBus } from '@/lib/sync-bus';
 import { AgenticQueryHydrator } from './agentic-query-hydrator';
 import { AutoBlockHydrator } from './auto-block-hydrator';
 import { MermaidHydrator } from './mermaid-hydrator';
@@ -279,6 +280,12 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
     if (ok) {
       setLastSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
       if (!silent) showToast(t('editorToasts.fileSaved'), 'success');
+      // Broadcast to sibling views (contents list, cluster tables) that this
+      // content's frontmatter/body may have changed.
+      if (activePage.path && activePage.path.startsWith('contents/')) {
+        const slug = activePage.path.split('/').pop()?.replace(/\.md$/, '') || '';
+        if (slug) syncBus.emit({ type: 'content:changed', slug });
+      }
     } else if (!silent) {
       showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || t('editorToasts.saveFailed'), 'error');
     }

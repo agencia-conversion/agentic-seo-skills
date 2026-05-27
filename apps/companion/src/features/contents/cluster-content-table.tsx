@@ -30,6 +30,7 @@ import {
 } from '@/lib/cluster-labels';
 import { formatRowError } from '@/lib/row-error-messages';
 import { useWorkspace } from '@/features/workspace/store';
+import { syncBus } from '@/lib/sync-bus';
 import { CreateContentModal } from './create-content-modal';
 
 interface ClusterResponse {
@@ -108,6 +109,17 @@ function useClusterData(slug: string | null) {
   }, [slug, tick]);
 
   const refetch = useCallback(() => setTick((n) => n + 1), []);
+
+  // Refetch on cross-view events that may have mutated the rows.
+  useEffect(() => {
+    if (!slug) return;
+    return syncBus.on((event) => {
+      if (event.type === 'cluster:changed' && event.slug === slug) refetch();
+      else if (event.type === 'content:changed') refetch();
+      else if (event.type === 'clusters:changed') refetch();
+    });
+  }, [slug, refetch]);
+
   return { data, error, loading, refetch };
 }
 
@@ -157,6 +169,13 @@ function useAllContentsData(
   }, [enabled, query, topicCluster, page, sort, tick]);
 
   const refetch = useCallback(() => setTick((n) => n + 1), []);
+
+  // Refetch when sibling views mutate anything visible here.
+  useEffect(() => {
+    if (!enabled) return;
+    return syncBus.on(() => refetch());
+  }, [enabled, refetch]);
+
   return { data, error, loading, refetch };
 }
 
@@ -515,6 +534,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
     }
     setNewTitle('');
     setAddingRow(false);
+    syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
     refetch();
   }, [newTitle, effectiveCluster, refetch]);
 
@@ -552,6 +572,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
       }
       setPasteStatus(`adicionado ${created}/${batch.length}`);
       setTimeout(() => setPasteStatus(null), 2500);
+      if (created > 0) syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
       refetch();
     } catch {
       setPasteStatus('falha ao colar');
@@ -781,8 +802,12 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                             current={row.role}
                             onCommit={async (next) => {
                               const res = await patchRow(effectiveCluster, row.slug, 'role', next, kind);
-                              if (res.ok && next === 'pillar') {
-                                showToast('Promovido a pillar — movido para o topo', 'success');
+                              if (res.ok) {
+                                if (next === 'pillar') {
+                                  showToast('Promovido a pillar — movido para o topo', 'success');
+                                }
+                                syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
+                                syncBus.emit({ type: 'content:changed', slug: row.slug, fields: ['role'] });
                               }
                               refetch();
                             }}
@@ -821,6 +846,13 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                                       showToast(formatRowError('keyword', res.reason, locale), 'error');
                                       return;
                                     }
+                                    if (kind === 'published') {
+                                      syncBus.emit({ type: 'content:changed', slug: row.slug, fields: ['keyword'] });
+                                    }
+                                    if (editCluster) {
+                                      syncBus.emit({ type: 'cluster:changed', slug: editCluster });
+                                    }
+                                    refetch();
                                   }}
                                 />
                               </div>
@@ -852,7 +884,15 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                                 if (!res.ok) {
                                   clearOptimistic(row.slug);
                                   showToast(formatRowError('intent', res.reason, locale), 'error');
+                                  return;
                                 }
+                                if (kind === 'published') {
+                                  syncBus.emit({ type: 'content:changed', slug: row.slug, fields: ['intent'] });
+                                }
+                                if (editCluster) {
+                                  syncBus.emit({ type: 'cluster:changed', slug: editCluster });
+                                }
+                                refetch();
                               }}
                             />
                           ) : (
@@ -873,7 +913,10 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                                 if (!res.ok) {
                                   clearOptimistic(row.slug);
                                   showToast(formatRowError('status', res.reason, locale), 'error');
+                                  return;
                                 }
+                                syncBus.emit({ type: 'cluster:changed', slug: editCluster });
+                                refetch();
                               }}
                             />
                           ) : (

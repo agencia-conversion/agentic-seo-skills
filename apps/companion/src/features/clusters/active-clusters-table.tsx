@@ -14,6 +14,7 @@ import { dataTableWidthClass } from '@/features/workspace/page-width';
 import { useWorkspace } from '@/features/workspace/store';
 import { CreateClusterModal } from './create-cluster-modal';
 import { formatRowError } from '@/lib/row-error-messages';
+import { syncBus } from '@/lib/sync-bus';
 
 interface ClusterSummary {
   slug: string;
@@ -204,6 +205,19 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
     void fetchContents();
   }, [fetchClusters, fetchContents]);
 
+  // Refetch when any view (drawer, contents list, cluster table) reports
+  // a cluster mutation. Cluster status, name, or pillar may have changed.
+  useEffect(() => {
+    return syncBus.on((event) => {
+      if (event.type === 'clusters:changed' || event.type === 'cluster:changed') {
+        void fetchClusters();
+      } else if (event.type === 'content:changed') {
+        void fetchClusters();
+        void fetchContents();
+      }
+    });
+  }, [fetchClusters, fetchContents]);
+
   const activeRows = useMemo(() => {
     let rows = clusters.filter((row) => row.status === 'active');
     const q = query.trim().toLowerCase();
@@ -272,6 +286,8 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
     });
     const json = await res.json().catch(() => ({ ok: false, reason: `http-${res.status}` }));
     if (json.ok) {
+      syncBus.emit({ type: 'clusters:changed' });
+      syncBus.emit({ type: 'cluster:changed', slug });
       await fetchClusters();
       await refreshProjectTree();
     }
