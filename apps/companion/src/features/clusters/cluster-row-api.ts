@@ -58,6 +58,52 @@ export async function postSatellite(
   return readApiResult(res);
 }
 
+export interface PostPublishedContentInput {
+  title: string;
+  origin: 'blog' | 'linkedin' | 'podcast' | 'other';
+  clusters: string[];
+}
+
+export interface PostPublishedContentResult extends ClusterApiResult {
+  path?: string;
+  slug?: string;
+}
+
+// Creates a real published content file under contents/<origin>/<slug>.md
+// with the typed title preserved verbatim in frontmatter and the cluster
+// linked via clusters: []. Used by inline CTA on cluster pages so the user
+// gets a clickable row immediately, not a planned-satellite placeholder.
+export async function postPublishedContent(
+  input: PostPublishedContentInput,
+): Promise<PostPublishedContentResult> {
+  const token = getCompanionToken();
+  if (!token) return { ok: false, reason: 'missing-token' };
+  const title = String(input.title || '').trim();
+  if (!title) return { ok: false, reason: 'invalid-title' };
+  const res = await fetch(
+    `/api/project/file/create?token=${encodeURIComponent(token)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
+      body: JSON.stringify({
+        kind: 'content',
+        title,
+        origin: input.origin,
+        clusters: input.clusters,
+        syncWait: true,
+      }),
+    },
+  );
+  const body = await res.json().catch(() => null) as Record<string, unknown> | null;
+  if (!res.ok || !body || body.ok === false) {
+    const reason = typeof body?.reason === 'string' ? body.reason : `http-${res.status}`;
+    return { ok: false, reason };
+  }
+  const path = typeof body.path === 'string' ? body.path : undefined;
+  const slug = path ? path.replace(/\.md$/, '').split('/').pop() : undefined;
+  return { ok: true, path, slug };
+}
+
 export async function patchRow(
   clusterSlug: string,
   contentSlug: string,

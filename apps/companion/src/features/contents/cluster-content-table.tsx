@@ -20,7 +20,7 @@ import {
   getCompanionToken,
   patchContentMetadata,
   patchRow,
-  postSatellite,
+  postPublishedContent,
 } from '@/features/clusters/cluster-row-api';
 import { dataTableWidthClass } from '@/features/workspace/page-width';
 import {
@@ -527,6 +527,10 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
     [],
   );
 
+  // Inline CTA creates a real PUBLISHED content (contents/blog/<slug>.md)
+  // with the typed title preserved in frontmatter and the current cluster
+  // linked via `clusters: [<slug>]`. To create a planned satellite, use the
+  // `postSatellite` API directly (or future explicit "+ planned" action).
   const commitNewRow = useCallback(async () => {
     const title = newTitle.trim();
     if (!title) {
@@ -539,7 +543,11 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
     }
     setSubmitting(true);
     setSubmitError(null);
-    const result = await postSatellite(effectiveCluster, title);
+    const result = await postPublishedContent({
+      title,
+      origin: 'blog',
+      clusters: [effectiveCluster],
+    });
     setSubmitting(false);
     if (!result.ok) {
       setSubmitError(result.reason || 'erro');
@@ -547,6 +555,9 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
     }
     setNewTitle('');
     setAddingRow(false);
+    if (result.slug) {
+      syncBus.emit({ type: 'content:changed', slug: result.slug });
+    }
     syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
     refetch();
   }, [newTitle, effectiveCluster, refetch]);
@@ -580,7 +591,11 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
       setPasteStatus(`colando ${batch.length}…`);
       let created = 0;
       for (const item of batch) {
-        const res = await postSatellite(effectiveCluster, item.title);
+        const res = await postPublishedContent({
+          title: item.title,
+          origin: 'blog',
+          clusters: [effectiveCluster],
+        });
         if (res.ok) created++;
       }
       setPasteStatus(`adicionado ${created}/${batch.length}`);
