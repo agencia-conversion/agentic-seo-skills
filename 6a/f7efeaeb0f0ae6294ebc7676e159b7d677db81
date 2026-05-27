@@ -1,0 +1,21 @@
+apps/companion/e2e/crud-full-flow.spec.ts
+  s_add44d6c3a39cb::t_af984d657d7ca5 60-66
+  s_add44d6c3a39cb::t_5e84aa041ea127 90-95
+  s_add44d6c3a39cb::t_31ead026f0435b 1-59,67-89,96-232
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6af7efeaeb0f0ae6294ebc7676e159b7d677db81",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
