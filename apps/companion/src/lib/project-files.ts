@@ -465,6 +465,49 @@ function canonicalBrainExists(root: string) {
   return BRAIN_PAGE_ORDER.some((rel) => existsSync(join(root, rel)));
 }
 
+export interface ProjectWarning {
+  code: 'legacy-content-dir' | 'content-and-contents-coexist';
+  message: string;
+  details?: Record<string, string>;
+}
+
+// Tracks one-time console warnings per project root so we don't spam logs.
+const WARNED_ROOTS = new Set<string>();
+
+export function detectProjectWarnings(root: string): ProjectWarning[] {
+  const warnings: ProjectWarning[] = [];
+  const legacy = join(root, 'content');
+  const canonical = join(root, 'contents');
+  const legacyExists = existsSync(legacy) && statSync(legacy).isDirectory();
+  const canonicalExists = existsSync(canonical) && statSync(canonical).isDirectory();
+  if (legacyExists && !canonicalExists) {
+    warnings.push({
+      code: 'legacy-content-dir',
+      message:
+        'project/content/ existe (legado). O Companion só lê project/contents/. Rode `mv project/content project/contents` para migrar.',
+      details: { legacy, canonical },
+    });
+  } else if (legacyExists && canonicalExists) {
+    warnings.push({
+      code: 'content-and-contents-coexist',
+      message:
+        'project/content/ e project/contents/ existem. Apenas project/contents/ é lido — mova/mescle os arquivos manualmente e remova project/content/.',
+      details: { legacy, canonical },
+    });
+  }
+  return warnings;
+}
+
+function emitProjectWarningsOnce(root: string, warnings: ProjectWarning[]) {
+  if (warnings.length === 0) return;
+  if (WARNED_ROOTS.has(root)) return;
+  WARNED_ROOTS.add(root);
+  for (const w of warnings) {
+    // eslint-disable-next-line no-console
+    console.warn(`[agentic-seo] ${w.code}: ${w.message}`);
+  }
+}
+
 export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
   const root = normalizeProjectRoot(projectRoot);
   const projectName = projectDisplayName(root);
@@ -518,6 +561,9 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
   sections.push({ id: 'contents', title: 'Content', items: contentItems });
   sections.push({ id: 'workbench', title: 'Workbench', items: workbenchItems });
 
+  const warnings = detectProjectWarnings(root);
+  emitProjectWarningsOnce(root, warnings);
+
   return {
     ok: true,
     hasFiles,
@@ -525,6 +571,7 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
     canBootstrapBrain: !hasBrain,
     project: { root, name: projectName, icon: projectIcon },
     sections,
+    warnings,
   };
 }
 

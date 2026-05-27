@@ -105,6 +105,14 @@ project/
     migrations/
 ```
 
+## Project dir conventions
+
+The canonical layout uses `project/contents/<origin>/<slug>.md`. The legacy singular form `project/content/` is **not** read by the Companion or the skills. If both directories exist, only `project/contents/` is consumed; the Companion never auto-renames a legacy directory.
+
+- The Companion surfaces a warning in `GET /api/project/tree` (field `warnings: [...]`) when it detects either `project/content/` only or both directories coexisting. It also prints a one-shot `console.warn` per project root.
+- CLI diagnostic: `node scripts/check-project-dirs.mjs --root=project` prints a status line plus suggested `mv` command. `--json` mode is available for tooling. `--strict` exits 2 on any issue.
+- The recommended fix when a legacy `project/content/` is detected is to run `mv project/content project/contents` from the project root.
+
 ## CLI commands
 
 `bin/agentic-seo` exposes:
