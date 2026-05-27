@@ -626,7 +626,11 @@ export function AutoBlockHydrator(): ReactElement {
         delete targetParams.materialized_at;
         delete targetParams.materialized_fingerprint;
         if (JSON.stringify(targetParams) === JSON.stringify(payload.params)) {
-          return; // same block, no-op
+          showToast(
+            'Ordem é determinada pelo tipo (name-asc, etc.). Mude o param "order" em Configurar.',
+            'info',
+          );
+          return;
         }
         try {
           const res = await fetch(
