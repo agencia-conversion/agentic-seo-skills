@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { REPORT_DIR_NAME, REPORT_MODULE_IDS } from '../../../../shared/report-modules';
 import { loadBrainSubpageTemplate } from './brain-templates';
+import { ensureWatcherStarted, silenceWrite } from './auto-block-watcher';
 
 export const AUTHORIAL_BRAIN_PAGES = new Set([
   'brain/index.md',
@@ -63,7 +64,11 @@ function nowIso() {
 }
 
 function normalizeProjectRoot(projectRoot?: string | null) {
-  return resolve(/*turbopackIgnore: true*/ projectRoot || process.env.AGENTIC_SEO_PROJECT_ROOT || 'project');
+  const root = resolve(/*turbopackIgnore: true*/ projectRoot || process.env.AGENTIC_SEO_PROJECT_ROOT || 'project');
+  // Lazily start the external-edit watcher on the first API call that
+  // resolves a project root. Idempotent.
+  ensureWatcherStarted(root);
+  return root;
 }
 
 function yamlString(value: unknown) {
@@ -544,6 +549,7 @@ export function bootstrapBrainFiles({ projectRoot }: { projectRoot?: string }) {
     if (!validation.ok && rel !== 'brain/log.md') return { ok: false, reason: validation.reason, path: rel };
     const { filePath } = resolveAllowedFile(root, rel);
     mkdirSync(dirname(filePath), { recursive: true });
+    silenceWrite(filePath);
     writeFileSync(filePath, renderBrainTemplate(rel, readFileSync(source, 'utf8'), projectName), 'utf8');
     created.push(rel);
   }
@@ -650,6 +656,7 @@ export function saveProjectFile({
     rawFrontmatter = parseFrontmatter(textWithFrontmatter).raw;
   }
   const finalText = `---\n${rawFrontmatter}\n---\n\n${body.replace(/^\n+/, '').replace(/\s*$/, '\n')}`;
+  silenceWrite(filePath);
   writeFileSync(filePath, finalText, 'utf8');
   const uiSaved = hasUiChange ? savePageUi(root, validation.rel, ui || {}) : false;
 
@@ -770,6 +777,7 @@ export function createProjectFile({
   } else {
     text = `---\ntitle: ${yamlString(title)}\nupdated: ${yamlString(today)}\n---\n\n`;
   }
+  silenceWrite(filePath);
   writeFileSync(filePath, text, 'utf8');
   const file = readProjectFile({ projectRoot: root, fileRel: rel });
   return { ...file, created: true };
@@ -812,6 +820,7 @@ export function deleteProjectFile({
   const trashPath = uniqueTrashPath(root, validation.rel);
   const absoluteTrash = join(root, trashPath);
   mkdirSync(dirname(absoluteTrash), { recursive: true });
+  silenceWrite(filePath);
   renameSync(filePath, absoluteTrash);
   deletePageUi(root, validation.rel);
 

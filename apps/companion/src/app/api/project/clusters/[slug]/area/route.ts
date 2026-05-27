@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { rejectUnlessLocal, projectRoot } from '@/lib/api-guard';
 import { runClusterSyncHook } from '@/lib/cluster-sync-runner';
+import { silenceWrite } from '@/lib/auto-block-watcher';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,6 +53,7 @@ export async function POST(
     delete yaml.area_name;
   }
   try {
+    silenceWrite(yamlPath);
     writeFileSync(yamlPath, stringifyYaml(yaml, { lineWidth: 0 }), 'utf8');
   } catch (err) {
     return NextResponse.json(

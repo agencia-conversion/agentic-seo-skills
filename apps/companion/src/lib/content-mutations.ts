@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join, relative, resolve, sep } from 'node:path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
+import { silenceWrite } from './auto-block-watcher';
 
 const ORIGINS = ['blog', 'linkedin', 'podcast', 'other'] as const;
 const FM_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
@@ -45,6 +46,7 @@ function parseContent(text: string): { fm: Record<string, any>; body: string } {
 
 function writeContent(filePath: string, fm: Record<string, any>, body: string) {
   const yaml = stringifyYaml(fm, { lineWidth: 0 }).trimEnd();
+  silenceWrite(filePath);
   writeFileSync(filePath, `---\n${yaml}\n---\n${body.startsWith('\n') ? '' : '\n'}${body}`, 'utf8');
 }
 

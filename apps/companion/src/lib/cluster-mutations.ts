@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 import { parse as parseYaml, stringify as yamlStringify } from 'yaml';
 import { loadBrainSubpageTemplate } from './brain-templates';
 import { updateContentMetadata } from './content-mutations';
+import { silenceWrite } from './auto-block-watcher';
 
 const PLUGIN_ROOT =
   process.env.AGENTIC_SEO_PLUGIN_ROOT ||
@@ -157,6 +158,7 @@ function regenerateSubpage(projectRoot: string, clusterYaml: any) {
   const file = brainSubpagePath(projectRoot, clusterYaml.slug);
   const tableLines = buildContentsTableLines(clusterYaml, projectRoot);
   const contentsBlock = ['## Conteúdos', '', ...tableLines, ''].join('\n');
+  silenceWrite(file);
   if (!existsSync(file)) {
     writeFileSync(file, buildClusterSubpageMarkdown(projectRoot, clusterYaml), 'utf8');
     return;
@@ -198,6 +200,7 @@ export function addPlannedSatellite(projectRoot: string, clusterSlug: string, in
     ...(input.display_title ? { display_title: input.display_title } : {}),
   });
   data.contract_version = 1;
+  silenceWrite(yamlPath);
   writeFileSync(yamlPath, yamlStringify(data, { lineWidth: 0 }), 'utf8');
   return { ok: true as const, slug };
 }
@@ -348,6 +351,7 @@ function writeContentFrontmatterRole(
   next.role = roleMap;
   const body = match[2] || '';
   const yamlText = yamlStringify(next, { lineWidth: 0 }).trimEnd();
+  silenceWrite(located.path);
   writeFileSync(located.path, `---\n${yamlText}\n---\n${body.startsWith('\n') ? '' : '\n'}${body}`, 'utf8');
   return true;
 }
@@ -392,6 +396,7 @@ export function editClusterRow(
       return { ok: false, reason: 'planned-entry-not-found' };
     }
     data.contract_version = 1;
+    silenceWrite(yamlPath);
     writeFileSync(yamlPath, yamlStringify(data, { lineWidth: 0 }), 'utf8');
     affected.push(`clusters/${clusterSlug}/cluster.yaml`);
     return { ok: true, affected };
@@ -406,6 +411,7 @@ export function editClusterRow(
       }
       data.pillar = { ...(data.pillar || {}), slug: contentSlug };
       data.contract_version = 1;
+      silenceWrite(yamlPath);
       writeFileSync(yamlPath, yamlStringify(data, { lineWidth: 0 }), 'utf8');
       affected.push(`clusters/${clusterSlug}/cluster.yaml`);
     }
@@ -434,6 +440,7 @@ export function editClusterRow(
     return { ok: false, reason: 'unsupported-field' };
   }
   data.contract_version = 1;
+  silenceWrite(yamlPath);
   writeFileSync(yamlPath, yamlStringify(data, { lineWidth: 0 }), 'utf8');
   affected.push(`clusters/${clusterSlug}/cluster.yaml`);
   return { ok: true, affected };
