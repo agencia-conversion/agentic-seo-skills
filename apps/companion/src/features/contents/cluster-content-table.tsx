@@ -28,6 +28,7 @@ import {
   INTENT_CANONICAL_OPTIONS,
   EDITORIAL_STATUS_CANONICAL_OPTIONS,
 } from '@/lib/cluster-labels';
+import { formatRowError } from '@/lib/row-error-messages';
 import { useWorkspace } from '@/features/workspace/store';
 import { CreateContentModal } from './create-content-modal';
 
@@ -815,7 +816,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                                         : { ok: false, reason: 'missing-cluster' };
                                     if (!res.ok) {
                                       clearOptimistic(row.slug);
-                                      showToast('Falha ao salvar keyword', 'error');
+                                      showToast(formatRowError('keyword', res.reason, locale), 'error');
                                       return;
                                     }
                                   }}
@@ -848,7 +849,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                                     : { ok: false, reason: 'missing-cluster' };
                                 if (!res.ok) {
                                   clearOptimistic(row.slug);
-                                  showToast('Falha ao salvar intent', 'error');
+                                  showToast(formatRowError('intent', res.reason, locale), 'error');
                                 }
                               }}
                             />
@@ -869,7 +870,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                                 const res = await patchRow(editCluster, row.slug, 'editorial_status', value, kind);
                                 if (!res.ok) {
                                   clearOptimistic(row.slug);
-                                  showToast('Falha ao salvar status', 'error');
+                                  showToast(formatRowError('status', res.reason, locale), 'error');
                                 }
                               }}
                             />

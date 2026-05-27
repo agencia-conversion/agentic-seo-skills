@@ -11,6 +11,7 @@ import { TableSettingsMenu, type SortState, type TableColumnDef } from '@/featur
 import { dataTableWidthClass } from '@/features/workspace/page-width';
 import { useWorkspace } from '@/features/workspace/store';
 import { CreateClusterModal } from './create-cluster-modal';
+import { formatRowError } from '@/lib/row-error-messages';
 
 interface ClusterSummary {
   slug: string;
@@ -162,6 +163,7 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
   const tableKey = 'active-clusters';
   const hiddenByTable = settings.hiddenColumnsByTable || EMPTY_HIDDEN_COLUMNS_BY_TABLE;
   const hiddenColumns = useMemo(() => new Set(hiddenByTable[tableKey] || []), [hiddenByTable]);
+  const locale: 'pt-BR' | 'en' = settings.language === 'en' ? 'en' : 'pt-BR';
 
   const fetchClusters = useCallback(async () => {
     const companionToken = getCompanionToken();
@@ -384,7 +386,7 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                               onCommit={async (value) => {
                                 const result = await patchCluster(row.slug, { name: value });
                                 setEditingClusterSlug(null);
-                                if (!result.ok) showToast('Falha ao salvar cluster', 'error');
+                                if (!result.ok) showToast(formatRowError('cluster', result.reason, locale), 'error');
                               }}
                             />
                           ) : (
@@ -444,7 +446,7 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                           ]}
                           onCommit={async (value) => {
                             const result = await patchCluster(row.slug, { status: value });
-                            if (!result.ok) showToast('Falha ao salvar status', 'error');
+                            if (!result.ok) showToast(formatRowError('status', result.reason, locale), 'error');
                           }}
                         />
                       </td>
