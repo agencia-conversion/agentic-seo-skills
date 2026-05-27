@@ -1,12 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Archive, Pencil, Plus, Search, Sliders } from 'lucide-react';
+import { ArrowDown, ArrowUp, Plus, Search, Sliders } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { showToast } from '@/components/toast';
+import { ConfirmModal } from '@/components/confirm-modal';
 import { cn } from '@/lib/utils';
 import { getCompanionToken } from './cluster-row-api';
 import { EditableSelectCell } from './editable-select-cell';
+import { ClusterRowActionsMenu } from './cluster-row-actions-menu';
 import { TableSettingsMenu, type SortState, type TableColumnDef } from '@/features/contents/table-settings-menu';
 import { dataTableWidthClass } from '@/features/workspace/page-width';
 import { useWorkspace } from '@/features/workspace/store';
@@ -158,6 +160,7 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
   const [menuOpen, setMenuOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [editingClusterSlug, setEditingClusterSlug] = useState<string | null>(null);
+  const [archivingCluster, setArchivingCluster] = useState<{ slug: string; name: string } | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const tableKey = 'active-clusters';
@@ -402,35 +405,34 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                               {row.name}
                             </a>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => setEditingClusterSlug(row.slug)}
-                            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-notion-text-muted opacity-70 hover:bg-notion-hover hover:text-notion-text cursor-pointer"
-                            aria-label={`Renomear cluster ${row.name}`}
-                            title="Renomear cluster"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </button>
                         </div>
                       </td>
                     )}
                     {isVisible('pillar') && (
-                      <td className="px-2.5 py-1.5 align-top max-w-[260px]">
-                        {row.pillar_path && token ? (
-                          <a
-                            href={`/project/${encodeURIComponent(token)}/${row.pillar_path.replace(/\.md$/, '').replace(/\//g, '-')}`}
-                            onClick={(event) => {
-                              if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                              event.preventDefault();
-                              router.push(`/project/${encodeURIComponent(token)}/${row.pillar_path!.replace(/\.md$/, '').replace(/\//g, '-')}`);
-                            }}
-                            className="text-sm text-notion-text underline-offset-2 hover:underline"
-                          >
-                            {row.pillar_title || row.pillar_slug}
-                          </a>
-                        ) : (
-                          <span className="text-xs text-notion-text-muted">{row.pillar_slug || '—'}</span>
-                        )}
+                      <td className="px-2.5 py-1.5 align-top">
+                        <div className="max-w-[260px] overflow-hidden">
+                          {row.pillar_path && token ? (
+                            <a
+                              href={`/project/${encodeURIComponent(token)}/${row.pillar_path.replace(/\.md$/, '').replace(/\//g, '-')}`}
+                              onClick={(event) => {
+                                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                                event.preventDefault();
+                                router.push(`/project/${encodeURIComponent(token)}/${row.pillar_path!.replace(/\.md$/, '').replace(/\//g, '-')}`);
+                              }}
+                              className="block truncate text-sm text-notion-text underline-offset-2 hover:underline"
+                              title={row.pillar_title || row.pillar_slug || ''}
+                            >
+                              {row.pillar_title || row.pillar_slug}
+                            </a>
+                          ) : (
+                            <span
+                              className="block truncate text-xs text-notion-text-muted"
+                              title={row.pillar_slug || '—'}
+                            >
+                              {row.pillar_slug || '—'}
+                            </span>
+                          )}
+                        </div>
                       </td>
                     )}
                     {isVisible('published') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.published}</td>}
@@ -453,17 +455,25 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                     )}
                     {isVisible('updated') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.updated || '—'}</td>}
                     <td className="px-2.5 py-1.5 align-top text-right">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const result = await patchCluster(row.slug, { status: 'archived' });
-                          showToast(result.ok ? 'Cluster arquivado' : 'Falha ao arquivar cluster', result.ok ? 'success' : 'error');
+                      <ClusterRowActionsMenu
+                        slug={row.slug}
+                        name={row.name}
+                        status={row.status}
+                        onOpen={() => {
+                          if (!token) return;
+                          router.push(`/project/${encodeURIComponent(token)}/brain-topic-clusters-${row.slug}`);
                         }}
-                        className="inline-flex h-7 w-7 items-center justify-center rounded hover:bg-notion-hover cursor-pointer text-notion-text-muted hover:text-notion-text"
-                        title="Arquivar cluster"
-                      >
-                        <Archive className="h-3.5 w-3.5" />
-                      </button>
+                        onRename={() => setEditingClusterSlug(row.slug)}
+                        onStatusChange={async (next) => {
+                          const result = await patchCluster(row.slug, { status: next });
+                          if (!result.ok) {
+                            showToast(formatRowError('status', result.reason, locale), 'error');
+                          } else {
+                            showToast(`Status atualizado: ${next}`, 'success');
+                          }
+                        }}
+                        onArchive={() => setArchivingCluster({ slug: row.slug, name: row.name })}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -501,6 +511,25 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
           delete next[tableKey];
           setSettings({ hiddenColumnsByTable: next });
         }}
+      />
+      <ConfirmModal
+        isOpen={!!archivingCluster}
+        title="Arquivar cluster"
+        description={`Tem certeza que deseja arquivar "${archivingCluster?.name || ''}"? O cluster sairá da lista de ativos.`}
+        confirmLabel="Arquivar"
+        cancelLabel="Cancelar"
+        destructive
+        onConfirm={async () => {
+          const target = archivingCluster;
+          if (!target) return;
+          setArchivingCluster(null);
+          const result = await patchCluster(target.slug, { status: 'archived' });
+          showToast(
+            result.ok ? 'Cluster arquivado' : 'Falha ao arquivar cluster',
+            result.ok ? 'success' : 'error',
+          );
+        }}
+        onClose={() => setArchivingCluster(null)}
       />
     </div>
   );
