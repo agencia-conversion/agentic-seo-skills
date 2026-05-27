@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CLUSTER_LABELS = void 0;
+exports.applyHeaderSync = applyHeaderSync;
 exports.clusterSync = clusterSync;
 exports.parseArgs = parseArgs;
 exports.runCli = runCli;
@@ -212,6 +213,24 @@ function resolvePillarSlug(cluster, inputs) {
     const published = inputs.contentsByCluster.get(cluster.slug) || [];
     return published.find((c) => c.slug === declared)?.slug || null;
 }
+// Keep the brain subpage frontmatter `title:` in sync with cluster.yaml.name
+// (the canonical source of truth). Runs on every cluster-sync pass for any
+// existing subpage so renames — whether triggered by the Companion API or by
+// external edits to cluster.yaml — propagate to the sidebar (which reads
+// frontmatter.title) and to the editor surface (which reflects the title in
+// the page header). The body H1 stays untouched: it is authored markdown.
+function applyHeaderSync(current, expectedTitle) {
+    if (!current.startsWith("---")) {
+        // No frontmatter: leave the file as-is. The subpage was authored without
+        // an FM block; cluster-sync should not invent one here.
+        return current;
+    }
+    const { data, body } = (0, cluster_io_1.parseFrontmatter)(current);
+    if (data.title === expectedTitle)
+        return current;
+    const nextData = { ...data, title: expectedTitle };
+    return (0, cluster_io_1.serializeFrontmatter)(nextData, body);
+}
 function applyContentBlock(current, block, labels) {
     const beginIdx = current.indexOf(cluster_types_1.SENTINELS.contentBegin);
     const endIdx = current.indexOf(cluster_types_1.SENTINELS.contentEnd);
@@ -295,10 +314,16 @@ function syncCluster(cluster, inputs, options) {
     const fingerprint = fingerprintOf(`${cluster.slug}:${rows.length}:${block}`);
     const previous = cluster_io_1.fingerprintIO.read(inputs.projectRoot, cluster.slug);
     const targetPath = (0, cluster_io_1.subpagePath)(inputs.projectRoot, cluster.slug);
-    if (previous === fingerprint && (0, node_fs_1.existsSync)(targetPath)) {
+    const existing = (0, node_fs_1.existsSync)(targetPath) ? (0, cluster_io_1.loadSubpage)(inputs.projectRoot, cluster.slug) : null;
+    // Skip work only when both the content fingerprint matches AND the brain
+    // subpage frontmatter `title:` is already aligned with cluster.yaml.name.
+    // A rename mutates cluster.yaml without touching the rendered content
+    // rows, so fingerprint match alone is not enough.
+    if (previous === fingerprint &&
+        existing &&
+        applyHeaderSync(existing, cluster.yaml.name) === existing) {
         return { changed: [], noop: true, lints };
     }
-    const existing = (0, cluster_io_1.loadSubpage)(inputs.projectRoot, cluster.slug);
     const pillarContent = resolvedPillarSlug
         ? (inputs.contentsByCluster.get(cluster.slug) || []).find((c) => c.slug === resolvedPillarSlug) || null
         : null;
@@ -310,7 +335,8 @@ function syncCluster(cluster, inputs, options) {
                 buildFallbackSubpage(cluster, block, labels, inputs.now);
     }
     else {
-        const result = applyContentBlock(existing, block, labels);
+        const withHeader = applyHeaderSync(existing, cluster.yaml.name);
+        const result = applyContentBlock(withHeader, block, labels);
         nextContent = result.next;
         detectedLint = result.lint;
     }
