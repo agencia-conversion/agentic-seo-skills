@@ -1,0 +1,229 @@
+skills/data-setup/SKILL.md
+  s_add44d6c3a39cb::t_35032e680c3766 25
+tools/clis/site-import.js
+  s_add44d6c3a39cb::t_37eb6289af1dcd 44
+  s_add44d6c3a39cb::t_b09015859814d8 5
+apps/companion/src/lib/cluster-mutations.ts
+  s_add44d6c3a39cb::t_e10886febf5e2f 145
+skills/competitive-analysis/SKILL.md
+  s_add44d6c3a39cb::t_69d83da8347a72 69
+  s_add44d6c3a39cb::t_4648bf53c741e7 91
+  s_add44d6c3a39cb::t_33d64a8ff811e0 48
+dist/commands/cluster-sync.js
+  s_add44d6c3a39cb::t_26c5746d3dedc6 261
+skills/project-init/references/seed-from-doc.md
+  s_add44d6c3a39cb::t_ac9ed53ff70548 26-28,30,32-33
+  s_add44d6c3a39cb::t_83bd0c6f1b723c 86
+  s_add44d6c3a39cb::t_e27afe849a004c 16
+  s_add44d6c3a39cb::t_690a1fa1859461 47,52,55,59,64-69
+  s_add44d6c3a39cb::t_6240f113de3f42 5
+  s_add44d6c3a39cb::t_aa1898ed9d605c 75
+AGENTS.md
+  s_add44d6c3a39cb::t_90fec2c42a3573 156,162,164,168,172
+  s_add44d6c3a39cb::t_4f0330d80a86e8 67
+  s_add44d6c3a39cb::t_7387f4eb48bb95 113-114,119-123,126,128,132,136,140,142,144
+  s_add44d6c3a39cb::t_2d20988f55b3c4 75-77,81,84,88,91,99
+  s_add44d6c3a39cb::t_5bd79ffc181e0c 103,105
+  s_add44d6c3a39cb::t_d2896044523d1c 183
+skills/project-init/evals/fixture.md
+  s_add44d6c3a39cb::t_139f6bc72266ea 14-16,18
+templates/project/clusters/planejamento.md.template
+  s_add44d6c3a39cb::t_4059e952273633 22
+skills/competitive-analysis/references/modules/M7-brand.md
+  s_add44d6c3a39cb::t_156a52c8f1fcb6 9
+  s_add44d6c3a39cb::t_55684d8dc2cadf 92
+templates/project/brain/voice/_subpage-template.md
+  s_add44d6c3a39cb::t_ff311a006e35d3 8-12
+templates/project/brain/topic-clusters/_cluster-subpage.md.template
+  s_add44d6c3a39cb::t_1e44760d88b8d3 17
+skills/brain-keeper/evals/fixture.md
+  s_add44d6c3a39cb::t_485302a83da694 5,10-13,19
+skills/topic-cluster/SKILL.md
+  s_add44d6c3a39cb::t_5aef7ff3746994 10
+  s_add44d6c3a39cb::t_307ed5c411ae39 77-78,80-81,83,86,88,98-99,101
+  s_add44d6c3a39cb::t_e527f37b65b0d0 123,125,127,133
+  s_add44d6c3a39cb::t_46a6c9cbae7278 22,25
+  s_add44d6c3a39cb::t_3fb0034a2cd8c2 148
+  s_add44d6c3a39cb::t_165cd64d8b3d6b 57,59,63
+  s_add44d6c3a39cb::t_46d982fd79704f 182
+  s_add44d6c3a39cb::t_4e7cbebf80e9f3 3
+docs/refactor-status.md
+  s_add44d6c3a39cb::t_af9a2e6b905679 77-79,84,87,91
+  s_add44d6c3a39cb::t_9eb61d086ee971 126-132
+  s_add44d6c3a39cb::t_ec9b9793b9a757 18
+  s_add44d6c3a39cb::t_a6f4f46cc0165b 5,7
+  s_add44d6c3a39cb::t_dc62e1abcbdea3 140-142,145
+  s_add44d6c3a39cb::t_6ffdc27fc7390c 58-60
+  s_add44d6c3a39cb::t_2ca168b583fd97 38-55
+  s_add44d6c3a39cb::t_48a46e868c3463 13
+apps/companion/src/lib/project-files.ts
+  s_add44d6c3a39cb::t_0a28c0e0002b19 763
+skills/brain-keeper/SKILL.md
+  s_add44d6c3a39cb::t_f3549c145d3e81 54,58,60
+  s_add44d6c3a39cb::t_a23aed13fb57af 130
+  s_add44d6c3a39cb::t_f799ef7502eb70 42,44
+  s_add44d6c3a39cb::t_513bc8dbf68bdd 209,214,227,229-231,233
+  s_add44d6c3a39cb::t_d373cc0083900e 48,50
+  s_add44d6c3a39cb::t_66a570b2fc19b2 71-77
+  s_add44d6c3a39cb::t_9047db05c4d6ef 90,98,101-102
+  s_add44d6c3a39cb::t_a6ff86a5a1a5d1 169
+  s_add44d6c3a39cb::t_4c0c6ad45573e7 10
+  s_add44d6c3a39cb::t_fa53e069d52762 116,118,122,126
+  s_add44d6c3a39cb::t_2d0afeea53c962 178-183,186
+  s_add44d6c3a39cb::t_ba27177e28e06a 82,84
+  s_add44d6c3a39cb::t_37e4e197acae58 155
+  s_add44d6c3a39cb::t_ba1c46afde5cee 163
+  s_add44d6c3a39cb::t_8323de01b735dc 148
+  s_add44d6c3a39cb::t_932f8d9c422547 28,30,32
+  s_add44d6c3a39cb::t_518d28324dbf96 193,200
+templates/project/clusters/cluster.yaml.template
+  s_add44d6c3a39cb::t_a3145bfab6b987 7-8,10,13-14,26,30,34-35
+skills/agentic-seo/evals/fixture.md
+  s_add44d6c3a39cb::t_deffd9d12cc0d7 10-11
+docs/specs/topic-clusters-contract.md
+  s_add44d6c3a39cb::t_892b39cd96f9a5 326-331
+  s_add44d6c3a39cb::t_9de445c6fd6122 53,56,59,72,74,76,86-87,104-105
+  s_add44d6c3a39cb::t_cc2968dd7dad1b 38-39
+  s_add44d6c3a39cb::t_83d425e953677f 227-229
+  s_add44d6c3a39cb::t_6df36d7caae132 107,116,118-120,127-129
+  s_add44d6c3a39cb::t_8db160219a1807 343,350,353
+  s_add44d6c3a39cb::t_cf1a11ce540ce4 295
+  s_add44d6c3a39cb::t_e19c4fc8065379 383
+  s_add44d6c3a39cb::t_19124cb599b882 156-157
+  s_add44d6c3a39cb::t_536dfdd7e74343 267,269-273
+  s_add44d6c3a39cb::t_5150fae780647e 240,242,245,247,252,254
+  s_add44d6c3a39cb::t_0fcf66899a4ef7 174
+  s_add44d6c3a39cb::t_cbab90ff62edd4 373
+scripts/lib/clusters-apply.mjs
+  s_add44d6c3a39cb::t_4a89f46575f9c4 226
+docs/specs/companion-links-and-sources.md
+  s_add44d6c3a39cb::t_64f57d8cec80bf 71
+templates/project/brain/products/_subpage-template.md
+  s_add44d6c3a39cb::t_6e4656d098f5e3 8
+templates/project/brain/log.md
+  s_add44d6c3a39cb::t_f88e13e59a734a 10,16-22,25-27,29,32-34
+skills/brain-keeper/references/lint-lexicon.en.json
+  s_add44d6c3a39cb::t_b3b34cec381478 46
+templates/project/brain/identity/_subpage-template.md
+  s_add44d6c3a39cb::t_53fa052e5a7462 8-16
+templates/project/contents/blog/_template.md
+  s_add44d6c3a39cb::t_83fa1e1c58dc33 32
+  s_add44d6c3a39cb::t_46dc71c925e076 7-22
+skills/brain-keeper/references/lint-lexicon.pt-br.json
+  s_add44d6c3a39cb::t_b0f99f19a715e4 65
+templates/project/contents/other/_template.md
+  s_add44d6c3a39cb::t_99e9cb3589809a 7-21
+templates/project/brain/topic-clusters/_subpage-template.md
+  s_add44d6c3a39cb::t_347e8ad80cd201 16,20
+templates/project/contents/podcast/_template.md
+  s_add44d6c3a39cb::t_d1b984c27139dc 7-10
+skills/content-seo/SKILL.md
+  s_add44d6c3a39cb::t_2aa3c4cf68b60f 127
+  s_add44d6c3a39cb::t_7f716416809be4 269
+  s_add44d6c3a39cb::t_21ee5384ebe27f 131,133,135,139,143,145,149,151,153-154,160,162
+  s_add44d6c3a39cb::t_fd9c7fc600d45e 98-99
+  s_add44d6c3a39cb::t_13a5d62cff380b 26-28,30
+  s_add44d6c3a39cb::t_e86c515a380b07 275
+  s_add44d6c3a39cb::t_d5471d7da2b64a 52
+  s_add44d6c3a39cb::t_3ca86535404c73 192,198,209-210,214-215,217-218,227,240,242
+  s_add44d6c3a39cb::t_82c5f593a3b41a 263
+  s_add44d6c3a39cb::t_9093253a30b603 287
+  s_add44d6c3a39cb::t_7ee8627f6a7238 293
+templates/project/brain/products.md
+  s_add44d6c3a39cb::t_d5c72388d817db 10
+agents/eeat.md
+  s_add44d6c3a39cb::t_d51e6c984aa650 19
+templates/project/brain/review.md
+  s_add44d6c3a39cb::t_b47a5a428f25ac 11-21
+  s_add44d6c3a39cb::t_c2c21f9694cb47 77-80
+  s_add44d6c3a39cb::t_adf7c194ca9098 45
+  s_add44d6c3a39cb::t_2dbcf8cf75a1de 32
+docs/obsidian-vault.md
+  s_add44d6c3a39cb::t_ab8e7f3e76c920 9
+  s_add44d6c3a39cb::t_5cc43c7d1110ed 53
+tools/REGISTRY.md
+  s_add44d6c3a39cb::t_dedf6d42c68bb6 7
+templates/project/brain/technology/_subpage-template.md
+  s_add44d6c3a39cb::t_a4f11b523aea33 8
+docs/specs/topic-clusters-iteration-3.md
+  s_add44d6c3a39cb::t_8a0c367664d9c4 22
+  s_add44d6c3a39cb::t_64c8b653141fdb 43-48
+  s_add44d6c3a39cb::t_9bbf4b4839b3ae 7-9
+  s_add44d6c3a39cb::t_aa3c92e7777cd5 54-61
+templates/companion/approve-cluster.html
+  s_add44d6c3a39cb::t_ad12533449dc51 48,53,59,65-68
+  s_add44d6c3a39cb::t_150e5804c5e60b 128,131,136-140
+skills/content-seo/evals/fixture.md
+  s_add44d6c3a39cb::t_0c179f4306c5fa 11-12,20,25
+templates/project/brain/technology.md
+  s_add44d6c3a39cb::t_df0d1f17e21f8f 13-14
+skills/eeat/evals/fixture.md
+  s_add44d6c3a39cb::t_493551bf865ffb 17,22
+src/commands/cluster-sync.ts
+  s_add44d6c3a39cb::t_22936247d6e677 327
+skills/seo-skills-creator/evals/fixture.md
+  s_add44d6c3a39cb::t_6cf64474f99ff8 10-11
+skills/project-init/SKILL.md
+  s_add44d6c3a39cb::t_4039edc2302cc3 31
+  s_add44d6c3a39cb::t_30037461a32fcd 76-80
+  s_add44d6c3a39cb::t_53445c0316d934 103,110,112,122-127
+  s_add44d6c3a39cb::t_ab4bec2d21c896 138
+  s_add44d6c3a39cb::t_5ea682e776118b 22-24
+  s_add44d6c3a39cb::t_b60e2f606d5fd9 172
+skills/agentic-seo/SKILL.md
+  s_add44d6c3a39cb::t_65ff12e33e81ad 81-83
+  s_add44d6c3a39cb::t_5f21a0c6b4052e 41
+  s_add44d6c3a39cb::t_bed9a72dd3fe25 116,118,120
+  s_add44d6c3a39cb::t_3a0754668fff7d 105
+  s_add44d6c3a39cb::t_cade4ca013f54b 163
+  s_add44d6c3a39cb::t_8b0ce1daae746e 176
+  s_add44d6c3a39cb::t_aabd74c95107e9 52-53
+  s_add44d6c3a39cb::t_35a0264eb84688 193
+CLAUDE.md
+  s_add44d6c3a39cb::t_0570224f24a4a1 7,9
+templates/project/contents/linkedin/_template.md
+  s_add44d6c3a39cb::t_2920b7a9a62c41 7-10
+templates/project/brain/index.md
+  s_add44d6c3a39cb::t_317cb6c99fa6ad 16
+  s_add44d6c3a39cb::t_d1e4eee1d8acef 29,35,47,52
+templates/project/brain/identity.md
+  s_add44d6c3a39cb::t_1222d968fe993e 202
+  s_add44d6c3a39cb::t_a82e0637838f8d 48
+  s_add44d6c3a39cb::t_98f7b2cfd68a69 24
+  s_add44d6c3a39cb::t_4d5f2e6607f1fc 151-158
+skills/content-import/SKILL.md
+  s_add44d6c3a39cb::t_29bf0daeccb23d 18-19
+  s_add44d6c3a39cb::t_f954cc5036702a 67,75,77,80
+  s_add44d6c3a39cb::t_2953ff5d033db6 49,51-54,57
+  s_add44d6c3a39cb::t_92e9514f4c1a79 3
+  s_add44d6c3a39cb::t_377e1b5d6af628 10
+  s_add44d6c3a39cb::t_8da21f0291179f 31-32
+  s_add44d6c3a39cb::t_ac61614cf07040 93-98
+  s_add44d6c3a39cb::t_50a49b66e334d4 128,137-138
+skills/start/SKILL.md
+  s_add44d6c3a39cb::t_9a07619fbc84cc 31
+  s_add44d6c3a39cb::t_99ab432321e1ca 50,53-55,57
+skills/eeat/SKILL.md
+  s_add44d6c3a39cb::t_c483731d7c8430 87
+  s_add44d6c3a39cb::t_e1b45b9c2729c9 108
+  s_add44d6c3a39cb::t_67bf828a57071e 24
+skills/competitive-analysis/evals/fixture.md
+  s_add44d6c3a39cb::t_e12c3d4bfed1c7 16
+  s_add44d6c3a39cb::t_2c2911ca6269c6 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4678d73b9197ccd293e619dd8a2cfacf73d00da2",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
