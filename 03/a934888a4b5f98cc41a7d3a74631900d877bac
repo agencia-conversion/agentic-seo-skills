@@ -1,0 +1,29 @@
+apps/companion/src/features/editor/auto-block-hydrator.tsx
+  s_add44d6c3a39cb::t_8dce1e2291ec92 576
+  s_add44d6c3a39cb::t_12457d523aedd2 664-727
+  s_add44d6c3a39cb::t_46c54302078a3d 348-357,359-368,379,387
+  s_add44d6c3a39cb::t_42e743386506d4 616
+  s_add44d6c3a39cb::t_7a19d0ce5f2a49 3
+  s_add44d6c3a39cb::t_e731b739b2e6e0 490-495
+  s_add44d6c3a39cb::t_a12132609d72cb 412
+  s_add44d6c3a39cb::t_7334498b270069 391-411,414-456
+  s_add44d6c3a39cb::t_906184a64c6546 6-9,13-21
+  s_add44d6c3a39cb::t_1551276b416e9a 308-316
+  s_add44d6c3a39cb::t_e04d5445922a3d 641
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "03a934888a4b5f98cc41a7d3a74631900d877bac",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
