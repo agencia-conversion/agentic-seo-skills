@@ -186,7 +186,9 @@ test.describe('full CRUD across single page / contents list / cluster page', () 
     await expect(
       page.getByRole('link', { name: 'Sample Renamed', exact: true }),
     ).toBeVisible({ timeout: 5_000 });
-    expect(String((readClusterYaml().name as string) || '')).toBe('Sample Renamed');
+    await expect
+      .poll(() => String((readClusterYaml().name as string) || ''), { timeout: 8_000 })
+      .toBe('Sample Renamed');
 
     // 2) Status → drafting.
     await page.locator(`[data-testid="cluster-actions-${CLUSTER_SLUG}"]`).click();

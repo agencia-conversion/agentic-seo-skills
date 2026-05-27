@@ -114,7 +114,11 @@ test('rename via kebab UI propagates to sidebar label', async ({ page }) => {
 });
 
 test('external markdown edit to cluster.yaml.name flows into brain subpage title', async () => {
-  expect(readFmTitle(SUBPAGE_PATH)).toBe('Sample Cluster');
+  // Poll the baseline: if a prior spec's reset is still settling through the
+  // watcher pipeline, give it a moment before asserting the external edit.
+  await expect
+    .poll(() => readFmTitle(SUBPAGE_PATH), { timeout: 6_000, intervals: [200, 500, 1000] })
+    .toBe('Sample Cluster');
 
   writeYamlName(CLUSTER_YAML_PATH, 'External Renamed');
 
