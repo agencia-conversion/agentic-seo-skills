@@ -83,12 +83,22 @@ async function main() {
 
   try {
     const result = type.render(parseResult, inputs);
+    let rowKeys = null;
+    if (typeof type.rows === 'function' && typeof type.rowKey === 'function') {
+      try {
+        const rows = type.rows(parseResult, inputs);
+        rowKeys = rows.map((row) => type.rowKey(row, parseResult, inputs));
+      } catch {
+        rowKeys = null;
+      }
+    }
     process.stdout.write(
       JSON.stringify({
         ok: true,
         materialized: result.materialized,
         materialized_at: now,
         materialized_fingerprint: result.fingerprint,
+        row_keys: rowKeys,
       }) + '\n',
     );
   } catch (err) {

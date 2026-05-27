@@ -25,6 +25,7 @@ interface ExpandResult {
   materialized?: string;
   materialized_at?: string;
   materialized_fingerprint?: string;
+  row_keys?: string[] | null;
   error?: string;
 }
 
@@ -103,7 +104,11 @@ function renderCellInner(cellText: string): string {
   return escapeHtml(cellText);
 }
 
-function renderTableFromMarkdown(markdown: string, schema: BlockSchema | null): string {
+function renderTableFromMarkdown(
+  markdown: string,
+  schema: BlockSchema | null,
+  rowKeys: string[] | null,
+): string {
   const { headers, rows } = parseTableRows(markdown);
   if (headers.length === 0) {
     return `<div class="text-xs text-notion-text-muted italic px-3 py-2">${escapeHtml(markdown)}</div>`;
@@ -120,8 +125,8 @@ function renderTableFromMarkdown(markdown: string, schema: BlockSchema | null): 
     )
     .join('');
   const rowsHtml = rows
-    .map((rowCells) => {
-      const rowKey = extractRowKey(rowCells);
+    .map((rowCells, rowIdx) => {
+      const rowKey = rowKeys && rowKeys[rowIdx] ? rowKeys[rowIdx] : extractRowKey(rowCells);
       const dragAttrs =
         supportsRowDrag && rowKey
           ? ` draggable="true" data-auto-block-row="true" data-row-key="${escapeHtml(rowKey)}"`
@@ -187,7 +192,14 @@ function statusCard(kind: 'loading' | 'empty' | 'error', message: string): strin
   return `<div class="px-3 py-3 text-xs ${palette[kind]}">${escapeHtml(message)}</div>`;
 }
 
-function render(host: HTMLElement, kind: string, body: string, schema: BlockSchema | null, status: 'idle' | 'loading' | 'error' = 'idle') {
+function render(
+  host: HTMLElement,
+  kind: string,
+  body: string,
+  schema: BlockSchema | null,
+  status: 'idle' | 'loading' | 'error' = 'idle',
+  rowKeys: string[] | null = null,
+) {
   let parsed: Record<string, unknown> = {};
   try {
     const result = parseYaml(body);
@@ -206,7 +218,7 @@ function render(host: HTMLElement, kind: string, body: string, schema: BlockSche
       : status === 'error'
         ? statusCard('error', 'Falha ao expandir bloco. Clique em ⟳ para tentar de novo.')
         : materialized
-          ? renderTableFromMarkdown(materialized, schema)
+          ? renderTableFromMarkdown(materialized, schema, rowKeys)
           : statusCard('empty', 'Bloco vazio. Clique em ⟳ para gerar a tabela a partir dos dados atuais.');
   host.innerHTML = `${header}${tableHtml}${footer}`;
 }
@@ -216,7 +228,10 @@ function getToken(): string {
 }
 
 async function expandBlock(host: HTMLElement, kind: string, body: string, schema: BlockSchema | null): Promise<void> {
-  render(host, kind, body, schema, 'loading');
+  // Preserve current rowKeys (if any) during loading state so the table stays
+  // interactive without flicker.
+  const existingKeys = readRowKeysFromHost(host);
+  render(host, kind, body, schema, 'loading', existingKeys);
   let parsed: Record<string, unknown> = {};
   try {
     const r = parseYaml(body);
@@ -244,10 +259,30 @@ async function expandBlock(host: HTMLElement, kind: string, body: string, schema
     const nextPayload = { version: 1, ...payload.params, materialized: data.materialized, materialized_at: data.materialized_at, materialized_fingerprint: data.materialized_fingerprint };
     const nextBody = stringifyYaml(nextPayload, { lineWidth: 0 }).replace(/\n$/, '');
     host.setAttribute('data-body', nextBody);
-    render(host, kind, nextBody, schema, 'idle');
+    writeRowKeysToHost(host, data.row_keys || null);
+    render(host, kind, nextBody, schema, 'idle', data.row_keys || null);
     window.dispatchEvent(new CustomEvent('auto-block:body-updated', { detail: { host, body: nextBody } }));
   } catch {
     render(host, kind, body, schema, 'error');
+  }
+}
+
+function readRowKeysFromHost(host: HTMLElement): string[] | null {
+  const raw = host.getAttribute('data-row-keys');
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map((x) => String(x)) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeRowKeysToHost(host: HTMLElement, rowKeys: string[] | null): void {
+  if (rowKeys && rowKeys.length > 0) {
+    host.setAttribute('data-row-keys', JSON.stringify(rowKeys));
+  } else {
+    host.removeAttribute('data-row-keys');
   }
 }
 
@@ -256,6 +291,7 @@ interface CellMutateResult {
   new_fingerprint?: string;
   materialized?: string;
   materialized_at?: string;
+  row_keys?: string[] | null;
   conflict?: { current_fingerprint: string; current_materialized: string };
   error?: string;
 }
@@ -336,7 +372,8 @@ async function mutateCell(
     };
     const nextBody = stringifyYaml(nextPayload, { lineWidth: 0 }).replace(/\n$/, '');
     host.setAttribute('data-body', nextBody);
-    render(host, kind, nextBody, schema, 'idle');
+    writeRowKeysToHost(host, data.row_keys || null);
+    render(host, kind, nextBody, schema, 'idle', data.row_keys || null);
     window.dispatchEvent(new CustomEvent('auto-block:body-updated', { detail: { host, body: nextBody } }));
   } catch (err) {
     cellEl.classList.remove('auto-block-cell-saving');

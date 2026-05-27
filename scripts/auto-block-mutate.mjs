@@ -200,11 +200,21 @@ async function main() {
     orphanContents: orphansAfter,
   };
   const renderAfter = type.render(parseResult, inputsAfter);
+  let rowKeysAfter = null;
+  if (typeof type.rows === 'function' && typeof type.rowKey === 'function') {
+    try {
+      const rowsAfter = type.rows(parseResult, inputsAfter);
+      rowKeysAfter = rowsAfter.map((row) => type.rowKey(row, parseResult, inputsAfter));
+    } catch {
+      rowKeysAfter = null;
+    }
+  }
   emit({
     ok: true,
     new_fingerprint: renderAfter.fingerprint,
     materialized: renderAfter.materialized,
     materialized_at: now,
+    row_keys: rowKeysAfter,
     descriptor: {
       filePath: result.filePath,
       fieldPath: result.fieldPath,
