@@ -122,30 +122,52 @@ test.describe('inline edits persist across reloads', () => {
     await expect(rowAfter).toContainText('Em revisão', { timeout: 8_000 });
   });
 
-  test('role toggle (pillar -> satellite) persists to frontmatter + UI on reload', async ({ page }) => {
+  test('role toggle (satellite -> pillar) persists to cluster.yaml + UI on reload', async ({ page }) => {
+    // Test the supported direction (satellite -> pillar). Demoting the
+    // existing pillar to satellite would leave cluster.yaml.pillar.slug
+    // unchanged and the toggle would render back as "Pilar" after
+    // cluster-sync (pillar.slug always wins over frontmatter role).
+    const satelliteSlug = 'sample-satellite';
+    const satellitePath = join(PROJECT_ROOT, 'contents', 'blog', `${satelliteSlug}.md`);
+    function readSatelliteFrontmatter(): Record<string, unknown> {
+      const text = readFileSync(satellitePath, 'utf8');
+      const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+      if (!match) throw new Error('no frontmatter');
+      return parseYaml(match[1]) as Record<string, unknown>;
+    }
+
     const table = await openClusterTable(page);
-    const row = table.locator(`[data-cluster-row="${PILLAR_SLUG}"]`);
+    const row = table.locator(`[data-cluster-row="${satelliteSlug}"]`);
     await row.waitFor({ state: 'visible' });
-    const roleBtn = row.locator('button:has-text("Pilar")').first();
+    const roleBtn = row.locator('button:has-text("Satélite")').first();
     await roleBtn.click();
 
     await expect
       .poll(
         () => {
-          const fm = readPillarFrontmatter();
+          const yaml = readClusterYaml() as { pillar?: { slug?: string } };
+          return yaml.pillar?.slug;
+        },
+        { timeout: 8_000 },
+      )
+      .toBe(satelliteSlug);
+    await expect
+      .poll(
+        () => {
+          const fm = readSatelliteFrontmatter();
           const roleMap = (fm.role || {}) as Record<string, unknown>;
           return roleMap[CLUSTER_SLUG];
         },
         { timeout: 8_000 },
       )
-      .toBe('satellite');
+      .toBe('pillar');
 
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
     const tableAfter = page.locator(`[data-cluster-table="${CLUSTER_SLUG}"]`);
     await tableAfter.waitFor({ state: 'visible', timeout: 10_000 });
-    const rowAfter = tableAfter.locator(`[data-cluster-row="${PILLAR_SLUG}"]`);
-    await expect(rowAfter.locator('button:has-text("Satélite")').first()).toBeVisible({
+    const rowAfter = tableAfter.locator(`[data-cluster-row="${satelliteSlug}"]`);
+    await expect(rowAfter.locator('button:has-text("Pilar")').first()).toBeVisible({
       timeout: 8_000,
     });
   });
