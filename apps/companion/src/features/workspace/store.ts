@@ -696,10 +696,43 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     const token = get().token;
     if (!token) return;
     const built = await buildPagesAndSections(token);
+    const prevPages = get().pages;
+    const prevById = new Map(prevPages.map((p) => [p.id, p]));
     const prevActive = get().activePageId;
     const stillExists = prevActive ? built.pages.find((p) => p.id === prevActive) : null;
+    // Preserve loaded state, content, and local dirty flags from the previous
+    // entries so that an unrelated tree refresh (e.g. after a cluster patch)
+    // does not flicker the active editor back to a loading spinner or wipe
+    // unsaved local edits. Pages new to the tree start with whatever
+    // pageFromSummary initialized.
+    const mergedPages = built.pages.map((next) => {
+      const prev = prevById.get(next.id);
+      if (!prev || !prev.loaded) return next;
+      return {
+        ...next,
+        // Carry user-visible content/state forward.
+        title: prev.dirty ? prev.title : next.title || prev.title,
+        slug: prev.slug,
+        frontmatter: prev.frontmatter,
+        frontmatterText: prev.frontmatterText,
+        bodyMarkdown: prev.bodyMarkdown,
+        sourceBody: prev.sourceBody,
+        content: prev.content,
+        hash: prev.dirty ? prev.hash : next.hash || prev.hash,
+        icon: prev.uiDirty ? prev.icon : next.icon ?? prev.icon,
+        cover: prev.uiDirty ? prev.cover : next.cover ?? prev.cover,
+        loaded: true,
+        dirty: prev.dirty,
+        fileDirty: prev.fileDirty,
+        uiDirty: prev.uiDirty,
+        saving: prev.saving,
+        saveError: prev.saveError,
+        sourceMode: prev.sourceMode,
+        readOnly: next.readOnly,
+      };
+    });
     set({
-      pages: built.pages,
+      pages: mergedPages,
       sections: built.sections,
       hasFiles: built.hasFiles,
       hasBrain: built.hasBrain,
