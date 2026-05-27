@@ -21,10 +21,10 @@ test.describe('auto-block API + reverse-sync', () => {
     expect(data.ok).toBe(true);
     expect(data.kind).toBe('agentic-clusters-by-area');
     expect(Array.isArray(data.columns)).toBe(true);
-    const nomeCol = data.columns.find((c: { key: string }) => c.key === 'nome');
-    expect(nomeCol).toBeTruthy();
-    expect(nomeCol.editable).toBe(true);
-    expect(nomeCol.derived).toBe(false);
+    const nameCol = data.columns.find((c: { key: string }) => c.key === 'name');
+    expect(nameCol).toBeTruthy();
+    expect(nameCol.editable).toBe(true);
+    expect(nameCol.derived).toBe(false);
     const clusterCol = data.columns.find((c: { key: string }) => c.key === 'cluster');
     expect(clusterCol.derived).toBe(true);
     expect(clusterCol.editable).toBe(false);
@@ -59,7 +59,7 @@ test.describe('auto-block API + reverse-sync', () => {
         mutation: {
           type: 'cell',
           row: 'sample-cluster',
-          column: 'nome',
+          column: 'name',
           value: 'Sample Cluster — Edited',
         },
         actor: 'e2e-test',
@@ -68,12 +68,12 @@ test.describe('auto-block API + reverse-sync', () => {
     expect(mutate.ok()).toBeTruthy();
     const mutateData = await mutate.json();
     expect(mutateData.ok).toBe(true);
-    expect(mutateData.descriptor.fieldPath).toBe('nome');
+    expect(mutateData.descriptor.fieldPath).toBe('name');
     expect(mutateData.descriptor.after).toBe('Sample Cluster — Edited');
 
     const after = readClusterYaml();
-    expect(after.nome).toBe('Sample Cluster — Edited');
-    expect(before.nome).not.toBe(after.nome);
+    expect(after.name).toBe('Sample Cluster — Edited');
+    expect(before.name).not.toBe(after.name);
 
     // Restore for idempotency in subsequent runs.
     await request.post(`/api/project/auto-block/mutate?token=${TEST_TOKEN}`, {
@@ -84,8 +84,8 @@ test.describe('auto-block API + reverse-sync', () => {
         mutation: {
           type: 'cell',
           row: 'sample-cluster',
-          column: 'nome',
-          value: before.nome,
+          column: 'name',
+          value: before.name,
         },
         actor: 'e2e-test-restore',
       },
@@ -101,7 +101,7 @@ test.describe('auto-block API + reverse-sync', () => {
         mutation: {
           type: 'cell',
           row: 'sample-cluster',
-          column: 'nome',
+          column: 'name',
           value: 'irrelevant',
         },
         actor: 'e2e-test',
@@ -127,7 +127,7 @@ test.describe('auto-block API + reverse-sync', () => {
         mutation: {
           type: 'cell',
           row: 'sample-cluster',
-          column: 'publicados',
+          column: 'published',
           value: '99',
         },
         actor: 'e2e-test',
@@ -199,11 +199,11 @@ test.describe('auto-block API + reverse-sync', () => {
     );
     expect(fileResult).toBeTruthy();
     expect(fileResult.applied.length).toBeGreaterThan(0);
-    const nomeMutation = fileResult.applied.find((m: { fieldPath: string }) => m.fieldPath === 'nome');
-    expect(nomeMutation).toBeTruthy();
+    const nameMutation = fileResult.applied.find((m: { fieldPath: string }) => m.fieldPath === 'name');
+    expect(nameMutation).toBeTruthy();
 
     const afterYaml = readClusterYaml();
-    expect(afterYaml.nome).toBe('Sample Cluster — Reverse-Sync');
+    expect(afterYaml.name).toBe('Sample Cluster — Reverse-Sync');
 
     // Restore.
     writeFileSync(topicClustersPath, original, 'utf8');
@@ -212,9 +212,9 @@ test.describe('auto-block API + reverse-sync', () => {
       `--root=${PROJECT_ROOT}`,
     ]);
     expect(restore.status).toBe(0);
-    // Manually set nome back via mutate API style (write directly via YAML).
+    // Manually set name back via mutate API style (write directly via YAML).
     const restoreYaml = readClusterYaml();
-    restoreYaml.nome = beforeYaml.nome;
+    restoreYaml.name = beforeYaml.name;
     writeFileSync(
       join(PROJECT_ROOT, 'clusters', 'sample-cluster', 'cluster.yaml'),
       YAML.stringify(restoreYaml, { lineWidth: 0 }),
@@ -225,12 +225,12 @@ test.describe('auto-block API + reverse-sync', () => {
 
 test.describe('auto-block UI: cell editable in Companion', () => {
   test.beforeEach(() => {
-    // Reset cluster.yaml.nome to canonical state. Do NOT run cluster-sync —
+    // Reset cluster.yaml.name to canonical state. Do NOT run cluster-sync —
     // the hydrator will expand `materialized` on its own, and running sync
     // here would pre-sync downstream fixtures that other specs rely on.
     const yamlPath = resolve(PROJECT_ROOT, 'clusters', 'sample-cluster', 'cluster.yaml');
     const parsed = YAML.parse(readFileSync(yamlPath, 'utf8')) as Record<string, unknown>;
-    parsed.nome = 'Sample Cluster';
+    parsed.name = 'Sample Cluster';
     writeFileSync(yamlPath, YAML.stringify(parsed, { lineWidth: 0 }), 'utf8');
   });
 
@@ -263,12 +263,12 @@ test.describe('auto-block UI: cell editable in Companion', () => {
     });
 
     await expect
-      .poll(() => readClusterYaml().nome as string, { timeout: 10_000 })
+      .poll(() => readClusterYaml().name as string, { timeout: 10_000 })
       .toBe('UI-Edited Name');
 
     const yamlPath = resolve(PROJECT_ROOT, 'clusters', 'sample-cluster', 'cluster.yaml');
     const parsed = YAML.parse(readFileSync(yamlPath, 'utf8')) as Record<string, unknown>;
-    parsed.nome = originalText;
+    parsed.name = originalText;
     writeFileSync(yamlPath, YAML.stringify(parsed, { lineWidth: 0 }), 'utf8');
   });
 });

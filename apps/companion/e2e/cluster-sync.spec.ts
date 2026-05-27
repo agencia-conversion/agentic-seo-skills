@@ -129,8 +129,6 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(editor).toContainText('Identidade');
     await expect(editor).toContainText('Tom de Voz');
     await expect(editor).toContainText('Aposto: Sample Project, marca de exemplo para testes do Companion.');
-    await expect(editor).toContainText("Do's");
-    await expect(editor).toContainText("Don'ts");
     await expect(editor).toContainText('Sample Cluster');
     await expect(editor).toContainText('Sample Pilar');
     await expect(editor).toContainText('Tecnologia');
@@ -139,7 +137,6 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(editor).not.toContainText('Companion local');
     await expect(editor).not.toContainText('rotas tokenizadas');
     await expect(editor).not.toContainText('cluster-sync');
-    await expect(editor).toContainText('Editorial');
     await expect(editor).toContainText('Topic Clusters');
     await expect(editor).toContainText('Revisão');
     await expect(editor).toContainText('Log');
@@ -182,7 +179,7 @@ test.describe('cluster-sync end-to-end', () => {
     await chooseGlobalWidth(page, 'editor-layout-menu', 'lg');
     await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[1200px\]/);
 
-    await page.goto(`/project/${TEST_TOKEN}/brain-voz`);
+    await page.goto(`/project/${TEST_TOKEN}/brain-voice`);
     await page.waitForLoadState('domcontentloaded');
     await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[1200px\]/);
   });

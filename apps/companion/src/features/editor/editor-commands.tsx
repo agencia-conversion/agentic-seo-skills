@@ -144,7 +144,7 @@ export const buildSuggestionItems = (t?: Translator): SuggestionItem[] => [
         .insertContent({
           type: 'callout',
           attrs: { calloutType: 'note', title: '' },
-          content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }],
+          content: [{ type: 'paragraph' }],
         })
         .run();
     },

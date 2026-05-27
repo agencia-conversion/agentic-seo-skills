@@ -21,6 +21,24 @@ export function slugify(input: string): string {
     .slice(0, 60);
 }
 
+async function readApiResult(res: Response): Promise<ClusterApiResult> {
+  let body: any = null;
+  try {
+    body = await res.json();
+  } catch {
+    body = null;
+  }
+  if (body && typeof body === 'object') {
+    if (res.ok && body.ok !== false) {
+      return { ok: true, ...body };
+    }
+    if (typeof body.reason === 'string') {
+      return { ok: false, reason: body.reason };
+    }
+  }
+  return { ok: false, reason: `http-${res.status}` };
+}
+
 export async function postSatellite(
   clusterSlug: string,
   title: string,
@@ -37,8 +55,7 @@ export async function postSatellite(
       body: JSON.stringify({ slug, keyword: title, syncWait: true }),
     },
   );
-  if (!res.ok) return { ok: false, reason: `http-${res.status}` };
-  return res.json();
+  return readApiResult(res);
 }
 
 export async function patchRow(
@@ -58,8 +75,7 @@ export async function patchRow(
       body: JSON.stringify({ field, value, kind, syncWait: true }),
     },
   );
-  if (!res.ok) return { ok: false, reason: `http-${res.status}` };
-  return res.json();
+  return readApiResult(res);
 }
 
 export async function patchContentMetadata(
@@ -77,6 +93,5 @@ export async function patchContentMetadata(
       body: JSON.stringify({ field, value, syncWait: true }),
     },
   );
-  if (!res.ok) return { ok: false, reason: `http-${res.status}` };
-  return res.json();
+  return readApiResult(res);
 }

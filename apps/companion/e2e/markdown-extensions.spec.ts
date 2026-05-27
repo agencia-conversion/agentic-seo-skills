@@ -4,8 +4,8 @@ import { TEST_TOKEN } from './test-constants';
 const TOKEN = TEST_TOKEN;
 
 test.describe('Markdown extensions (callout, embed, mermaid)', () => {
-  test('Identidade page renders callout with title and type', async ({ page }) => {
-    await page.goto(`/project/${TOKEN}/brain-identidade`);
+  test('Identity page renders callout with title and type', async ({ page }) => {
+    await page.goto(`/project/${TOKEN}/brain-identity`);
     await page.waitForSelector('[data-callout]', { timeout: 20_000 });
     const callout = page.locator('[data-callout][data-callout-type="warning"]');
     await expect(callout).toBeVisible();
@@ -13,8 +13,8 @@ test.describe('Markdown extensions (callout, embed, mermaid)', () => {
     await expect(callout).toContainText('brain de fixture');
   });
 
-  test('Identidade page renders mermaid fence (source preserved + SVG hydrated)', async ({ page }) => {
-    await page.goto(`/project/${TOKEN}/brain-identidade`);
+  test('Identity page renders mermaid fence (source preserved + SVG hydrated)', async ({ page }) => {
+    await page.goto(`/project/${TOKEN}/brain-identity`);
     await page.waitForSelector('[data-mermaid]', { timeout: 20_000 });
     const mermaid = page.locator('[data-mermaid]');
     await expect(mermaid).toBeVisible();
@@ -33,8 +33,8 @@ test.describe('Markdown extensions (callout, embed, mermaid)', () => {
     await expect(embed).toContainText('Embed');
   });
 
-  test('Tom de Voz page callout type tip renders without title', async ({ page }) => {
-    await page.goto(`/project/${TOKEN}/brain-voz`);
+  test('Voice page callout type tip renders without title', async ({ page }) => {
+    await page.goto(`/project/${TOKEN}/brain-voice`);
     await page.waitForSelector('[data-callout][data-callout-type="tip"]', { timeout: 20_000 });
     const tip = page.locator('[data-callout][data-callout-type="tip"]');
     await expect(tip).toBeVisible();

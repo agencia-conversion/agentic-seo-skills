@@ -13,7 +13,7 @@ test.beforeAll(() => {
 test.describe('Visual UX evidence (screenshots)', () => {
   test('Sidebar with Tools section', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto(`/project/${TOKEN}/brain-identidade`);
+    await page.goto(`/project/${TOKEN}/brain-identity`);
     await page.waitForSelector('[data-testid="sidebar-tool-graph"]', { timeout: 20_000 });
     await page.waitForTimeout(500);
     await page.screenshot({ path: resolve(SCREENSHOT_DIR, 'sidebar-tools.png'), fullPage: false });
@@ -32,7 +32,7 @@ test.describe('Visual UX evidence (screenshots)', () => {
 
   test('Slash menu open with new entries', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto(`/project/${TOKEN}/brain-voz`);
+    await page.goto(`/project/${TOKEN}/brain-voice`);
     await page.waitForSelector('.ProseMirror', { timeout: 20_000 });
     await page.locator('.ProseMirror').click();
     await page.keyboard.press('End');
@@ -51,17 +51,17 @@ test.describe('Visual UX evidence (screenshots)', () => {
     await page.screenshot({ path: resolve(SCREENSHOT_DIR, 'agentic-query-live-table.png'), fullPage: true });
   });
 
-  test('Mermaid rendered as SVG on brain/identidade', async ({ page }) => {
+  test('Mermaid rendered as SVG on brain/identity', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto(`/project/${TOKEN}/brain-identidade`);
+    await page.goto(`/project/${TOKEN}/brain-identity`);
     await page.waitForSelector('[data-mermaid-result] svg', { timeout: 20_000 });
     await page.waitForTimeout(500);
     await page.screenshot({ path: resolve(SCREENSHOT_DIR, 'mermaid-svg-render.png'), fullPage: true });
   });
 
-  test('Callout rendered on brain/identidade', async ({ page }) => {
+  test('Callout rendered on brain/identity', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto(`/project/${TOKEN}/brain-identidade`);
+    await page.goto(`/project/${TOKEN}/brain-identity`);
     await page.waitForSelector('[data-callout]', { timeout: 20_000 });
     await page.waitForTimeout(300);
     await page.screenshot({ path: resolve(SCREENSHOT_DIR, 'callout-render.png'), fullPage: true });

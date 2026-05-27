@@ -47,12 +47,19 @@ function renameTopLevel(map, path) {
   let changed = false;
   for (const [from, to] of Object.entries(TOP_LEVEL_RENAMES)) {
     if (!map.has(from)) continue;
+    const fromItem = map.items.find((i) => keyOf(i) === from);
     if (map.has(to)) {
-      throw new Error(`Cannot rename ${from}→${to} in ${path}: target key already present.`);
+      const fromValue = serializeNode(fromItem.value);
+      const toValue = serializeNode(map.items.find((i) => keyOf(i) === to).value);
+      if (fromValue === toValue) {
+        map.items = map.items.filter((i) => keyOf(i) !== from);
+        changed = true;
+        continue;
+      }
+      throw new Error(`Cannot rename ${from}→${to} in ${path}: target key already present with different value.`);
     }
-    const item = map.items.find((i) => keyOf(i) === from);
-    if (item) {
-      item.key.value = to;
+    if (fromItem) {
+      fromItem.key.value = to;
       changed = true;
     }
   }
@@ -65,16 +72,29 @@ function renameStats(map, path) {
   let changed = false;
   for (const [from, to] of Object.entries(STATS_RENAMES)) {
     if (!stats.has || !stats.has(from)) continue;
+    const fromItem = stats.items.find((i) => keyOf(i) === from);
     if (stats.has(to)) {
-      throw new Error(`Cannot rename stats.${from}→stats.${to} in ${path}: target key already present.`);
+      const fromValue = serializeNode(fromItem.value);
+      const toValue = serializeNode(stats.items.find((i) => keyOf(i) === to).value);
+      if (fromValue === toValue) {
+        stats.items = stats.items.filter((i) => keyOf(i) !== from);
+        changed = true;
+        continue;
+      }
+      throw new Error(`Cannot rename stats.${from}→stats.${to} in ${path}: target key already present with different value.`);
     }
-    const item = stats.items.find((i) => keyOf(i) === from);
-    if (item) {
-      item.key.value = to;
+    if (fromItem) {
+      fromItem.key.value = to;
       changed = true;
     }
   }
   return changed;
+}
+
+function serializeNode(node) {
+  if (node === undefined || node === null) return "";
+  if (typeof node === "object" && "value" in node) return JSON.stringify(node.value ?? null);
+  return JSON.stringify(node);
 }
 
 function renameRolesInPlannedSatellites(map) {

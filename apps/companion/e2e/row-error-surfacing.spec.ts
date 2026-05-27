@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { TEST_TOKEN } from './test-constants';
+import { cpSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { FIXTURE_SOURCE, PLUGIN_ROOT, PROJECT_ROOT, TEST_TOKEN } from './test-constants';
 
 // Phase 6 — verify backend `reason:` codes surface as localized toast text
 // via formatRowError. Each test induces a known failure mode through the
@@ -11,6 +14,18 @@ import { TEST_TOKEN } from './test-constants';
 const SAMPLE_CLUSTER = 'sample-cluster';
 
 test.describe('row-error surfacing — backend reason codes', () => {
+  // Other specs mutate role/intent/status without restoring; reset the fixture
+  // so the active-pillar / planned-entry assertions run against canonical state.
+  test.beforeAll(() => {
+    rmSync(PROJECT_ROOT, { recursive: true, force: true });
+    cpSync(FIXTURE_SOURCE, PROJECT_ROOT, { recursive: true });
+    const sync = spawnSync(
+      'node',
+      [join(PLUGIN_ROOT, 'scripts', 'cluster-sync.mjs'), `--root=${PROJECT_ROOT}`],
+      { encoding: 'utf8' },
+    );
+    expect(sync.status, sync.stderr || sync.stdout).toBe(0);
+  });
   test('unknown cluster returns cluster-not-found', async ({ request }) => {
     const res = await request.get(`/api/project/cluster/does-not-exist?token=${TEST_TOKEN}`);
     expect(res.status()).toBe(404);

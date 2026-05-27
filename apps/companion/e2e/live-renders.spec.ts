@@ -39,8 +39,8 @@ test.describe('Live renders — agentic-query + mermaid', () => {
     await page.waitForFunction(() => !window.location.pathname.endsWith('brain-companion-demo'), { timeout: 5_000 });
   });
 
-  test('Mermaid in brain/identidade renders an SVG (not raw source)', async ({ page }) => {
-    await page.goto(`/project/${TOKEN}/brain-identidade`);
+  test('Mermaid in brain/identity renders an SVG (not raw source)', async ({ page }) => {
+    await page.goto(`/project/${TOKEN}/brain-identity`);
     await page.waitForSelector('[data-mermaid-result] svg', { timeout: 20_000 });
     const svg = page.locator('[data-mermaid-result] svg');
     await expect(svg).toBeVisible();
