@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, LayoutGroup } from 'framer-motion';
 import { ArrowDown, ArrowUp, Plus, Search, Sliders } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -311,6 +312,7 @@ export interface ClusterContentTableProps {
 }
 
 export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPageWidth = true }: ClusterContentTableProps) {
+  const router = useRouter();
   const isClusterScopedByProp = Boolean(clusterSlug);
   const [localClusterFilter, setLocalClusterFilter] = useState<string>('');
   const effectiveCluster = clusterSlug || localClusterFilter || null;
@@ -330,6 +332,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
 
   const language = useWorkspace((s) => s.settings.language);
   const customIntents = useWorkspace((s) => s.settings.customIntents);
+  const workspaceToken = useWorkspace((s) => s.token);
   const locale: 'pt-BR' | 'en' = language === 'en' ? 'en' : 'pt-BR';
   const intentOptions = useMemo(() => {
     const canonical = INTENT_CANONICAL_OPTIONS.map((opt) => ({
@@ -782,6 +785,19 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                   const editCluster: string | null = effectiveCluster || singleClusterFallback;
                   const canEditClusterFields = Boolean(editCluster);
                   const canEditContentMetadata = kind === 'published' || Boolean(editCluster);
+                  const rowOrigin = row.content.kind === 'published' ? row.content.origin : null;
+                  const navTarget =
+                    kind === 'published' && rowOrigin && workspaceToken
+                      ? `/project/${encodeURIComponent(workspaceToken)}/contents-${encodeURIComponent(rowOrigin)}-${encodeURIComponent(row.slug)}`
+                      : null;
+                  const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
+                    if (event.defaultPrevented) return;
+                    if (!navTarget) return;
+                    // Ignore non-left clicks and modifier-clicks (let the browser
+                    // handle middle-click, cmd-click, etc.).
+                    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                    router.push(navTarget);
+                  };
                   return (
                     <motion.tr
                       key={`${row.slug}`}
@@ -789,25 +805,28 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                       transition={{ type: 'spring', damping: 28, stiffness: 280 }}
                       data-cluster-row={row.slug}
                       data-cluster-row-kind={kind}
+                      onClick={navTarget ? handleRowClick : undefined}
                       className={cn(
                         'border-b border-notion-border last:border-0 transition-colors',
                         row.status === 'planned' && 'bg-notion-sidebar/20',
                         isSelected ? 'bg-blue-50/60' : 'hover:bg-notion-hover/50',
+                        navTarget && 'cursor-pointer',
                       )}
                     >
-                      <td className="px-2 py-1.5 align-top">
+                      <td className="px-2 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={isSelected}
                           onChange={(e) =>
                             toggleSelect(row.slug, (e.nativeEvent as MouseEvent | KeyboardEvent).metaKey || (e.nativeEvent as MouseEvent | KeyboardEvent).ctrlKey || true)
                           }
+                          onClick={(e) => e.stopPropagation()}
                           className="cursor-pointer"
                           aria-label={`Selecionar ${row.slug}`}
                         />
                       </td>
                       {isClusterScoped && effectiveCluster && isColVisible('role') && (
-                        <td className="px-2.5 py-1.5 align-top">
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                           <RoleToggle
                             current={row.role}
                             onCommit={async (next) => {
@@ -825,7 +844,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                         </td>
                       )}
                       {!isClusterScoped && isColVisible('clusters') && (
-                        <td className="px-2.5 py-1.5 align-top">
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                           <AlsoInChips slugs={row.also_in} />
                         </td>
                       )}
@@ -837,7 +856,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                         </td>
                       )}
                       {isColVisible('keyword') && (
-                        <td className="px-2.5 py-1.5 align-top">
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                           {canEditContentMetadata ? (
                             <div className="flex items-center gap-1">
                               <div className="flex-1">
@@ -878,7 +897,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                         </td>
                       )}
                       {isColVisible('intent') && (
-                        <td className="px-2.5 py-1.5 align-top">
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                           {canEditContentMetadata ? (
                             <EditableSelectCell
                               value={row.intent}
@@ -911,7 +930,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                         </td>
                       )}
                       {isColVisible('editorial_status') && (
-                        <td className="px-2.5 py-1.5 align-top">
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                           {canEditClusterFields && editCluster ? (
                             <EditableSelectCell
                               value={row.editorial_status as ClusterRow['editorial_status']}
