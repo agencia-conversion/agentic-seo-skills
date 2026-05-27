@@ -36,6 +36,7 @@ function rewriteOne(path, ctx) {
   changed = renameTopLevel(map, path) || changed;
   changed = renameStats(map, path) || changed;
   changed = renameRolesInPlannedSatellites(map) || changed;
+  if (!changed) return;
   const next = doc.toString();
   if (next !== text) {
     atomicWrite(path, next, ctx);

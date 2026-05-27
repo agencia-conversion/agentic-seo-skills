@@ -50,9 +50,11 @@ export function rewriteWikilinks(text) {
 }
 
 export function rewriteContentPaths(text) {
-  // Markdown links + raw paths inside fences: only rewrite /conteudos/ and /outros/ within paths.
+  // Markdown links + raw paths inside fences: rewrite legacy directory names within paths.
+  // Covers conteudos/ (full pt-BR), content/ (singular early-rename leftover) → contents/.
   let out = text;
   out = out.replace(/(\.\.\/)+conteudos\//g, (m) => m.replace("conteudos/", "contents/"));
+  out = out.replace(/(\.\.\/)+content\/(blog|linkedin|podcast|outros|other)\//g, (m, prefix, sub) => `${prefix}contents/${sub === "outros" ? "other" : sub}/`);
   // /outros/ in path context (between slashes or path edges, after contents)
   out = out.replace(/\/contents\/outros\//g, "/contents/other/");
   return out;
