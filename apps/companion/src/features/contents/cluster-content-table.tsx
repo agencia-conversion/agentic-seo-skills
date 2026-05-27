@@ -728,13 +728,13 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
 
         {error && <div className="px-4 py-3 text-xs text-red-600">Erro ao carregar: {error}</div>}
         {loading && !data && <div className="px-4 py-3 text-xs text-notion-text-muted">Carregando…</div>}
-        {data && rows.length === 0 && (
+        {data && rows.length === 0 && !addingRow && (
           <div className="px-4 py-3 text-xs text-notion-text-muted">
             {isClusterScoped ? 'Nenhum conteúdo neste cluster ainda.' : 'Nenhum conteúdo encontrado.'}
           </div>
         )}
 
-        {data && rows.length > 0 && (
+        {data && (rows.length > 0 || addingRow) && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
