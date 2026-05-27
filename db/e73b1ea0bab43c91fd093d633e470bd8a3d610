@@ -1,0 +1,19 @@
+apps/companion/src/features/editor/auto-block-hydrator.tsx
+  s_add44d6c3a39cb::t_1d004101ea5976 629-633
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "dbe73b1ea0bab43c91fd093d633e470bd8a3d610",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
