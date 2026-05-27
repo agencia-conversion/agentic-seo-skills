@@ -183,7 +183,6 @@ export function addPlannedSatellite(projectRoot: string, clusterSlug: string, in
   const slug = slugify(input.slug);
   const keyword = (input.keyword || '').trim();
   if (!slug) return { ok: false as const, reason: 'invalid-slug' };
-  if (!keyword) return { ok: false as const, reason: 'invalid-keyword' };
   const data = parseYaml(readFileSync(yamlPath, 'utf8')) || {};
   data.planned_satellites = Array.isArray(data.planned_satellites) ? data.planned_satellites : [];
   if (data.planned_satellites.some((s: any) => s?.slug === slug)) {
@@ -191,7 +190,7 @@ export function addPlannedSatellite(projectRoot: string, clusterSlug: string, in
   }
   data.planned_satellites.push({
     slug,
-    keyword,
+    keyword: keyword || '',
     intent: input.intent || 'informational',
     volume: typeof input.volume === 'number' && input.volume > 0 ? input.volume : null,
     volume_source: null,
