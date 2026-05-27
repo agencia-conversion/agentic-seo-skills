@@ -1,10 +1,24 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { useWorkspace } from '@/features/workspace/store';
+import { ConfirmModal } from '@/components/confirm-modal';
+import { ClusterPickModal } from '@/components/cluster-pick-modal';
+import { AutoBlockConfigModal } from '@/components/auto-block-config-modal';
+import { showToast } from '@/components/toast';
 
 const SENTINEL = 'data-auto-block-hydrated';
+
+// Module-level dispatchers wired by the React hydrator component so the DOM
+// event listeners can request modal interactions without using window.prompt
+// or window.confirm.
+type ConflictCallback = (reload: boolean) => void;
+type SlugCallback = (slug: string | null) => void;
+type BodyCallback = (body: string | null) => void;
+let dispatchConflict: ((opts: { localValue: string; canonical: string }, cb: ConflictCallback) => void) | null = null;
+let dispatchClusterPick: ((title: string, excludeSlugs: string[], cb: SlugCallback) => void) | null = null;
+let dispatchYamlEdit: ((title: string, body: string, cb: BodyCallback) => void) | null = null;
 
 interface ExpandResult {
   ok: boolean;
@@ -148,7 +162,6 @@ function renderHeader(kind: string, params: Record<string, unknown>): string {
       <div class="flex items-center gap-1">
         <button data-auto-block-action="configure" class="text-[11px] px-2 py-1 rounded hover:bg-notion-hover">Configurar</button>
         <button data-auto-block-action="refresh" class="text-[11px] px-2 py-1 rounded hover:bg-notion-hover" title="Atualizar tabela">⟳</button>
-        <button data-auto-block-action="more" class="text-[11px] px-2 py-1 rounded hover:bg-notion-hover" title="Mais opções">⋯</button>
       </div>
     </div>
   `;
@@ -292,13 +305,15 @@ async function mutateCell(
       cellEl.classList.add('auto-block-cell-error');
       const backupKey = `auto-block:retry:${kind}:${rowKey}:${columnKey}`;
       localStorage.setItem(backupKey, newValue);
-      const choice = window.confirm(
-        `Conflito: outra edição mudou esta fonte enquanto você editava.\n\n` +
-          `Seu valor "${newValue}" ficou salvo localmente.\n\n` +
-          `OK = recarregar dados atuais (descarta seu valor)\n` +
-          `Cancelar = manter seu valor na célula (você pode tentar de novo)`,
-      );
-      if (choice) {
+      const canonical = data.conflict.current_materialized || '';
+      const reload = await new Promise<boolean>((resolve) => {
+        if (!dispatchConflict) {
+          resolve(false);
+          return;
+        }
+        dispatchConflict({ localValue: newValue, canonical }, (choice) => resolve(choice));
+      });
+      if (reload) {
         await expandBlock(host, kind, host.getAttribute('data-body') || '', schema);
         localStorage.removeItem(backupKey);
       } else {
@@ -330,8 +345,27 @@ async function mutateCell(
   }
 }
 
+function extractExistingClusterSlugs(host: HTMLElement): string[] {
+  const slugs = new Set<string>();
+  host.querySelectorAll('a[href]').forEach((a) => {
+    const href = a.getAttribute('href') || '';
+    const match = href.match(/topic-clusters\/([^/]+)\.md/);
+    if (match) slugs.add(match[1]);
+  });
+  return Array.from(slugs);
+}
+
 async function moveClusterToArea(host: HTMLElement, area: string): Promise<void> {
-  const slug = window.prompt(`Slug do cluster para mover para a área "${area}":`);
+  const excludeSlugs = extractExistingClusterSlugs(host);
+  const slug = await new Promise<string | null>((resolve) => {
+    if (!dispatchClusterPick) {
+      resolve(null);
+      return;
+    }
+    dispatchClusterPick(`Mover cluster para "${area}"`, excludeSlugs, (chosen) =>
+      resolve(chosen),
+    );
+  });
   if (!slug || !slug.trim()) return;
   const token = window.location.pathname.split('/').filter(Boolean)[1] || '';
   try {
@@ -342,7 +376,7 @@ async function moveClusterToArea(host: HTMLElement, area: string): Promise<void>
     });
     const data = await res.json();
     if (!data.ok) {
-      window.alert(`Falha: ${data.error || 'erro desconhecido'}`);
+      showToast(`Falha: ${data.error || 'erro desconhecido'}`, 'error');
       return;
     }
     const kind = host.getAttribute('data-kind') || '';
@@ -350,12 +384,76 @@ async function moveClusterToArea(host: HTMLElement, area: string): Promise<void>
     const schema = await loadSchema(kind, getToken());
     await expandBlock(host, kind, body, schema);
   } catch (err) {
-    window.alert(`Falha ao mover cluster: ${String(err)}`);
+    showToast(`Falha ao mover cluster: ${String(err)}`, 'error');
   }
 }
 
-export function AutoBlockHydrator(): null {
+interface ConflictModalState {
+  open: boolean;
+  localValue: string;
+  canonical: string;
+  callback: ConflictCallback | null;
+}
+
+interface ClusterPickState {
+  open: boolean;
+  title: string;
+  excludeSlugs: string[];
+  callback: SlugCallback | null;
+}
+
+interface YamlEditState {
+  open: boolean;
+  title: string;
+  body: string;
+  callback: BodyCallback | null;
+}
+
+export function AutoBlockHydrator(): ReactElement {
   const activeId = useWorkspace((s) => s.activePageId);
+  const workspaceToken = useWorkspace((s) => s.token);
+  const [conflictState, setConflictState] = useState<ConflictModalState>({
+    open: false,
+    localValue: '',
+    canonical: '',
+    callback: null,
+  });
+  const [clusterPickState, setClusterPickState] = useState<ClusterPickState>({
+    open: false,
+    title: '',
+    excludeSlugs: [],
+    callback: null,
+  });
+  const [yamlEditState, setYamlEditState] = useState<YamlEditState>({
+    open: false,
+    title: '',
+    body: '',
+    callback: null,
+  });
+  const conflictResolvedRef = useRef(false);
+  const clusterResolvedRef = useRef(false);
+  const yamlResolvedRef = useRef(false);
+
+  useEffect(() => {
+    dispatchConflict = (opts, cb) => {
+      conflictResolvedRef.current = false;
+      setConflictState({ open: true, localValue: opts.localValue, canonical: opts.canonical, callback: cb });
+    };
+    dispatchClusterPick = (title, excludeSlugs, cb) => {
+      clusterResolvedRef.current = false;
+      setClusterPickState({ open: true, title, excludeSlugs, callback: cb });
+    };
+    dispatchYamlEdit = (title, body, cb) => {
+      yamlResolvedRef.current = false;
+      setYamlEditState({ open: true, title, body, callback: cb });
+    };
+    return () => {
+      dispatchConflict = null;
+      dispatchClusterPick = null;
+      dispatchYamlEdit = null;
+    };
+  }, []);
+
   useEffect(() => {
     const hydrateHost = (host: HTMLElement): void => {
       if (host.hasAttribute(SENTINEL)) return;
@@ -389,14 +487,14 @@ export function AutoBlockHydrator(): null {
         const currentKind = host.getAttribute('data-kind') || '';
         const currentBody = host.getAttribute('data-body') || '';
         if (action === 'configure') {
-          const next = window.prompt('Edite os parâmetros (YAML):', currentBody);
-          if (next == null) return;
-          host.setAttribute('data-body', next);
-          void expandBlock(host, currentKind, next, schema);
+          if (!dispatchYamlEdit) return;
+          dispatchYamlEdit(`Configurar ${currentKind}`, currentBody, (nextBody) => {
+            if (nextBody == null) return;
+            host.setAttribute('data-body', nextBody);
+            void expandBlock(host, currentKind, nextBody, schema);
+          });
         } else if (action === 'refresh') {
           void expandBlock(host, currentKind, currentBody, schema);
-        } else if (action === 'more') {
-          window.alert(`Tipo: ${currentKind}\n\nBody:\n${currentBody}\n\n(Menu avançado virá em iteração futura.)`);
         } else if (action === 'add') {
           const area = target.closest<HTMLElement>('[data-area]')?.getAttribute('data-area') || '';
           if (area) void moveClusterToArea(host, area);
@@ -475,7 +573,7 @@ export function AutoBlockHydrator(): null {
           return;
         }
         if (payload.kind !== kind) {
-          window.alert('Drag entre tipos diferentes ainda não suportado.');
+          showToast('Drag entre tipos diferentes ainda não suportado.', 'error');
           return;
         }
         const currentBody = host.getAttribute('data-body') || '';
@@ -515,7 +613,7 @@ export function AutoBlockHydrator(): null {
           );
           const data = await res.json();
           if (!data.ok) {
-            window.alert(`Falha ao mover: ${data.error || 'erro desconhecido'}`);
+            showToast(`Falha ao mover: ${data.error || 'erro desconhecido'}`, 'error');
             return;
           }
           // Refresh both blocks (source + target) by triggering expand on both.
@@ -540,7 +638,7 @@ export function AutoBlockHydrator(): null {
           }
           await expandBlock(host, kind, host.getAttribute('data-body') || '', schema);
         } catch (err) {
-          window.alert(`Falha no drag: ${String(err)}`);
+          showToast(`Falha no drag: ${String(err)}`, 'error');
         }
       });
     };
@@ -563,5 +661,68 @@ export function AutoBlockHydrator(): null {
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [activeId]);
-  return null;
+
+  return (
+    <>
+      <ConfirmModal
+        isOpen={conflictState.open}
+        title="Conflito de edição"
+        description={`Outra edição mudou esta fonte enquanto você editava.\n\nSeu valor: "${conflictState.localValue}"\nValor canônico: "${conflictState.canonical}"\n\nRecarregar = descarta seu valor; Manter = preserva localmente para nova tentativa.`}
+        confirmLabel="Recarregar canônico"
+        cancelLabel="Manter meu valor"
+        destructive
+        onConfirm={() => {
+          if (!conflictResolvedRef.current) {
+            conflictResolvedRef.current = true;
+            conflictState.callback?.(true);
+          }
+          setConflictState((s) => ({ ...s, open: false, callback: null }));
+        }}
+        onClose={() => {
+          if (!conflictResolvedRef.current) {
+            conflictResolvedRef.current = true;
+            conflictState.callback?.(false);
+          }
+          setConflictState((s) => ({ ...s, open: false, callback: null }));
+        }}
+      />
+      <ClusterPickModal
+        isOpen={clusterPickState.open}
+        title={clusterPickState.title}
+        token={workspaceToken || ''}
+        excludeSlugs={clusterPickState.excludeSlugs}
+        onPick={(slug) => {
+          if (!clusterResolvedRef.current) {
+            clusterResolvedRef.current = true;
+            clusterPickState.callback?.(slug);
+          }
+        }}
+        onClose={() => {
+          if (!clusterResolvedRef.current) {
+            clusterResolvedRef.current = true;
+            clusterPickState.callback?.(null);
+          }
+          setClusterPickState((s) => ({ ...s, open: false, callback: null }));
+        }}
+      />
+      <AutoBlockConfigModal
+        isOpen={yamlEditState.open}
+        title={yamlEditState.title}
+        initialBody={yamlEditState.body}
+        onSave={(body) => {
+          if (!yamlResolvedRef.current) {
+            yamlResolvedRef.current = true;
+            yamlEditState.callback?.(body);
+          }
+        }}
+        onClose={() => {
+          if (!yamlResolvedRef.current) {
+            yamlResolvedRef.current = true;
+            yamlEditState.callback?.(null);
+          }
+          setYamlEditState((s) => ({ ...s, open: false, callback: null }));
+        }}
+      />
+    </>
+  );
 }
