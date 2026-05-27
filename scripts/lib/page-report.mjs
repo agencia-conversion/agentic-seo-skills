@@ -88,17 +88,17 @@ export function appendReportLog(projectDir, { title, files, summary, approval = 
   const brainLog = path.join(projectDir, "brain", "log.md");
   fs.mkdirSync(path.dirname(brainLog), { recursive: true });
   const links = formatLogFileRefs(files || []);
-  const aprovador = approval && approval !== "not-required" && approval !== "pending" ? approval : "agent";
+  const approver = approval && approval !== "not-required" && approval !== "pending" ? approval : "agent";
   const lines = [
     "",
     "",
     `## ${today()} - ${title}`,
     "",
-    "- tipo: decisao",
-    `- escopo: ${links}`,
-    `- decisao: ${summary}`,
-    `- evidencia: ${links}`,
-    `- aprovador: ${aprovador}`,
+    "- type: decision",
+    `- scope: ${links}`,
+    `- decision: ${summary}`,
+    `- evidence: ${links}`,
+    `- approver: ${approver}`,
   ];
   fs.appendFileSync(brainLog, `${lines.join("\n")}\n`, "utf8");
 }

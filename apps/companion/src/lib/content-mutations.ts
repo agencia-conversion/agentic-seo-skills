@@ -2,27 +2,27 @@ import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from '
 import { basename, join, relative, resolve, sep } from 'node:path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
-const ORIGEMS = ['blog', 'linkedin', 'podcast', 'outros'] as const;
+const ORIGINS = ['blog', 'linkedin', 'podcast', 'other'] as const;
 const FM_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 
 export interface ContentLocation {
   filePath: string;
   relPath: string;
-  origem: string;
+  origin: string;
   slug: string;
 }
 
 export interface ContentOption {
   slug: string;
   title: string;
-  origem: string;
+  origin: string;
   path: string;
 }
 
 function slugify(value: unknown) {
   return String(value ?? '')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '')
@@ -52,8 +52,8 @@ export function findContentBySlug(projectRoot: string, contentSlug: string): Con
   const root = resolve(projectRoot);
   const target = slugify(contentSlug);
   if (!target) return null;
-  for (const origem of ORIGEMS) {
-    const dir = join(root, 'conteudos', origem);
+  for (const origin of ORIGINS) {
+    const dir = join(root, 'contents', origin);
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir)) {
       if (!name.endsWith('.md') || name.startsWith('_')) continue;
@@ -69,7 +69,7 @@ export function findContentBySlug(projectRoot: string, contentSlug: string): Con
         return {
           filePath,
           relPath: relative(root, filePath).split(sep).join('/'),
-          origem,
+          origin,
           slug,
         };
       }
@@ -81,8 +81,8 @@ export function findContentBySlug(projectRoot: string, contentSlug: string): Con
 export function listContentOptions(projectRoot: string): ContentOption[] {
   const root = resolve(projectRoot);
   const out: ContentOption[] = [];
-  for (const origem of ORIGEMS) {
-    const dir = join(root, 'conteudos', origem);
+  for (const origin of ORIGINS) {
+    const dir = join(root, 'contents', origin);
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir)) {
       if (!name.endsWith('.md') || name.startsWith('_')) continue;
@@ -95,7 +95,7 @@ export function listContentOptions(projectRoot: string): ContentOption[] {
         out.push({
           slug,
           title: String(fm.title || slug),
-          origem,
+          origin,
           path: relative(root, filePath).split(sep).join('/'),
         });
       } catch {
@@ -149,7 +149,7 @@ export function updateContentClusterMembership(
   projectRoot: string,
   contentSlug: string,
   clusterSlug: string,
-  role: 'pilar' | 'satelite' | null,
+  role: 'pillar' | 'satellite' | null,
 ): { ok: true; path: string; frontmatter: Record<string, any> } | { ok: false; reason: string } {
   const located = findContentBySlug(projectRoot, contentSlug);
   if (!located) return { ok: false, reason: 'content-not-found' };
@@ -165,13 +165,13 @@ export function updateContentClusterMembership(
   } else {
     next.clusters = clusters;
   }
-  const papel = next.papel && typeof next.papel === 'object' && !Array.isArray(next.papel)
-    ? { ...(next.papel as Record<string, unknown>) }
+  const roleMap = next.role && typeof next.role === 'object' && !Array.isArray(next.role)
+    ? { ...(next.role as Record<string, unknown>) }
     : {};
-  if (role === null) delete papel[clusterSlug];
-  else papel[clusterSlug] = role;
-  if (Object.keys(papel).length > 0) next.papel = papel;
-  else delete next.papel;
+  if (role === null) delete roleMap[clusterSlug];
+  else roleMap[clusterSlug] = role;
+  if (Object.keys(roleMap).length > 0) next.role = roleMap;
+  else delete next.role;
   writeContent(located.filePath, next, parsed.body);
   return { ok: true, path: located.relPath, frontmatter: next };
 }

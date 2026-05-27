@@ -2,7 +2,7 @@
 title: "Sample Satellite"
 slug: sample-satellite
 published_at: 2026-04-15
-origem: blog
+origin: blog
 keyword: sample satellite
 intent: informational
 volume: 90

@@ -8,7 +8,7 @@ import type {
   ClusterYaml,
   ContentRecord,
   Lint,
-  Papel,
+  Role,
   SyncOptions,
   SyncResult,
 } from "../lib/cluster-types";
@@ -161,64 +161,64 @@ function detectLints(
         });
       }
     }
-    if (content.fm.papel) {
-      for (const key of Object.keys(content.fm.papel)) {
+    if (content.fm.role) {
+      for (const key of Object.keys(content.fm.role)) {
         if (!clusters.includes(key)) {
           lints.push({
-            code: "content.papel-orphan",
+            code: "content.role-orphan",
             severity: "warn",
-            message: `${content.slug} declara papel para "${key}" mas não está em clusters:[]`,
-            context: { content: content.relPath, papel_cluster: key },
+            message: `${content.slug} declara role para "${key}" mas não está em clusters:[]`,
+            context: { content: content.relPath, role_cluster: key },
           });
         }
       }
     }
   }
 
-  const pilarOwners = new Map<string, string[]>();
+  const pillarOwners = new Map<string, string[]>();
   for (const cluster of inputs.clusters) {
     if (filterCluster && cluster.slug !== filterCluster) continue;
-    if (cluster.yaml.status === "active" && !cluster.yaml.pilar?.slug) {
+    if (cluster.yaml.status === "active" && !cluster.yaml.pillar?.slug) {
       lints.push({
-        code: "cluster.pilar.missing",
+        code: "cluster.pillar.missing",
         severity: "block",
-        message: `cluster "${cluster.slug}" ativo sem pilar`,
+        message: `cluster "${cluster.slug}" ativo sem pillar`,
         context: { cluster: cluster.slug },
       });
     }
-    const pilarSlug = cluster.yaml.pilar?.slug;
-    if (pilarSlug) {
-      if (!pilarOwners.has(pilarSlug)) pilarOwners.set(pilarSlug, []);
-      pilarOwners.get(pilarSlug)!.push(cluster.slug);
-      const pilarContent = inputs.contents.find((c) => c.slug === pilarSlug);
-      if (pilarContent) {
-        const declared = pilarContent.fm.papel?.[cluster.slug];
-        if (declared && declared !== "pilar") {
+    const pillarSlug = cluster.yaml.pillar?.slug;
+    if (pillarSlug) {
+      if (!pillarOwners.has(pillarSlug)) pillarOwners.set(pillarSlug, []);
+      pillarOwners.get(pillarSlug)!.push(cluster.slug);
+      const pillarContent = inputs.contents.find((c) => c.slug === pillarSlug);
+      if (pillarContent) {
+        const declared = pillarContent.fm.role?.[cluster.slug];
+        if (declared && declared !== "pillar") {
           lints.push({
-            code: "cluster.pilar.divergence",
+            code: "cluster.pillar.divergence",
             severity: "warn",
-            message: `pilar do cluster "${cluster.slug}" diverge: frontmatter de ${pilarSlug} diz "${declared}"`,
-            context: { cluster: cluster.slug, content: pilarSlug, declared },
+            message: `pillar do cluster "${cluster.slug}" diverge: frontmatter de ${pillarSlug} diz "${declared}"`,
+            context: { cluster: cluster.slug, content: pillarSlug, declared },
           });
         }
-        if (!(pilarContent.fm.clusters || []).includes(cluster.slug)) {
+        if (!(pillarContent.fm.clusters || []).includes(cluster.slug)) {
           lints.push({
-            code: "cluster.pilar.divergence",
+            code: "cluster.pillar.divergence",
             severity: "warn",
-            message: `pilar "${pilarSlug}" não declara cluster "${cluster.slug}" em clusters:[]`,
-            context: { cluster: cluster.slug, content: pilarSlug },
+            message: `pillar "${pillarSlug}" não declara cluster "${cluster.slug}" em clusters:[]`,
+            context: { cluster: cluster.slug, content: pillarSlug },
           });
         }
       }
     }
-    const overrideSlugs = Object.keys(cluster.yaml.satelite_overrides || {});
+    const overrideSlugs = Object.keys(cluster.yaml.satellite_overrides || {});
     for (const slug of overrideSlugs) {
       const c = inputs.contents.find((x) => x.slug === slug);
       if (!c || !(c.fm.clusters || []).includes(cluster.slug)) {
         lints.push({
           code: "cluster.override.orphan",
           severity: "warn",
-          message: `satelite_overrides em "${cluster.slug}" referencia "${slug}" sem conteúdo publicado vinculado`,
+          message: `satellite_overrides em "${cluster.slug}" referencia "${slug}" sem conteúdo publicado vinculado`,
           context: { cluster: cluster.slug, content_slug: slug },
         });
       }
@@ -235,12 +235,12 @@ function detectLints(
       }
     }
   }
-  for (const [slug, owners] of pilarOwners.entries()) {
+  for (const [slug, owners] of pillarOwners.entries()) {
     if (owners.length > 1) {
       lints.push({
-        code: "cluster.unique-pilar",
+        code: "cluster.unique-pillar",
         severity: "block",
-        message: `conteúdo "${slug}" é pilar de múltiplos clusters: ${owners.join(", ")}`,
+        message: `conteúdo "${slug}" é pillar de múltiplos clusters: ${owners.join(", ")}`,
         context: { content: slug, clusters: owners },
       });
     }
@@ -248,11 +248,11 @@ function detectLints(
   return lints;
 }
 
-function resolvePilarSlug(
+function resolvePillarSlug(
   cluster: ClusterRecord,
   inputs: ResolvedInputs,
 ): string | null {
-  const declared = cluster.yaml.pilar?.slug;
+  const declared = cluster.yaml.pillar?.slug;
   if (!declared) return null;
   const published = inputs.contentsByCluster.get(cluster.slug) || [];
   return published.find((c) => c.slug === declared)?.slug || null;
@@ -261,7 +261,7 @@ function resolvePilarSlug(
 function applyContentBlock(
   current: string,
   block: string,
-  labels: { pilar_section: string },
+  labels: { pillar_section: string },
 ): { next: string; lint: string | null } {
   const beginIdx = current.indexOf(SENTINELS.contentBegin);
   const endIdx = current.indexOf(SENTINELS.contentEnd);
@@ -282,11 +282,11 @@ function applyContentBlock(
 function rebuildContentSubpage(
   current: string,
   block: string,
-  labels: { pilar_section: string },
+  labels: { pillar_section: string },
 ): string {
-  const pilarRe = new RegExp(`^## ${escapeRegex(labels.pilar_section)}.*?(?=^## |\\Z)`, "ms");
-  if (pilarRe.test(current)) {
-    return current.replace(pilarRe, (m) => `${m.trimEnd()}\n\n${block}\n\n`).replace(/\n{3,}/g, "\n\n");
+  const pillarRe = new RegExp(`^## ${escapeRegex(labels.pillar_section)}.*?(?=^## |\\Z)`, "ms");
+  if (pillarRe.test(current)) {
+    return current.replace(pillarRe, (m) => `${m.trimEnd()}\n\n${block}\n\n`).replace(/\n{3,}/g, "\n\n");
   }
   return `${current.trimEnd()}\n\n${block}\n`;
 }
@@ -301,7 +301,7 @@ function renderSubpageFromTemplate(
   labels: ReturnType<typeof getLabels>,
   pluginRoot: string,
   now: string,
-  pilarContent: ContentRecord | null,
+  pillarContent: ContentRecord | null,
 ): string | null {
   const template = loadTemplate(
     pluginRoot,
@@ -309,22 +309,22 @@ function renderSubpageFromTemplate(
   );
   if (!template) return null;
   const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
-  const heading = `${icon}${cluster.yaml.nome}`;
-  const resumo = cluster.yaml.tese || cluster.yaml.context || `Cluster ${cluster.yaml.nome}.`;
-  const pilarLine = pilarContent
-    ? `[${pilarContent.fm.title || pilarContent.slug}](../../conteudos/${pilarContent.origem}/${pilarContent.slug}.md)${cluster.yaml.pilar?.keyword ? ` — ${cluster.yaml.pilar.keyword}` : ""}`
-    : cluster.yaml.pilar?.slug
-      ? `_${cluster.yaml.pilar.slug}_${cluster.yaml.pilar.keyword ? ` — ${cluster.yaml.pilar.keyword}` : ""} (planejado)`
+  const heading = `${icon}${cluster.yaml.name}`;
+  const summary = cluster.yaml.thesis || cluster.yaml.context || `Cluster ${cluster.yaml.name}.`;
+  const pillarLine = pillarContent
+    ? `[${pillarContent.fm.title || pillarContent.slug}](../../contents/${pillarContent.origin}/${pillarContent.slug}.md)${cluster.yaml.pillar?.keyword ? ` — ${cluster.yaml.pillar.keyword}` : ""}`
+    : cluster.yaml.pillar?.slug
+      ? `_${cluster.yaml.pillar.slug}_${cluster.yaml.pillar.keyword ? ` — ${cluster.yaml.pillar.keyword}` : ""} (planejado)`
       : "_pilar a definir_";
   const plannedActions = (cluster.yaml.planned_satellites || [])
-    .map((p) => `- ${labels.criar} \`${p.slug}\`${p.note ? ` — ${p.note}` : ""}.`)
+    .map((p) => `- ${labels.create} \`${p.slug}\`${p.note ? ` — ${p.note}` : ""}.`)
     .join("\n") || "- —";
   return template
-    .replace(/<Nome do Cluster>/g, cluster.yaml.nome)
+    .replace(/<Nome do Cluster>/g, cluster.yaml.name)
     .replace(/<YYYY-MM-DD>/g, now)
     .replace(/<heading>/g, heading)
-    .replace(/<resumo>/g, resumo)
-    .replace(/<pilar_line>/g, pilarLine)
+    .replace(/<resumo>/g, summary)
+    .replace(/<pilar_line>/g, pillarLine)
     .replace(/<content_block>/g, block)
     .replace(/<next_actions>/g, plannedActions)
     .replace(/<evidence_block>/g, "—");
@@ -340,8 +340,8 @@ function updateClusterStats(
     ...cluster.yaml,
     contract_version: CONTRACT_VERSION,
     stats: {
-      publicados: published,
-      planejados: planned,
+      published,
+      planned,
       updated: inputs.now,
     },
   };
@@ -354,18 +354,18 @@ function syncCluster(
 ): { changed: string[]; noop: boolean; lints: Lint[] } {
   const lints: Lint[] = [];
   const labels = inputs.labels;
-  const resolvedPilarSlug = resolvePilarSlug(cluster, inputs);
+  const resolvedPillarSlug = resolvePillarSlug(cluster, inputs);
   const rows = buildContentRows({
     cluster,
     labels,
     contentsByCluster: inputs.contentsByCluster,
-    resolvedPilarSlug,
+    resolvedPillarSlug,
   });
   const block = renderContentBlock({
     cluster,
     labels,
     contentsByCluster: inputs.contentsByCluster,
-    resolvedPilarSlug,
+    resolvedPillarSlug,
   });
   const fingerprint = fingerprintOf(`${cluster.slug}:${rows.length}:${block}`);
   const previous = fingerprintIO.read(inputs.projectRoot, cluster.slug);
@@ -376,16 +376,16 @@ function syncCluster(
   }
 
   const existing = loadSubpage(inputs.projectRoot, cluster.slug);
-  const pilarContent = resolvedPilarSlug
+  const pillarContent = resolvedPillarSlug
     ? (inputs.contentsByCluster.get(cluster.slug) || []).find(
-        (c) => c.slug === resolvedPilarSlug,
+        (c) => c.slug === resolvedPillarSlug,
       ) || null
     : null;
   let nextContent: string;
   let detectedLint: string | null = null;
   if (!existing) {
     nextContent =
-      renderSubpageFromTemplate(cluster, block, labels, inputs.pluginRoot, inputs.now, pilarContent) ||
+      renderSubpageFromTemplate(cluster, block, labels, inputs.pluginRoot, inputs.now, pillarContent) ||
       buildFallbackSubpage(cluster, block, labels, inputs.now);
   } else {
     const result = applyContentBlock(existing, block, labels);
@@ -424,8 +424,8 @@ function buildFallbackSubpage(
   now: string,
 ): string {
   const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
-  const fm = `---\ntitle: "${cluster.yaml.nome}"\ncontract_version: ${CONTRACT_VERSION}\nupdated: "${now}"\n---\n\n`;
-  return `${fm}# ${icon}${cluster.yaml.nome}\n\n## ${labels.resumo_section}\n\n${cluster.yaml.context || cluster.yaml.tese || ""}\n\n## ${labels.tese_section}\n\n—\n\n## ${labels.pilar_section}\n\n${cluster.yaml.pilar?.slug ? `_${cluster.yaml.pilar.slug}_` : "_pilar a definir_"}\n\n${block}\n\n## ${labels.proximas_acoes}\n\n—\n\n## ${labels.evidencia_section}\n\n—\n`;
+  const fm = `---\ntitle: "${cluster.yaml.name}"\ncontract_version: ${CONTRACT_VERSION}\nupdated: "${now}"\n---\n\n`;
+  return `${fm}# ${icon}${cluster.yaml.name}\n\n## ${labels.summary_section}\n\n${cluster.yaml.context || cluster.yaml.thesis || ""}\n\n## ${labels.thesis_section}\n\n—\n\n## ${labels.pillar_section}\n\n${cluster.yaml.pillar?.slug ? `_${cluster.yaml.pillar.slug}_` : "_pilar a definir_"}\n\n${block}\n\n## ${labels.next_actions}\n\n—\n\n## ${labels.evidence_section}\n\n—\n`;
 }
 
 function syncIndex(
@@ -470,7 +470,7 @@ function syncIndex(
         const stripped = current
           .replace(/^## (Painel|Panel)[\s\S]*?(?=^## |\Z)/m, "")
           .replace(
-            new RegExp(`^## (${escapeRegex(inputs.labels.clusters_ativos)}|Clusters ativos|Active clusters)[\\s\\S]*?(?=^## |\\Z)`, "m"),
+            new RegExp(`^## (${escapeRegex(inputs.labels.active_clusters)}|Clusters ativos|Active clusters)[\\s\\S]*?(?=^## |\\Z)`, "m"),
             "",
           )
           .replace(/\n{3,}/g, "\n\n");

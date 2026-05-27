@@ -16,7 +16,7 @@ import YAML from "yaml";
 import type { MutationDescriptor } from "./auto-block-registry";
 
 const CLUSTER_YAML_PATTERN = /\/clusters\/[a-z0-9-]+\/cluster\.yaml$/;
-const CONTENT_MD_PATTERN = /\/conteudos\/(blog|linkedin|podcast|outros)\/[a-z0-9-]+\.md$/;
+const CONTENT_MD_PATTERN = /\/contents\/(blog|linkedin|podcast|other)\/[a-z0-9-]+\.md$/;
 const FIELD_PATH_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*|\[[0-9]+\])*$/;
 
 export interface MutationContext {
@@ -47,7 +47,7 @@ function validateDescriptor(d: MutationDescriptor, projectRoot: string): string 
     return "cluster-yaml descriptor must target clusters/<slug>/cluster.yaml";
   }
   if (d.source === "content-frontmatter" && !CONTENT_MD_PATTERN.test(d.filePath)) {
-    return "content-frontmatter descriptor must target conteudos/<origem>/<slug>.md";
+    return "content-frontmatter descriptor must target contents/<origin>/<slug>.md";
   }
   if (!FIELD_PATH_PATTERN.test(d.fieldPath)) return "invalid fieldPath syntax";
   return null;

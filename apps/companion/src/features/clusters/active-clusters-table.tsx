@@ -14,16 +14,16 @@ import { CreateClusterModal } from './create-cluster-modal';
 
 interface ClusterSummary {
   slug: string;
-  nome: string;
+  name: string;
   icon: string | null;
   area: string | null;
-  tese: string | null;
+  thesis: string | null;
   status: string;
-  pilar_slug: string | null;
-  pilar_title: string | null;
-  pilar_path: string | null;
-  publicados: number;
-  planejados: number;
+  pillar_slug: string | null;
+  pillar_title: string | null;
+  pillar_path: string | null;
+  published: number;
+  planned: number;
   updated: string | null;
 }
 
@@ -122,13 +122,13 @@ function RenameClusterInput({
 function readValue(row: ClusterSummary, column: string): string {
   switch (column) {
     case 'cluster':
-      return row.nome;
-    case 'pilar':
-      return row.pilar_title || row.pilar_slug || '';
-    case 'publicados':
-      return String(row.publicados || 0);
-    case 'planejados':
-      return String(row.planejados || 0);
+      return row.name;
+    case 'pillar':
+      return row.pillar_title || row.pillar_slug || '';
+    case 'published':
+      return String(row.published || 0);
+    case 'planned':
+      return String(row.planned || 0);
     case 'status':
       return row.status || '';
     case 'updated':
@@ -204,7 +204,7 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
     const q = query.trim().toLowerCase();
     if (q) {
       rows = rows.filter((row) =>
-        [row.nome, row.slug, row.pilar_title, row.pilar_slug, row.status].some((value) =>
+        [row.name, row.slug, row.pillar_title, row.pillar_slug, row.status].some((value) =>
           String(value || '').toLowerCase().includes(q),
         ),
       );
@@ -226,9 +226,9 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
 
   const columnDefs: TableColumnDef[] = [
     { id: 'cluster', label: 'Cluster', filterKind: 'text' },
-    { id: 'pilar', label: 'Pilar', filterKind: 'text' },
-    { id: 'publicados', label: 'Publicados', filterKind: 'text' },
-    { id: 'planejados', label: 'Planejados', filterKind: 'text' },
+    { id: 'pillar', label: 'Pilar', filterKind: 'text' },
+    { id: 'published', label: 'Publicados', filterKind: 'text' },
+    { id: 'planned', label: 'Planejados', filterKind: 'text' },
     { id: 'status', label: 'Status', filterKind: 'select', filterOptions: [
       { value: 'active', label: 'active' },
       { value: 'drafting', label: 'drafting' },
@@ -280,7 +280,7 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
     const lines = [
       ['Cluster', 'Pilar', 'Publicados', 'Planejados', 'Status', 'Atualizado'].join('\t'),
       ...picked.map((row) =>
-        [row.nome, row.pilar_title || row.pilar_slug || '', row.publicados, row.planejados, row.status, row.updated || ''].join('\t'),
+        [row.name, row.pillar_title || row.pillar_slug || '', row.published, row.planned, row.status, row.updated || ''].join('\t'),
       ),
     ];
     await navigator.clipboard.writeText(lines.join('\n'));
@@ -348,9 +348,9 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                     />
                   </th>
                   {isVisible('cluster') && <SortableHeader column="cluster" label="Cluster" sort={sort} onToggle={cycleSort} />}
-                  {isVisible('pilar') && <SortableHeader column="pilar" label="Pilar" sort={sort} onToggle={cycleSort} />}
-                  {isVisible('publicados') && <SortableHeader column="publicados" label="Publicados" sort={sort} onToggle={cycleSort} />}
-                  {isVisible('planejados') && <SortableHeader column="planejados" label="Planejados" sort={sort} onToggle={cycleSort} />}
+                  {isVisible('pillar') && <SortableHeader column="pillar" label="Pilar" sort={sort} onToggle={cycleSort} />}
+                  {isVisible('published') && <SortableHeader column="published" label="Publicados" sort={sort} onToggle={cycleSort} />}
+                  {isVisible('planned') && <SortableHeader column="planned" label="Planejados" sort={sort} onToggle={cycleSort} />}
                   {isVisible('status') && <SortableHeader column="status" label="Status" sort={sort} onToggle={cycleSort} />}
                   {isVisible('updated') && <SortableHeader column="updated" label="Atualizado" sort={sort} onToggle={cycleSort} />}
                   <th className="px-2.5 py-1.5 font-medium" />
@@ -379,10 +379,10 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                         <div className="flex items-center gap-1.5">
                           {editingClusterSlug === row.slug ? (
                             <RenameClusterInput
-                              initial={row.nome}
+                              initial={row.name}
                               onCancel={() => setEditingClusterSlug(null)}
                               onCommit={async (value) => {
-                                const result = await patchCluster(row.slug, { nome: value });
+                                const result = await patchCluster(row.slug, { name: value });
                                 setEditingClusterSlug(null);
                                 if (!result.ok) showToast('Falha ao salvar cluster', 'error');
                               }}
@@ -397,14 +397,14 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                               }}
                               className="min-w-0 truncate text-sm font-medium text-notion-text underline-offset-2 hover:underline"
                             >
-                              {row.nome}
+                              {row.name}
                             </a>
                           )}
                           <button
                             type="button"
                             onClick={() => setEditingClusterSlug(row.slug)}
                             className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-notion-text-muted opacity-70 hover:bg-notion-hover hover:text-notion-text cursor-pointer"
-                            aria-label={`Renomear cluster ${row.nome}`}
+                            aria-label={`Renomear cluster ${row.name}`}
                             title="Renomear cluster"
                           >
                             <Pencil className="h-3 w-3" />
@@ -412,27 +412,27 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                         </div>
                       </td>
                     )}
-                    {isVisible('pilar') && (
+                    {isVisible('pillar') && (
                       <td className="px-2.5 py-1.5 align-top max-w-[260px]">
-                        {row.pilar_path && token ? (
+                        {row.pillar_path && token ? (
                           <a
-                            href={`/project/${encodeURIComponent(token)}/${row.pilar_path.replace(/\.md$/, '').replace(/\//g, '-')}`}
+                            href={`/project/${encodeURIComponent(token)}/${row.pillar_path.replace(/\.md$/, '').replace(/\//g, '-')}`}
                             onClick={(event) => {
                               if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                               event.preventDefault();
-                              router.push(`/project/${encodeURIComponent(token)}/${row.pilar_path!.replace(/\.md$/, '').replace(/\//g, '-')}`);
+                              router.push(`/project/${encodeURIComponent(token)}/${row.pillar_path!.replace(/\.md$/, '').replace(/\//g, '-')}`);
                             }}
                             className="text-sm text-notion-text underline-offset-2 hover:underline"
                           >
-                            {row.pilar_title || row.pilar_slug}
+                            {row.pillar_title || row.pillar_slug}
                           </a>
                         ) : (
-                          <span className="text-xs text-notion-text-muted">{row.pilar_slug || '—'}</span>
+                          <span className="text-xs text-notion-text-muted">{row.pillar_slug || '—'}</span>
                         )}
                       </td>
                     )}
-                    {isVisible('publicados') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.publicados}</td>}
-                    {isVisible('planejados') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.planejados}</td>}
+                    {isVisible('published') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.published}</td>}
+                    {isVisible('planned') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.planned}</td>}
                     {isVisible('status') && (
                       <td className="px-2.5 py-1.5 align-top min-w-[120px]">
                         <EditableSelectCell

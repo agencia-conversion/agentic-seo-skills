@@ -26,7 +26,7 @@ const BRAIN_PAGE_ORDER = [
   'brain/log.md',
 ];
 
-const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'outros']);
+const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'other']);
 const REPORT_MODULES = new Set<string>(REPORT_MODULE_IDS);
 const SUPPORTED_PROJECT_LANGUAGES = new Set(['pt-BR', 'en']);
 const ROOT = process.env.AGENTIC_SEO_PLUGIN_ROOT || process.env.SEO_BRAIN_PLUGIN_ROOT || join(/*turbopackIgnore: true*/ process.cwd(), '..', '..');
@@ -107,7 +107,7 @@ export function validateProjectFileRel(rawPath: unknown, { write = false } = {})
   const allowed =
     /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^brain\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
-    /^conteudos\/(blog|linkedin|podcast|outros)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
+    /^contents\/(blog|linkedin|podcast|other)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel) ||
     new RegExp(`^${REPORT_DIR_NAME}\\/[A-Za-z0-9._-]+\\/[A-Za-z0-9._/-]+\\/report\\.md$`).test(rel);
   if (!allowed) return { ok: false as const, reason: 'path-not-allowed' };
@@ -121,7 +121,7 @@ export function validateProjectFileRel(rawPath: unknown, { write = false } = {})
 function resolveAllowedFile(projectRoot: string | undefined, rel: string) {
   const root = normalizeProjectRoot(projectRoot);
   const filePath = resolve(root, rel);
-  const allowedRoots = ['brain', 'conteudos', 'workbench', REPORT_DIR_NAME].map((dir) => resolve(root, dir));
+  const allowedRoots = ['brain', 'contents', 'workbench', REPORT_DIR_NAME].map((dir) => resolve(root, dir));
   if (!allowedRoots.some((allowed) => filePath === allowed || filePath.startsWith(`${allowed}${sep}`))) {
     throw new Error('path escaped project root');
   }
@@ -264,7 +264,7 @@ function cleanFrontmatterRaw(raw: unknown) {
 }
 
 function frontmatterFieldsForPath(rel: string, incoming: Record<string, any>, existing: Record<string, any>, title?: string) {
-  if (rel.startsWith('conteudos/')) {
+  if (rel.startsWith('contents/')) {
     return {
       ...existing,
       ...incoming,
@@ -291,16 +291,16 @@ function appendLogEntry(logFile: string, entry: Record<string, string | null | u
   const lines = [
     '',
     '',
-    `## ${entry.date} - ${entry.titulo}`,
+    `## ${entry.date} - ${entry.title}`,
     '',
-    `- tipo: ${entry.tipo}`,
-    `- escopo: ${entry.escopo || 'n/a'}`,
-    `- decisao: ${entry.decisao}`,
+    `- type: ${entry.type}`,
+    `- scope: ${entry.scope || 'n/a'}`,
+    `- decision: ${entry.decision}`,
   ];
-  if (entry.evidencia) lines.push(`- evidencia: ${entry.evidencia}`);
-  lines.push(`- aprovador: ${entry.aprovador || 'agent'}`);
-  if (entry.aprovado_em) lines.push(`- aprovado_em: ${entry.aprovado_em}`);
-  if (entry.notas) lines.push(`- notas: ${entry.notas}`);
+  if (entry.evidence) lines.push(`- evidence: ${entry.evidence}`);
+  lines.push(`- approver: ${entry.approver || 'agent'}`);
+  if (entry.approved_at) lines.push(`- approved_at: ${entry.approved_at}`);
+  if (entry.notes) lines.push(`- notes: ${entry.notes}`);
   appendFileSync(logFile, lines.join('\n') + '\n', 'utf8');
 }
 
@@ -379,12 +379,12 @@ export function updateProjectSettings({ projectRoot, language }: { projectRoot?:
   if (existsSync(join(root, 'brain', 'log.md'))) {
     appendLogEntry(join(root, 'brain', 'log.md'), {
       date: todayIso(),
-      tipo: 'decisao',
-      titulo: 'Idioma do projeto atualizado',
-      escopo: '.agentic-seo/project.json',
-      decisao: `Idioma canônico do projeto definido como ${nextLanguage}.`,
-      evidencia: '.agentic-seo/project.json',
-      aprovador: 'agent',
+      type: 'decision',
+      title: 'Idioma do projeto atualizado',
+      scope: '.agentic-seo/project.json',
+      decision: `Idioma canônico do projeto definido como ${nextLanguage}.`,
+      evidence: '.agentic-seo/project.json',
+      approver: 'agent',
     });
   }
   return readProjectSettings({ projectRoot: root });
@@ -489,9 +489,9 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
   const clusterIcons = readClusterIcons(root);
 
   const contentItems: ProjectTreeItem[] = [];
-  for (const origem of CONTENT_ORIGINS) {
-    const dir = join(root, 'conteudos', origem);
-    for (const rel of walkMarkdown(dir).map((child) => `conteudos/${origem}/${child}`)) {
+  for (const origin of CONTENT_ORIGINS) {
+    const dir = join(root, 'contents', origin);
+    for (const rel of walkMarkdown(dir).map((child) => `contents/${origin}/${child}`)) {
       const item = readSummary(root, rel, ui);
       if (item) contentItems.push(item);
     }
@@ -510,7 +510,7 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
       items: brainItems,
     },
   ];
-  sections.push({ id: 'conteudos', title: 'Content', items: contentItems });
+  sections.push({ id: 'contents', title: 'Content', items: contentItems });
   sections.push({ id: 'workbench', title: 'Workbench', items: workbenchItems });
 
   return {
@@ -549,12 +549,12 @@ export function bootstrapBrainFiles({ projectRoot }: { projectRoot?: string }) {
   }
   appendLogEntry(join(root, 'brain', 'log.md'), {
     date: todayIso(),
-    tipo: 'decisao',
-    titulo: 'Brain criado no Companion',
-    escopo: created.join(', '),
-    decisao: 'Arquivos canônicos do Brain criados no Companion Web.',
-    evidencia: created.join(', '),
-    aprovador: 'agent',
+    type: 'decision',
+    title: 'Brain criado no Companion',
+    scope: created.join(', '),
+    decision: 'Arquivos canônicos do Brain criados no Companion Web.',
+    evidence: created.join(', '),
+    approver: 'agent',
   });
   return { ok: true, created, tree: buildProjectTree({ projectRoot: root }) };
 }
@@ -641,7 +641,7 @@ export function saveProjectFile({
     incomingFrontmatter.title || title || existingFrontmatter.title || titleFromFile(validation.rel, existingFrontmatter)
   ).trim();
   let rawFrontmatter: string;
-  const rawCandidate = validation.rel.startsWith('conteudos/') ? cleanFrontmatterRaw(frontmatterRaw) : null;
+  const rawCandidate = validation.rel.startsWith('contents/') ? cleanFrontmatterRaw(frontmatterRaw) : null;
   if (rawCandidate !== null) {
     rawFrontmatter = rawCandidate;
   } else {
@@ -658,14 +658,14 @@ export function saveProjectFile({
     const isReport = validation.rel.startsWith(`${REPORT_DIR_NAME}/`);
     appendLogEntry(join(root, 'brain', 'log.md'), {
       date: today,
-      tipo: 'decisao',
-      titulo: isReport ? 'Análise editada no Companion' : `${basename(validation.rel, '.md')} editado no Companion`,
-      escopo: validation.rel,
-      decisao: `${isReport ? 'Análise' : validation.rel} editado${isReport ? 'a' : ''} no Companion Web${approverClean ? ` por ${approverClean}` : ''}.`,
-      evidencia: validation.rel,
-      aprovador: approverClean || 'agent',
-      aprovado_em: null,
-      notas: notes ? String(notes).trim() : null,
+      type: 'decision',
+      title: isReport ? 'Análise editada no Companion' : `${basename(validation.rel, '.md')} editado no Companion`,
+      scope: validation.rel,
+      decision: `${isReport ? 'Análise' : validation.rel} editado${isReport ? 'a' : ''} no Companion Web${approverClean ? ` por ${approverClean}` : ''}.`,
+      evidence: validation.rel,
+      approver: approverClean || 'agent',
+      approved_at: null,
+      notes: notes ? String(notes).trim() : null,
     });
   }
 
@@ -709,24 +709,24 @@ export function createProjectFile({
   kind = 'workbench',
   title = 'New page',
   parentPath,
-  origem,
+  origin,
   clusters,
 }: {
   projectRoot?: string;
   kind?: 'workbench' | 'content' | 'brain-subpage';
   title?: string;
   parentPath?: string;
-  origem?: string;
+  origin?: string;
   clusters?: string[];
 }) {
   const root = normalizeProjectRoot(projectRoot);
   const slug = slugFromTitle(title);
-  const safeOrigem = ['blog', 'linkedin', 'podcast', 'outros'].includes(String(origem))
-    ? String(origem)
-    : 'outros';
+  const safeOrigin = ['blog', 'linkedin', 'podcast', 'other'].includes(String(origin))
+    ? String(origin)
+    : 'other';
   let rel: string;
   if (kind === 'content') {
-    rel = uniqueRel(root, `conteudos/${safeOrigem}/${slug}.md`);
+    rel = uniqueRel(root, `contents/${safeOrigin}/${slug}.md`);
   } else if (kind === 'brain-subpage') {
     if (!parentPath || typeof parentPath !== 'string') return { ok: false, reason: 'parent-path-required' };
     const match = parentPath.match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
@@ -747,7 +747,7 @@ export function createProjectFile({
       ? clusterList.map((c) => `  - ${yamlString(c)}`).join('\n')
       : '';
     const clustersBlock = clustersYaml ? `clusters:\n${clustersYaml}\n` : 'clusters: []\n';
-    text = `---\ncontract_version: 1\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigem: ${yamlString(safeOrigem)}\n${clustersBlock}---\n\n`;
+    text = `---\ncontract_version: 1\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigin: ${yamlString(safeOrigin)}\n${clustersBlock}---\n\n`;
   } else if (kind === 'brain-subpage' && parentPath) {
     const parentMatch = parentPath.match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
     const parentSlug = parentMatch ? parentMatch[1] : '';
@@ -818,12 +818,12 @@ export function deleteProjectFile({
   if (validation.rel.startsWith('brain/')) {
     appendLogEntry(join(root, 'brain', 'log.md'), {
       date: todayIso(),
-      tipo: 'decisao',
-      titulo: `${basename(validation.rel, '.md')} movido para lixeira`,
-      escopo: validation.rel,
-      decisao: `${validation.rel} movido para a lixeira do Companion Web.`,
-      evidencia: trashPath,
-      aprovador: 'agent',
+      type: 'decision',
+      title: `${basename(validation.rel, '.md')} movido para lixeira`,
+      scope: validation.rel,
+      decision: `${validation.rel} movido para a lixeira do Companion Web.`,
+      evidence: trashPath,
+      approver: 'agent',
     });
   }
 
@@ -838,12 +838,12 @@ export function readProjectLog({ projectRoot }: { projectRoot?: string }) {
   for (const block of blocks) {
     const heading = block.split(/\r?\n/, 1)[0].trim();
     if (!heading) continue;
-    const tipo = block.match(/^- tipo:\s*(.+)$/m)?.[1]?.trim() || '';
-    const escopo = block.match(/^- escopo:\s*(.+)$/m)?.[1]?.trim() || '';
-    const decisao = block.match(/^- decisao:\s*(.+)$/m)?.[1]?.trim() || '';
-    const aprovador = block.match(/^- aprovador:\s*(.+)$/m)?.[1]?.trim() || '';
-    const aprovadoEm = block.match(/^- aprovado_em:\s*(.+)$/m)?.[1]?.trim() || '';
-    entries.push({ heading, tipo, escopo, decisao, aprovador, aprovadoEm });
+    const type = block.match(/^- type:\s*(.+)$/m)?.[1]?.trim() || '';
+    const scope = block.match(/^- scope:\s*(.+)$/m)?.[1]?.trim() || '';
+    const decision = block.match(/^- decision:\s*(.+)$/m)?.[1]?.trim() || '';
+    const approver = block.match(/^- approver:\s*(.+)$/m)?.[1]?.trim() || '';
+    const approvedAt = block.match(/^- approved_at:\s*(.+)$/m)?.[1]?.trim() || '';
+    entries.push({ heading, type, scope, decision, approver, approvedAt });
   }
   return { ...file, entries };
 }

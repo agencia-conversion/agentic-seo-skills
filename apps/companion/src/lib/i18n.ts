@@ -86,7 +86,7 @@ const messages = {
     },
     project: {
       content: 'content',
-      contentInOutros: 'Content in outros',
+      contentInOther: 'Content in other',
       contents: 'Content',
       defaultContentTitle: 'New content',
       errorTitle: 'Companion error',
@@ -165,7 +165,7 @@ const messages = {
         blog: 'Blog',
         linkedin: 'LinkedIn',
         podcast: 'Podcast',
-        outros: 'Others',
+        other: 'Others',
       },
     },
     workbenchIndex: {
@@ -585,7 +585,7 @@ const messages = {
     },
     project: {
       content: 'conteúdo',
-      contentInOutros: 'Conteúdo em outros',
+      contentInOther: 'Conteúdo em outros',
       contents: 'Conteúdos',
       defaultContentTitle: 'Novo conteúdo',
       errorTitle: 'Erro no companion',
@@ -664,7 +664,7 @@ const messages = {
         blog: 'Blog',
         linkedin: 'LinkedIn',
         podcast: 'Podcast',
-        outros: 'Outros',
+        other: 'Outros',
       },
     },
     workbenchIndex: {

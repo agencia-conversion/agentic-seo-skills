@@ -8,11 +8,11 @@ export const dynamic = 'force-dynamic';
 
 interface ClusterEntry {
   slug: string;
-  nome: string;
+  name: string;
   icon?: string;
   status?: string;
   area?: string;
-  pilar_slug?: string;
+  pillar_slug?: string;
 }
 
 function readClusters(root: string): ClusterEntry[] {
@@ -26,16 +26,16 @@ function readClusters(root: string): ClusterEntry[] {
     if (!existsSync(yamlPath)) continue;
     try {
       const data = yamlParse(readFileSync(yamlPath, 'utf8')) as Record<string, unknown>;
-      if (data && typeof data.slug === 'string' && typeof data.nome === 'string') {
+      if (data && typeof data.slug === 'string' && typeof data.name === 'string') {
         out.push({
           slug: data.slug,
-          nome: data.nome,
+          name: data.name,
           icon: typeof data.icon === 'string' ? data.icon : undefined,
           status: typeof data.status === 'string' ? data.status : undefined,
           area: typeof data.area === 'string' ? data.area : undefined,
-          pilar_slug:
-            data.pilar && typeof data.pilar === 'object' && !Array.isArray(data.pilar) && typeof (data.pilar as Record<string, unknown>).slug === 'string'
-              ? String((data.pilar as Record<string, unknown>).slug)
+          pillar_slug:
+            data.pillar && typeof data.pillar === 'object' && !Array.isArray(data.pillar) && typeof (data.pillar as Record<string, unknown>).slug === 'string'
+              ? String((data.pillar as Record<string, unknown>).slug)
               : undefined,
         });
       }
@@ -43,7 +43,7 @@ function readClusters(root: string): ClusterEntry[] {
       // skip
     }
   }
-  return out.sort((a, b) => a.nome.localeCompare(b.nome));
+  return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function GET(req: NextRequest) {

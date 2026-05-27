@@ -35,7 +35,7 @@ const BRAIN_PAGE_ORDER = [
   "brain/revisao.md",
   "brain/log.md",
 ];
-const CONTENT_ORIGINS = new Set(["blog", "linkedin", "podcast", "outros"]);
+const CONTENT_ORIGINS = new Set(["blog", "linkedin", "podcast", "other"]);
 const REPORT_MODULES = new Set(REPORT_MODULE_IDS);
 const SUPPORTED_PROJECT_LANGUAGES = new Set(["pt-BR", "en"]);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -118,7 +118,7 @@ export function validateProjectFileRel(rawPath, { write = false } = {}) {
   const allowed =
     /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^brain\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
-    /^conteudos\/(blog|linkedin|podcast|outros)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
+    /^contents\/(blog|linkedin|podcast|other)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel) ||
     REPORT_PATH_RE.test(rel);
   if (rel.includes("\\") || !safe || !allowed) {
@@ -134,7 +134,7 @@ export function validateProjectFileRel(rawPath, { write = false } = {}) {
 function resolveAllowedFile(projectRoot, rel) {
   const root = normalizeProjectRoot(projectRoot);
   const filePath = resolve(root, rel);
-  const allowedRoots = ["brain", "conteudos", "workbench", REPORT_DIR_NAME].map((dir) => resolve(root, dir));
+  const allowedRoots = ["brain", "contents", "workbench", REPORT_DIR_NAME].map((dir) => resolve(root, dir));
   if (!allowedRoots.some((allowedRoot) => filePath === allowedRoot || filePath.startsWith(`${allowedRoot}${sep}`))) {
     throw new Error("path escaped project root");
   }
@@ -266,12 +266,12 @@ export function updateProjectSettings({ projectRoot, language }) {
   if (existsSync(join(root, "brain", "log.md"))) {
     appendLogEntry(join(root, "brain", "log.md"), {
       date: todayIso(),
-      tipo: "decisao",
-      titulo: "Idioma do projeto atualizado",
-      escopo: ".agentic-seo/project.json",
-      decisao: `Idioma canônico do projeto definido como ${nextLanguage}.`,
-      evidencia: ".agentic-seo/project.json",
-      aprovador: "agent",
+      type: "decision",
+      title: "Idioma do projeto atualizado",
+      scope: ".agentic-seo/project.json",
+      decision: `Idioma canônico do projeto definido como ${nextLanguage}.`,
+      evidence: ".agentic-seo/project.json",
+      approver: "agent",
     });
   }
   return readProjectSettings({ projectRoot: root });
@@ -354,10 +354,10 @@ export function buildProjectTree({ projectRoot }) {
     .map((rel) => readBrainPageSummary(root, rel, ui, defaultIcons))
     .filter(Boolean);
   const contentItems = [];
-  for (const origem of CONTENT_ORIGINS) {
-    const dir = join(root, "conteudos", origem);
+  for (const origin of CONTENT_ORIGINS) {
+    const dir = join(root, "contents", origin);
     for (const child of walkMarkdown(dir)) {
-      const item = readBrainPageSummary(root, `conteudos/${origem}/${child}`, ui);
+      const item = readBrainPageSummary(root, `contents/${origin}/${child}`, ui);
       if (item) contentItems.push(item);
     }
   }
@@ -373,7 +373,7 @@ export function buildProjectTree({ projectRoot }) {
       items,
     },
   ];
-  if (contentItems.length || existsSync(join(root, "conteudos"))) sections.push({ id: "conteudos", title: "Conteúdos", items: contentItems });
+  if (contentItems.length || existsSync(join(root, "contents"))) sections.push({ id: "contents", title: "Conteúdos", items: contentItems });
   if (workbenchItems.length) sections.push({ id: "workbench", title: "Workbench", items: workbenchItems });
   return {
     ok: true,
@@ -426,24 +426,24 @@ function parseClusterFile(filePath) {
 }
 
 function buildClusterIndexEntry(data, filePath, root) {
-  // Schema novo (cluster.yaml): slug, nome, area, pilar { slug, keyword }, satelites[ { slug, keyword } ]
+  // Schema (cluster.yaml): slug, name, area, pillar { slug, keyword }, satellites[ { slug, keyword } ]
   // Schema legado (cluster.json): seed, seed_slug, pillar { slug, title }, supporting_pages[ { slug, title, keyword_principal } ]
   const folder = basename(resolve(filePath, ".."));
-  const id = slugValue(data.slug || data.seed_slug || data.pilar?.slug || data.pillar?.slug || folder);
+  const id = slugValue(data.slug || data.seed_slug || data.pillar?.slug || folder);
   if (!id) return null;
-  const title = cleanValue(data.nome || data.pilar?.keyword || data.pillar?.title || data.seed || id) || id;
+  const title = cleanValue(data.name || data.pillar?.keyword || data.pillar?.title || data.seed || id) || id;
   const icon = typeof data.icon === "string" && data.icon.trim() ? data.icon.trim() : null;
   const aliases = new Set(
-    [id, slugValue(title), slugValue(data.seed), slugValue(data.pilar?.slug), slugValue(data.pillar?.slug), slugValue(data.seed_slug), slugValue(data.slug)].filter(
+    [id, slugValue(title), slugValue(data.seed), slugValue(data.pillar?.slug), slugValue(data.seed_slug), slugValue(data.slug)].filter(
       Boolean,
     ),
   );
   const pageSlugs = new Set();
-  for (const value of [data.pilar?.slug, data.pilar?.keyword, data.pillar?.slug, data.pillar?.title, data.seed]) {
+  for (const value of [data.pillar?.slug, data.pillar?.keyword, data.pillar?.title, data.seed]) {
     const slug = slugValue(value);
     if (slug) pageSlugs.add(slug);
   }
-  const items = Array.isArray(data.satelites) ? data.satelites : Array.isArray(data.supporting_pages) ? data.supporting_pages : [];
+  const items = Array.isArray(data.satellites) ? data.satellites : Array.isArray(data.supporting_pages) ? data.supporting_pages : [];
   for (const page of items) {
     for (const value of [page?.slug, page?.title, page?.keyword, page?.keyword_principal?.keyword]) {
       const slug = slugValue(value);
@@ -533,12 +533,12 @@ export function listProjectContents({ projectRoot, page = 1, pageSize = 25, quer
   const clusters = readTopicClusters(root);
   const rows = [];
   for (const contentOrigin of CONTENT_ORIGINS) {
-    const dir = resolve(root, "conteudos", contentOrigin);
+    const dir = resolve(root, "contents", contentOrigin);
     if (!existsSync(dir)) continue;
     const realDir = realpathSync(dir);
     if (!realDir.startsWith(`${realpathSync(root)}${sep}`)) continue;
     for (const child of walkMarkdown(dir)) {
-      const rel = `conteudos/${contentOrigin}/${child}`;
+      const rel = `contents/${contentOrigin}/${child}`;
       const filePath = resolve(root, rel);
       const realFile = realpathSync(filePath);
       if (!realFile.startsWith(`${realDir}${sep}`)) continue;
@@ -559,7 +559,7 @@ export function listProjectContents({ projectRoot, page = 1, pageSize = 25, quer
         path: rel,
         title: cleanValue(frontmatter.title) || titleFromFile(rel, frontmatter),
         slug: contentSlug,
-        origin: cleanValue(frontmatter.origem || frontmatter.origin) || contentOrigin,
+        origin: cleanValue(frontmatter.origin) || contentOrigin,
         area: cleanValue(frontmatter.area),
         topic_cluster: primary?.id || null,
         topicClusterTitle: primary?.title || null,
@@ -716,12 +716,12 @@ export function bootstrapBrainFiles({ projectRoot }) {
   }
   appendLogEntry(join(root, "brain", "log.md"), {
     date: todayIso(),
-    tipo: "decisao",
-    titulo: "Brain criado no Companion",
-    escopo: created.join(", "),
-    decisao: "Arquivos canônicos do Brain criados no Companion Web.",
-    evidencia: created.join(", "),
-    aprovador: "agent",
+    type: "decision",
+    title: "Brain criado no Companion",
+    scope: created.join(", "),
+    decision: "Arquivos canônicos do Brain criados no Companion Web.",
+    evidence: created.join(", "),
+    approver: "agent",
   });
   return { ok: true, created, tree: buildProjectTree({ projectRoot: root }) };
 }
@@ -792,7 +792,7 @@ function cleanFrontmatterRaw(raw) {
 }
 
 function frontmatterFieldsForPath(rel, incoming, existing, title) {
-  if (rel.startsWith("conteudos/")) {
+  if (rel.startsWith("contents/")) {
     return {
       ...existing,
       ...incoming,
@@ -859,7 +859,7 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
     incomingFrontmatter.title || title || existingFrontmatter.title || titleFromFile(validation.rel, existingFrontmatter)
   ).trim();
   const today = todayIso();
-  const rawCandidate = validation.rel.startsWith("conteudos/") ? cleanFrontmatterRaw(frontmatterRaw) : null;
+  const rawCandidate = validation.rel.startsWith("contents/") ? cleanFrontmatterRaw(frontmatterRaw) : null;
   let rawFrontmatter;
   if (rawCandidate !== null) {
     rawFrontmatter = rawCandidate;
@@ -877,14 +877,14 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
     const isReport = validation.rel.startsWith(`${REPORT_DIR_NAME}/`);
     appendLogEntry(logFile, {
       date: today,
-      tipo: "decisao",
-      titulo: isReport ? "Análise editada no Companion" : `${basename(validation.rel, ".md")} editado no Companion`,
-      escopo: validation.rel,
-      decisao: `${isReport ? "Análise" : validation.rel} editado${isReport ? "a" : ""} no Companion Web${approverClean ? ` por ${approverClean}` : ""}.`,
-      evidencia: validation.rel,
-      aprovador: approverClean || "agent",
-      aprovado_em: null,
-      notas: notes ? String(notes).trim() : null,
+      type: "decision",
+      title: isReport ? "Análise editada no Companion" : `${basename(validation.rel, ".md")} editado no Companion`,
+      scope: validation.rel,
+      decision: `${isReport ? "Análise" : validation.rel} editado${isReport ? "a" : ""} no Companion Web${approverClean ? ` por ${approverClean}` : ""}.`,
+      evidence: validation.rel,
+      approver: approverClean || "agent",
+      approved_at: null,
+      notes: notes ? String(notes).trim() : null,
     });
   }
 
@@ -916,7 +916,7 @@ export function createProjectFile({ projectRoot, kind = "workbench", title = "No
   const root = normalizeProjectRoot(projectRoot);
   const slug = slugFromTitle(title);
   const rel = kind === "content"
-    ? uniqueRel(root, `conteudos/outros/${slug}.md`)
+    ? uniqueRel(root, `contents/other/${slug}.md`)
     : uniqueRel(root, `workbench/companion/${slug}.md`);
   const validation = validateProjectFileRel(rel, { write: true });
   if (!validation.ok) return { ok: false, reason: validation.reason };
@@ -924,7 +924,7 @@ export function createProjectFile({ projectRoot, kind = "workbench", title = "No
   mkdirSync(dirname(filePath), { recursive: true });
   const today = todayIso();
   const text = kind === "content"
-    ? `---\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, ".md"))}\npublished_at: ""\nsource_url: ""\norigem: "outros"\narea: ""\n---\n\n`
+    ? `---\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, ".md"))}\npublished_at: ""\nsource_url: ""\norigin: "other"\narea: ""\n---\n\n`
     : `---\ntitle: ${yamlString(title)}\nupdated: ${yamlString(today)}\n---\n\n`;
   writeFileSync(filePath, text, "utf8");
   return { ...readProjectFile({ projectRoot: root, fileRel: rel }), created: true };
@@ -963,12 +963,12 @@ export function deleteProjectFile({ projectRoot, fileRel, expectedHash, dirty = 
   if (validation.rel.startsWith("brain/")) {
     appendLogEntry(join(root, "brain", "log.md"), {
       date: todayIso(),
-      tipo: "decisao",
-      titulo: `${basename(validation.rel, ".md")} movido para lixeira`,
-      escopo: validation.rel,
-      decisao: `${validation.rel} movido para a lixeira do Companion Web.`,
-      evidencia: trashPath,
-      aprovador: "agent",
+      type: "decision",
+      title: `${basename(validation.rel, ".md")} movido para lixeira`,
+      scope: validation.rel,
+      decision: `${validation.rel} movido para a lixeira do Companion Web.`,
+      evidence: trashPath,
+      approver: "agent",
     });
   }
 
@@ -983,12 +983,12 @@ export function readProjectLog({ projectRoot }) {
   for (const block of blocks) {
     const heading = block.split(/\r?\n/, 1)[0].trim();
     if (!heading) continue;
-    const tipo = block.match(/^- tipo:\s*(.+)$/m)?.[1]?.trim() || "";
-    const escopo = block.match(/^- escopo:\s*(.+)$/m)?.[1]?.trim() || "";
-    const decisao = block.match(/^- decisao:\s*(.+)$/m)?.[1]?.trim() || "";
-    const aprovador = block.match(/^- aprovador:\s*(.+)$/m)?.[1]?.trim() || "";
-    const aprovadoEm = block.match(/^- aprovado_em:\s*(.+)$/m)?.[1]?.trim() || "";
-    entries.push({ heading, tipo, escopo, decisao, aprovador, aprovadoEm });
+    const type = block.match(/^- type:\s*(.+)$/m)?.[1]?.trim() || "";
+    const scope = block.match(/^- scope:\s*(.+)$/m)?.[1]?.trim() || "";
+    const decision = block.match(/^- decision:\s*(.+)$/m)?.[1]?.trim() || "";
+    const approver = block.match(/^- approver:\s*(.+)$/m)?.[1]?.trim() || "";
+    const approvedAt = block.match(/^- approved_at:\s*(.+)$/m)?.[1]?.trim() || "";
+    entries.push({ heading, type, scope, decision, approver, approvedAt });
   }
   return { ...file, entries };
 }

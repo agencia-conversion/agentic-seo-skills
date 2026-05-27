@@ -22,7 +22,7 @@ function inferAffectedClusterSlug(fileRel: string): string | undefined {
 }
 
 function shouldRunFor(fileRel: string): boolean {
-  if (fileRel.startsWith('conteudos/')) return fileRel.endsWith('.md');
+  if (fileRel.startsWith('contents/')) return fileRel.endsWith('.md');
   if (fileRel.startsWith('clusters/') && fileRel.endsWith('/cluster.yaml')) return true;
   if (fileRel === 'brain/topic-clusters.md') return true;
   if (fileRel.startsWith('brain/topic-clusters/') && fileRel.endsWith('.md')) return true;

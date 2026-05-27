@@ -327,7 +327,7 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
     );
   }
 
-  const isContentPage = activePage.path.startsWith('conteudos/');
+  const isContentPage = activePage.path.startsWith('contents/');
   const hasDataTable = pageHasDataTable(activePage);
   const validContent: JSONContent =
     activePage.content && typeof activePage.content === 'object' && 'type' in activePage.content
@@ -641,7 +641,7 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
                 onClick={() => setShowFrontmatterDrawer(true)}
                 className="rounded bg-notion-active hover:bg-notion-hover px-2 py-0.5 cursor-pointer text-notion-text-muted hover:text-notion-text"
               >
-                {t('editor.frontmatter')} · {activePage.path.startsWith('conteudos/') ? activePage.frontmatter?.origem || t('project.content') : activePage.path.startsWith('brain/') ? 'brain' : 'local'} · {t('project.fieldCount', { count: Object.keys(activePage.frontmatter || {}).length })}
+                {t('editor.frontmatter')} · {activePage.path.startsWith('contents/') ? activePage.frontmatter?.origin || t('project.content') : activePage.path.startsWith('brain/') ? 'brain' : 'local'} · {t('project.fieldCount', { count: Object.keys(activePage.frontmatter || {}).length })}
               </button>
               <span className="truncate">{activePage.path}</span>
             </div>

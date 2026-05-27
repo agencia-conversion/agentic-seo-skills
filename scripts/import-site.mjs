@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Import a site's sitemap into project/conteudos/<origem>/<slug>.md.
+// Import a site's sitemap into project/contents/<origin>/<slug>.md.
 // Uses tools/clis/extract.js for HTML→Markdown extraction.
 // Idempotent: skips files that already exist with substantive content.
 // Adds frontmatter contract_version: 1 + clusters: [].
@@ -45,13 +45,13 @@ function parseSitemap(xml) {
 function classify(loc, base) {
   const path = loc.replace(base, "").replace(/^\//, "").replace(/\/$/, "");
   if (path === "" || path === "blog" || path === "tools" || path === "cursos") {
-    return { loc, path, origem: "skip", reason: "index" };
+    return { loc, path, origin: "skip", reason: "index" };
   }
-  if (path.startsWith("blog/")) return { loc, path, slug: path.slice(5), origem: "blog" };
-  if (path.startsWith("cursos/")) return { loc, path, slug: path.slice(7), origem: "outros", category: "cursos" };
-  if (path.startsWith("tools/")) return { loc, path, slug: path.slice(6), origem: "outros", category: "tools" };
-  if (path === "ai-metrics") return { loc, path, slug: "ai-metrics", origem: "outros", category: "ai-metrics" };
-  return { loc, path, origem: "skip", reason: "unmatched" };
+  if (path.startsWith("blog/")) return { loc, path, slug: path.slice(5), origin: "blog" };
+  if (path.startsWith("cursos/")) return { loc, path, slug: path.slice(7), origin: "other", category: "cursos" };
+  if (path.startsWith("tools/")) return { loc, path, slug: path.slice(6), origin: "other", category: "tools" };
+  if (path === "ai-metrics") return { loc, path, slug: "ai-metrics", origin: "other", category: "ai-metrics" };
+  return { loc, path, origin: "skip", reason: "unmatched" };
 }
 
 async function runExtract(url) {
@@ -76,7 +76,7 @@ function buildFrontmatter(item, payload) {
     `slug: "${item.slug}"`,
     `published_at: "${date}"`,
     `source_url: "${item.loc}"`,
-    `origem: "${item.origem}"`,
+    `origin: "${item.origin}"`,
     "clusters: []",
   ];
   if (item.category) lines.push(`category: "${item.category}"`);
@@ -105,7 +105,7 @@ function buildBody(payload) {
 }
 
 async function importOne(item, opts) {
-  const outPath = join(ROOT, "project/conteudos", item.origem, `${item.slug}.md`);
+  const outPath = join(ROOT, "project/contents", item.origin, `${item.slug}.md`);
   if (existsSync(outPath)) {
     const s = await stat(outPath);
     if (s.size > 0) {
@@ -134,23 +134,23 @@ async function appendLog(results, base) {
   const wrote = results.filter((r) => r.status === "wrote");
   if (wrote.length === 0) return;
   const today = new Date().toISOString().slice(0, 10);
-  const byOrigem = {};
+  const byOrigin = {};
   for (const r of wrote) {
-    byOrigem[r.item.origem] ??= [];
-    byOrigem[r.item.origem].push(`${r.item.slug}`);
+    byOrigin[r.item.origin] ??= [];
+    byOrigin[r.item.origin].push(`${r.item.slug}`);
   }
-  const summary = Object.entries(byOrigem).map(([o, list]) => `  - ${o}: ${list.length} (${list.join(", ")})`).join("\n");
+  const summary = Object.entries(byOrigin).map(([o, list]) => `  - ${o}: ${list.length} (${list.join(", ")})`).join("\n");
   const entry = [
     "",
     `## ${today} - Import agenticseo.sh (Lote C)`,
     "",
-    "- tipo: ingestao",
-    "- escopo: project/conteudos/blog/, project/conteudos/outros/",
-    `- decisao: ${wrote.length} conteúdos importados de ${base} via scripts/import-site.mjs + tools/clis/extract.js. Distribuição por origem:`,
+    "- type: ingestion",
+    "- scope: project/contents/blog/, project/contents/other/",
+    `- decision: ${wrote.length} conteúdos importados de ${base} via scripts/import-site.mjs + tools/clis/extract.js. Distribuição por origin:`,
     summary,
-    `- evidencia: ${base}/sitemap.xml`,
-    "- aprovador: agent",
-    "- notas: Cada arquivo tem frontmatter contract_version: 1 + clusters: [] + bloco \"## Importação\" no rodapé. Atribuição a cluster será feita depois, manualmente ou via topic-cluster skill, quando pesquisa DataForSEO sustentar promoção dos drafts hypothesis-only.",
+    `- evidence: ${base}/sitemap.xml`,
+    "- approver: agent",
+    "- notes: Cada arquivo tem frontmatter contract_version: 1 + clusters: [] + bloco \"## Importação\" no rodapé. Atribuição a cluster será feita depois, manualmente ou via topic-cluster skill, quando pesquisa DataForSEO sustentar promoção dos drafts hypothesis-only.",
     "",
   ].join("\n");
   const existing = await readFile(logPath, "utf8");
@@ -163,12 +163,12 @@ async function main() {
   const xml = await fetchSitemap(`${base}/sitemap.xml`);
   const all = parseSitemap(xml);
   const classified = all.map((u) => classify(u.loc, base));
-  const targets = classified.filter((c) => c.origem !== "skip");
+  const targets = classified.filter((c) => c.origin !== "skip");
   const limited = args.limit ? targets.slice(0, args.limit) : targets;
   process.stdout.write(`Discovered ${all.length} URLs; ${targets.length} importable; processing ${limited.length}${args.dryRun ? " (dry-run)" : ""}.\n`);
   const results = [];
   for (const item of limited) {
-    process.stdout.write(`  ${item.origem.padEnd(7)} ${item.slug} ... `);
+    process.stdout.write(`  ${item.origin.padEnd(7)} ${item.slug} ... `);
     const r = await importOne(item, args);
     results.push(r);
     process.stdout.write(`${r.status}\n`);

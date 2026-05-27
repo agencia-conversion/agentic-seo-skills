@@ -46,39 +46,39 @@ export const clusterIndex: AutoBlockType<Params> = {
     );
 
     const panelLines = [
-      `## ${labels.painel}`,
+      `## ${labels.panel}`,
       "",
       `| Indicador | Valor |`,
       `| --- | --- |`,
-      `| ${labels.clusters_ativos} | ${matching.length} |`,
-      `| ${labels.conteudos_publicados} | ${totalPublished} |`,
-      `| ${labels.satelites_planejados} | ${totalPlanned} |`,
-      `| ${labels.orfaos} | ${inputs.orphanContents.length} |`,
-      `| ${labels.ultima_sync} | ${inputs.now} |`,
+      `| ${labels.active_clusters} | ${matching.length} |`,
+      `| ${labels.published_contents} | ${totalPublished} |`,
+      `| ${labels.planned_satellites} | ${totalPlanned} |`,
+      `| ${labels.orphans} | ${inputs.orphanContents.length} |`,
+      `| ${labels.last_sync} | ${inputs.now} |`,
     ];
 
-    const header = `| ${labels.cluster_col} | ${labels.area_col} | ${labels.pilar_col} | ${labels.publicados_col} | ${labels.planejados_col} |`;
+    const header = `| ${labels.cluster_col} | ${labels.area_col} | ${labels.pillar_col} | ${labels.published_col} | ${labels.planned_col} |`;
     const divider = "| --- | --- | --- | --- | --- |";
     const rows = matching.map((cluster) => {
       const published = inputs.contentsByCluster.get(cluster.slug) || [];
       const planned = cluster.yaml.planned_satellites?.length || 0;
-      const pilarContent = cluster.yaml.pilar?.slug
-        ? published.find((c) => c.slug === cluster.yaml.pilar?.slug)
+      const pillarContent = cluster.yaml.pillar?.slug
+        ? published.find((c) => c.slug === cluster.yaml.pillar?.slug)
         : null;
-      const pilarLink = pilarContent
-        ? `[${shortenTitle(pilarContent.fm.title) || pilarContent.slug}](../conteudos/${pilarContent.origem}/${pilarContent.slug}.md)`
-        : cluster.yaml.pilar?.slug
-          ? `_${cluster.yaml.pilar.slug}_`
+      const pillarLink = pillarContent
+        ? `[${shortenTitle(pillarContent.fm.title) || pillarContent.slug}](../contents/${pillarContent.origin}/${pillarContent.slug}.md)`
+        : cluster.yaml.pillar?.slug
+          ? `_${cluster.yaml.pillar.slug}_`
           : "—";
       const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
-      const displayName = cluster.yaml.nome || cluster.slug;
+      const displayName = cluster.yaml.name || cluster.slug;
       const clusterLink = `[${icon}${displayName}](topic-clusters/${cluster.slug}.md)`;
-      const area = cluster.yaml.area_nome || cluster.yaml.area || "—";
-      return `| ${clusterLink} | ${area} | ${pilarLink} | ${published.length} | ${planned} |`;
+      const area = cluster.yaml.area_name || cluster.yaml.area || "—";
+      return `| ${clusterLink} | ${area} | ${pillarLink} | ${published.length} | ${planned} |`;
     });
 
     const tableSection = [
-      `## ${labels.clusters_ativos}`,
+      `## ${labels.active_clusters}`,
       "",
       matching.length === 0 ? "<!-- Nenhum cluster ativo. -->" : `${header}\n${divider}\n${rows.join("\n")}`,
     ];

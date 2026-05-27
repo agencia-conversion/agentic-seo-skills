@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 interface MoveBody {
   area?: string;
-  area_nome?: string | null;
+  area_name?: string | null;
 }
 
 export async function POST(
@@ -46,10 +46,10 @@ export async function POST(
   }
   const previousArea = typeof yaml.area === 'string' ? yaml.area : null;
   yaml.area = nextArea;
-  if (typeof body?.area_nome === 'string') {
-    yaml.area_nome = body.area_nome;
-  } else if (body?.area_nome === null) {
-    delete yaml.area_nome;
+  if (typeof body?.area_name === 'string') {
+    yaml.area_name = body.area_name;
+  } else if (body?.area_name === null) {
+    delete yaml.area_name;
   }
   try {
     writeFileSync(yamlPath, stringifyYaml(yaml, { lineWidth: 0 }), 'utf8');

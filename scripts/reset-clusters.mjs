@@ -25,13 +25,13 @@ const TAG = "pre-reset-clusters";
 const CLUSTERS = [
   {
     slug: "seo-agentico",
-    nome: "SEO Agêntico",
+    name: "SEO Agêntico",
     icon: "🧭",
     area: "fundamentos-do-seo-agentico",
-    area_nome: "Fundamentos do SEO Agêntico",
-    tese: "Cluster guarda-chuva do método. Define o SEO Agêntico como disciplina que combina IA agêntica, GEO e operação por agentes, e contrasta a operação com SEO clássico, estratégia e julgamento humano.",
-    pilar: { slug: "o-que-e-seo-agentico", keyword: "SEO Agêntico" },
-    satelites: [
+    area_name: "Fundamentos do SEO Agêntico",
+    thesis: "Cluster guarda-chuva do método. Define o SEO Agêntico como disciplina que combina IA agêntica, GEO e operação por agentes, e contrasta a operação com SEO clássico, estratégia e julgamento humano.",
+    pillar: { slug: "o-que-e-seo-agentico", keyword: "SEO Agêntico" },
+    satellites: [
       "seo-agentico-vs-seo-classico",
       "seo-estrategico",
       "inteligencia-vs-julgamento",
@@ -44,33 +44,33 @@ const CLUSTERS = [
   },
   {
     slug: "geo",
-    nome: "GEO",
+    name: "GEO",
     icon: "📊",
     area: "geo-branding-e-metricas",
-    area_nome: "GEO, Branding e Métricas",
-    tese: "Cluster sobre presença em motores generativos, branding semântico e mensuração de marca em ChatGPT, Gemini, Perplexity e AI Overview.",
-    pilar: { slug: "geo-generative-engine-optimization", keyword: "GEO Generative Engine Optimization" },
-    satelites: ["branding-semantico", "autoatribuicao"],
+    area_name: "GEO, Branding e Métricas",
+    thesis: "Cluster sobre presença em motores generativos, branding semântico e mensuração de marca em ChatGPT, Gemini, Perplexity e AI Overview.",
+    pillar: { slug: "geo-generative-engine-optimization", keyword: "GEO Generative Engine Optimization" },
+    satellites: ["branding-semantico", "autoatribuicao"],
   },
   {
     slug: "seo",
-    nome: "SEO",
+    name: "SEO",
     icon: "🔍",
     area: "conteudo-eeat-e-voz",
-    area_nome: "Conteúdo, EEAT e Voz",
-    tese: "Cluster do SEO orientado a conteúdo, EEAT e voz autoral. Mantém disciplina clássica (intent, autoridade, links internos) enquanto integra ferramentas e métricas modernas.",
-    pilar: { slug: "seo-estrategico", keyword: "SEO estratégico" },
-    satelites: ["o-que-e-eeat", "eeat-na-era-da-ia", "seo-agentico-vs-seo-classico"],
+    area_name: "Conteúdo, EEAT e Voz",
+    thesis: "Cluster do SEO orientado a conteúdo, EEAT e voz autoral. Mantém disciplina clássica (intent, autoridade, links internos) enquanto integra ferramentas e métricas modernas.",
+    pillar: { slug: "seo-estrategico", keyword: "SEO estratégico" },
+    satellites: ["o-que-e-eeat", "eeat-na-era-da-ia", "seo-agentico-vs-seo-classico"],
   },
   {
     slug: "inteligencia-artificial",
-    nome: "Inteligência Artificial",
+    name: "Inteligência Artificial",
     icon: "🤖",
     area: "ia-agentica-e-operacao",
-    area_nome: "IA Agêntica e Operação",
-    tese: "Cluster sobre agentes de IA como infraestrutura operacional: definição de agente, workflows, skills, prompts e governança editorial contra AI Slop.",
-    pilar: { slug: "o-que-e-um-agente-de-ia", keyword: "O que é um agente de IA" },
-    satelites: [
+    area_name: "IA Agêntica e Operação",
+    thesis: "Cluster sobre agentes de IA como infraestrutura operacional: definição de agente, workflows, skills, prompts e governança editorial contra AI Slop.",
+    pillar: { slug: "o-que-e-um-agente-de-ia", keyword: "O que é um agente de IA" },
+    satellites: [
       "workflows-agenticos",
       "agente-de-seo",
       "skills-para-seo",
@@ -102,7 +102,7 @@ function ensureTag() {
 }
 
 function listBlogSlugs() {
-  const dir = join(PROJECT, "conteudos", "blog");
+  const dir = join(PROJECT, "contents", "blog");
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter((name) => name.endsWith(".md") && !name.startsWith("_"))
@@ -110,40 +110,40 @@ function listBlogSlugs() {
 }
 
 function buildClusterYaml(cluster, blogSlugs) {
-  const pilarPublished = blogSlugs.includes(cluster.pilar.slug);
+  const pillarPublished = blogSlugs.includes(cluster.pillar.slug);
   return {
     contract_version: 1,
     slug: cluster.slug,
-    nome: cluster.nome,
+    name: cluster.name,
     icon: cluster.icon,
     area: cluster.area,
-    area_nome: cluster.area_nome,
+    area_name: cluster.area_name,
     status: "active",
-    tese: cluster.tese,
-    pilar: {
-      slug: cluster.pilar.slug,
-      keyword: cluster.pilar.keyword,
+    thesis: cluster.thesis,
+    pillar: {
+      slug: cluster.pillar.slug,
+      keyword: cluster.pillar.keyword,
       intent: "informational",
       volume: null,
       volume_source: null,
     },
-    planned_satellites: pilarPublished
+    planned_satellites: pillarPublished
       ? []
       : [
           {
-            slug: cluster.pilar.slug,
-            keyword: cluster.pilar.keyword,
+            slug: cluster.pillar.slug,
+            keyword: cluster.pillar.keyword,
             intent: "informational",
             volume: null,
             volume_source: null,
-            papel: "pilar",
+            role: "pillar",
             note: "Pilar planejado — conteúdo a escrever.",
           },
         ],
-    satelite_overrides: {},
+    satellite_overrides: {},
     stats: {
-      publicados: 0,
-      planejados: 0,
+      published: 0,
+      planned: 0,
       updated: todayIso(),
     },
     provenance: {
@@ -177,8 +177,8 @@ function ensureDir(filePath) {
   mkdirSync(dirname(filePath), { recursive: true });
 }
 
-function updateContentFrontmatter(slug, clustersForSlug, papelMap) {
-  const filePath = join(PROJECT, "conteudos", "blog", `${slug}.md`);
+function updateContentFrontmatter(slug, clustersForSlug, roleMap) {
+  const filePath = join(PROJECT, "contents", "blog", `${slug}.md`);
   if (!existsSync(filePath)) return false;
   const text = readFileSync(filePath, "utf8");
   const { data, body } = parseFrontmatter(text);
@@ -188,10 +188,10 @@ function updateContentFrontmatter(slug, clustersForSlug, papelMap) {
     clusters: clustersForSlug,
   };
   delete next.area;
-  if (Object.keys(papelMap).length > 0) {
-    next.papel = papelMap;
+  if (Object.keys(roleMap).length > 0) {
+    next.role = roleMap;
   } else {
-    delete next.papel;
+    delete next.role;
   }
   writeFrontmatter(filePath, next, body);
   return true;
@@ -200,20 +200,20 @@ function updateContentFrontmatter(slug, clustersForSlug, papelMap) {
 function buildContentClusterMap(blogSlugs) {
   const out = new Map();
   for (const slug of blogSlugs) {
-    out.set(slug, { clusters: [], papel: {} });
+    out.set(slug, { clusters: [], role: {} });
   }
   for (const cluster of CLUSTERS) {
-    if (out.has(cluster.pilar.slug)) {
-      const rec = out.get(cluster.pilar.slug);
+    if (out.has(cluster.pillar.slug)) {
+      const rec = out.get(cluster.pillar.slug);
       rec.clusters.push(cluster.slug);
-      rec.papel[cluster.slug] = "pilar";
+      rec.role[cluster.slug] = "pillar";
     }
-    for (const satSlug of cluster.satelites) {
+    for (const satSlug of cluster.satellites) {
       if (!out.has(satSlug)) continue;
       const rec = out.get(satSlug);
       if (rec.clusters.includes(cluster.slug)) continue;
       rec.clusters.push(cluster.slug);
-      rec.papel[cluster.slug] = "satelite";
+      rec.role[cluster.slug] = "satellite";
     }
   }
   return out;
@@ -267,7 +267,7 @@ async function runClusterSync() {
 function appendLog(touched, syncResult) {
   const logPath = join(PROJECT, "brain", "log.md");
   if (!existsSync(logPath)) return;
-  const entry = `\n## ${todayIso()} - Reset clusters v1\n\n- tipo: decisao\n- escopo: project/clusters/, project/conteudos/blog/, project/brain/topic-clusters/, project/brain/topic-clusters.md\n- decisao: Reset destrutivo dos clusters aplicado seguindo o contract v1 (docs/specs/topic-clusters-contract.md). ${touched.clusters} clusters reescritos, ${touched.contents} conteúdos com frontmatter atualizado, ${syncResult.changedFiles.length} arquivos brain materializados.\n- evidencia: tag git ${TAG}\n- aprovador: agent\n- notas: Plugin 0.2 (pre-release). Sem suporte a migração legacy.\n`;
+  const entry = `\n## ${todayIso()} - Reset clusters v1\n\n- type: decision\n- scope: project/clusters/, project/contents/blog/, project/brain/topic-clusters/, project/brain/topic-clusters.md\n- decision: Reset destrutivo dos clusters aplicado seguindo o contract v1 (docs/specs/topic-clusters-contract.md). ${touched.clusters} clusters reescritos, ${touched.contents} conteúdos com frontmatter atualizado, ${syncResult.changedFiles.length} arquivos brain materializados.\n- evidence: tag git ${TAG}\n- approver: agent\n- notes: Plugin 0.2 (pre-release). Sem suporte a migração legacy.\n`;
   const current = readFileSync(logPath, "utf8");
   writeFileSync(logPath, current.replace(/\s*$/, "") + entry, "utf8");
 }
@@ -287,7 +287,7 @@ async function main() {
   const map = buildContentClusterMap(blogSlugs);
   for (const [slug, rec] of map.entries()) {
     if (rec.clusters.length === 0) continue;
-    if (updateContentFrontmatter(slug, rec.clusters, rec.papel)) {
+    if (updateContentFrontmatter(slug, rec.clusters, rec.role)) {
       touched.contents++;
     }
   }

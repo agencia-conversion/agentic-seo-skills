@@ -13,11 +13,11 @@ import type {
   ClusterYaml,
   ContentFrontmatter,
   ContentRecord,
-  Origem,
+  Origin,
 } from "./cluster-types";
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
-const ORIGEMS: Origem[] = ["blog", "linkedin", "podcast", "outros"];
+const ORIGINS: Origin[] = ["blog", "linkedin", "podcast", "other"];
 
 export interface ParsedFrontmatter {
   data: ContentFrontmatter;
@@ -76,8 +76,8 @@ export function loadClusters(projectRoot: string): ClusterRecord[] {
 
 export function loadContents(projectRoot: string): ContentRecord[] {
   const out: ContentRecord[] = [];
-  for (const origem of ORIGEMS) {
-    const dir = join(projectRoot, "conteudos", origem);
+  for (const origin of ORIGINS) {
+    const dir = join(projectRoot, "contents", origin);
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir)) {
       if (!name.endsWith(".md")) continue;
@@ -93,7 +93,7 @@ export function loadContents(projectRoot: string): ContentRecord[] {
       const slug = (fm.slug as string) || name.replace(/\.md$/, "");
       out.push({
         slug,
-        origem,
+        origin,
         filePath,
         relPath: relative(projectRoot, filePath).replace(/\\/g, "/"),
         fm,

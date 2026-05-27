@@ -17,7 +17,7 @@ const node_fs_1 = require("node:fs");
 const node_path_1 = require("node:path");
 const yaml_1 = require("yaml");
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
-const ORIGEMS = ["blog", "linkedin", "podcast", "outros"];
+const ORIGINS = ["blog", "linkedin", "podcast", "other"];
 function parseFrontmatter(text) {
     const cleaned = text.replace(/^﻿/, "");
     const match = cleaned.match(FRONTMATTER_RE);
@@ -68,8 +68,8 @@ function loadClusters(projectRoot) {
 }
 function loadContents(projectRoot) {
     const out = [];
-    for (const origem of ORIGEMS) {
-        const dir = (0, node_path_1.join)(projectRoot, "conteudos", origem);
+    for (const origin of ORIGINS) {
+        const dir = (0, node_path_1.join)(projectRoot, "contents", origin);
         if (!(0, node_fs_1.existsSync)(dir))
             continue;
         for (const name of (0, node_fs_1.readdirSync)(dir)) {
@@ -89,7 +89,7 @@ function loadContents(projectRoot) {
             const slug = fm.slug || name.replace(/\.md$/, "");
             out.push({
                 slug,
-                origem,
+                origin,
                 filePath,
                 relPath: (0, node_path_1.relative)(projectRoot, filePath).replace(/\\/g, "/"),
                 fm,

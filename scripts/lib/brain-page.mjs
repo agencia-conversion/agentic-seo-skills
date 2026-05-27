@@ -48,11 +48,11 @@ export function listIngestedSources(logFile) {
   const sources = new Set();
   const blocks = text.split(/^## /m).slice(1);
   for (const block of blocks) {
-    if (!/^- tipo:\s*ingestao\b/m.test(block)) continue;
-    const escopo = block.match(/^- escopo:\s*(.+)$/m);
-    if (escopo) sources.add(escopo[1].trim());
-    const evidencia = block.match(/^- evidencia:\s*(.+)$/m);
-    if (evidencia) sources.add(evidencia[1].trim());
+    if (!/^- type:\s*ingestion\b/m.test(block)) continue;
+    const scope = block.match(/^- scope:\s*(.+)$/m);
+    if (scope) sources.add(scope[1].trim());
+    const evidence = block.match(/^- evidence:\s*(.+)$/m);
+    if (evidence) sources.add(evidence[1].trim());
   }
   return [...sources];
 }
@@ -112,38 +112,38 @@ export function diffAgainstSnapshot(projectRoot, pageRel, currentBody) {
 }
 
 export function appendLogEntry(logFile, entry) {
-  const { date, tipo, titulo, escopo, decisao, evidencia, aprovador, aprovado_em, notas } = entry;
+  const { date, type, title, scope, decision, evidence, approver, approved_at, notes } = entry;
   mkdirSync(dirname(logFile), { recursive: true });
-  const escopoStr = Array.isArray(escopo) ? escopo.join(", ") : (escopo || "n/a");
+  const scopeStr = Array.isArray(scope) ? scope.join(", ") : (scope || "n/a");
   const lines = [
     "",
     "",
-    `## ${date} - ${titulo}`,
+    `## ${date} - ${title}`,
     "",
-    `- tipo: ${tipo}`,
-    `- escopo: ${escopoStr}`,
-    `- decisao: ${decisao}`,
+    `- type: ${type}`,
+    `- scope: ${scopeStr}`,
+    `- decision: ${decision}`,
   ];
-  if (evidencia) lines.push(`- evidencia: ${evidencia}`);
-  lines.push(`- aprovador: ${aprovador || "agent"}`);
-  if (aprovado_em) lines.push(`- aprovado_em: ${aprovado_em}`);
-  if (notas) lines.push(`- notas: ${notas}`);
+  if (evidence) lines.push(`- evidence: ${evidence}`);
+  lines.push(`- approver: ${approver || "agent"}`);
+  if (approved_at) lines.push(`- approved_at: ${approved_at}`);
+  if (notes) lines.push(`- notes: ${notes}`);
   appendFileSync(logFile, lines.join("\n") + "\n", "utf8");
 }
 
-export function appendSourcesAsIngest(logFile, sources, aprovador) {
+export function appendSourcesAsIngest(logFile, sources, approver) {
   if (!sources || !sources.length) return;
   const date = new Date().toISOString().slice(0, 10);
   for (const sourcePath of sources) {
     const label = sourcePath.split("/").pop() || sourcePath;
     appendLogEntry(logFile, {
       date,
-      tipo: "ingestao",
-      titulo: `Ingestao de fonte: ${label}`,
-      escopo: sourcePath,
-      decisao: "Catalogada via aprovacao de pagina do brain.",
-      evidencia: sourcePath,
-      aprovador: aprovador || "agent",
+      type: "ingestion",
+      title: `Source ingestion: ${label}`,
+      scope: sourcePath,
+      decision: "Cataloged via brain page approval.",
+      evidence: sourcePath,
+      approver: approver || "agent",
     });
   }
 }

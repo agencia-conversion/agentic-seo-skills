@@ -31,7 +31,7 @@ function loadClusterEntries() {
 }
 
 function readContentTitle(slug) {
-  const file = join(PROJECT, "conteudos", "blog", `${slug}.md`);
+  const file = join(PROJECT, "contents", "blog", `${slug}.md`);
   if (!existsSync(file)) return null;
   const text = readFileSync(file, "utf8");
   const match = text.match(/^title:\s*"?([^"\n]+)"?/m);
@@ -39,7 +39,7 @@ function readContentTitle(slug) {
 }
 
 function readContentPublishedAt(slug) {
-  const file = join(PROJECT, "conteudos", "blog", `${slug}.md`);
+  const file = join(PROJECT, "contents", "blog", `${slug}.md`);
   if (!existsSync(file)) return "";
   const text = readFileSync(file, "utf8");
   const match = text.match(/^published_at:\s*"?([^"\n]*)"?/m);
@@ -50,21 +50,21 @@ function buildPublishedByCluster(entries) {
   const map = new Map();
   for (const entry of entries) {
     const arr = [];
-    const pilarSlug = entry.yaml.pilar?.slug;
-    if (pilarSlug) {
-      const title = readContentTitle(pilarSlug);
+    const pillarSlug = entry.yaml.pillar?.slug;
+    if (pillarSlug) {
+      const title = readContentTitle(pillarSlug);
       if (title) {
         arr.push({
-          slug: pilarSlug,
+          slug: pillarSlug,
           title,
           origin: "blog",
-          published_at: readContentPublishedAt(pilarSlug),
+          published_at: readContentPublishedAt(pillarSlug),
           intent: "informational",
-          papel: "pilar",
+          role: "pillar",
         });
       }
     }
-    for (const sat of entry.yaml.satelites || []) {
+    for (const sat of entry.yaml.satellites || []) {
       if (sat.status !== "published") continue;
       const title = readContentTitle(sat.slug);
       if (!title) continue;
@@ -74,7 +74,7 @@ function buildPublishedByCluster(entries) {
         origin: "blog",
         published_at: readContentPublishedAt(sat.slug),
         intent: sat.intent,
-        papel: "satelite",
+        role: "satellite",
       });
     }
     map.set(entry.slug, arr);

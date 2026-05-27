@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { parse as parseYaml } from 'yaml';
 import { parseFrontmatter } from './project-files';
 
-const CONTENT_ORIGINS = ['blog', 'linkedin', 'podcast', 'outros'] as const;
+const CONTENT_ORIGINS = ['blog', 'linkedin', 'podcast', 'other'] as const;
 const NONE_CLUSTER = '__none__';
 
 interface ClusterContentMeta {
@@ -34,7 +34,7 @@ function clean(value: unknown) {
 function slugify(value: unknown) {
   return clean(value)
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
@@ -70,15 +70,14 @@ function parseClusterFile(filePath: string): any {
 function buildClusterIndexEntry(data: any, filePath: string, root: string): TopicCluster | null {
   const folder = basename(resolve(filePath, '..'));
   const id =
-    slugify(data.slug || data.seed_slug || data.pilar?.slug || data.pillar?.slug || folder) || slugify(folder);
+    slugify(data.slug || data.seed_slug || data.pillar?.slug || folder) || slugify(folder);
   if (!id) return null;
-  const title = clean(data.nome || data.pilar?.keyword || data.pillar?.title || data.seed || id) || id;
+  const title = clean(data.name || data.pillar?.keyword || data.pillar?.title || data.seed || id) || id;
   const aliases = new Set(
     [
       id,
       slugify(title),
       slugify(data.seed),
-      slugify(data.pilar?.slug),
       slugify(data.pillar?.slug),
       slugify(data.seed_slug),
       slugify(data.slug),
@@ -86,24 +85,24 @@ function buildClusterIndexEntry(data: any, filePath: string, root: string): Topi
   );
   const pageSlugs = new Set<string>();
   const metaBySlug = new Map<string, ClusterContentMeta>();
-  if (data.pilar?.slug) {
-    const slug = slugify(data.pilar.slug);
+  if (data.pillar?.slug) {
+    const slug = slugify(data.pillar.slug);
     if (slug) {
       pageSlugs.add(slug);
       metaBySlug.set(slug, {
-        keyword: data.pilar.keyword || null,
-        intent: data.pilar.intent || null,
-        volume: typeof data.pilar.volume === 'number' ? data.pilar.volume : null,
-        display_title: data.pilar.display_title || null,
+        keyword: data.pillar.keyword || null,
+        intent: data.pillar.intent || null,
+        volume: typeof data.pillar.volume === 'number' ? data.pillar.volume : null,
+        display_title: data.pillar.display_title || null,
       });
     }
   }
-  for (const value of [data.pillar?.slug, data.pillar?.title, data.seed]) {
+  for (const value of [data.pillar?.title, data.seed]) {
     const slug = slugify(value);
     if (slug) pageSlugs.add(slug);
   }
-  const items = Array.isArray(data.satelites)
-    ? data.satelites
+  const items = Array.isArray(data.planned_satellites)
+    ? data.planned_satellites
     : Array.isArray(data.supporting_pages)
       ? data.supporting_pages
       : [];
@@ -250,12 +249,12 @@ export function listProjectContents({
   const clusters = readTopicClusters(root);
   const rows: any[] = [];
   for (const contentOrigin of CONTENT_ORIGINS) {
-    const dir = resolve(root, 'conteudos', contentOrigin);
+    const dir = resolve(root, 'contents', contentOrigin);
     if (!existsSync(dir)) continue;
     const realDir = realpathSync(dir);
     if (!realDir.startsWith(`${realpathSync(root)}${sep}`)) continue;
     for (const child of walkMarkdown(dir)) {
-      const path = `conteudos/${contentOrigin}/${child}`;
+      const path = `contents/${contentOrigin}/${child}`;
       const filePath = resolve(root, path);
       const realFile = realpathSync(filePath);
       if (!realFile.startsWith(`${realDir}${sep}`)) continue;
@@ -286,14 +285,14 @@ export function listProjectContents({
       if (keywordVolume != null) {
         keywordVolume = Math.round(keywordVolume);
       }
-      let papel: Record<string, string> = {};
-      if (frontmatter.papel && typeof frontmatter.papel === 'object' && !Array.isArray(frontmatter.papel)) {
-        papel = Object.fromEntries(
-          Object.entries(frontmatter.papel as Record<string, unknown>).map(([key, value]) => [key, String(value)]),
+      let role: Record<string, string> = {};
+      if (frontmatter.role && typeof frontmatter.role === 'object' && !Array.isArray(frontmatter.role)) {
+        role = Object.fromEntries(
+          Object.entries(frontmatter.role as Record<string, unknown>).map(([key, value]) => [key, String(value)]),
         );
       }
       for (const match of matches) {
-        if (papel[match.id] === 'pilar') {
+        if (role[match.id] === 'pillar') {
           intent = intent || clusters.find((c) => c.id === match.id)?.metaBySlug.get(contentSlug)?.intent || null;
         }
       }
@@ -302,7 +301,7 @@ export function listProjectContents({
         path,
         title: clean(frontmatter.title) || titleFromPath(path),
         slug: contentSlug,
-        origin: clean(frontmatter.origem || frontmatter.origin) || contentOrigin,
+        origin: clean(frontmatter.origin) || contentOrigin,
         area: clean(frontmatter.area),
         topic_cluster: primary?.id || null,
         topicClusterTitle: primary?.title || null,

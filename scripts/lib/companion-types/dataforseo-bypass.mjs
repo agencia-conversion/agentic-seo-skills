@@ -52,7 +52,7 @@ export async function handleSubmit(body, ctx, projectRoot) {
     step: ctx.step, workflow: ctx.workflow, subject: ctx.subject,
     confirmed: true,
     reason, consequence: ctx.consequence,
-    aprovador: approver, confirmation_text: confirmationText, confirmado_em: nowIso(),
+    approver, confirmation_text: confirmationText, confirmado_em: nowIso(),
     approval_mode: "companion", required_provider: "dataforseo", provider_used: ctx.provider_used,
   };
   const logFile = join(projectRoot, "brain", "log.md");
@@ -60,14 +60,14 @@ export async function handleSubmit(body, ctx, projectRoot) {
   if (hasProjectLog) {
     appendLogEntry(logFile, {
       date: todayIso(),
-      tipo: "decisao",
-      titulo: `DataForSEO bypass · ${ctx.subject || ctx.workflow}`,
-      escopo: ctx.workflow,
-      decisao: `${ctx.workflow} registrado sem DataForSEO em ${ctx.step}: ${ctx.consequence}`,
-      evidencia: confirmationText,
-      aprovador: approver,
-      aprovado_em: null,
-      notas: reason,
+      type: "decision",
+      title: `DataForSEO bypass · ${ctx.subject || ctx.workflow}`,
+      scope: ctx.workflow,
+      decision: `${ctx.workflow} registrado sem DataForSEO em ${ctx.step}: ${ctx.consequence}`,
+      evidence: confirmationText,
+      approver,
+      approved_at: null,
+      notes: reason,
     });
   }
   return { ok: true, approval };

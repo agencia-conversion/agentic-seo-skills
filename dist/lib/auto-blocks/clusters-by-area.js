@@ -11,17 +11,17 @@ function shortenTitle(title) {
     const cut = trimmed.slice(0, 57).replace(/\s+\S*$/, "");
     return `${cut}…`;
 }
-function pilarLink(cluster, inputs) {
+function pillarLink(cluster, inputs) {
     const published = inputs.contentsByCluster.get(cluster.slug) || [];
-    const pilarContent = cluster.yaml.pilar?.slug
-        ? published.find((c) => c.slug === cluster.yaml.pilar?.slug)
+    const pillarContent = cluster.yaml.pillar?.slug
+        ? published.find((c) => c.slug === cluster.yaml.pillar?.slug)
         : null;
-    if (pilarContent) {
-        const title = shortenTitle(pilarContent.fm.title) || pilarContent.slug;
-        return `[${title}](../conteudos/${pilarContent.origem}/${pilarContent.slug}.md)`;
+    if (pillarContent) {
+        const title = shortenTitle(pillarContent.fm.title) || pillarContent.slug;
+        return `[${title}](../contents/${pillarContent.origin}/${pillarContent.slug}.md)`;
     }
-    if (cluster.yaml.pilar?.slug)
-        return `_${cluster.yaml.pilar.slug}_`;
+    if (cluster.yaml.pillar?.slug)
+        return `_${cluster.yaml.pillar.slug}_`;
     return "—";
 }
 const columns = [
@@ -30,39 +30,39 @@ const columns = [
         label: (l) => l.cluster_col,
         read: (cluster) => {
             const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
-            const displayName = cluster.yaml.nome || cluster.slug;
+            const displayName = cluster.yaml.name || cluster.slug;
             return `[${icon}${displayName}](topic-clusters/${cluster.slug}.md)`;
         },
         derived: true,
     },
     {
-        key: "nome",
+        key: "name",
         label: () => "Nome",
-        read: (cluster) => cluster.yaml.nome || cluster.slug,
+        read: (cluster) => cluster.yaml.name || cluster.slug,
         write: (cluster, value) => ({
             filePath: cluster.filePath,
             source: "cluster-yaml",
-            fieldPath: "nome",
-            before: cluster.yaml.nome ?? null,
+            fieldPath: "name",
+            before: cluster.yaml.name ?? null,
             after: typeof value === "string" ? value.trim() : null,
         }),
         parseCell: (cell) => cell.trim(),
     },
     {
-        key: "pilar",
-        label: (l) => l.pilar_col,
-        read: (cluster, _params, inputs) => pilarLink(cluster, inputs),
+        key: "pillar",
+        label: (l) => l.pillar_col,
+        read: (cluster, _params, inputs) => pillarLink(cluster, inputs),
         derived: true,
     },
     {
-        key: "publicados",
-        label: (l) => l.publicados_col,
+        key: "published",
+        label: (l) => l.published_col,
         read: (cluster, _params, inputs) => String(inputs.contentsByCluster.get(cluster.slug)?.length || 0),
         derived: true,
     },
     {
-        key: "planejados",
-        label: (l) => l.planejados_col,
+        key: "planned",
+        label: (l) => l.planned_col,
         read: (cluster) => String(cluster.yaml.planned_satellites?.length || 0),
         derived: true,
     },
@@ -75,23 +75,23 @@ exports.clustersByArea = {
         if (!area)
             return { error: "missing required param 'area'" };
         const rawOrder = typeof yaml.order === "string" ? yaml.order.trim() : "";
-        const order = rawOrder === "publicados desc" || rawOrder === "publicados-desc"
-            ? "publicados-desc"
-            : rawOrder === "publicados asc" || rawOrder === "publicados-asc"
-                ? "publicados-asc"
+        const order = rawOrder === "published desc" || rawOrder === "published-desc"
+            ? "published-desc"
+            : rawOrder === "published asc" || rawOrder === "published-asc"
+                ? "published-asc"
                 : "name-asc";
         return { area, order };
     },
     rows(params, inputs) {
         const matching = inputs.clusters.filter((c) => c.yaml.area === params.area && c.yaml.status === "active");
         return [...matching].sort((a, b) => {
-            if (params.order === "publicados-desc" || params.order === "publicados-asc") {
+            if (params.order === "published-desc" || params.order === "published-asc") {
                 const ac = inputs.contentsByCluster.get(a.slug)?.length || 0;
                 const bc = inputs.contentsByCluster.get(b.slug)?.length || 0;
-                return params.order === "publicados-desc" ? bc - ac : ac - bc;
+                return params.order === "published-desc" ? bc - ac : ac - bc;
             }
-            const an = a.yaml.nome || a.slug;
-            const bn = b.yaml.nome || b.slug;
+            const an = a.yaml.name || a.slug;
+            const bn = b.yaml.name || b.slug;
             return an.localeCompare(bn, "pt-BR");
         });
     },

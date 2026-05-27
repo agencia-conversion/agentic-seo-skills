@@ -10,8 +10,8 @@ import { EditableSelectCell } from '@/features/clusters/editable-select-cell';
 import {
   ContentLink,
   EditableCell,
-  PapelToggle,
-  TambemEmChips,
+  RoleToggle,
+  AlsoInChips,
   type ClusterRow,
 } from '@/features/clusters/cluster-row-cells';
 import { TableSettingsMenu, type TableColumnDef, type SortState } from './table-settings-menu';
@@ -35,12 +35,12 @@ interface ClusterResponse {
   ok: boolean;
   cluster: {
     slug: string;
-    nome: string;
+    name: string;
     icon: string | null;
     area: string | null;
     status: string | null;
-    tese: string | null;
-    pilar_slug: string | null;
+    thesis: string | null;
+    pillar_slug: string | null;
   };
   rows: ClusterRow[];
 }
@@ -138,7 +138,7 @@ function useAllContentsData(
     if (query.trim()) params.set('query', query.trim());
     if (topicCluster) params.set('topicCluster', topicCluster);
     if (sort?.column) {
-      const mapped = sort.column === 'conteudo' ? 'title' : sort.column === 'clusters' ? 'clusters' : sort.column;
+      const mapped = sort.column === 'content' ? 'title' : sort.column === 'clusters' ? 'clusters' : sort.column;
       params.set('sort', mapped);
       params.set('direction', sort.direction);
     }
@@ -163,30 +163,30 @@ function normalizeContentToClusterRow(item: AllContentsItem): ClusterRow {
   const updated = item.updated || item.published_at || '—';
   return {
     slug: item.slug,
-    papel: 'satelite',
-    papel_label: '—',
-    conteudo: {
+    role: 'satellite',
+    role_label: '—',
+    content: {
       kind: 'published',
       title: item.title,
       href: item.path,
-      origem: item.origin,
+      origin: item.origin,
     },
     keyword: item.keyword || '',
     keyword_volume: item.keyword_volume,
     intent: item.intent || '',
-    status: item.status === 'published' ? 'publicado' : 'planejado',
+    status: item.status === 'published' ? 'published' : 'planned',
     editorial_status: 'published',
-    acao: '—',
+    action: '—',
     updated,
-    tambem_em: item.topic_clusters || [],
+    also_in: item.topic_clusters || [],
   };
 }
 
 function rowsToTsv(rows: ClusterRow[]): string {
   const header = ['Papel', 'Conteúdo', 'Keyword', 'Intenção', 'Status', 'Ação', 'Atualizado'];
   const body = rows.map((row) => {
-    const conteudo = row.conteudo.kind === 'published' ? row.conteudo.title : row.conteudo.slug;
-    return [row.papel_label, conteudo, row.keyword, row.intent, row.status, row.acao, row.updated]
+    const content = row.content.kind === 'published' ? row.content.title : row.content.slug;
+    return [row.role_label, content, row.keyword, row.intent, row.status, row.action, row.updated]
       .map((v) => String(v).replace(/\t/g, ' ').replace(/\n/g, ' '))
       .join('\t');
   });
@@ -197,7 +197,7 @@ function parseTsvForBatch(tsv: string): Array<{ title: string }> {
   const lines = tsv.split(/\r?\n/).filter((l) => l.trim().length > 0);
   if (lines.length === 0) return [];
   const firstCols = lines[0].split('\t').map((c) => c.trim().toLowerCase());
-  const start = firstCols.includes('papel') || firstCols.includes('conteúdo') ? 1 : 0;
+  const start = firstCols.includes('role') || firstCols.includes('conteúdo') || firstCols.includes('content') ? 1 : 0;
   const out: Array<{ title: string }> = [];
   for (let i = start; i < lines.length; i++) {
     const cols = lines[i].split('\t');
@@ -241,12 +241,12 @@ function SortableHeader({
 
 function readCellValue(row: ClusterRow, column: string): string {
   switch (column) {
-    case 'papel':
-      return row.papel_label || row.papel;
+    case 'role':
+      return row.role_label || row.role;
     case 'clusters':
-      return (row.tambem_em || []).join(', ');
-    case 'conteudo':
-      return row.conteudo.kind === 'published' ? row.conteudo.title : row.conteudo.slug;
+      return (row.also_in || []).join(', ');
+    case 'content':
+      return row.content.kind === 'published' ? row.content.title : row.content.slug;
     case 'keyword':
       return keywordDisplay(row);
     case 'intent':
@@ -398,7 +398,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
       const q = query.trim().toLowerCase();
       if (q) {
         working = working.filter((r) => {
-          const title = r.conteudo.kind === 'published' ? r.conteudo.title : r.conteudo.slug;
+          const title = r.content.kind === 'published' ? r.content.title : r.content.slug;
           return (
             title.toLowerCase().includes(q) ||
             r.keyword.toLowerCase().includes(q) ||
@@ -429,13 +429,13 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
 
   const counts = useMemo(() => {
     if (isClusterScoped) {
-      const published = allRows.filter((r) => r.status === 'publicado').length;
-      const planned = allRows.filter((r) => r.status === 'planejado').length;
+      const published = allRows.filter((r) => r.status === 'published').length;
+      const planned = allRows.filter((r) => r.status === 'planned').length;
       return { published, planned, total: allRows.length };
     }
     return {
-      published: allRows.filter((r) => r.status === 'publicado').length,
-      planned: allRows.filter((r) => r.status === 'planejado').length,
+      published: allRows.filter((r) => r.status === 'published').length,
+      planned: allRows.filter((r) => r.status === 'planned').length,
       total: allContentsData.data?.total ?? allRows.length,
     };
   }, [allRows, isClusterScoped, allContentsData.data]);
@@ -585,14 +585,14 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
 
   const columnDefs = useMemo<TableColumnDef[]>(() => {
     const roleCol: TableColumnDef = isClusterScoped
-      ? { id: 'papel', label: 'Papel', filterKind: 'select', filterOptions: [
-          { value: 'pilar', label: 'Pilar' },
-          { value: 'satelite', label: 'Satélite' },
+      ? { id: 'role', label: 'Papel', filterKind: 'select', filterOptions: [
+          { value: 'pillar', label: 'Pilar' },
+          { value: 'satellite', label: 'Satélite' },
         ] }
       : { id: 'clusters', label: 'Cluster(s)', filterKind: 'text' };
     return [
       roleCol,
-      { id: 'conteudo', label: 'Conteúdo', filterKind: 'text' },
+      { id: 'content', label: 'Conteúdo', filterKind: 'text' },
       { id: 'keyword', label: 'Keyword', filterKind: 'text' },
       {
         id: 'intent',
@@ -718,14 +718,14 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                       data-testid="cluster-select-all"
                     />
                   </th>
-                  {isClusterScoped && isColVisible('papel') && (
-                    <SortableHeader column="papel" label="Papel" sort={sort} onToggle={cycleSort} width="w-[88px]" />
+                  {isClusterScoped && isColVisible('role') && (
+                    <SortableHeader column="role" label="Papel" sort={sort} onToggle={cycleSort} width="w-[88px]" />
                   )}
                   {!isClusterScoped && isColVisible('clusters') && (
                     <SortableHeader column="clusters" label="Cluster(s)" sort={sort} onToggle={cycleSort} width="w-[180px]" />
                   )}
-                  {isColVisible('conteudo') && (
-                    <SortableHeader column="conteudo" label="Conteúdo" sort={sort} onToggle={cycleSort} />
+                  {isColVisible('content') && (
+                    <SortableHeader column="content" label="Conteúdo" sort={sort} onToggle={cycleSort} />
                   )}
                   {isColVisible('keyword') && (
                     <SortableHeader column="keyword" label="Keyword (vol.)" sort={sort} onToggle={cycleSort} width="w-[180px]" />
@@ -744,9 +744,9 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
               <tbody>
                 <LayoutGroup>
                 {rows.map((row) => {
-                  const kind: 'published' | 'planned' = row.status === 'publicado' ? 'published' : 'planned';
+                  const kind: 'published' | 'planned' = row.status === 'published' ? 'published' : 'planned';
                   const isSelected = selectedSlugs.has(row.slug);
-                  const singleClusterFallback = !isClusterScoped && row.tambem_em.length === 1 ? row.tambem_em[0] : null;
+                  const singleClusterFallback = !isClusterScoped && row.also_in.length === 1 ? row.also_in[0] : null;
                   const editCluster: string | null = effectiveCluster || singleClusterFallback;
                   const canEditClusterFields = Boolean(editCluster);
                   const canEditContentMetadata = kind === 'published' || Boolean(editCluster);
@@ -759,7 +759,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                       data-cluster-row-kind={kind}
                       className={cn(
                         'border-b border-notion-border last:border-0 transition-colors',
-                        row.status === 'planejado' && 'bg-notion-sidebar/20',
+                        row.status === 'planned' && 'bg-notion-sidebar/20',
                         isSelected ? 'bg-blue-50/60' : 'hover:bg-notion-hover/50',
                       )}
                     >
@@ -774,14 +774,14 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                           aria-label={`Selecionar ${row.slug}`}
                         />
                       </td>
-                      {isClusterScoped && effectiveCluster && isColVisible('papel') && (
+                      {isClusterScoped && effectiveCluster && isColVisible('role') && (
                         <td className="px-2.5 py-1.5 align-top">
-                          <PapelToggle
-                            current={row.papel}
+                          <RoleToggle
+                            current={row.role}
                             onCommit={async (next) => {
-                              const res = await patchRow(effectiveCluster, row.slug, 'papel', next, kind);
-                              if (res.ok && next === 'pilar') {
-                                showToast('Promovido a pilar — movido para o topo', 'success');
+                              const res = await patchRow(effectiveCluster, row.slug, 'role', next, kind);
+                              if (res.ok && next === 'pillar') {
+                                showToast('Promovido a pillar — movido para o topo', 'success');
                               }
                               refetch();
                             }}
@@ -790,10 +790,10 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                       )}
                       {!isClusterScoped && isColVisible('clusters') && (
                         <td className="px-2.5 py-1.5 align-top">
-                          <TambemEmChips slugs={row.tambem_em} />
+                          <AlsoInChips slugs={row.also_in} />
                         </td>
                       )}
-                      {isColVisible('conteudo') && (
+                      {isColVisible('content') && (
                         <td className="px-2.5 py-1.5 align-top max-w-[280px]">
                           <ContentLink row={row} />
                         </td>
@@ -875,7 +875,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                             />
                           ) : (
                             <span className="text-xs text-notion-text-muted">
-                              {row.status === 'publicado' ? 'Publicado' : 'Planejado'}
+                              {row.status === 'published' ? 'Publicado' : 'Planejado'}
                             </span>
                           )}
                         </td>

@@ -277,10 +277,10 @@ function iconForPath(path: string) {
   const canonical = BRAIN_PAGE_ICONS[path];
   if (canonical) return canonical;
   if (path.startsWith('brain/')) return '📄';
-  if (path.startsWith('conteudos/blog/')) return '📝';
-  if (path.startsWith('conteudos/linkedin/')) return '💼';
-  if (path.startsWith('conteudos/podcast/')) return '🎧';
-  if (path.startsWith('conteudos/')) return '✍️';
+  if (path.startsWith('contents/blog/')) return '📝';
+  if (path.startsWith('contents/linkedin/')) return '💼';
+  if (path.startsWith('contents/podcast/')) return '🎧';
+  if (path.startsWith('contents/')) return '✍️';
   if (path.startsWith(`${REPORT_DIR_NAME}/`)) return '📊';
   return '📝';
 }
@@ -466,7 +466,7 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
   for (const section of tree.sections || []) {
     const pageIds: string[] = [];
     const items = section.items || [];
-    if (section.id === 'conteudos') {
+    if (section.id === 'contents') {
       items.forEach((item: any, index: number) => {
         pages.push({
           ...pageFromSummary(item, section.id, index, null),
@@ -544,12 +544,12 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
         (c: { slug?: string; status?: string }) => c?.slug && c.status !== 'archived',
       );
       for (let idx = 0; idx < activeClusters.length; idx++) {
-        const cluster = activeClusters[idx] as { slug: string; nome?: string; icon?: string };
+        const cluster = activeClusters[idx] as { slug: string; name?: string; icon?: string };
         const subId = `contents-${cluster.slug}`;
         pages.push(
           virtualPage({
             id: subId,
-            title: cluster.nome || cluster.slug,
+            title: cluster.name || cluster.slug,
             icon: cluster.icon || '🗂️',
             parentId: contentsRootId,
             sortOrder: idx,

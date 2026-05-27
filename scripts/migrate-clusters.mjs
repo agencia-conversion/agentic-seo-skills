@@ -19,7 +19,7 @@ import {
 const ROOT = resolve(fileURLToPath(import.meta.url), "..", "..");
 const PROJECT = join(ROOT, "project");
 const SEED_CLUSTER = join(PROJECT, "clusters", "site-derived-agentic-seo", "cluster.json");
-const BLOG_DIR = join(PROJECT, "conteudos", "blog");
+const BLOG_DIR = join(PROJECT, "contents", "blog");
 const OUT_DIR = join(PROJECT, "workbench", "migrations", "clusters-spine");
 const OUT_FILE = join(OUT_DIR, "plan.yaml");
 const TAG = "pre-cluster-migration";
@@ -55,7 +55,7 @@ function buildPublishedByCluster(plan) {
     const titleMatch = text.match(/^title:\s*"?([^"\n]+)"?/m);
     const publishedMatch = text.match(/^published_at:\s*"?([^"\n]*)"?/m);
     const segments = update.path.split("/");
-    const origin = segments.includes("conteudos") ? segments[segments.indexOf("conteudos") + 1] || "blog" : "blog";
+    const origin = segments.includes("contents") ? segments[segments.indexOf("contents") + 1] || "blog" : "blog";
     for (const slug of update.add_clusters) {
       const arr = map.get(slug) || [];
       arr.push({
@@ -64,7 +64,7 @@ function buildPublishedByCluster(plan) {
         origin,
         published_at: publishedMatch ? publishedMatch[1].trim().replace(/^"|"$/g, "") : "",
         intent: "informational",
-        papel: update.papel?.[slug] || "satelite",
+        role: update.role?.[slug] || "satellite",
       });
       map.set(slug, arr);
     }

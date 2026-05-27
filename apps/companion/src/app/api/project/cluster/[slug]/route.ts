@@ -10,22 +10,22 @@ export const dynamic = 'force-dynamic';
 
 interface ClusterYaml {
   slug?: string;
-  nome?: string;
+  name?: string;
   icon?: string;
   area?: string;
   status?: string;
-  tese?: string;
-  pilar?: { slug?: string; keyword?: string; intent?: string; volume?: number | null };
+  thesis?: string;
+  pillar?: { slug?: string; keyword?: string; intent?: string; volume?: number | null };
   planned_satellites?: Array<{
     slug?: string;
     keyword?: string;
     intent?: string;
     volume?: number | null;
-    papel?: string;
+    role?: string;
     note?: string | null;
     editorial_status?: string;
   }>;
-  satelite_overrides?: Record<string, {
+  satellite_overrides?: Record<string, {
     display_title?: string;
     keyword?: string;
     intent?: string;
@@ -46,11 +46,11 @@ function coerceEditorialStatus(value: unknown, fallback: EditorialStatusOut): Ed
 
 interface ContentRecord {
   slug: string;
-  origem: string;
+  origin: string;
   title: string;
   published_at: string;
   clusters: string[];
-  papel: Record<string, string>;
+  role: Record<string, string>;
   keyword: string;
   intent: string;
   volume: number | null;
@@ -58,17 +58,17 @@ interface ContentRecord {
 
 interface RowOut {
   slug: string;
-  papel: 'pilar' | 'satelite';
-  papel_label: string;
-  conteudo: { kind: 'published'; title: string; href: string; origem: string } | { kind: 'planned'; slug: string };
+  role: 'pillar' | 'satellite';
+  role_label: string;
+  content: { kind: 'published'; title: string; href: string; origin: string } | { kind: 'planned'; slug: string };
   keyword: string;
   keyword_volume: number | null;
   intent: string;
-  status: 'publicado' | 'planejado';
+  status: 'published' | 'planned';
   editorial_status: 'draft' | 'in-review' | 'approved' | 'published';
-  acao: string;
+  action: string;
   updated: string;
-  tambem_em: string[];
+  also_in: string[];
 }
 
 function readClusterYaml(root: string, slug: string): ClusterYaml | null {
@@ -82,7 +82,7 @@ function readClusterYaml(root: string, slug: string): ClusterYaml | null {
 }
 
 const FM_RE = /^---\r?\n([\s\S]*?)\r?\n---/;
-const ORIGEMS = ['blog', 'linkedin', 'podcast', 'outros'];
+const ORIGINS = ['blog', 'linkedin', 'podcast', 'other'];
 
 function parseContentFrontmatter(text: string): Record<string, unknown> {
   const m = text.match(FM_RE);
@@ -96,8 +96,8 @@ function parseContentFrontmatter(text: string): Record<string, unknown> {
 
 function scanContents(root: string): ContentRecord[] {
   const out: ContentRecord[] = [];
-  for (const origem of ORIGEMS) {
-    const dir = join(root, 'conteudos', origem);
+  for (const origin of ORIGINS) {
+    const dir = join(root, 'contents', origin);
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir)) {
       if (!name.endsWith('.md') || name.startsWith('_')) continue;
@@ -114,16 +114,16 @@ function scanContents(root: string): ContentRecord[] {
         fm.keyword_principal && typeof fm.keyword_principal === 'object' && !Array.isArray(fm.keyword_principal)
           ? fm.keyword_principal as Record<string, unknown>
           : {};
-      const papel = fm.papel && typeof fm.papel === 'object' && !Array.isArray(fm.papel)
-        ? Object.fromEntries(Object.entries(fm.papel as Record<string, unknown>).map(([k, v]) => [k, String(v)]))
+      const role = fm.role && typeof fm.role === 'object' && !Array.isArray(fm.role)
+        ? Object.fromEntries(Object.entries(fm.role as Record<string, unknown>).map(([k, v]) => [k, String(v)]))
         : {};
       out.push({
         slug,
-        origem,
+        origin,
         title: String(fm.title || slug),
         published_at: String(fm.published_at || ''),
         clusters,
-        papel,
+        role,
         keyword: String(fm.keyword || keywordPrincipal.keyword || '').trim(),
         intent: String(fm.intent || '').trim(),
         volume: typeof fm.volume === 'number'
@@ -138,63 +138,63 @@ function scanContents(root: string): ContentRecord[] {
 }
 
 function buildRows(yaml: ClusterYaml, contents: ContentRecord[], slug: string): RowOut[] {
-  const overrides = yaml.satelite_overrides || {};
+  const overrides = yaml.satellite_overrides || {};
   const myContents = contents.filter((c) => c.clusters.includes(slug));
-  const pilarSlug = yaml.pilar?.slug;
+  const pillarSlug = yaml.pillar?.slug;
   const rows: RowOut[] = [];
 
-  const pilarContent = pilarSlug ? myContents.find((c) => c.slug === pilarSlug) : undefined;
-  if (pilarContent) {
-    const ov = overrides[pilarContent.slug] || {};
+  const pillarContent = pillarSlug ? myContents.find((c) => c.slug === pillarSlug) : undefined;
+  if (pillarContent) {
+    const ov = overrides[pillarContent.slug] || {};
     rows.push({
-      slug: pilarContent.slug,
-      papel: 'pilar',
-      papel_label: 'Pilar',
-      conteudo: { kind: 'published', title: ov.display_title || pilarContent.title, href: `conteudos/${pilarContent.origem}/${pilarContent.slug}.md`, origem: pilarContent.origem },
-      keyword: String(ov.keyword || pilarContent.keyword || yaml.pilar?.keyword || ''),
-      keyword_volume: typeof (ov.volume ?? pilarContent.volume ?? yaml.pilar?.volume) === 'number'
-        ? (ov.volume ?? pilarContent.volume ?? yaml.pilar?.volume) as number
+      slug: pillarContent.slug,
+      role: 'pillar',
+      role_label: 'Pilar',
+      content: { kind: 'published', title: ov.display_title || pillarContent.title, href: `contents/${pillarContent.origin}/${pillarContent.slug}.md`, origin: pillarContent.origin },
+      keyword: String(ov.keyword || pillarContent.keyword || yaml.pillar?.keyword || ''),
+      keyword_volume: typeof (ov.volume ?? pillarContent.volume ?? yaml.pillar?.volume) === 'number'
+        ? (ov.volume ?? pillarContent.volume ?? yaml.pillar?.volume) as number
         : null,
-      intent: String(ov.intent || pilarContent.intent || yaml.pilar?.intent || ''),
-      status: 'publicado',
+      intent: String(ov.intent || pillarContent.intent || yaml.pillar?.intent || ''),
+      status: 'published',
       editorial_status: coerceEditorialStatus(ov.editorial_status, 'published'),
-      acao: '—',
-      updated: pilarContent.published_at || '—',
-      tambem_em: pilarContent.clusters.filter((c) => c !== slug),
+      action: '—',
+      updated: pillarContent.published_at || '—',
+      also_in: pillarContent.clusters.filter((c) => c !== slug),
     });
-  } else if (yaml.pilar?.slug && yaml.status === 'active') {
+  } else if (yaml.pillar?.slug && yaml.status === 'active') {
     rows.push({
-      slug: yaml.pilar.slug,
-      papel: 'pilar',
-      papel_label: 'Pilar',
-      conteudo: { kind: 'planned', slug: yaml.pilar.slug },
-      keyword: String(yaml.pilar.keyword || ''),
-      keyword_volume: typeof yaml.pilar.volume === 'number' ? yaml.pilar.volume : null,
-      intent: String(yaml.pilar.intent || ''),
-      status: 'planejado',
+      slug: yaml.pillar.slug,
+      role: 'pillar',
+      role_label: 'Pilar',
+      content: { kind: 'planned', slug: yaml.pillar.slug },
+      keyword: String(yaml.pillar.keyword || ''),
+      keyword_volume: typeof yaml.pillar.volume === 'number' ? yaml.pillar.volume : null,
+      intent: String(yaml.pillar.intent || ''),
+      status: 'planned',
       editorial_status: 'draft',
-      acao: 'Briefing',
+      action: 'Briefing',
       updated: '—',
-      tambem_em: [],
+      also_in: [],
     });
   }
 
   for (const content of myContents) {
-    if (pilarContent && content.slug === pilarContent.slug) continue;
+    if (pillarContent && content.slug === pillarContent.slug) continue;
     const ov = overrides[content.slug] || {};
     rows.push({
       slug: content.slug,
-      papel: 'satelite',
-      papel_label: 'Satélite',
-      conteudo: { kind: 'published', title: ov.display_title || content.title, href: `conteudos/${content.origem}/${content.slug}.md`, origem: content.origem },
+      role: 'satellite',
+      role_label: 'Satélite',
+      content: { kind: 'published', title: ov.display_title || content.title, href: `contents/${content.origin}/${content.slug}.md`, origin: content.origin },
       keyword: String(ov.keyword || content.keyword || ''),
       keyword_volume: typeof (ov.volume ?? content.volume) === 'number' ? (ov.volume ?? content.volume) as number : null,
       intent: String(ov.intent || content.intent || ''),
-      status: 'publicado',
+      status: 'published',
       editorial_status: coerceEditorialStatus(ov.editorial_status, 'published'),
-      acao: '—',
+      action: '—',
       updated: content.published_at || '—',
-      tambem_em: content.clusters.filter((c) => c !== slug),
+      also_in: content.clusters.filter((c) => c !== slug),
     });
   }
 
@@ -202,17 +202,17 @@ function buildRows(yaml: ClusterYaml, contents: ContentRecord[], slug: string): 
     if (!planned.slug) continue;
     rows.push({
       slug: planned.slug,
-      papel: planned.papel === 'pilar' ? 'pilar' : 'satelite',
-      papel_label: planned.papel === 'pilar' ? 'Pilar' : 'Satélite',
-      conteudo: { kind: 'planned', slug: planned.slug },
+      role: planned.role === 'pillar' ? 'pillar' : 'satellite',
+      role_label: planned.role === 'pillar' ? 'Pilar' : 'Satélite',
+      content: { kind: 'planned', slug: planned.slug },
       keyword: String(planned.keyword || ''),
       keyword_volume: typeof planned.volume === 'number' ? planned.volume : null,
       intent: String(planned.intent || ''),
-      status: 'planejado',
+      status: 'planned',
       editorial_status: coerceEditorialStatus(planned.editorial_status, 'draft'),
-      acao: 'Briefing',
+      action: 'Briefing',
       updated: '—',
-      tambem_em: [],
+      also_in: [],
     });
   }
 
@@ -234,12 +234,12 @@ export async function GET(req: NextRequest, context: { params: Promise<{ slug: s
     ok: true,
     cluster: {
       slug,
-      nome: yaml.nome || slug,
+      name: yaml.name || slug,
       icon: yaml.icon || null,
       area: yaml.area || null,
       status: yaml.status || null,
-      tese: yaml.tese || null,
-      pilar_slug: yaml.pilar?.slug || null,
+      thesis: yaml.thesis || null,
+      pillar_slug: yaml.pillar?.slug || null,
     },
     rows,
   });

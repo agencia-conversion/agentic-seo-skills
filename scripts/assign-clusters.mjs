@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // One-off: assign cluster slugs to the 27 imported contents.
-// Reads each file, parses frontmatter, sets clusters: [<slug>], optionally papel: { <slug>: pilar }.
+// Reads each file, parses frontmatter, sets clusters: [<slug>], optionally role: { <slug>: pillar }.
 // Idempotent on subsequent runs (writes only when state differs).
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -19,29 +19,29 @@ const ASSIGN = {
   "blog/geo-generative-engine-optimization.md": { clusters: ["geo-orquestracao-buscas"] },
   "blog/inteligencia-vs-julgamento.md": { clusters: ["ia-agentica-conceitos"] },
   "blog/o-que-e-eeat.md": { clusters: ["topical-authority"] },
-  "blog/o-que-e-seo-agentico.md": { clusters: ["ia-agentica-conceitos"], papel: { "ia-agentica-conceitos": "pilar" } },
+  "blog/o-que-e-seo-agentico.md": { clusters: ["ia-agentica-conceitos"], role: { "ia-agentica-conceitos": "pillar" } },
   "blog/o-que-e-um-agente-de-ia.md": { clusters: ["ia-agentica-conceitos"] },
-  "blog/payload-cms-seo-agentico.md": { clusters: ["tecnologia-pagespeed-seo"], papel: { "tecnologia-pagespeed-seo": "pilar" } },
+  "blog/payload-cms-seo-agentico.md": { clusters: ["tecnologia-pagespeed-seo"], role: { "tecnologia-pagespeed-seo": "pillar" } },
   "blog/prompts-para-seo.md": { clusters: ["ia-agentica-conceitos"] },
   "blog/seo-agentico-vs-seo-classico.md": { clusters: ["ia-agentica-conceitos"] },
   "blog/seo-estrategico.md": { clusters: ["estrategia-brand-led-growth"] },
   "blog/skills-para-seo.md": { clusters: ["ia-agentica-conceitos"] },
   "blog/wiki-llm.md": { clusters: ["ia-agentica-conceitos"] },
   "blog/workflows-agenticos.md": { clusters: ["ia-agentica-conceitos"] },
-  "outros/agent-crawl.md": { clusters: ["ia-agentica-conceitos"] },
-  "outros/ai-metrics.md": { clusters: ["geo-orquestracao-buscas"] },
-  "outros/alt-generator.md": { clusters: ["topical-authority"] },
-  "outros/authority-metrics.md": { clusters: ["topical-authority"] },
-  "outros/contador-de-palavras.md": { clusters: ["topical-authority"] },
-  "outros/qr-code.md": { clusters: ["estrategia-brand-led-growth"] },
-  "outros/seo-agentico.md": { clusters: ["ia-agentica-conceitos"] },
-  "outros/serp-simulator.md": { clusters: ["geo-orquestracao-buscas"] },
-  "outros/share-of-search.md": { clusters: ["estrategia-brand-led-growth"] },
-  "outros/tasks.md": { clusters: ["ia-agentica-conceitos"] },
-  "outros/utm-builder.md": { clusters: ["estrategia-brand-led-growth"] },
+  "other/agent-crawl.md": { clusters: ["ia-agentica-conceitos"] },
+  "other/ai-metrics.md": { clusters: ["geo-orquestracao-buscas"] },
+  "other/alt-generator.md": { clusters: ["topical-authority"] },
+  "other/authority-metrics.md": { clusters: ["topical-authority"] },
+  "other/contador-de-palavras.md": { clusters: ["topical-authority"] },
+  "other/qr-code.md": { clusters: ["estrategia-brand-led-growth"] },
+  "other/seo-agentico.md": { clusters: ["ia-agentica-conceitos"] },
+  "other/serp-simulator.md": { clusters: ["geo-orquestracao-buscas"] },
+  "other/share-of-search.md": { clusters: ["estrategia-brand-led-growth"] },
+  "other/tasks.md": { clusters: ["ia-agentica-conceitos"] },
+  "other/utm-builder.md": { clusters: ["estrategia-brand-led-growth"] },
 };
 
-function rewriteFrontmatter(text, { clusters, papel }) {
+function rewriteFrontmatter(text, { clusters, role }) {
   const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
   if (!match) throw new Error("missing frontmatter");
   const fmLines = match[1].split(/\r?\n/);
@@ -54,14 +54,14 @@ function rewriteFrontmatter(text, { clusters, papel }) {
       skipping = false;
     }
     if (/^clusters\s*:/.test(line)) { skipping = true; continue; }
-    if (/^papel\s*:/.test(line)) { skipping = true; continue; }
+    if (/^role\s*:/.test(line)) { skipping = true; continue; }
     out.push(line);
   }
   out.push("clusters:");
   for (const c of clusters) out.push(`  - ${c}`);
-  if (papel && Object.keys(papel).length) {
-    out.push("papel:");
-    for (const [k, v] of Object.entries(papel)) out.push(`  ${k}: ${v}`);
+  if (role && Object.keys(role).length) {
+    out.push("role:");
+    for (const [k, v] of Object.entries(role)) out.push(`  ${k}: ${v}`);
   }
   return `---\n${out.filter((l, i, arr) => !(l === "" && arr[i - 1] === "")).join("\n")}\n---\n${body.startsWith("\n") ? body.slice(1) : body}`;
 }
@@ -69,12 +69,12 @@ function rewriteFrontmatter(text, { clusters, papel }) {
 let changed = 0;
 let skipped = 0;
 for (const [rel, assignment] of Object.entries(ASSIGN)) {
-  const file = join(PROJECT, "conteudos", rel);
+  const file = join(PROJECT, "contents", rel);
   const current = readFileSync(file, "utf8");
   const next = rewriteFrontmatter(current, assignment);
   if (current === next) { skipped++; continue; }
   writeFileSync(file, next, "utf8");
   changed++;
-  process.stdout.write(`updated ${rel} → ${assignment.clusters.join(", ")}${assignment.papel ? ` (pilar in ${Object.keys(assignment.papel).join(", ")})` : ""}\n`);
+  process.stdout.write(`updated ${rel} → ${assignment.clusters.join(", ")}${assignment.role ? ` (pillar in ${Object.keys(assignment.role).join(", ")})` : ""}\n`);
 }
 process.stdout.write(`\nSummary: ${changed} changed, ${skipped} unchanged.\n`);

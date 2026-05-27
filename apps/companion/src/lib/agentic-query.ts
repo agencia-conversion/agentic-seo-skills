@@ -4,7 +4,7 @@ import YAML from 'yaml';
 import { parseFrontmatter } from './project-files';
 import { REPORT_DIR_NAME } from '../../../../shared/report-modules';
 
-const SCAN_ROOTS = ['brain', 'conteudos', 'workbench', REPORT_DIR_NAME] as const;
+const SCAN_ROOTS = ['brain', 'contents', 'workbench', REPORT_DIR_NAME] as const;
 const MAX_LIMIT = 200;
 const DEFAULT_LIMIT = 25;
 

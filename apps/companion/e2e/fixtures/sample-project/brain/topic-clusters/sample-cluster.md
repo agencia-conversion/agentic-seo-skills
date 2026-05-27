@@ -11,15 +11,15 @@ Sample Cluster valida o pipeline de Topic Clusters com um conteúdo pilar e um s
 
 ## Pilar
 
-[Sample Pilar](../../conteudos/blog/sample-pilar.md)
+[Sample Pilar](../../contents/blog/sample-pilar.md)
 
 <!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->
 ## Conteúdos
 
 | Papel | Conteúdo | Keyword | Intent | Status | Atualizado |
 | --- | --- | --- | --- | --- | --- |
-| pilar | [Sample Pilar](../../conteudos/blog/sample-pilar.md) | sample pilar (1200) | informational | publicado | 2026-04-01 |
-| satelite | [Sample Satellite](../../conteudos/blog/sample-satellite.md) | sample satellite (90) | informational | publicado | 2026-04-15 |
+| pillar | [Sample Pilar](../../contents/blog/sample-pilar.md) | sample pilar (1200) | informational | published | 2026-04-01 |
+| satellite | [Sample Satellite](../../contents/blog/sample-satellite.md) | sample satellite (90) | informational | published | 2026-04-15 |
 
 <!-- END cluster-content-table:auto -->
 

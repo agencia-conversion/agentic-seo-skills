@@ -61,7 +61,7 @@ Cluster principal: [[topic-clusters/sample-cluster|Sample Cluster]].
 
 | Cluster | Pilar | Publicados | Planejados | Tese |
 | --- | --- | ---: | ---: | --- |
-| [Sample Cluster](topic-clusters/sample-cluster.md) | [Sample Pilar](../conteudos/blog/sample-pilar.md) | 2 | 0 | Organizar conteúdos publicados e próximos passos do site demonstrativo. |
+| [Sample Cluster](topic-clusters/sample-cluster.md) | [Sample Pilar](../contents/blog/sample-pilar.md) | 2 | 0 | Organizar conteúdos publicados e próximos passos do site demonstrativo. |
 
 ### [[tecnologia|Tecnologia]]
 

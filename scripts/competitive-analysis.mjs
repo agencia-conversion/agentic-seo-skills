@@ -362,7 +362,7 @@ function appendBrainLog({ projectRoot, runSlug, target, competitors, modulesRun 
   const logPath = join(projectRoot, "brain", "log.md");
   if (!existsSync(logPath)) return false;
   const today = new Date().toISOString().slice(0, 10);
-  const entry = `\n## ${today} - Análise competitiva ${runSlug}\n\n- tipo: decisao\n- escopo: project/analyses/competitive-analysis/${runSlug}/\n- decisao: Análise competitiva entre ${target} e ${competitors.join(", ")} gerada por scripts/competitive-analysis.mjs.\n- evidencia: project/audits/competitive-${runSlug}/report.yaml\n- aprovador: agent\n- notas: módulos executados — ${modulesRun.join(", ")}.\n`;
+  const entry = `\n## ${today} - Análise competitiva ${runSlug}\n\n- type: decision\n- scope: project/analyses/competitive-analysis/${runSlug}/\n- decision: Análise competitiva entre ${target} e ${competitors.join(", ")} gerada por scripts/competitive-analysis.mjs.\n- evidence: project/audits/competitive-${runSlug}/report.yaml\n- approver: agent\n- notes: módulos executados — ${modulesRun.join(", ")}.\n`;
   appendFileSync(logPath, entry, "utf8");
   return true;
 }
@@ -669,7 +669,7 @@ async function main() {
       competitors: competitors.map((c) => ({ input: c, normalized: c, type: "domain", source: "user", evidence_row: null })),
     },
     modules,
-    log_entry_plan: { path: "project/brain/log.md", tipo: "decisao", summary: `Análise competitiva ${target} vs ${competitors.join(", ")}.` },
+    log_entry_plan: { path: "project/brain/log.md", type: "decision", summary: `Análise competitiva ${target} vs ${competitors.join(", ")}.` },
   };
   writeYaml(join(runDir, "report.yaml"), runYaml);
 

@@ -3,21 +3,21 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { findContentBySlug, updateContentClusterMembership } from './content-mutations';
 
-const ORIGEMS = ['blog', 'linkedin', 'podcast', 'outros'] as const;
+const ORIGINS = ['blog', 'linkedin', 'podcast', 'other'] as const;
 const FM_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 
 export interface ClusterSummary {
   slug: string;
-  nome: string;
+  name: string;
   icon: string | null;
   area: string | null;
-  tese: string | null;
+  thesis: string | null;
   status: string;
-  pilar_slug: string | null;
-  pilar_title: string | null;
-  pilar_path: string | null;
-  publicados: number;
-  planejados: number;
+  pillar_slug: string | null;
+  pillar_title: string | null;
+  pillar_path: string | null;
+  published: number;
+  planned: number;
   updated: string | null;
 }
 
@@ -38,7 +38,7 @@ function todayIso() {
 function slugify(value: unknown) {
   return String(value ?? '')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '')
@@ -71,11 +71,11 @@ function appendLog(projectRoot: string, title: string, scope: string, decision: 
     '',
     `## ${todayIso()} - ${title}`,
     '',
-    '- tipo: decisao',
-    `- escopo: ${scope}`,
-    `- decisao: ${decision}`,
-    `- evidencia: ${evidence}`,
-    '- aprovador: user',
+    '- type: decision',
+    `- scope: ${scope}`,
+    `- decision: ${decision}`,
+    `- evidence: ${evidence}`,
+    '- approver: user',
   ];
   appendFileSync(logFile, `${lines.join('\n')}\n`, 'utf8');
 }
@@ -96,14 +96,14 @@ function readClusters(projectRoot: string): Array<{ filePath: string; data: Reco
       // Skip malformed clusters so the table can still load.
     }
   }
-  return out.sort((a, b) => String(a.data.nome || a.data.slug).localeCompare(String(b.data.nome || b.data.slug), 'pt-BR'));
+  return out.sort((a, b) => String(a.data.name || a.data.slug).localeCompare(String(b.data.name || b.data.slug), 'pt-BR'));
 }
 
 function scanContents(projectRoot: string): ContentRecord[] {
   const root = resolve(projectRoot);
   const out: ContentRecord[] = [];
-  for (const origem of ORIGEMS) {
-    const dir = join(root, 'conteudos', origem);
+  for (const origin of ORIGINS) {
+    const dir = join(root, 'contents', origin);
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir)) {
       if (!name.endsWith('.md') || name.startsWith('_')) continue;
@@ -134,42 +134,42 @@ export function readClusterSummaries(projectRoot: string): ClusterSummary[] {
   const contents = scanContents(projectRoot);
   return readClusters(projectRoot).map(({ data }) => {
     const slug = String(data.slug);
-    const pilarSlug = data.pilar?.slug ? String(data.pilar.slug) : null;
-    const pilar = pilarSlug ? contents.find((content) => content.slug === pilarSlug) || null : null;
+    const pillarSlug = data.pillar?.slug ? String(data.pillar.slug) : null;
+    const pillar = pillarSlug ? contents.find((content) => content.slug === pillarSlug) || null : null;
     const published = contents.filter((content) => content.clusters.includes(slug));
     const planned = Array.isArray(data.planned_satellites) ? data.planned_satellites.length : 0;
     return {
       slug,
-      nome: String(data.nome || slug),
+      name: String(data.name || slug),
       icon: typeof data.icon === 'string' && data.icon ? data.icon : null,
-      area: typeof data.area_nome === 'string' && data.area_nome ? data.area_nome : typeof data.area === 'string' ? data.area : null,
-      tese: typeof data.tese === 'string' ? data.tese : typeof data.context === 'string' ? data.context : null,
+      area: typeof data.area_name === 'string' && data.area_name ? data.area_name : typeof data.area === 'string' ? data.area : null,
+      thesis: typeof data.thesis === 'string' ? data.thesis : typeof data.context === 'string' ? data.context : null,
       status: typeof data.status === 'string' ? data.status : 'drafting',
-      pilar_slug: pilarSlug,
-      pilar_title: pilar?.title || pilarSlug,
-      pilar_path: pilar?.path || null,
-      publicados: published.length,
-      planejados: planned,
+      pillar_slug: pillarSlug,
+      pillar_title: pillar?.title || pillarSlug,
+      pillar_path: pillar?.path || null,
+      published: published.length,
+      planned,
       updated: data.stats?.updated ? String(data.stats.updated) : null,
     };
   });
 }
 
-function uniqueContentPath(projectRoot: string, origem: string, slug: string) {
+function uniqueContentPath(projectRoot: string, origin: string, slug: string) {
   const root = resolve(projectRoot);
-  let candidate = join(root, 'conteudos', origem, `${slug}.md`);
+  let candidate = join(root, 'contents', origin, `${slug}.md`);
   let index = 2;
   while (existsSync(candidate)) {
-    candidate = join(root, 'conteudos', origem, `${slug}-${index}.md`);
+    candidate = join(root, 'contents', origin, `${slug}-${index}.md`);
     index++;
   }
   return candidate;
 }
 
-function createContentPilar(projectRoot: string, clusterSlug: string, title: string, origem = 'blog'): ContentRecord {
-  const safeOrigem = ORIGEMS.includes(origem as any) ? origem : 'blog';
+function createContentPillar(projectRoot: string, clusterSlug: string, title: string, origin = 'blog'): ContentRecord {
+  const safeOrigin = (ORIGINS as readonly string[]).includes(origin) ? origin : 'blog';
   const slug = slugify(title);
-  const filePath = uniqueContentPath(projectRoot, safeOrigem, slug);
+  const filePath = uniqueContentPath(projectRoot, safeOrigin, slug);
   mkdirSync(dirname(filePath), { recursive: true });
   const finalSlug = basename(filePath, '.md');
   const fm = {
@@ -178,11 +178,11 @@ function createContentPilar(projectRoot: string, clusterSlug: string, title: str
     slug: finalSlug,
     published_at: '',
     source_url: '',
-    origem: safeOrigem,
+    origin: safeOrigin,
     keyword: title,
     intent: 'informational',
     clusters: [clusterSlug],
-    papel: { [clusterSlug]: 'pilar' },
+    role: { [clusterSlug]: 'pillar' },
   };
   writeMd(filePath, fm, '\n');
   return {
@@ -196,66 +196,66 @@ function createContentPilar(projectRoot: string, clusterSlug: string, title: str
   };
 }
 
-function ensureUniquePilar(projectRoot: string, clusterSlug: string, pilarSlug: string) {
-  const owner = readClusters(projectRoot).find(({ data }) => data.slug !== clusterSlug && data.pilar?.slug === pilarSlug);
+function ensureUniquePillar(projectRoot: string, clusterSlug: string, pillarSlug: string) {
+  const owner = readClusters(projectRoot).find(({ data }) => data.slug !== clusterSlug && data.pillar?.slug === pillarSlug);
   return owner ? String(owner.data.slug) : null;
 }
 
 export function createCluster(projectRoot: string, input: Record<string, unknown>) {
-  const nome = String(input.nome || input.title || '').trim();
-  const slug = slugify(input.slug || nome);
-  if (!nome || !slug) return { ok: false as const, reason: 'invalid-name' };
+  const name = String(input.name || input.title || '').trim();
+  const slug = slugify(input.slug || name);
+  if (!name || !slug) return { ok: false as const, reason: 'invalid-name' };
   const root = resolve(projectRoot);
   const yamlPath = join(root, 'clusters', slug, 'cluster.yaml');
   if (existsSync(yamlPath)) return { ok: false as const, reason: 'cluster-exists' };
 
-  let pilar: ContentRecord | null = null;
-  const existingPilar = slugify(input.pilar_slug);
-  if (existingPilar) {
-    const located = findContentBySlug(projectRoot, existingPilar);
-    if (!located) return { ok: false as const, reason: 'pilar-not-found' };
-    const membership = updateContentClusterMembership(projectRoot, existingPilar, slug, 'pilar');
+  let pillar: ContentRecord | null = null;
+  const existingPillar = slugify(input.pillar_slug);
+  if (existingPillar) {
+    const located = findContentBySlug(projectRoot, existingPillar);
+    if (!located) return { ok: false as const, reason: 'pillar-not-found' };
+    const membership = updateContentClusterMembership(projectRoot, existingPillar, slug, 'pillar');
     if (!membership.ok) return membership;
     const contents = scanContents(projectRoot);
-    pilar = contents.find((content) => content.slug === existingPilar) || null;
+    pillar = contents.find((content) => content.slug === existingPillar) || null;
   } else {
-    const title = String(input.pilar_title || nome).trim();
-    pilar = createContentPilar(projectRoot, slug, title || nome, String(input.origem || 'blog'));
+    const title = String(input.pillar_title || name).trim();
+    pillar = createContentPillar(projectRoot, slug, title || name, String(input.origin || 'blog'));
   }
-  if (!pilar) return { ok: false as const, reason: 'pilar-not-found' };
+  if (!pillar) return { ok: false as const, reason: 'pillar-not-found' };
 
   const data = {
     contract_version: 1,
     slug,
-    nome,
+    name,
     icon: String(input.icon || '').trim() || null,
     area: String(input.area || '').trim() || null,
     status: 'active',
-    tese: String(input.tese || '').trim() || `Cluster ${nome}.`,
-    pilar: {
-      slug: pilar.slug,
-      keyword: pilar.keyword || pilar.title,
-      intent: pilar.intent || 'informational',
-      volume: pilar.volume,
+    thesis: String(input.thesis || '').trim() || `Cluster ${name}.`,
+    pillar: {
+      slug: pillar.slug,
+      keyword: pillar.keyword || pillar.title,
+      intent: pillar.intent || 'informational',
+      volume: pillar.volume,
       volume_source: null,
     },
     planned_satellites: [],
-    satelite_overrides: {},
-    stats: { publicados: 1, planejados: 0, updated: todayIso() },
+    satellite_overrides: {},
+    stats: { published: 1, planned: 0, updated: todayIso() },
     provenance: { created_at: todayIso(), created_by: 'companion' },
     evidence: [],
   };
   mkdirSync(dirname(yamlPath), { recursive: true });
   writeFileSync(yamlPath, stringifyYaml(data, { lineWidth: 0 }), 'utf8');
-  appendLog(projectRoot, `Cluster ${nome} criado no Companion`, `clusters/${slug}/cluster.yaml`, `Cluster ativo "${nome}" criado com pilar "${pilar.slug}".`, `clusters/${slug}/cluster.yaml, ${pilar.path}`);
-  return { ok: true as const, cluster: data, affected: [`clusters/${slug}/cluster.yaml`, pilar.path] };
+  appendLog(projectRoot, `Cluster ${name} criado no Companion`, `clusters/${slug}/cluster.yaml`, `Cluster ativo "${name}" criado com pillar "${pillar.slug}".`, `clusters/${slug}/cluster.yaml, ${pillar.path}`);
+  return { ok: true as const, cluster: data, affected: [`clusters/${slug}/cluster.yaml`, pillar.path] };
 }
 
 export function updateCluster(projectRoot: string, slug: string, updates: Record<string, unknown>) {
   const entry = readClusters(projectRoot).find(({ data }) => data.slug === slug);
   if (!entry) return { ok: false as const, reason: 'cluster-not-found' };
   const next = { ...entry.data };
-  for (const field of ['nome', 'icon', 'area', 'tese', 'status'] as const) {
+  for (const field of ['name', 'icon', 'area', 'thesis', 'status'] as const) {
     if (Object.prototype.hasOwnProperty.call(updates, field)) {
       const value = String(updates[field] ?? '').trim();
       if (field === 'status') next.status = value || next.status || 'drafting';
@@ -263,30 +263,30 @@ export function updateCluster(projectRoot: string, slug: string, updates: Record
       else delete next[field];
     }
   }
-  if (updates.pilar_slug !== undefined) {
-    const pilarSlug = slugify(updates.pilar_slug);
-    if (!pilarSlug) return { ok: false as const, reason: 'invalid-pilar' };
-    const conflict = ensureUniquePilar(projectRoot, slug, pilarSlug);
-    if (conflict) return { ok: false as const, reason: `unique-pilar-violation:${conflict}` };
-    const oldPilarSlug =
-      next.pilar && typeof next.pilar === 'object' && typeof next.pilar.slug === 'string'
-        ? next.pilar.slug
+  if (updates.pillar_slug !== undefined) {
+    const pillarSlug = slugify(updates.pillar_slug);
+    if (!pillarSlug) return { ok: false as const, reason: 'invalid-pillar' };
+    const conflict = ensureUniquePillar(projectRoot, slug, pillarSlug);
+    if (conflict) return { ok: false as const, reason: `unique-pillar-violation:${conflict}` };
+    const oldPillarSlug =
+      next.pillar && typeof next.pillar === 'object' && typeof next.pillar.slug === 'string'
+        ? next.pillar.slug
         : '';
-    const membership = updateContentClusterMembership(projectRoot, pilarSlug, slug, 'pilar');
+    const membership = updateContentClusterMembership(projectRoot, pillarSlug, slug, 'pillar');
     if (!membership.ok) return membership;
     const affected = [`clusters/${slug}/cluster.yaml`, membership.path];
-    if (oldPilarSlug && oldPilarSlug !== pilarSlug) {
-      const demotion = updateContentClusterMembership(projectRoot, oldPilarSlug, slug, 'satelite');
+    if (oldPillarSlug && oldPillarSlug !== pillarSlug) {
+      const demotion = updateContentClusterMembership(projectRoot, oldPillarSlug, slug, 'satellite');
       if (demotion.ok) affected.push(demotion.path);
     }
-    next.pilar = {
-      ...(next.pilar || {}),
-      slug: pilarSlug,
+    next.pillar = {
+      ...(next.pillar || {}),
+      slug: pillarSlug,
     };
     next.contract_version = 1;
     next.stats = { ...(next.stats || {}), updated: todayIso() };
     writeFileSync(entry.filePath, stringifyYaml(next, { lineWidth: 0 }), 'utf8');
-    appendLog(projectRoot, `Cluster ${slug} atualizado no Companion`, `clusters/${slug}/cluster.yaml`, `Pilar do cluster "${slug}" atualizado para "${pilarSlug}" no Companion Web.`, affected.join(', '));
+    appendLog(projectRoot, `Cluster ${slug} atualizado no Companion`, `clusters/${slug}/cluster.yaml`, `Pilar do cluster "${slug}" atualizado para "${pillarSlug}" no Companion Web.`, affected.join(', '));
     return { ok: true as const, cluster: next, affected };
   }
   next.contract_version = 1;

@@ -35,12 +35,12 @@ function buildContext({ projectRoot, slug }) {
   const draft = readDraft(projectRoot, slug);
   return {
     slug,
-    nome: draft.data.nome || slug,
+    name: draft.data.name || slug,
     area: draft.data.area || null,
     status: draft.data.status || "hypothesis",
     contract_version: draft.data.contract_version || 1,
-    tese: typeof draft.data.tese === "string" ? draft.data.tese.trim() : "",
-    pilar: draft.data.pilar || null,
+    thesis: typeof draft.data.thesis === "string" ? draft.data.thesis.trim() : "",
+    pillar: draft.data.pillar || null,
     planned_satellites: Array.isArray(draft.data.planned_satellites) ? draft.data.planned_satellites : [],
     bypass: draft.data.provenance?.bypass || null,
     evidence: Array.isArray(draft.data.evidence) ? draft.data.evidence : [],
@@ -104,14 +104,14 @@ async function handleSubmit(body, ctx) {
   const logFile = join(ctx.projectRoot, "brain", "log.md");
   appendLogEntry(logFile, {
     date: todayIso(),
-    tipo: "aprovacao",
-    titulo: `Cluster ${ctx.slug} promovido`,
-    escopo: `clusters/${ctx.slug}/cluster.yaml, brain/topic-clusters/${ctx.slug}.md`,
-    decisao: `Cluster "${ctx.slug}" promovido para status "${statusOverride || "active"}" via handoff approve-cluster. Draft arquivado em ${draftArchived ? draftArchived.replace(ctx.projectRoot + "/", "") : "—"}. Cluster-sync ${sync.ok ? "ok" : `falhou: ${sync.error}`}.`,
-    evidencia: `clusters/${ctx.slug}/cluster.yaml`,
-    aprovador: approver,
-    aprovado_em: todayIso(),
-    notas: notes,
+    type: "approval",
+    title: `Cluster ${ctx.slug} promovido`,
+    scope: `clusters/${ctx.slug}/cluster.yaml, brain/topic-clusters/${ctx.slug}.md`,
+    decision: `Cluster "${ctx.slug}" promovido para status "${statusOverride || "active"}" via handoff approve-cluster. Draft arquivado em ${draftArchived ? draftArchived.replace(ctx.projectRoot + "/", "") : "—"}. Cluster-sync ${sync.ok ? "ok" : `falhou: ${sync.error}`}.`,
+    evidence: `clusters/${ctx.slug}/cluster.yaml`,
+    approver: approver,
+    approved_at: todayIso(),
+    notes: notes,
   });
 
   return {
@@ -138,11 +138,11 @@ export async function runApproveCluster(argv = []) {
   const contextData = {
     handoff: "approve-cluster",
     slug: ctx.slug,
-    nome: ctx.nome,
+    name: ctx.name,
     area: ctx.area,
     status: ctx.status,
-    tese: ctx.tese,
-    pilar: ctx.pilar,
+    thesis: ctx.thesis,
+    pillar: ctx.pillar,
     planned_satellites: ctx.planned_satellites,
     bypass: ctx.bypass,
     evidence: ctx.evidence,

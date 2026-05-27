@@ -8,8 +8,8 @@ export const SENTINELS = {
 } as const;
 
 export type ClusterStatus = "drafting" | "proposed" | "active" | "archived";
-export type Origem = "blog" | "linkedin" | "podcast" | "outros";
-export type Papel = "pilar" | "satelite";
+export type Origin = "blog" | "linkedin" | "podcast" | "other";
+export type Role = "pillar" | "satellite";
 export type Intent =
   | "informational"
   | "transactional"
@@ -32,7 +32,7 @@ export const EDITORIAL_STATUS_OPTIONS: ReadonlyArray<{ value: EditorialStatus; l
   { value: "published", label_pt: "Publicado", label_en: "Published" },
 ];
 
-export interface PilarSpec {
+export interface PillarSpec {
   slug: string;
   keyword?: string | null;
   intent?: Intent | null;
@@ -46,11 +46,11 @@ export interface PlannedSatellite {
   intent?: Intent | null;
   volume?: number | null;
   volume_source?: string | null;
-  papel?: Papel;
+  role?: Role;
   note?: string | null;
 }
 
-export interface SateliteOverride {
+export interface SatelliteOverride {
   display_title?: string;
   keyword?: string | null;
   intent?: Intent | null;
@@ -59,24 +59,24 @@ export interface SateliteOverride {
 }
 
 export interface ClusterStats {
-  publicados?: number;
-  planejados?: number;
+  published?: number;
+  planned?: number;
   updated?: string;
 }
 
 export interface ClusterYaml {
   contract_version?: number;
   slug: string;
-  nome: string;
+  name: string;
   area?: string;
-  area_nome?: string;
+  area_name?: string;
   status: ClusterStatus;
-  tese?: string;
+  thesis?: string;
   context?: string;
   icon?: string;
-  pilar?: PilarSpec | null;
+  pillar?: PillarSpec | null;
   planned_satellites?: PlannedSatellite[];
-  satelite_overrides?: Record<string, SateliteOverride>;
+  satellite_overrides?: Record<string, SatelliteOverride>;
   stats?: ClusterStats;
   provenance?: Record<string, unknown>;
   evidence?: unknown[];
@@ -88,15 +88,15 @@ export interface ContentFrontmatter {
   slug?: string;
   published_at?: string;
   source_url?: string | null;
-  origem?: Origem;
+  origin?: Origin;
   clusters?: string[];
-  papel?: Record<string, Papel>;
+  role?: Record<string, Role>;
   [key: string]: unknown;
 }
 
 export interface ContentRecord {
   slug: string;
-  origem: Origem;
+  origin: Origin;
   filePath: string;
   relPath: string;
   fm: ContentFrontmatter;

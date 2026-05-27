@@ -21,12 +21,12 @@ exports.clusterContent = {
             const materialized = `_Cluster \`${params.cluster}\` não encontrado._`;
             return { materialized, fingerprint: fingerprint(materialized) };
         }
-        const resolvedPilarSlug = cluster.yaml.pilar?.slug ?? null;
+        const resolvedPillarSlug = cluster.yaml.pillar?.slug ?? null;
         const table = (0, cluster_render_1.renderContentTable)({
             cluster,
             labels: inputs.labels,
             contentsByCluster: inputs.contentsByCluster,
-            resolvedPilarSlug,
+            resolvedPillarSlug,
         });
         return { materialized: table, fingerprint: fingerprint(table) };
     },

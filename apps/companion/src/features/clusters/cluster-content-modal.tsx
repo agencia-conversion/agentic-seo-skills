@@ -19,10 +19,10 @@ interface ClusterContentModalProps {
 
 function resolvePageId(contentSlug: string, pages: ReturnType<typeof useWorkspace.getState>['pages']) {
   const candidates = [
-    `conteudos/blog/${contentSlug}.md`,
-    `conteudos/linkedin/${contentSlug}.md`,
-    `conteudos/podcast/${contentSlug}.md`,
-    `conteudos/outros/${contentSlug}.md`,
+    `contents/blog/${contentSlug}.md`,
+    `contents/linkedin/${contentSlug}.md`,
+    `contents/podcast/${contentSlug}.md`,
+    `contents/other/${contentSlug}.md`,
   ];
   for (const path of candidates) {
     const found = pages.find((p) => p.path === path);
@@ -118,7 +118,7 @@ export function ClusterContentModal({ contentSlug, onClose }: ClusterContentModa
                 <EditorPanel pageId={pageId} isModal />
               ) : contentSlug ? (
                 <div className="p-8 text-sm text-notion-text-muted">
-                  Este conteúdo ainda está planejado — não há arquivo em <code>conteudos/</code> para abrir.
+                  Este conteúdo ainda está planejado — não há arquivo em <code>contents/</code> para abrir.
                 </div>
               ) : null}
             </div>

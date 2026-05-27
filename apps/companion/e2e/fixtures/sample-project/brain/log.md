@@ -7,18 +7,18 @@ updated: "2026-05-24"
 
 ## 2026-05-24 - Fixture criado
 
-- tipo: decisao
-- escopo: e2e/fixtures/sample-project/brain
-- decisao: Brain de fixture criado para testes Playwright.
-- evidencia: e2e/fixtures/sample-project/
-- aprovador: agent
+- type: decision
+- scope: e2e/fixtures/sample-project/brain
+- decision: Brain de fixture criado para testes Playwright.
+- evidence: e2e/fixtures/sample-project/
+- approver: agent
 
 
 ## 2026-05-24 - identidade editado no Companion
 
-- tipo: decisao
-- escopo: brain/identidade.md
-- decisao: brain/identidade.md editado no Companion Web.
-- evidencia: brain/identidade.md
-- aprovador: agent
-- notas: autosave no companion Noteon local
+- type: decision
+- scope: brain/identidade.md
+- decision: brain/identidade.md editado no Companion Web.
+- evidence: brain/identidade.md
+- approver: agent
+- notes: autosave no companion Noteon local

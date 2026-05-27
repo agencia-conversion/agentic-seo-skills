@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Rename a cluster slug atomically across cluster.yaml, conteudos frontmatter,
+// Rename a cluster slug atomically across cluster.yaml, contents frontmatter,
 // brain subpage, and brain index. Specified in topic-clusters-contract.md § 12.
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
@@ -51,7 +51,7 @@ yaml.slug = to;
 writeFileSync(yamlPath, yamlStringify(yaml, { lineWidth: 0 }), "utf8");
 
 // 3. Update frontmatter clusters[] of every content
-const conteudosDir = join(project, "conteudos");
+const contentsDir = join(project, "contents");
 let touchedContents = 0;
 function visit(dir) {
   if (!existsSync(dir)) return;
@@ -71,7 +71,7 @@ function visit(dir) {
     }
   }
 }
-visit(conteudosDir);
+visit(contentsDir);
 
 // 4. Rename brain subpage and clear old fingerprint
 const oldSubpage = join(project, "brain", "topic-clusters", `${from}.md`);

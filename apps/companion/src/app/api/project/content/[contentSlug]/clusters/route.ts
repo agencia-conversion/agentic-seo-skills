@@ -22,10 +22,10 @@ function readCluster(projectRootPath: string, slug: string): Record<string, any>
   }
 }
 
-function normalizeRole(value: unknown): 'pilar' | 'satelite' | null {
+function normalizeRole(value: unknown): 'pillar' | 'satellite' | null {
   if (value === null || value === '' || value === false) return null;
-  if (value === 'pilar') return 'pilar';
-  return 'satelite';
+  if (value === 'pillar') return 'pillar';
+  return 'satellite';
 }
 
 export async function PATCH(
@@ -44,16 +44,16 @@ export async function PATCH(
   if (!cluster) return NextResponse.json({ ok: false, reason: 'cluster-not-found' }, { status: 404 });
 
   const role = normalizeRole(body.role);
-  const pilarSlug =
-    cluster.pilar && typeof cluster.pilar === 'object' && !Array.isArray(cluster.pilar)
-      ? String((cluster.pilar as Record<string, unknown>).slug || '')
+  const pillarSlug =
+    cluster.pillar && typeof cluster.pillar === 'object' && !Array.isArray(cluster.pillar)
+      ? String((cluster.pillar as Record<string, unknown>).slug || '')
       : '';
-  if (role !== 'pilar' && cluster.status === 'active' && pilarSlug === contentSlug) {
-    return NextResponse.json({ ok: false, reason: 'active-pilar-required' }, { status: 400 });
+  if (role !== 'pillar' && cluster.status === 'active' && pillarSlug === contentSlug) {
+    return NextResponse.json({ ok: false, reason: 'active-pillar-required' }, { status: 400 });
   }
 
-  const result = role === 'pilar'
-    ? updateCluster(root, clusterSlug, { pilar_slug: contentSlug })
+  const result = role === 'pillar'
+    ? updateCluster(root, clusterSlug, { pillar_slug: contentSlug })
     : updateContentClusterMembership(root, contentSlug, clusterSlug, role);
 
   if (!result.ok) return NextResponse.json(result, { status: 400 });

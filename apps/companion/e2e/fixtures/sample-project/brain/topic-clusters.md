@@ -29,7 +29,7 @@ area: fundamentos
 
 | Cluster | Pilar | Publicados | Planejados | Status |
 | --- | --- | ---: | ---: | --- |
-| [Sample Cluster](topic-clusters/sample-cluster.md) | [Sample Pilar](../conteudos/blog/sample-pilar.md) | 2 | 0 | active |
+| [Sample Cluster](topic-clusters/sample-cluster.md) | [Sample Pilar](../contents/blog/sample-pilar.md) | 2 | 0 | active |
 
 <!-- END cluster-index-table:auto -->
 
