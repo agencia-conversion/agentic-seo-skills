@@ -1,0 +1,24 @@
+apps/companion/src/lib/project-files.ts
+  s_add44d6c3a39cb::t_701e141b421888 468-510
+  s_add44d6c3a39cb::t_c3b4b261e80f31 564-566,574
+docs/refactor-status.md
+  s_add44d6c3a39cb::t_9534b4c622abba 108-115
+scripts/check-project-dirs.mjs
+  s_add44d6c3a39cb::t_1674a6407a4ef0 1-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7533b4109695705ce0dae394846ea1b7d619ae8c",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
