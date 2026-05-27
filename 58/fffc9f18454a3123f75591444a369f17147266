@@ -1,0 +1,22 @@
+apps/companion/e2e/legacy-content-auto-rename.spec.ts
+  s_add44d6c3a39cb::t_790df87d674587 1-79
+apps/companion/e2e/crud-content-lifecycle.spec.ts
+  s_add44d6c3a39cb::t_e594b1472c75f8 62,64,66-68,73
+  s_add44d6c3a39cb::t_e980315c5c711e 1-61,63,65,69-72,74-230
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "58fffc9f18454a3123f75591444a369f17147266",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
