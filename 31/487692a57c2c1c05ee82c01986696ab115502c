@@ -1,0 +1,23 @@
+apps/companion/e2e/rename-cluster-propagation.spec.ts
+  s_add44d6c3a39cb::t_fc2069f16b1403 100-113
+  s_add44d6c3a39cb::t_121e392014c478 45,47-48
+  s_add44d6c3a39cb::t_770ca6a1412737 121-124,126-129,134-137
+  s_add44d6c3a39cb::t_713e06eb6788ba 1-44,49,51-99,114-120,125,130-133,138-162
+  s_add44d6c3a39cb::t_c01edbef94b134 46,50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "31487692a57c2c1c05ee82c01986696ab115502c",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
