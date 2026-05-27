@@ -21,7 +21,7 @@ agente preenchedor e devem ser REMOVIDOS quando o arquivo for preenchido.
 REGRA: Maximo 15 palavras. Sujeito + funcao + escopo principal. Sem lista
 enumerativa (sem virgulas que enumeram dominios). Sem adjetivo avaliativo
 ("lider", "referencia", "consagrado", "robusto"). Pense em legenda de
-foto: identifica, não vende. Detalhe de tom em [[voz#lead-e-apresentacao]].
+foto: identifica, não vende. Detalhe de tom em [[voice#lead-e-apresentacao]].
 
 Bom: "Consultoria de cultura organizacional para empresas brasileiras de
 medio porte."
@@ -45,7 +45,7 @@ Bom: "Acme, consultoria de RH para empresas de tecnologia"
 Ruim: "Acme, referencia consagrada e lider em gestao, pessoas, cultura e
 ferramentas para times modernos"
 
-Detalhe completo em [[voz#lead-e-apresentacao]].
+Detalhe completo em [[voice#lead-e-apresentacao]].
 -->
 
 <aposto pronto para colar apos o nome proprio>
@@ -148,14 +148,14 @@ idioma, mercado, frontend identificado, presenca de analytics. NÃO citar
 tese editorial sobre stack ("acreditamos em estatico", "rejeitamos
 WordPress", "preferimos edge rendering"). Tese editorial vive em
 [[topic-clusters]] ou em conteúdos publicados. Detalhe operacional vive em
-[[tecnologia]].
+[[technology]].
 -->
 
 - Domínio principal: <url>
 - Domínios secundários: <lista ou `nenhum`>
 - Idioma: <pt-BR | en | ...>
 - País/mercado: <Brasil | global | ...>
-- Stack observado (uma linha): <frontend ou CMS identificado; detalhe em [[tecnologia]]>
+- Stack observado (uma linha): <frontend ou CMS identificado; detalhe em [[technology]]>
 
 ## Canais
 
@@ -199,7 +199,7 @@ por cluster.
 
 <!--
 REGRA: Aqui ficam as fontes que sustentam as afirmacoes acima. Use
-Markdown links normais para `../sources/`, `../conteúdos/`, e URLs
+Markdown links normais para `../sources/`, `../contents/`, e URLs
 externas. Wikilinks `[[...]]` so para arquivos dentro de `brain/`.
 Cada bullet referencia 1 fonte e diz, em uma frase, o que essa fonte
 sustenta. Se uma afirmacao acima não tem fonte aqui, ou a afirmacao

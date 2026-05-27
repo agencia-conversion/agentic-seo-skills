@@ -760,7 +760,7 @@ export function createProjectFile({
           heading: title,
           resumo: '',
           area: '',
-          pilar_line: '_pilar a definir_',
+          pillar_line: '_pilar a definir_',
           contents_table: '<!-- Tabela regenerada pela skill `topic-cluster` ao promover um cluster. -->',
           next_actions: '- <próxima ação>',
           provenance: 'criação manual',

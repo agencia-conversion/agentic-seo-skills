@@ -23,11 +23,11 @@ Do not use this skill for raw keyword discovery, one-keyword SERP analysis witho
 - A DataForSEO, SERP, Top 3, or voice bypass must be recorded with actor (`agent` by default), timestamp, reason, missing dimension, and consequence.
 - A bypass record is not evidence. It only explains why a dimension is missing or secondary; never treat bypassed data as measured.
 - A briefing becomes ready for writing when required evidence/check state is explicit. Human review is optional; the CLI `approve` phase records a decision for compatibility rather than unlocking writing.
-- The voice gate is mandatory before voice-backed drafting. Read `project/brain/voz.md` and record path, key principles, and limitations. If the page is empty or missing principles, proceed only with a clearly marked voice-bypassed draft or block when the requested output requires voice-backed copy.
-- The revisao gate is mandatory in the `check` phase. Read `project/brain/revisao.md` and record `path`, `principles_count`, `checklist_count`, `erros_comuns_count`, `revisao_backed`. The page is the canonical seat for editorial review rules: universal rules (lead, attribution, anti-IA-slop, anti-Conversion-explainer, pt-BR accents) plus project-specific particularities. If the file is missing or carries only project-specific placeholders, mark `revisao_backed: false`, record a `gate: revisao` bypass with reason and consequence, and proceed without blocking promote. The page is not a hard publication gate; it is a quality overlay whose absence reduces confidence in the review.
-- Keep construction files in `project/workbench/content/<slug>/`; keep draft and review deliverables in `project/artifacts/contents/<slug>/`; write public content to `project/conteudos/<origem>/<slug>.md` only after checks pass. Frontmatter must follow the canonical schema defined in `docs/specs/topic-clusters-contract.md` (contract_version 1): `contract_version: 1`, `title`, `slug`, `published_at`, `source_url`, `origem`, `clusters: [<slug>, ...]` (required, ≥1), optional `papel: { <cluster-slug>: pilar | satelite }`. `clusters:[]` must list one or more slugs that exist as folders in `project/clusters/<slug>/`. `area:` (singular) is legacy and dropped in v1.
+- The voice gate is mandatory before voice-backed drafting. Read `project/brain/voice.md` and record path, key principles, and limitations. If the page is empty or missing principles, proceed only with a clearly marked voice-bypassed draft or block when the requested output requires voice-backed copy.
+- The review gate is mandatory in the `check` phase. Read `project/brain/review.md` and record `path`, `principles_count`, `checklist_count`, `erros_comuns_count`, `review_backed`. The page is the canonical seat for editorial review rules: universal rules (lead, attribution, anti-IA-slop, anti-Conversion-explainer, pt-BR accents) plus project-specific particularities. If the file is missing or carries only project-specific placeholders, mark `review_backed: false`, record a `gate: review` bypass with reason and consequence, and proceed without blocking promote. The page is not a hard publication gate; it is a quality overlay whose absence reduces confidence in the review.
+- Keep construction files in `project/workbench/content/<slug>/`; keep draft and review deliverables in `project/artifacts/contents/<slug>/`; write public content to `project/contents/<origin>/<slug>.md` only after checks pass. Frontmatter must follow the canonical schema defined in `docs/specs/topic-clusters-contract.md` (contract_version 1): `contract_version: 1`, `title`, `slug`, `published_at`, `source_url`, `origin`, `clusters: [<slug>, ...]` (required, ≥1), optional `role: { <cluster-slug>: pillar | satellite }`. `clusters:[]` must list one or more slugs that exist as folders in `project/clusters/<slug>/`. `area:` (singular) is legacy and dropped in v1.
 - Every brief receives `clusters:[]` (one or many) as input. Read each `project/brain/topic-clusters/<slug>.md` referenced to extract the cluster's tese, adjacent satellites (for internal links), and editorial tone inherited. Promotion to public content must trigger `node scripts/cluster-sync.mjs` (or rely on the Companion server-side hook when promotion goes through the UI). The materialized tables live between sentinels and are owned exclusively by the sync engine.
-- Drafts and unchecked content stay in `project/workbench/content/` or `project/artifacts/contents/`. Never publish to `project/conteudos/` with failed or missing checks.
+- Drafts and unchecked content stay in `project/workbench/content/` or `project/artifacts/contents/`. Never publish to `project/contents/` with failed or missing checks.
 - Separate raw evidence, synthesis, and human judgment. Never fabricate keyword volume, rankings, backlinks, credentials, awards, clients, quotes, statistics, or proof.
 - Public source links must point to public URLs only. Do not expose local paths such as `project/sources/...` or `project/workbench/...` in public prose. Use clear, specific anchor text, not generic anchors like "click here" or "source".
 - Public post bodies use prose by default. Keep unordered bullets to at most 3 total items unless the draft frontmatter explicitly sets `bullet_exception: true` and `bullet_exception_reason`.
@@ -49,7 +49,7 @@ If the phase is ambiguous, choose the earliest valid phase. A new content reques
 
 ### 2. Build The Evidence Packet
 
-**Check:** Do you have DataForSEO SERP evidence, Top 3 competitor evidence, project context, and voice evidence from `project/brain/voz.md`?
+**Check:** Do you have DataForSEO SERP evidence, Top 3 competitor evidence, project context, and voice evidence from `project/brain/voice.md`?
 
 **Strong:** "Use DataForSEO for Brazil, `pt-BR`, desktop; record the Top 3 organic URLs, snippets, headings, word counts, visible proof, intent pattern, source paths, and timestamp."
 
@@ -95,8 +95,8 @@ The briefing must include a capacity check: the outline must plausibly support t
 - **Goal:** discover what the brand has already said about this topic and adjacent topics, in the project Brain and on the public Web.
 - **Tools:** `Glob`, `Grep`, `Read`, `WebSearch`, `WebFetch`.
 - **Inputs:** brand domain, primary keyword, project root.
-- **Sources:** `project/brain/` logged or filled pages, `project/sources/`, prior `project/conteudos/<origem>/<slug>.md`, prior draft artifacts when explicitly relevant, plus `site:<domain>` queries on the public Web.
-- **Output:** `workbench/brand-pov.md` with two clearly separated blocks: (a) **authorial voice** — what the brand declares about itself in `project/brain/` (identidade, voz, tecnologia, editorial, topic-clusters). This is the brand speaking; do not attribute to specific brain pages inside the prose, attribute via wikilinks in the evidence list at the end. (b) **published opinion** — theses, frameworks, naming, and stack claims found in `project/conteudos/<origem>/*.md` and on the public Web. These are editorial positions the brand has published; attribute by title and URL. Also include: divergence points from market consensus, gaps the brand has not addressed, observed editorial voice patterns. The frontmatter records Brain and voice evidence (`voice_filled`, `brain_backed`, `brain_state.*`).
+- **Sources:** `project/brain/` logged or filled pages, `project/sources/`, prior `project/contents/<origin>/<slug>.md`, prior draft artifacts when explicitly relevant, plus `site:<domain>` queries on the public Web.
+- **Output:** `workbench/brand-pov.md` with two clearly separated blocks: (a) **authorial voice** — what the brand declares about itself in `project/brain/` (identity, voice, technology, editorial, topic-clusters). This is the brand speaking; do not attribute to specific brain pages inside the prose, attribute via wikilinks in the evidence list at the end. (b) **published opinion** — theses, frameworks, naming, and stack claims found in `project/contents/<origin>/*.md` and on the public Web. These are editorial positions the brand has published; attribute by title and URL. Also include: divergence points from market consensus, gaps the brand has not addressed, observed editorial voice patterns. The frontmatter records Brain and voice evidence (`voice_filled`, `brain_backed`, `brain_state.*`).
 - **Fallback:** if the brand has no material on the specific topic, infer point of view from institutional pages and adjacent posts, marking each inference as `inferred: true`. Never merge an inferred position with the authorial block.
 
 #### 3c. `seo-analyst` — synthesis to outline (sequential)
@@ -124,42 +124,42 @@ The brief never overrides the `target_words` value computed by the analyst. The 
 
 **Weak:** "Treat a completed brief as evidence that skipped dimensions were measured."
 
-Review decisions and bypass notes can happen in chat or a local browser handoff. Do not make terminal commands the primary UX for nontechnical review. Record decisions and direct-write bypasses in the artifact and append important decisions or bypasses to `project/brain/log.md` with `tipo: decisao`. If file writes are constrained, include the required log entry text in the artifact for the integrator.
+Review decisions and bypass notes can happen in chat or a local browser handoff. Do not make terminal commands the primary UX for nontechnical review. Record decisions and direct-write bypasses in the artifact and append important decisions or bypasses to `project/brain/log.md` with `type: decision`. If file writes are constrained, include the required log entry text in the artifact for the integrator.
 
 ### 6. Write From A Ready Brief Or Explicit Direct Request
 
-**Check:** Is there a ready briefing, sufficient voice evidence in `project/brain/voz.md`, and a known artifact destination, or did the user explicitly request direct drafting with known bypasses?
+**Check:** Is there a ready briefing, sufficient voice evidence in `project/brain/voice.md`, and a known artifact destination, or did the user explicitly request direct drafting with known bypasses?
 
-**Strong:** "Load the ready `brief.yaml`, preserve source-link rules, write `project/artifacts/contents/<slug>/draft.md`, propagate `consensus_backed` / `brand_backed` and Brain/voice flags to frontmatter, and keep `project/conteudos/` untouched."
+**Strong:** "Load the ready `brief.yaml`, preserve source-link rules, write `project/artifacts/contents/<slug>/draft.md`, propagate `consensus_backed` / `brand_backed` and Brain/voice flags to frontmatter, and keep `project/contents/` untouched."
 
-**Weak:** "Publish a draft to `project/conteudos/blog/` as final content because it will eventually pass review."
+**Weak:** "Publish a draft to `project/contents/blog/` as final content because it will eventually pass review."
 
 The draft must avoid internal process language, hidden assumptions, generic source anchors, local evidence paths, body links to consulted sources, source-list sections, excessive bullets, heading stacks, and unverified claims. It may include frontmatter for artifact tracking, but public prose should read as final editorial copy.
 
-If voice principles are missing in `project/brain/voz.md`, return `status: blocked` when the requested output requires voice-backed copy. Otherwise log the bypass and clearly mark the draft as not voice-backed.
+If voice principles are missing in `project/brain/voice.md`, return `status: blocked` when the requested output requires voice-backed copy. Otherwise log the bypass and clearly mark the draft as not voice-backed.
 
 ### 7. Check The Draft
 
-**Check:** Does the artifact pass public-content, SEO, source, language, revisao, and publication-readiness checks?
+**Check:** Does the artifact pass public-content, SEO, source, language, review, and publication-readiness checks?
 
-**Strong:** "Load `project/brain/revisao.md`. Apply each item from `Princípios de revisão deste projeto`, `Checklist estilística do projeto`, and `Erros comuns observados`, recording pass/fail with evidence. Combine with identity, intent fit, frontmatter-only consulted sources, unsupported claims, competitor forbidden terms, bullet count, heading spacing, pt-BR accents, deterministic word target, and differentiation execution against `outline.md`. Write the combined result to `project/artifacts/contents/<slug>/checks.yaml`."
+**Strong:** "Load `project/brain/review.md`. Apply each item from `Princípios de revisão deste projeto`, `Checklist estilística do projeto`, and `Erros comuns observados`, recording pass/fail with evidence. Combine with identity, intent fit, frontmatter-only consulted sources, unsupported claims, competitor forbidden terms, bullet count, heading spacing, pt-BR accents, deterministic word target, and differentiation execution against `outline.md`. Write the combined result to `project/artifacts/contents/<slug>/checks.yaml`."
 
 **Weak:** "Say the article looks good because the writing is polished."
 
-Write checks to `project/artifacts/contents/<slug>/checks.yaml` or include the same schema inline when file writes are unavailable. The `revisao` block of `checks.yaml` records `page_present`, `revisao_backed`, items applied, failures with evidence, and any new patterns observed during the check. A failed check blocks promotion. Unknown evidence stays unknown; do not patch gaps with invention.
+Write checks to `project/artifacts/contents/<slug>/checks.yaml` or include the same schema inline when file writes are unavailable. The `review` block of `checks.yaml` records `page_present`, `review_backed`, items applied, failures with evidence, and any new patterns observed during the check. A failed check blocks promotion. Unknown evidence stays unknown; do not patch gaps with invention.
 
-**Feedback consolidation.** When the check surfaces a recurring pattern not yet covered by `brain/revisao.md`, classify it:
+**Feedback consolidation.** When the check surfaces a recurring pattern not yet covered by `brain/review.md`, classify it:
 
-- **Stylistic minor** (new IA-slop term, new Conversion-explainer verb, recurring typo that fits an existing category): edit `brain/revisao.md` directly and append a `tipo: decisao` entry to `project/brain/log.md` with `aprovador: agent`, `escopo: brain/revisao.md`, and evidence pointing to the affected `checks.yaml`.
-- **Checklist change** (new editorial principle, new entry in "Erros comuns observados", or any change that alters reviewer behavior for future drafts): do NOT edit `brain/revisao.md`. Append a `tipo: lint` entry to `log.md` with `aprovador: agent`, `notas: aguarda decisão humana`, and the proposed item in `decisao`. The pattern stays as a proposal until a human approves; on approval, `brain-keeper` applies the edit and adds a `tipo: decisao` referencing the original lint entry.
+- **Stylistic minor** (new IA-slop term, new Conversion-explainer verb, recurring typo that fits an existing category): edit `brain/review.md` directly and append a `type: decision` entry to `project/brain/log.md` with `approver: agent`, `scope: brain/review.md`, and evidence pointing to the affected `checks.yaml`.
+- **Checklist change** (new editorial principle, new entry in "Erros comuns observados", or any change that alters reviewer behavior for future drafts): do NOT edit `brain/review.md`. Append a `type: lint` entry to `log.md` with `approver: agent`, `notes: aguarda decisão humana`, and the proposed item in `decision`. The pattern stays as a proposal until a human approves; on approval, `brain-keeper` applies the edit and adds a `type: decision` referencing the original lint entry.
 
 ### 8. Promote Only After Checks Pass
 
 **Check:** Did the draft pass checks and have a valid public destination?
 
-**Strong:** "After passed checks, copy the final content to `project/conteudos/<origem>/<slug>.md` with the canonical frontmatter and public-safe links, and append a `tipo: publicacao` entry to `project/brain/log.md`."
+**Strong:** "After passed checks, copy the final content to `project/contents/<origin>/<slug>.md` with the canonical frontmatter and public-safe links, and append a `type: publication` entry to `project/brain/log.md`."
 
-**Weak:** "Move the draft directly to `project/conteudos/` so the user can review it there."
+**Weak:** "Move the draft directly to `project/contents/` so the user can review it there."
 
 Promotion is not a rewrite phase. Drafts that should not yet be published stay in `project/artifacts/contents/<slug>/`. If checks failed, return `blocked` unless the user explicitly accepts a labeled draft with failed checks.
 
@@ -189,13 +189,13 @@ artifacts:
   deliverables:
     draft: project/artifacts/contents/<slug>/draft.md
     checks: project/artifacts/contents/<slug>/checks.yaml
-    published: project/conteudos/<origem>/<slug>.md
+    published: project/contents/<origin>/<slug>.md
 evidence_gates:
   dataforseo: present | missing | bypassed
   serp: present | missing | bypassed
   top_3: present | partial | missing | bypassed
   voice: filled | missing | bypassed
-  revisao: filled | missing | bypassed
+  review: filled | missing | bypassed
   context: present | missing
 research_artifacts:
   market_consensus: present | missing | bypassed
@@ -206,16 +206,16 @@ research_artifacts:
 brain_overlay:
   voice_filled: true | false
   editorial_backed: true | false
-  tecnologia_backed: true | false
-  revisao_backed: true | false
+  technology_backed: true | false
+  review_backed: true | false
   brain_state:
     voice: missing | filled
     editorial: missing | filled
-    tecnologia: missing | filled
-    revisao: missing | filled
+    technology: missing | filled
+    review: missing | filled
 bypasses:
-  - gate: dataforseo | serp | top_3 | voice | research_market | research_brand | revisao
-    aprovado_por: ""
+  - gate: dataforseo | serp | top_3 | voice | research_market | research_brand | review
+    approver: ""
     confirmation_text: ""
     reason: ""
     missing_dimension: ""
@@ -224,7 +224,7 @@ bypasses:
 briefing_decision:
   required: false
   status: not_required | recorded | needs_review
-  registrado_por: agent
+  registered_by: agent
   timestamp: null
 publication_checks:
   required: true
@@ -237,9 +237,9 @@ source_policy:
 checks:
   passed: true | false | null
   failures: []
-  revisao:
+  review:
     page_present: true | false
-    revisao_backed: true | false
+    review_backed: true | false
     principles_checked: []
     checklist_checked: []
     erros_comuns_checked: []
@@ -260,19 +260,19 @@ next_action: ""
 
 Input: "Create content workflow output for `O que é SEO agêntico` in pt-BR. SERP data is unavailable; this is `teste editorial sem DataForSEO`."
 
-Output: "Return `status: ready_for_writing` for the briefing, preserve accents such as `conteúdo` and `evidência`, record the DataForSEO bypass with consequence, do not claim search volume or Top 3 findings, and mark any draft as voice-bypassed because `project/brain/voz.md` lacks principles."
+Output: "Return `status: ready_for_writing` for the briefing, preserve accents such as `conteúdo` and `evidência`, record the DataForSEO bypass with consequence, do not claim search volume or Top 3 findings, and mark any draft as voice-bypassed because `project/brain/voice.md` lacks principles."
 
 ### Example: Brief With Three Research Artifacts, Credentials Configured
 
 Input: "Crie um artigo sobre `tráfego orgânico` para o blog da Conversion."
 
-Output: "Run `dataforseo.js status` (configured), query SERP and volume, run `extract.js` on each Top 3 URL. Spawn `research-market` and `research-brand` in parallel; once both finish, spawn `seo-analyst` to write the outline. Assemble `brief.yaml` from `outline.md` plus raw evidence under `project/workbench/content/trafego-organico/`. If `project/brain/voz.md` is missing or empty, record the voice state and mark the brief ready with a voice limitation."
+Output: "Run `dataforseo.js status` (configured), query SERP and volume, run `extract.js` on each Top 3 URL. Spawn `research-market` and `research-brand` in parallel; once both finish, spawn `seo-analyst` to write the outline. Assemble `brief.yaml` from `outline.md` plus raw evidence under `project/workbench/content/trafego-organico/`. If `project/brain/voice.md` is missing or empty, record the voice state and mark the brief ready with a voice limitation."
 
 ### Example: Ready Brief To Draft
 
 Input: "The brief for `seo agêntico` is ready. Write the draft."
 
-Output: "Verify the decision record, DataForSEO or bypass disclosures, Top 3 evidence, and filled `project/brain/voz.md`. Then write only to `project/artifacts/contents/seo-agentico/draft.md` and leave `project/conteudos/` untouched."
+Output: "Verify the decision record, DataForSEO or bypass disclosures, Top 3 evidence, and filled `project/brain/voice.md`. Then write only to `project/artifacts/contents/seo-agentico/draft.md` and leave `project/contents/` untouched."
 
 ### Example: Research Sub-Agent Bypass
 
@@ -284,13 +284,13 @@ Output: "Skip the `research-market` sub-agent. Record `bypasses[].gate: research
 
 Input: "Write the article now even without a ready brief. Put it in `project/artifacts/contents/seo-agentico/draft.md`."
 
-Output: "Write only the requested draft to `project/artifacts/contents/seo-agentico/draft.md`, record that briefing and voice gates were bypassed by direct user request, avoid invented metrics or proof, and do not promote to `project/conteudos/`."
+Output: "Write only the requested draft to `project/artifacts/contents/seo-agentico/draft.md`, record that briefing and voice gates were bypassed by direct user request, avoid invented metrics or proof, and do not promote to `project/contents/`."
 
 ### Example: Weak Execution
 
 Input: "Write and publish an article about `seo agêntico`."
 
-Output: "Guess SERP intent, draft from memory, add local source paths in the article, and publish to `project/conteudos/`." This is weak because it skips DataForSEO/SERP/Top 3 disclosures, skips the three research sub-agents, treats drafting as publication readiness, violates source-link policy, and hides missing checks.
+Output: "Guess SERP intent, draft from memory, add local source paths in the article, and publish to `project/contents/`." This is weak because it skips DataForSEO/SERP/Top 3 disclosures, skips the three research sub-agents, treats drafting as publication readiness, violates source-link policy, and hides missing checks.
 
 ## Related Skills
 

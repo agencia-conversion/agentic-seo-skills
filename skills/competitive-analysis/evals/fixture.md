@@ -13,7 +13,7 @@ Available evidence:
 - `attach_backlink_analysis_run: bl-example-2026-05-25` resolves to a complete multi-competitor backlink run.
 - Sitemaps for all 3 players reachable (200 OK).
 - CTR curves: `fps_2026` resolved as primary (AWR placeholder remains). AIO detected on 4 of 18 keywords (22%); `ahrefs_2025_12_aio_deltas` applied to those rows.
-- `project/brain/identidade.md` and `project/brain/voz.md` present.
+- `project/brain/identity.md` and `project/brain/voice.md` present.
 
 Expected output:
 
@@ -23,7 +23,7 @@ Expected output:
 - M3 gap rows reuse M1 packets (no re-fetch).
 - M4 reads the attached backlink run and exposes headline KPIs only; depth is linked, not duplicated.
 - M5 coverage matrix uses the 18 cluster subtopics; freshness window default 24 months.
-- M7 emits `excerpt_literal` + `position` BEFORE any qualitative label; proposes one `tipo: decisao` log entry.
+- M7 emits `excerpt_literal` + `position` BEFORE any qualitative label; proposes one `type: decision` log entry.
 - 6 keywords without volume show up in `keywords_without_volume` with a limitation.
 - Companion report renders one H2 per module; no raw JSON in the body.
 

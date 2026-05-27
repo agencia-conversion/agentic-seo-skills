@@ -45,7 +45,7 @@ The mode is inferred from input: every player is a domain → `domain`; every pl
 | M4 | Link Gap & Linkable Assets | both | `backlink-analysis` `multi-competitor` run, attached |
 | M5 | Topical Authority & Content Footprint | domain | sitemap, HTML structural extraction, optional `topic-cluster` reference |
 | M6 | Head-to-Head Page Comparison | url | HTML structural extraction + `serp-extract` + `technical-seo` subset |
-| M7 | Brand Positioning & Conversion Surface | domain primary | observable hero/CTA/proof/pricing extraction; brain identidade/voz reference |
+| M7 | Brand Positioning & Conversion Surface | domain primary | observable hero/CTA/proof/pricing extraction; brain identity/voice reference |
 
 Per-module compute rules, edge cases, anti-patterns, and YAML row shapes live in `references/modules/<module-id>.md`. Load on demand; never required for the orchestration framework.
 
@@ -66,7 +66,7 @@ Presets are convenience bundles. `modules[]` in input overrides the preset when 
 - **CTR curve gate** (M2 only): a curve must be selected before SoV runs. `selectPrimary({ prefer: ctr_curve_id })` from `shared/ctr-curves/loader.mjs` returns the chosen curve and logs the selection in `provider.ctr_curve` of the output. If no usable curve exists, block M2 and surface the gate.
 - **Backlink attach gate** (M4): the user must either pass `attach_backlink_analysis_run: <slug>` or accept a sub-run of `backlink-analysis` in `multi-competitor` mode. Never reimplement off-page surfaces here.
 - **Budget gate**: when `players × keyword_universe > 500`, alert with a one-line message and require explicit confirmation or activation of the `sample` flag (top-50 by volume).
-- **Brain decision gate** (M7 synthesis): the brand differentiation block proposes a `tipo: decisao` log entry; never writes to `brain/`.
+- **Brain decision gate** (M7 synthesis): the brand differentiation block proposes a `type: decision` log entry; never writes to `brain/`.
 - **Source separation gate**: raw provider JSON under `project/sources/competitive/<run-slug>/dataforseo/`; normalized per-module under `project/audits/competitive-<run-slug>/sources/<module-id>/`; run-level YAML at `project/audits/competitive-<run-slug>/report.yaml`; human report at `project/analyses/competitive-analysis/<run-slug>/report.md`. No raw JSON in the visual body.
 
 ## Framework
@@ -88,7 +88,7 @@ For each module selected by the preset or by `modules[]`:
 - M4: confirm `attach_backlink_analysis_run` exists at `project/audits/backlinks-<slug>/report.yaml`; if missing, schedule a sub-run.
 - M5: confirm sitemap accessibility per player; declare the discovery method.
 - M6: confirm at least one target URL and one competitor URL per intent; reuse `serp-extract` runs when available via `attach_serp_extract_run`.
-- M7: read `project/brain/identidade.md` and `project/brain/voz.md` for the project's own positioning context. If missing, run M7 with `brain_context: absent` and surface the limitation.
+- M7: read `project/brain/identity.md` and `project/brain/voice.md` for the project's own positioning context. If missing, run M7 with `brain_context: absent` and surface the limitation.
 
 Apply the budget gate before any costly provider call.
 

@@ -4,10 +4,10 @@ title: "<título>"
 slug: "<slug-kebab-case>"
 published_at: "<YYYY-MM-DD>"
 source_url: "<url>"
-origem: "outros"
+origin: "other"
 clusters: []
-# papel:
-#   <cluster-slug>: pilar | satelite
+# role:
+#   <cluster-slug>: pillar | satellite
 ---
 
 # <título>
@@ -17,8 +17,8 @@ Modelo genérico para conteúdos publicados que não se encaixam em blog,
 LinkedIn ou podcast: palestras, talks, entrevistas em mídia externa, columns
 em terceiros, vídeos no YouTube, etc.
 
-Adicionar `formato:` no frontmatter se ajudar (ex: `formato: palestra`,
-`formato: talk`, `formato: entrevista`).
+Adicionar `format:` no frontmatter se ajudar (ex: `format: palestra`,
+`format: talk`, `format: entrevista`).
 -->
 
 <conteúdo ou notas>

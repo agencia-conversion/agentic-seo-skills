@@ -4,10 +4,10 @@ title: "<título do post>"
 slug: "<slug-kebab-case>"
 published_at: "<YYYY-MM-DD>"
 source_url: "<url do post no LinkedIn>"
-origem: "linkedin"
+origin: "linkedin"
 clusters: []
-# papel:
-#   <cluster-slug>: pilar | satelite
+# role:
+#   <cluster-slug>: pillar | satellite
 ---
 
 # <título do post>

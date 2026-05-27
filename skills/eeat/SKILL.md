@@ -21,7 +21,7 @@ Do not use this skill to make strategic positioning, register proof entries in t
 - Separate raw evidence, rater-style judgment, and recorded decisions. Agent consensus is not evidence.
 - Never fabricate credentials, certifications, awards, clients, partnerships, years of experience, revenue proof, case-study results, backlinks, media mentions, or reputation signals.
 - Claims with no source remain gaps. Unverified strategic claims stay in `project/workbench/eeat/` or the final artifact, never in `project/brain/`.
-- Adding proof to `project/brain/topic-clusters.md` (or any other authorial brain page) requires sourced present-state findings and a matching `tipo: decisao` or `tipo: prova` entry in `project/brain/log.md` with actor, evidence, gaps, and timestamp.
+- Adding proof to `project/brain/topic-clusters.md` (or any other authorial brain page) requires sourced present-state findings and a matching `type: decision` or `type: evidence` entry in `project/brain/log.md` with actor, evidence, gaps, and timestamp.
 - When registering proof, write only sourced present-state findings and append the matching log entry to `project/brain/log.md`.
 - Treat reputation as externally evidenced. Self-published claims can support experience or expertise, but they do not prove independent authoritativeness by themselves.
 - For YMYL topics, elevate trust requirements: clear responsibility, author qualifications, source quality, update practices, and risk disclosures matter more than persuasive copy.
@@ -84,7 +84,7 @@ When rater outputs are available, merge them by median or middle-ground judgment
 
 **Check:** Which missing evidence creates strategic, reputation, YMYL, or trust risk?
 
-**Strong:** "Awards, named clients, certifications, and revenue impact remain gaps because no provided source confirms them. They should not be used in public copy or registered as `tipo: prova` in the brain."
+**Strong:** "Awards, named clients, certifications, and revenue impact remain gaps because no provided source confirms them. They should not be used in public copy or registered as `type: evidence` in the brain."
 
 **Weak:** "Recommend adding client logos and revenue claims because they would make the page more persuasive."
 
@@ -105,7 +105,7 @@ Prioritize gaps that can mislead users or create quality risk:
 
 **Weak:** "Write the improved E-E-A-T narrative directly into `project/brain/topic-clusters.md` because the review is confident."
 
-Use `project/workbench/eeat/` for audits, draft synthesis, and unverified strategic work. Use `project/artifacts/` for complete deliverables when the user asks for a shareable report. Add proof to `project/brain/log.md` (`tipo: prova`) and reference it in `project/brain/topic-clusters.md` only with source-backed evidence and a logged decision.
+Use `project/workbench/eeat/` for audits, draft synthesis, and unverified strategic work. Use `project/artifacts/` for complete deliverables when the user asks for a shareable report. Add proof to `project/brain/log.md` (`type: evidence`) and reference it in `project/brain/topic-clusters.md` only with source-backed evidence and a logged decision.
 
 ## Output Format
 

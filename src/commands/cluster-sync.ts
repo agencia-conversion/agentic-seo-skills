@@ -324,7 +324,7 @@ function renderSubpageFromTemplate(
     .replace(/<YYYY-MM-DD>/g, now)
     .replace(/<heading>/g, heading)
     .replace(/<resumo>/g, summary)
-    .replace(/<pilar_line>/g, pillarLine)
+    .replace(/<pillar_line>/g, pillarLine)
     .replace(/<content_block>/g, block)
     .replace(/<next_actions>/g, plannedActions)
     .replace(/<evidence_block>/g, "—");

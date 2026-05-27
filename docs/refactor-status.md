@@ -2,20 +2,20 @@
 
 ## Current state
 
-Brain-only model is fully shipped. The skill layer, runtime CLI, helper scripts, companion server, agents, templates, and tests now use `project/brain/` as the only authorial knowledge layer. EEAT proofs live as `tipo: prova` entries in `brain/log.md` and references inside the editorial area H2 sections of `brain/topic-clusters.md` (the standalone `brain/editorial.md` was consolidated into `topic-clusters.md` on 2026-05-26).
+Brain-only model is fully shipped. The skill layer, runtime CLI, helper scripts, companion server, agents, templates, and tests now use `project/brain/` as the only authorial knowledge layer. EEAT proofs live as `type: evidence` entries in `brain/log.md` and references inside the editorial area H2 sections of `brain/topic-clusters.md` (the standalone `brain/editorial.md` was consolidated into `topic-clusters.md` on 2026-05-26).
 
-Public content lives in `project/conteudos/<origem>/<slug>.md`. Raw evidence stays in `project/sources/`, `project/audits/`, `project/workbench/`, or module-specific normalized files. Drafts and analysis stay in `project/workbench/`. Canonical report pages live in `project/analyses/<module>/<run-slug>/report.md` as editable, human-first presentation Markdown governed by `skills/page-report/SKILL.md`, with YAML `version: 1` payloads in `agentic-*` fences; JSON fence bodies are legacy compatibility only. Complete non-report deliverables stay in `project/artifacts/`.
+Public content lives in `project/contents/<origin>/<slug>.md`. Raw evidence stays in `project/sources/`, `project/audits/`, `project/workbench/`, or module-specific normalized files. Drafts and analysis stay in `project/workbench/`. Canonical report pages live in `project/analyses/<module>/<run-slug>/report.md` as editable, human-first presentation Markdown governed by `skills/page-report/SKILL.md`, with YAML `version: 1` payloads in `agentic-*` fences; JSON fence bodies are legacy compatibility only. Complete non-report deliverables stay in `project/artifacts/`.
 
 ## Cluster spine layout (shipped 2026-05-25)
 
 Topic Clusters são a espinha dorsal do plugin. Conteúdo vive em relação N:N com clusters; cada cluster ativo tem pasta própria em `project/clusters/<slug>/` (com `cluster.yaml` como fonte de verdade operacional e opcionalmente `draft.yaml` como rascunho) e subpágina autoral em `project/brain/topic-clusters/<slug>.md`. Skill `topic-cluster` opera em 4 fases (Pesquisar → Curar → Estruturar → Promover) com rascunho first-class. Conteúdo público declara `clusters: [<slug>, ...]` no frontmatter (substitui `area:` legado).
 
-Sidebar do Companion expõe Topic Clusters em `Brain → Topic Clusters → <Nome>`. Conteúdos aparecem como tabela única com filtros por cluster, origem, status, busca textual. Conteúdos individuais continuam acessíveis ao clicar na linha da tabela.
+Sidebar do Companion expõe Topic Clusters em `Brain → Topic Clusters → <Nome>`. Conteúdos aparecem como tabela única com filtros por cluster, origin, status, busca textual. Conteúdos individuais continuam acessíveis ao clicar na linha da tabela.
 
 ### Decisões fixadas com o usuário em 2026-05-25
 
 1. Editorial mantém-se como camada estratégica macro (1 área : N clusters); cluster declara `area:`; conteúdo declara `clusters:[]`.
-2. Sidebar de Conteúdos vira tabela única com filtro multi-select por cluster; arquivos seguem flat em `conteudos/<origem>/<slug>.md`.
+2. Sidebar de Conteúdos vira tabela única com filtro multi-select por cluster; arquivos seguem flat em `contents/<origin>/<slug>.md`.
 3. Skill `topic-cluster` em 4 fases estilo content-creator, com rascunho first-class.
 4. Humano promove cluster novo via handoff Companion; agente atualiza cluster existente brain-first com log; pedido explícito do usuário é soberano.
 
@@ -35,11 +35,29 @@ Se algo escapar do refator, o rollback é:
 1. `git reset --hard pre-cluster-migration` (restaura arquivos rastreados).
 2. Restaurar `project/` do tarball mais recente em `.context/backups/project-pre-cluster-migration-*.tar.gz`.
 
+### Refactor 5 — English-first schema cutover (2026-05-26)
+
+English schema is the single source of truth across code (`src/`, `apps/companion/`), helper scripts (`scripts/lib/`), templates (`templates/project/`, `templates/companion/`), skills (`skills/*/SKILL.md`, `evals/`, `references/`, `contract.yaml`), and docs (`AGENTS.md`, `CLAUDE.md`, `docs/specs/topic-clusters-contract.md`, this file).
+
+The cutover migrates:
+
+- `cluster.yaml` schema keys: `nome` → `name`, `tese` → `thesis`, `pilar` → `pillar`, `satelite_overrides` → `satellite_overrides`, `stats.publicados` → `stats.published`, `stats.planejados` → `stats.planned`.
+- Content frontmatter: `origem` → `origin`, `papel` → `role`. Enum values: `pilar | satelite` → `pillar | satellite`; `blog | linkedin | podcast | outros` → `blog | linkedin | podcast | other`.
+- Brain `log.md` schema: `tipo` → `type`, `aprovador` → `approver`, `aprovado_em` → `approved_at`, `escopo` → `scope`, `decisao` → `decision`, `evidencia` → `evidence`, `notas` → `notes`. Enum values: `aprovacao | decisao | errata | ingestao | publicacao | prova` → `approval | decision | correction | ingestion | publication | evidence` (`lint` unchanged).
+- Lint namespaces: `cluster.pilar.*` → `cluster.pillar.*`, `cluster.unique-pilar` → `cluster.unique-pillar`, `content.papel-orphan` → `content.role-orphan`.
+- Brain page filenames: `identidade.md` → `identity.md`, `voz.md` → `voice.md`, `tecnologia.md` → `technology.md`, `revisao.md` → `review.md`, `produtos.md` → `products.md`. Subdirs follow.
+- Content folder layout: `templates/project/conteudos/` → `templates/project/contents/`; `conteudos/outros/` → `contents/other/`.
+- Renamed `docs/specs/topic-clusters-iteracao-3.md` → `docs/specs/topic-clusters-iteration-3.md`.
+
+Generated prose (headings, comments, user-facing labels in templates and skills) remains in pt-BR — only schema keys, file paths, and code identifiers move to English. Companion UI display strings stay in pt-BR (load from English keys via locale module).
+
+Phase 5 will add `scripts/migrate-project-to-english.mjs` to mechanically migrate existing local `project/` instances from the legacy schema to the English one.
+
 ### Known debt
 
-- Handoff `approve-cluster` implementado em `scripts/lib/companion-types/approve-cluster.mjs` + `templates/companion/approve-cluster.html` (2026-05-26). Promoção via Companion lê `draft.yaml`, mostra pilar/satélites/bypass, e ao aprovar copia para `cluster.yaml`, arquiva o draft, roda `cluster-sync`, e registra `tipo: aprovacao` em `brain/log.md`.
-- `test_pt_br_diacritics.mjs` corrigido em 2026-05-26: comentários HTML em templates `voz.md`, `identidade.md`, `tecnologia.md` agora carregam acentos; schema enum em `log.md` envolvido em backticks para passar pelo stripper de inline code do teste.
-- `test_single_project_contract.mjs` corrigido em 2026-05-26: docs `project-persistence` e `topic-clusters-iteracao-3` reescritos para descrever paths sem incluir os literais banidos pelo teste; este parágrafo também foi reescrito para não usá-los.
+- Handoff `approve-cluster` implementado em `scripts/lib/companion-types/approve-cluster.mjs` + `templates/companion/approve-cluster.html` (2026-05-26). Promoção via Companion lê `draft.yaml`, mostra pillar/satellites/bypass, e ao aprovar copia para `cluster.yaml`, arquiva o draft, roda `cluster-sync`, e registra `type: approval` em `brain/log.md`.
+- `test_pt_br_diacritics.mjs` corrigido em 2026-05-26: comentários HTML em templates de brain agora carregam acentos; schema enum em `log.md` envolvido em backticks para passar pelo stripper de inline code do teste.
+- `test_single_project_contract.mjs` corrigido em 2026-05-26: docs `project-persistence` e `topic-clusters-iteration-3` reescritos para descrever paths sem incluir os literais banidos pelo teste; este parágrafo também foi reescrito para não usá-los.
 
 ### Iteração 5 — Spinner, markdown LLM-friendly, workbench inline (2026-05-25)
 
@@ -56,21 +74,21 @@ Se algo escapar do refator, o rollback é:
 project/
   brain/
     index.md
-    identidade.md
-    voz.md
-    tecnologia.md
+    identity.md
+    voice.md
+    technology.md
     # editorial.md consolidado em topic-clusters.md como H2 sections (2026-05-26)
     topic-clusters.md        # índice curto + dashboard
     topic-clusters/
       <slug>.md              # subpágina por cluster (uma por cluster ativo)
-    revisao.md
+    review.md
     log.md
   sources/
-  conteudos/
+  contents/
     blog/<slug>.md           # flat; sem subpasta por slug
     linkedin/<slug>.md
     podcast/<slug>.md
-    outros/<slug>.md
+    other/<slug>.md
   clusters/
     <slug>/
       cluster.yaml           # ativo
@@ -105,13 +123,13 @@ Website creation, CMS setup, deployment setup, and frontend implementation comma
 ```markdown
 ## YYYY-MM-DD - <título>
 
-- tipo: aprovacao | decisao | errata | lint | ingestao | publicacao | prova
-- escopo: <arquivo(s) | área | cluster | fonte>
-- decisao: <o que mudou>
-- evidencia: <wikilinks, ../sources/..., urls>
-- aprovador: <nome humano | agent>
-- aprovado_em: <YYYY-MM-DD opcional para entradas legadas de aprovação>
-- notas: <opcional>
+- type: approval | decision | correction | lint | ingestion | publication | evidence
+- scope: <arquivo(s) | área | cluster | fonte>
+- decision: <o que mudou>
+- evidence: <wikilinks, ../sources/..., urls>
+- approver: <nome humano | agent>
+- approved_at: <YYYY-MM-DD opcional para entradas legadas de aprovação>
+- notes: <opcional>
 ```
 
 ## Companion server
@@ -119,12 +137,12 @@ Website creation, CMS setup, deployment setup, and frontend implementation comma
 The browser-based decision/preview flow runs on the brain model:
 
 - Helper module: `scripts/lib/brain-page.mjs`.
-- Review target paths are `brain/<page>.md`; the only authorial pages are `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`.
-- Missing sources detected during page review are registered as `tipo: ingestao` entries in `brain/log.md` (no separate sources catalog).
-- Project browser mode: `scripts/companion.mjs project-browser` starts the Noteon-based local companion on `127.0.0.1` with a tokenized URL. It maps local Markdown files from `project/brain/`, `project/conteudos/`, `project/workbench/`, and editable report pages from `project/analyses/` into the Noteon UI, keeps `brain/log.md` read-only, and autosaves editable files while logging authorial brain/report edits as `tipo: decisao`.
+- Review target paths are `brain/<page>.md`; the only authorial pages are `index`, `identity`, `voice`, `technology`, `topic-clusters`, `review`.
+- Missing sources detected during page review are registered as `type: ingestion` entries in `brain/log.md` (no separate sources catalog).
+- Project browser mode: `scripts/companion.mjs project-browser` starts the Noteon-based local companion on `127.0.0.1` with a tokenized URL. It maps local Markdown files from `project/brain/`, `project/contents/`, `project/workbench/`, and editable report pages from `project/analyses/` into the Noteon UI, keeps `brain/log.md` read-only, and autosaves editable files while logging authorial brain/report edits as `type: decision`.
 - `eeat` engine accepts `--mode brain` or `--mode url`.
 - Data/report commands apply `page-report`, return `report_md`, and render Companion Markdown reports under `project/analyses/`; legacy `report.html` files are not generated by default.
-- Reports are editable in the Companion. Save uses optimistic locking, preserves report frontmatter, adds `edited_at`, and appends a `tipo: decisao` entry to `brain/log.md`; report creation and deletion remain blocked in v1.
+- Reports are editable in the Companion. Save uses optimistic locking, preserves report frontmatter, adds `edited_at`, and appends a `type: decision` entry to `brain/log.md`; report creation and deletion remain blocked in v1.
 - Project language is stored in `project/.agentic-seo/project.json.language`. The Companion exposes `GET/PATCH /api/project/settings`; UI/report copy is complete for `pt-BR` and `en`, with other report locales falling back to the closest supported language.
 - Report renderers must not emit a duplicate body H1, must hide a legacy first H1 equal to frontmatter title, and must transform raw JSON/object evidence into human-readable prose or tables while linking the `source_artifact`.
 

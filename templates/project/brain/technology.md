@@ -10,8 +10,8 @@ PROPOSITO: Stack observado e mapa de SEO técnico do site da marca. Este
 arquivo e exclusivamente operacional: o que foi observado no site, o que
 foi decidido, o que falta verificar. NÃO documenta opiniao editorial sobre stack
 ("preferimos sites estaticos", "rejeitamos WordPress", "acreditamos em
-edge rendering"). Tese editorial sobre tecnologia vive em [[editorial]]
-ou em conteudos publicados em `conteudos/`. Cada linha factual aqui tem
+edge rendering"). Tese editorial sobre tecnologia vive em [[topic-clusters]]
+ou em conteudos publicados em `contents/`. Cada linha factual aqui tem
 evidência de observacao direta em ## Evidência no rodape ou ancora para
 [[log]]. Comentarios <!-- REGRA: --> sao vinculantes e devem ser
 REMOVIDOS quando o arquivo for preenchido.

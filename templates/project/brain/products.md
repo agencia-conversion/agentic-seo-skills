@@ -7,7 +7,7 @@ updated: "<YYYY-MM-DD>"
 
 <!--
 Mapa dos produtos que a empresa vende. Cada produto pode ganhar uma subpágina
-dedicada em `brain/produtos/<slug>.md` com descrição, público, posicionamento,
+dedicada em `brain/products/<slug>.md` com descrição, público, posicionamento,
 links e provas. Mantenha a tabela abaixo curta — detalhe vai na subpágina.
 -->
 

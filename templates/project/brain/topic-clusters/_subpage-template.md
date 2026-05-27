@@ -13,11 +13,11 @@ updated: "{{updated}}"
 
 <!-- Espaço para o autor expandir em prosa: tese central do cluster, diferenciação editorial, audiência principal, conexão com outras áreas. Texto livre. -->
 
-Pertence à área [[editorial]] (`{{area}}`).
+Pertence à área [[topic-clusters]] (`{{area}}`).
 
 ## Pilar
 
-{{pilar_line}}
+{{pillar_line}}
 
 ## Conteúdos
 

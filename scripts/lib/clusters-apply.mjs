@@ -223,7 +223,7 @@ function buildClusterSubpage(entry, publishedByCluster) {
     heading,
     resumo: yaml.context || `Cluster ${yaml.name}.`,
     area: yaml.area || "",
-    pilar_line: buildPillarLine(yaml, pillarContent),
+    pillar_line: buildPillarLine(yaml, pillarContent),
     contents_table: contentsTable,
     next_actions: nextActions,
     provenance: yaml.provenance?.source || "site-crawl",

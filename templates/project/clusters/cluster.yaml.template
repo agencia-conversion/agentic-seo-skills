@@ -4,14 +4,14 @@
 
 contract_version: 1
 slug: <kebab-slug>
-nome: "<Nome do Cluster>"
-area: <slug em brain/editorial.md>
+name: "<Nome do Cluster>"
+area: <slug em brain/topic-clusters.md>
 status: active                          # drafting | proposed | active | archived
-tese: |
+thesis: |
   <2-3 linhas com a tese do cluster, escritas em pt-BR, sem AI-slop.>
 
-pilar:
-  slug: <content-slug-em-conteudos>
+pillar:
+  slug: <content-slug-em-contents>
   keyword: "<keyword do pilar>"
   intent: informational                 # informational | transactional | comparative | navigational
   volume: null
@@ -23,16 +23,16 @@ planned_satellites:
     intent: informational
     volume: null
     volume_source: null
-    papel: satelite
+    role: satellite
     editorial_status: draft             # draft | in-review | approved | published
     note: "Gap identificado no cluster."
 
-satelite_overrides: {}                  # opcional; só quando conteúdo publicado precisa de
+satellite_overrides: {}                 # opcional; só quando conteúdo publicado precisa de
                                         # display_title/keyword/editorial_status diferentes do título do post
 
 stats:                                  # regenerado por cluster-sync
-  publicados: 0
-  planejados: 1
+  published: 0
+  planned: 1
   updated: <YYYY-MM-DD>
 
 provenance:

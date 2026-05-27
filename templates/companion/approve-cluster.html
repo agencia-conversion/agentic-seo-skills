@@ -45,27 +45,27 @@
   <!--CONTEXT-->
   <main>
     <h1>Aprovar cluster <span class="slug" id="hdr-slug"></span></h1>
-    <p>Esta promoção move o cluster de <code>draft.yaml</code> para <code>cluster.yaml</code>, cria/atualiza a subpágina <code>brain/topic-clusters/&lt;slug&gt;.md</code> via <code>cluster-sync</code> e registra <code>tipo: aprovacao</code> em <code>brain/log.md</code>. Ação reversível apenas via novo log + edição manual.</p>
+    <p>Esta promoção move o cluster de <code>draft.yaml</code> para <code>cluster.yaml</code>, cria/atualiza a subpágina <code>brain/topic-clusters/&lt;slug&gt;.md</code> via <code>cluster-sync</code> e registra <code>type: approval</code> em <code>brain/log.md</code>. Ação reversível apenas via novo log + edição manual.</p>
 
     <section class="panel">
       <h2>Identidade do cluster</h2>
       <dl>
-        <dt>Nome</dt><dd id="nome"></dd>
+        <dt>Nome</dt><dd id="name"></dd>
         <dt>Área editorial</dt><dd id="area"></dd>
         <dt>Status atual</dt><dd id="status-current"></dd>
         <dt>Contract version</dt><dd id="contract"></dd>
       </dl>
       <h2>Tese</h2>
-      <p id="tese"></p>
+      <p id="thesis"></p>
     </section>
 
     <section class="panel">
       <h2>Pilar</h2>
       <dl>
-        <dt>Slug</dt><dd><code id="pilar-slug"></code></dd>
-        <dt>Keyword</dt><dd id="pilar-keyword"></dd>
-        <dt>Intent</dt><dd id="pilar-intent"></dd>
-        <dt>Volume</dt><dd id="pilar-volume"></dd>
+        <dt>Slug</dt><dd><code id="pillar-slug"></code></dd>
+        <dt>Keyword</dt><dd id="pillar-keyword"></dd>
+        <dt>Intent</dt><dd id="pillar-intent"></dd>
+        <dt>Volume</dt><dd id="pillar-volume"></dd>
       </dl>
     </section>
 
@@ -125,19 +125,19 @@
     const txt = (id, value, fallback = "—") => { $(id).textContent = (value === 0 || value) ? value : fallback; };
 
     txt("hdr-slug", ctx.slug);
-    txt("nome", ctx.nome);
+    txt("name", ctx.name);
     txt("area", ctx.area);
     txt("contract", ctx.contract_version);
-    txt("tese", ctx.tese, "(sem tese registrada no draft)");
+    txt("thesis", ctx.thesis, "(sem tese registrada no draft)");
 
     const statusEl = $("status-current");
     statusEl.innerHTML = `<span class="badge ${ctx.status}">${ctx.status}</span>${ctx.has_existing_cluster ? " (cluster.yaml já existe; será sobrescrito)" : ""}`;
 
-    if (ctx.pilar) {
-      txt("pilar-slug", ctx.pilar.slug);
-      txt("pilar-keyword", ctx.pilar.keyword);
-      txt("pilar-intent", ctx.pilar.intent);
-      txt("pilar-volume", ctx.pilar.volume == null ? "null (sem DataForSEO)" : ctx.pilar.volume);
+    if (ctx.pillar) {
+      txt("pillar-slug", ctx.pillar.slug);
+      txt("pillar-keyword", ctx.pillar.keyword);
+      txt("pillar-intent", ctx.pillar.intent);
+      txt("pillar-volume", ctx.pillar.volume == null ? "null (sem DataForSEO)" : ctx.pillar.volume);
     }
 
     const tbody = $("satellites").querySelector("tbody");

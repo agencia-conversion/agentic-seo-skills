@@ -5,7 +5,7 @@ updated: "{{updated}}"
 
 # {{title}}
 
-<!-- Subpágina de [[produtos]]. Use para detalhar um produto/serviço específico além do resumo do índice. -->
+<!-- Subpágina de [[products]]. Use para detalhar um produto/serviço específico além do resumo do índice. -->
 
 ## Descrição
 

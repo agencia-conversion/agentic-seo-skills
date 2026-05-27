@@ -2,7 +2,7 @@
 /* SPDX-License-Identifier: MIT
  * Agentic SEO site-import CLI.
  * Discovers URLs in a target sitemap, extracts each page via tools/clis/extract.js,
- * classifies by URL pattern, and writes project/conteudos/<origem>/<slug>.md with
+ * classifies by URL pattern, and writes project/contents/<origin>/<slug>.md with
  * frontmatter contract_version: 1. Idempotent: skips files already present.
  * Implementation lives in scripts/import-site.mjs; this wrapper provides the
  * stable tools/clis/ entry point and the JSON envelope used by other tools.
@@ -41,7 +41,7 @@ function help() {
     usage: "node tools/clis/site-import.js [--base <url>] [--dry-run] [--limit <n>]",
     notes: [
       "Default base: https://agenticseo.sh",
-      "Discovers <url>/sitemap.xml, classifies URLs (blog → conteudos/blog/; tools/cursos/ai-metrics → conteudos/outros/), extracts each via extract.js, writes Markdown with frontmatter contract_version: 1.",
+      "Discovers <url>/sitemap.xml, classifies URLs (blog → contents/blog/; tools/cursos/ai-metrics → contents/other/), extracts each via extract.js, writes Markdown with frontmatter contract_version: 1.",
       "Output: stable JSON envelope when invoked with --json; otherwise streams human progress.",
     ],
   });

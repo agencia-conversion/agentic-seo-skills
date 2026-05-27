@@ -4,9 +4,9 @@ Spec executável dos ajustes pedidos após validação no Companion. Cada item d
 
 ## 1. Bug: cliques em links markdown abrem 404
 
-Links como `[O que é SEO Agêntico?](../../conteudos/blog/o-que-e-seo-agentico.md)` dentro das subpáginas brain caem em 404 porque o navegador resolve o path relativo contra a URL atual (`/project/{token}/{slug}/../../conteudos/blog/X.md`), não contra o roteador interno do Companion.
+Links como `[O que é SEO Agêntico?](../../contents/blog/o-que-e-seo-agentico.md)` dentro das subpáginas brain caem em 404 porque o navegador resolve o path relativo contra a URL atual (`/project/{token}/{slug}/../../contents/blog/X.md`), não contra o roteador interno do Companion.
 
-**Solução**: interceptar cliques em links no editor TipTap (ou no renderer markdown). Quando o `href` aponta para um path relativo `.md`, normalizar para o `id` da `Page` (path absoluto do projeto, ex: `conteudos/blog/o-que-e-seo-agentico.md`), achar a page no store e navegar via `router.push(pagePath(page.slug))`.
+**Solução**: interceptar cliques em links no editor TipTap (ou no renderer markdown). Quando o `href` aponta para um path relativo `.md`, normalizar para o `id` da `Page` (path absoluto do projeto, ex: `contents/blog/o-que-e-seo-agentico.md`), achar a page no store e navegar via `router.push(pagePath(page.slug))`.
 
 **Arquivos**: `apps/companion/src/features/editor/editor-panel.tsx` (handler de clique) ou novo handler em `editor-extensions.ts`.
 
@@ -19,7 +19,7 @@ Hoje a tabela `## Conteúdos` mostra o `title` completo (ex: "GEO: o que é Gene
 **Solução**: novo campo opcional `display_title:` nos satélites do `cluster.yaml`. Fallback automático: cortar antes do primeiro `:`, `—` ou `-` se a string completa for longa (>40 chars).
 
 ```yaml
-satelites:
+planned_satellites:
   - slug: geo-generative-engine-optimization
     display_title: "O que é GEO"
     keyword: "GEO"
@@ -40,25 +40,25 @@ Coluna Keyword passa a renderizar `Keyword (Volume)` quando há volume conhecido
 
 ## 4. Página "Produtos" no Cérebro
 
-Adicionar `brain/produtos.md` como página canônica do brain. Permite documentar produtos da empresa (nome, descrição, links).
+Adicionar `brain/products.md` como página canônica do brain. Permite documentar produtos da empresa (nome, descrição, links).
 
 **Solução**:
-- Acrescenta `brain/produtos.md` ao `AUTHORIAL_BRAIN_PAGES` e `BRAIN_PAGE_ORDER` no espelho TS (`apps/companion/src/lib/project-files.ts`) e no MJS (`scripts/lib/project-browser-files.mjs`).
-- Template em `templates/project/brain/produtos.md` com estrutura mínima (cabeçalho + tabela vazia).
-- Criar o arquivo em `project/brain/produtos.md` no projeto atual.
+- Acrescenta `brain/products.md` ao `AUTHORIAL_BRAIN_PAGES` e `BRAIN_PAGE_ORDER` no espelho TS (`apps/companion/src/lib/project-files.ts`) e no MJS (`scripts/lib/project-browser-files.mjs`).
+- Template em `templates/project/brain/products.md` com estrutura mínima (cabeçalho + tabela vazia).
+- Criar o arquivo em `project/brain/products.md` no projeto atual.
 
 **Aceite**: sidebar mostra "Produtos" entre as páginas do Brain.
 
 ## 5. Criar subpáginas livremente em qualquer página do Brain
 
-Hoje só `brain/topic-clusters/<slug>.md` aceita subpáginas. Permitir que o usuário crie subpáginas em qualquer página do brain (ex: `brain/produtos/<slug>.md`, `brain/identidade/<slug>.md`).
+Hoje só `brain/topic-clusters/<slug>.md` aceita subpáginas. Permitir que o usuário crie subpáginas em qualquer página do brain (ex: `brain/products/<slug>.md`, `brain/identity/<slug>.md`).
 
 **Solução**:
 - Endpoint `POST /api/project/file/create` ganha modo `kind: 'brain-subpage'` com `parentPath: brain/<page>.md` → cria `brain/<page>/<slug>.md`.
 - Validação: aceita `brain/<dir>/<slug>.md` para qualquer `<dir>` (não só `topic-clusters`).
 - UI: botão "+ Nova subpágina" ao lado de cada item brain na sidebar (ou no header da página).
 
-**Aceite**: usuário pode criar `brain/produtos/produto-x.md` pela UI.
+**Aceite**: usuário pode criar `brain/products/produto-x.md` pela UI.
 
 ## 6. Tabela dinâmica (adicionar linhas via UI)
 

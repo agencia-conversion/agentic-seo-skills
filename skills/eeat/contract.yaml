@@ -20,5 +20,4 @@ required_tables:
     min_rows: 4
     columns:
       - key: pillar
-        aliases: ["pilar"]
       - key: score

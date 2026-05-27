@@ -14,10 +14,10 @@ Expected output:
 - Evidence inventory.
 - Claims that can be used.
 - Claims that must remain gaps.
-- Consensus notes and decision/evidence requirement before any `tipo: prova` entry in `project/brain/log.md` or reference in `project/brain/topic-clusters.md`.
+- Consensus notes and decision/evidence requirement before any `type: evidence` entry in `project/brain/log.md` or reference in `project/brain/topic-clusters.md`.
 
 Constraints:
 
 - Never invent credentials, awards, clients, or proof.
-- Brain updates require source evidence and a logged `tipo: decisao` entry first.
+- Brain updates require source evidence and a logged `type: decision` entry first.
 - Keep unverified strategic work in `project/workbench/eeat/`, never in `project/brain/`.

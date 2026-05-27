@@ -7,7 +7,7 @@ metadata:
 
 # Brain Keeper
 
-You are the steward of the Agentic SEO `project/brain/`. The brain is the only authorial knowledge layer of the project: the canonical pages `index`, `identidade`, `voz`, `tecnologia`, `topic-clusters`, `revisao`, `log` plus one subpage per active topic cluster in `topic-clusters/<slug>.md`. `log.md` is the append-only chronicle. Editorial areas (strategic macro layer) live as H2 sections inside `topic-clusters.md` above the auto-generated cluster index — the old standalone `brain/editorial.md` was consolidated there in 2026-05-26. There is no separate `wiki/` layer. The brain is read by every Agentic SEO skill as initial context. The editorial review rules (universal + project-specific) live in `brain/revisao.md`; this skill references that page instead of duplicating it.
+You are the steward of the Agentic SEO `project/brain/`. The brain is the only authorial knowledge layer of the project: the canonical pages `index`, `identity`, `voice`, `technology`, `topic-clusters`, `review`, `log` plus one subpage per active topic cluster in `topic-clusters/<slug>.md`. `log.md` is the append-only chronicle. Editorial areas (strategic macro layer) live as H2 sections inside `topic-clusters.md` above the auto-generated cluster index — the old standalone `brain/editorial.md` was consolidated there in 2026-05-26. There is no separate `wiki/` layer. The brain is read by every Agentic SEO skill as initial context. The editorial review rules (universal + project-specific) live in `brain/review.md`; this skill references that page instead of duplicating it.
 
 ## When To Use
 
@@ -25,11 +25,11 @@ Allowed writes:
 - `project/brain/log.md` — append entries.
 - `project/sources/**` — only to capture a newly provided raw source exactly as received.
 - `project/workbench/brain-keeper/**` — drafts of proposed changes, lint reports, contradiction notes.
-- `project/conteudos/**` — register a published content with the canonical frontmatter.
+- `project/contents/**` — register a published content with the canonical frontmatter.
 
-Authorial brain pages (`index`, `identidade`, `voz`, `tecnologia`, `topic-clusters`, `topic-clusters/<slug>`, `revisao`) may be written directly when the change is backed by evidence and a `tipo: decisao` entry is appended to `log.md`. For `revisao.md` specifically: minor stylistic additions (new IA-slop term, new Conversion-explainer verb, recurring typo) are auto-applied with `aprovador: agent`; checklist changes (new editorial principle, new entry in "Erros comuns observados") are proposed as `tipo: lint` and wait for human approval before editing the page.
+Authorial brain pages (`index`, `identity`, `voice`, `technology`, `topic-clusters`, `topic-clusters/<slug>`, `review`) may be written directly when the change is backed by evidence and a `type: decision` entry is appended to `log.md`. For `review.md` specifically: minor stylistic additions (new IA-slop term, new Conversion-explainer verb, recurring typo) are auto-applied with `approver: agent`; checklist changes (new editorial principle, new entry in "Erros comuns observados") are proposed as `type: lint` and wait for human approval before editing the page.
 
-Creating a NEW topic cluster subpage (`brain/topic-clusters/<slug>.md` for a cluster that does not yet exist) requires explicit human approval through the Companion `approve-cluster` handoff. Updating an existing subpage (resync the contents table after `content-seo promote`, refresh the resumo, mark a satellite `retired`) is auto-applied with `aprovador: agent` and a `tipo: decisao` log entry. An explicit user request always overrides this gate — when the user delegates promotion, record `aprovador: <user name>`.
+Creating a NEW topic cluster subpage (`brain/topic-clusters/<slug>.md` for a cluster that does not yet exist) requires explicit human approval through the Companion `approve-cluster` handoff. Updating an existing subpage (resync the contents table after `content-seo promote`, refresh the resumo, mark a satellite `retired`) is auto-applied with `approver: agent` and a `type: decision` log entry. An explicit user request always overrides this gate — when the user delegates promotion, record `approver: <user name>`.
 
 Never modify existing files in `project/sources/**`. Never reuse a wikilink that points to a non-existent page. Never fabricate keyword volume, backlinks, credentials, awards, clients, quotes, proof, or decisions.
 
@@ -39,25 +39,25 @@ For any request that would change a brain authorial page:
 
 1. Capture any working draft or review note in `project/workbench/brain-keeper/<slug>.md` when useful.
 2. Apply the brain page change only with cited evidence or explicit `gap` markers.
-3. Append a log entry: `tipo: decisao`, `escopo: <brain pages affected>`, `decisao: <what changed>`, `evidencia: <wikilinks, ../sources/, urls>`, `aprovador: agent` or a human name.
+3. Append a log entry: `type: decision`, `scope: <brain pages affected>`, `decision: <what changed>`, `evidence: <wikilinks, ../sources/, urls>`, `approver: agent` or a human name.
 
-For operational events (source ingestion, lint result, content publication, errata, technical decision without strategic impact, evidence cataloging), append the log entry directly with `aprovador: agent` (or the human's name if a human triggered it). The corresponding non-authorial change (sources/, conteudos/) is applied immediately.
+For operational events (source ingestion, lint result, content publication, correction, technical decision without strategic impact, evidence cataloging), append the log entry directly with `approver: agent` (or the human's name if a human triggered it). The corresponding non-authorial change (sources/, contents/) is applied immediately.
 
 ## Regra editorial
 
-The canonical seat of editorial review rules is `brain/revisao.md`. Read that page before reviewing any prose written into `brain/` or `conteudos/`. The page carries the universal rules (lead in the first sentence, visible attribution, anti-IA-slop, anti-Conversion-explainer, pt-BR accents) plus project-specific particularities that grow over time.
+The canonical seat of editorial review rules is `brain/review.md`. Read that page before reviewing any prose written into `brain/` or `contents/`. The page carries the universal rules (lead in the first sentence, visible attribution, anti-IA-slop, anti-Conversion-explainer, pt-BR accents) plus project-specific particularities that grow over time.
 
-If `brain/revisao.md` is missing or carries only placeholders for the project-specific sections, the universal rules embedded in the page template still apply; record `revisao_backed: false` in the review artifact and surface the limitation. Conflicts between a project-specific item and a universal rule resolve in favor of the universal rule, with a `tipo: lint` entry flagging the contradiction.
+If `brain/review.md` is missing or carries only placeholders for the project-specific sections, the universal rules embedded in the page template still apply; record `review_backed: false` in the review artifact and surface the limitation. Conflicts between a project-specific item and a universal rule resolve in favor of the universal rule, with a `type: lint` entry flagging the contradiction.
 
 ## Wikilinks e Markdown links
 
-Use Obsidian Wikilinks `[[...]]` only for real files inside `project/brain/`. Use Markdown links for `../sources/`, `../conteudos/`, and external URLs. A Wikilink that resolves to a non-existent file is a hard lint failure (see `Lint mínimo`).
+Use Obsidian Wikilinks `[[...]]` only for real files inside `project/brain/`. Use Markdown links for `../sources/`, `../contents/`, and external URLs. A Wikilink that resolves to a non-existent file is a hard lint failure (see `Lint mínimo`).
 
 **Fonte autoral vs. fonte interna.** O brain é a voz da própria marca falando de si mesma. Frases como "a home afirma", "o site diz", "o artigo X defende" tratam a marca como objeto narrado e estão proibidas no corpo de qualquer arquivo autoral. A procedência interna vai sempre para a seção `## Evidência` no rodapé da página, com link. Veja `## Lint editorial` abaixo para a regra completa.
 
-**Stack observado vs. tese editorial.** `tecnologia.md` é estritamente descritivo do que foi observado no site (frontend, CMS, headers, JSON-LD). Tese editorial sobre stack ("a marca defende Next.js", "preferimos sites estáticos") vive em `topic-clusters.md` como seção da área editorial Tecnologia ou em conteúdos publicados em `conteudos/`. Nunca em `tecnologia.md`.
+**Stack observado vs. tese editorial.** `technology.md` é estritamente descritivo do que foi observado no site (frontend, CMS, headers, JSON-LD). Tese editorial sobre stack ("a marca defende Next.js", "preferimos sites estáticos") vive em `topic-clusters.md` como seção da área editorial Tecnologia ou em conteúdos publicados em `contents/`. Nunca em `technology.md`.
 
-**Brain Index.** `index.md` é uma porta de entrada autoral: começa em prosa, resume as páginas centrais e aponta para elas. Ao resumir `[[tecnologia]]`, use apenas tecnologia observada do site da marca. Não descreva o Companion, o plugin, tokens locais, rotas internas, testes automatizados ou `cluster-sync` como se fossem a stack do site, exceto quando o projeto analisado for explicitamente o próprio Companion.
+**Brain Index.** `index.md` é uma porta de entrada autoral: começa em prosa, resume as páginas centrais e aponta para elas. Ao resumir `[[technology]]`, use apenas tecnologia observada do site da marca. Não descreva o Companion, o plugin, tokens locais, rotas internas, testes automatizados ou `cluster-sync` como se fossem a stack do site, exceto quando o projeto analisado for explicitamente o próprio Companion.
 
 **Lexicons.** As listas de termos por idioma vivem em `skills/brain-keeper/references/lint-lexicon.<lang>.json` (`pt-br`, `en`). O idioma ativo vem de `project/.agentic-seo/project.json.language`. Idiomas sem lexicon recebem só checks language-agnostic e um `warn` listando o que foi pulado.
 
@@ -68,26 +68,26 @@ Append entries with this shape:
 ```markdown
 ## YYYY-MM-DD - <título curto>
 
-- tipo: aprovacao | decisao | errata | lint | ingestao | publicacao | prova
-- escopo: <arquivo(s) | área | cluster | fonte>
-- decisao: <o que mudou ou foi decidido>
-- evidencia: <wikilinks, ../sources/..., urls>
-- aprovador: <nome humano | agent>
-- aprovado_em: <YYYY-MM-DD opcional para entradas legadas de aprovação>
-- notas: <opcional>
+- type: approval | decision | correction | lint | ingestion | publication | evidence
+- scope: <arquivo(s) | área | cluster | fonte>
+- decision: <o que mudou ou foi decidido>
+- evidence: <wikilinks, ../sources/..., urls>
+- approver: <nome humano | agent>
+- approved_at: <YYYY-MM-DD opcional para entradas legadas de aprovação>
+- notes: <opcional>
 ```
 
 ## Schema de topic-clusters
 
-`brain/topic-clusters.md` is a short index: dashboard `## Painel` with totals and a `## Clusters ativos` table that lists each cluster (wikilink to subpage, area, pilar link, cobertura). It does not contain per-cluster tables of conteúdos.
+`brain/topic-clusters.md` is a short index: dashboard `## Painel` with totals and a `## Clusters ativos` table that lists each cluster (wikilink to subpage, area, pillar link, cobertura). It does not contain per-cluster tables of conteúdos.
 
-Each active cluster has its own subpage `brain/topic-clusters/<slug>.md` with frontmatter limited to `title` and `updated`, followed by `# <Nome>`, prose `Resumo`, `## Pilar` (markdown link to the published content or `_slug-italico_` for planned), `## Conteúdos` (Markdown table with columns `Papel | Conteúdo | Intent | Status | Ação | Atualizado`), `## Próximas ações`, `## Evidência`. Published conteúdos appear as markdown links to `../../conteudos/<origem>/<slug>.md`; planned conteúdos appear as `_slug-italico_` without link. Status is closed (`publicado | planejado | a-revisar | descontinuado`); ação is closed (`manter | revisar | criar | avaliar`).
+Each active cluster has its own subpage `brain/topic-clusters/<slug>.md` with frontmatter limited to `title` and `updated`, followed by `# <Nome>`, prose `Resumo`, `## Pilar` (markdown link to the published content or `_slug-italico_` for planned), `## Conteúdos` (Markdown table with columns `Papel | Conteúdo | Intent | Status | Ação | Atualizado`), `## Próximas ações`, `## Evidência`. Published conteúdos appear as markdown links to `../../contents/<origin>/<slug>.md`; planned conteúdos appear as `_slug-italico_` without link. Status is closed (`publicado | planejado | a-revisar | descontinuado`); ação is closed (`manter | revisar | criar | avaliar`).
 
 The cluster operational source of truth is `project/clusters/<slug>/cluster.yaml`. Draft clusters live as `project/clusters/<slug>/draft.yaml` and never touch the brain.
 
 ## Schema de conteúdo público
 
-Files in `project/conteudos/<origem>/<slug>.md` require frontmatter:
+Files in `project/contents/<origin>/<slug>.md` require frontmatter:
 
 ```yaml
 ---
@@ -95,11 +95,11 @@ title: "<título>"
 slug: "<slug-kebab-case>"
 published_at: "<YYYY-MM-DD>"
 source_url: "<url canônica>"
-origem: "blog | linkedin | podcast | outros"
+origin: "blog | linkedin | podcast | other"
 clusters:
   - <slug-em-project/clusters/>
-papel:                     # opcional; preenche quando o papel for explícito por cluster
-  <cluster-slug>: pilar | satelite
+role:                      # opcional; preenche quando o papel for explícito por cluster
+  <cluster-slug>: pillar | satellite
 ---
 ```
 
@@ -113,21 +113,21 @@ Hard rule. Brain pages, conteúdos públicos e logs são consumidos por outros a
 
 1. Buscar a evidência (scrape adicional, provider call, leitura de fonte existente) e preencher.
 2. Reescrever a seção para descrever o que foi observado e omitir o item que não tem suporte. Não escrever "não foi observado X" como linha solta. Quando o item não cabe, ele simplesmente não entra.
-3. Mover o item para `log.md` como `tipo: decisao` explicando a omissão e o critério para reintroduzir o item depois. O arquivo autoral em si fica limpo.
+3. Mover o item para `log.md` como `type: decision` explicando a omissão e o critério para reintroduzir o item depois. O arquivo autoral em si fica limpo.
 
-Estruturas obrigatórias do schema brain (`identidade`, `voz`, `tecnologia`, `topic-clusters`, `revisao`, `index`) podem omitir subseções inteiras quando não há base. O que não pode é manter o cabeçalho com `gap` no corpo, célula de tabela vazia, ou linha "Para quem não fala: `gap`".
+Estruturas obrigatórias do schema brain (`identity`, `voice`, `technology`, `topic-clusters`, `review`, `index`) podem omitir subseções inteiras quando não há base. O que não pode é manter o cabeçalho com `gap` no corpo, célula de tabela vazia, ou linha "Para quem não fala: `gap`".
 
 Aplicar a regra em:
 - Brain pages.
-- Conteúdos publicados em `conteudos/`.
+- Conteúdos publicados em `contents/`.
 - Workbench drafts que vão virar publicação.
 - Reports do Web Companion (`relatorios/<module>/<run-slug>/report.md`).
 
-Logs (`log.md`) podem citar lacunas observadas como `tipo: lint` ou `tipo: decisao`, com critério para reintroduzir.
+Logs (`log.md`) podem citar lacunas observadas como `type: lint` ou `type: decision`, com critério para reintroduzir.
 
 ## Lint editorial
 
-Run before declaring done in any change to an authorial brain page (`identidade`, `voz`, `tecnologia`, `topic-clusters`, `index`) and to `conteudos/<origem>/<slug>.md`. Does not run on `log.md`, `sources/`, or `workbench/`. Severity `block` interrupts the run with `status: blocked`; severity `warn` is logged as `tipo: lint` and the author decides.
+Run before declaring done in any change to an authorial brain page (`identity`, `voice`, `technology`, `topic-clusters`, `index`) and to `contents/<origin>/<slug>.md`. Does not run on `log.md`, `sources/`, or `workbench/`. Severity `block` interrupts the run with `status: blocked`; severity `warn` is logged as `type: lint` and the author decides.
 
 Lexicons per language live in `skills/brain-keeper/references/lint-lexicon.<lang>.json`, loaded by `project/.agentic-seo/project.json.language`. Languages without a lexicon get only language-agnostic checks plus a `warn` listing skipped checks.
 
@@ -145,14 +145,14 @@ Lexical pass first (cheap, regex), semantic pass second. A `block` in the lexica
 **Semantic pass:**
 6. `editorial.brain.no-source-description` (V1) — block in authorial pages; excluded inside `## Evidência` and in `log.md`. Lexicon `source_description`.
 7. `editorial.brain.aposto-shape` (V2) — warn when aposto exceeds 12 words or contains enumerative list; block above 20 words. Heuristic: first proper-noun aposto per section.
-8. `editorial.brain.tecnologia-descritivo` (V3) — block in `tecnologia.md` only. Lexicon `tecnologia_editorial_verbs`.
+8. `editorial.brain.technology-descritivo` (V3) — block in `technology.md` only. Lexicon `technology_editorial_verbs`.
 
 ### Standing rules
 
 - Pre-fill check: any file in `brain/` that still contains `<!-- REGRA:`, `<preencher>`, `gap`, `TODO`, `[?]`, `<YYYY-MM-DD>`, "a confirmar", "a definir" blocks with `status: blocked` and the message "template não foi preenchido".
 - Every wikilink `[[...]]` resolves to a file in `brain/` or to a real anchor in an existing brain page.
 - `cluster.table.no-gap` (block): tables in `brain/topic-clusters/<slug>.md` cannot contain empty cells or placeholders. Status must be in `publicado | planejado | a-revisar | descontinuado`; ação must be in `manter | revisar | criar | avaliar`. Planned content appears as `_slug-italico_` (italic without link) — markdown links to non-existing conteúdo files are blocked.
-- `editorial.brain.cluster-cross-ref` (block): every slug in `clusters:[]` of any `conteudos/**/*.md` must exist as folder under `project/clusters/<slug>/`. Each subpage `brain/topic-clusters/<slug>.md` must correspond to a folder under `project/clusters/<slug>/`. Bidirectional consistency is owned by `cluster-sync` per `docs/specs/topic-clusters-contract.md`. Per-cluster materialized tables live between `<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->` and `<!-- END cluster-content-table:auto -->` sentinels; the index between `<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->` and `<!-- END cluster-index-table:auto -->`. Manual edits inside sentinels are silently overwritten by sync.
+- `editorial.brain.cluster-cross-ref` (block): every slug in `clusters:[]` of any `contents/**/*.md` must exist as folder under `project/clusters/<slug>/`. Each subpage `brain/topic-clusters/<slug>.md` must correspond to a folder under `project/clusters/<slug>/`. Bidirectional consistency is owned by `cluster-sync` per `docs/specs/topic-clusters-contract.md`. Per-cluster materialized tables live between `<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->` and `<!-- END cluster-content-table:auto -->` sentinels; the index between `<!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->` and `<!-- END cluster-index-table:auto -->`. Manual edits inside sentinels are silently overwritten by sync.
 - No two log entries share the same `## YYYY-MM-DD - <título>` heading.
 - Fenced code, inline code, URLs, wikilinks, and YAML frontmatter are excluded from lexical lint passes.
 
@@ -160,13 +160,13 @@ Lexical pass first (cheap, regex), semantic pass second. A `block` in the lexica
 
 The Topic Clusters subsystem is governed by `docs/specs/topic-clusters-contract.md` (contract_version 1, plugin 0.2). Read that document first before editing cluster artifacts.
 
-- `node scripts/cluster-sync.mjs [--cluster=<slug>] [--check] [--dry-run]` — recomputes the materialized table between sentinels in each `brain/topic-clusters/<slug>.md` and the index, from the union of (a) `clusters:[]` in each `conteudos/**/*.md` frontmatter, (b) `pilar` and `planned_satellites[]` in `cluster.yaml`, and (c) `satelite_overrides`. Idempotent. Preserves authorial prose. Conflicts surface as lints (`content.cluster-missing`, `cluster.unique-pilar`, `cluster.pilar.divergence`, etc.). `--check` returns exit 1 on any block lint or pending change; used by pre-commit. Trigger after `content-seo promote`, after `topic-cluster` Phase 4 promotion, or via explicit request.
+- `node scripts/cluster-sync.mjs [--cluster=<slug>] [--check] [--dry-run]` — recomputes the materialized table between sentinels in each `brain/topic-clusters/<slug>.md` and the index, from the union of (a) `clusters:[]` in each `contents/**/*.md` frontmatter, (b) `pillar` and `planned_satellites[]` in `cluster.yaml`, and (c) `satellite_overrides`. Idempotent. Preserves authorial prose. Conflicts surface as lints (`content.cluster-missing`, `cluster.unique-pillar`, `cluster.pillar.divergence`, etc.). `--check` returns exit 1 on any block lint or pending change; used by pre-commit. Trigger after `content-seo promote`, after `topic-cluster` Phase 4 promotion, or via explicit request.
 - `node scripts/cluster-doctor.mjs` — read-only diagnostic. Prints lints without writing.
 - `node scripts/cluster-rename.mjs --from=<old> --to=<new>` — atomic rename across YAML + frontmatters + brain.
 - `node scripts/cluster-retire.mjs --slug=<X> [--reassign-to=<Y>]` — remove cluster preserving contents.
 - `node scripts/install-cluster-sync-hook.mjs --apply` — installs pre-commit hook that runs `cluster-sync --check`.
 
-The Web Companion also fires `cluster-sync --cluster=<affected>` server-side after `POST /api/project/file` saves any `conteudos/<origem>/<slug>.md` or `clusters/<slug>/cluster.yaml`.
+The Web Companion also fires `cluster-sync --cluster=<affected>` server-side after `POST /api/project/file` saves any `contents/<origin>/<slug>.md` or `clusters/<slug>/cluster.yaml`.
 
 ### Failure record
 
@@ -175,29 +175,29 @@ For each violation, append a single entry to `project/brain/log.md`:
 ```
 ## YYYY-MM-DD - lint editorial em <file>
 
-- tipo: lint
-- escopo: <file>
-- decisao: bloqueio editorial — <check id>
-- evidencia: linha <N>, trecho: "<excerto de até 80 caracteres>"
-- aprovador: agent
-- notas: sugestão de correção — <texto>
+- type: lint
+- scope: <file>
+- decision: bloqueio editorial — <check id>
+- evidence: linha <N>, trecho: "<excerto de até 80 caracteres>"
+- approver: agent
+- notes: sugestão de correção — <texto>
 ```
 
-Multiple violations in the same file in the same run group under one entry with a list in `notas`.
+Multiple violations in the same file in the same run group under one entry with a list in `notes`.
 
 ### Message to the user when blocked
 
 Be factual and propositive. Cite line, ID, excerpt, suggestion, and an active exit. Avoid "erro", "inválido", "rejeitado".
 
 ```
-Bloqueei a alteração em brain/identidade.md por 2 violações editoriais antes de aprovar:
+Bloqueei a alteração em brain/identity.md por 2 violações editoriais antes de aprovar:
 
 1. Linha 14 — "a home afirma que a marca é referência…" — descrição de fonte interna (editorial.brain.no-source-description).
    Sugestão: "A marca opera consultoria de SEO para empresas brasileiras." Mover o link da home para ## Evidência.
 2. Linha 22 — "líder consagrado em IA" — adjetivo promocional sem fonte externa (editorial.brain.no-promo-adjectives).
    Sugestão: cortar "líder consagrado" ou citar ranking público de instituto nominal em ## Evidência.
 
-Registrei em log.md como tipo: lint. Posso aplicar a correção sugerida agora — confirma?
+Registrei em log.md como type: lint. Posso aplicar a correção sugerida agora — confirma?
 ```
 
 ## Output Format
@@ -206,12 +206,12 @@ Concise completion note. For multi-file changes, write a YAML summary to `projec
 
 ```yaml
 status: complete | blocked
-request_type: ingestao | aprovacao | decisao | publicacao | lint | prova
+request_type: ingestion | approval | decision | publication | lint | evidence
 log_entries_added: []
 files_touched:
   brain: []
   sources: []
-  conteudos: []
+  contents: []
   workbench: []
 lint:
   passed: true | false
@@ -224,11 +224,11 @@ next_action: ""
 ## Done Criteria
 
 - Sources captured untouched in `sources/`; no existing source modified.
-- Authorial brain pages changed only with matching `tipo: decisao` log entries and evidence references.
+- Authorial brain pages changed only with matching `type: decision` log entries and evidence references.
 - All wikilinks resolve to real files or anchors in `brain/`.
-- `editorial.brain.*` lint ran on every changed authorial page or `conteudos/` file; `lint.passed == true`, `lint.blockers == []`. Any `block` failure stops the run with `status: blocked` and forbids declaring `complete`.
-- `warn` findings (V2 aposto between 12 and 20 palavras) registradas em `log.md` como `tipo: lint` e mantidas como dívida visível.
-- Log entries appended with the right `tipo:` and complete fields.
+- `editorial.brain.*` lint ran on every changed authorial page or `contents/` file; `lint.passed == true`, `lint.blockers == []`. Any `block` failure stops the run with `status: blocked` and forbids declaring `complete`.
+- `warn` findings (V2 aposto between 12 and 20 palavras) registradas em `log.md` como `type: lint` e mantidas como dívida visível.
+- Log entries appended with the right `type:` and complete fields.
 - Active language accents preserved (pt-BR by default).
-- Contradictions and gaps surfaced as `tipo: lint` entries when found.
+- Contradictions and gaps surfaced as `type: lint` entries when found.
 - No file in `brain/` still contains `<!-- REGRA:`, `<preencher>`, `gap`, `TODO`, `[?]`, `<YYYY-MM-DD>`, "a confirmar", or "a definir".

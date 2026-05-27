@@ -142,7 +142,7 @@ function buildClusterSubpageMarkdown(projectRoot: string, clusterYaml: any): str
     heading,
     resumo: clusterYaml.context || '',
     area: clusterYaml.area || '',
-    pilar_line: pillarLine(projectRoot, clusterYaml),
+    pillar_line: pillarLine(projectRoot, clusterYaml),
     contents_table: contentsTable,
     next_actions: nextActionsBlock(clusterYaml),
     provenance: clusterYaml.provenance?.source || 'reset-clusters',

@@ -4,10 +4,10 @@ title: "<título do episódio>"
 slug: "<slug-kebab-case>"
 published_at: "<YYYY-MM-DD>"
 source_url: "<url do episódio>"
-origem: "podcast"
+origin: "podcast"
 clusters: []
-# papel:
-#   <cluster-slug>: pilar | satelite
+# role:
+#   <cluster-slug>: pillar | satellite
 ---
 
 # <título do episódio>

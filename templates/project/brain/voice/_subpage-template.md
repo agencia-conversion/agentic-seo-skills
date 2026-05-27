@@ -5,11 +5,11 @@ updated: "{{updated}}"
 
 # {{title}}
 
-<!-- Subpágina de [[voz]]. Use para detalhar um pilar de tom, um registro específico, um vocabulário controlado ou exemplos comentados. -->
+<!-- Subpágina de [[voice]]. Use para detalhar um pilar de tom, um registro específico, um vocabulário controlado ou exemplos comentados. -->
 
 ## Pilar de tom
 
-<!-- Que aspecto da voz esta subpágina aprofunda. Conecte com [[voz]] quando útil. -->
+<!-- Que aspecto da voz esta subpágina aprofunda. Conecte com [[voice]] quando útil. -->
 
 ## Exemplos bons
 

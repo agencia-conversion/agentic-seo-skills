@@ -5,7 +5,7 @@ updated: "{{updated}}"
 
 # {{title}}
 
-<!-- Subpágina de [[tecnologia]]. Use para detalhar stack, decisão técnica registrada, ou prática operacional. -->
+<!-- Subpágina de [[technology]]. Use para detalhar stack, decisão técnica registrada, ou prática operacional. -->
 
 ## Stack
 
