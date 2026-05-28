@@ -17,11 +17,14 @@ import {
 } from '@/features/clusters/cluster-row-cells';
 import { TableSettingsMenu, type TableColumnDef, type SortState } from './table-settings-menu';
 import {
+  deleteContent,
+  duplicateContent,
   getCompanionToken,
   patchContentMetadata,
   patchRow,
   postPublishedContent,
 } from '@/features/clusters/cluster-row-api';
+import { ConfirmModal } from '@/components/confirm-modal';
 import { dataTableWidthClass } from '@/features/workspace/page-width';
 import {
   intentLabel,
@@ -359,6 +362,8 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [pasteStatus, setPasteStatus] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
   const [tableMenuOpen, setTableMenuOpen] = useState(false);
@@ -527,10 +532,17 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
     [],
   );
 
+  const refreshProjectTree = useWorkspace((s) => s.refreshProjectTree);
+
   // Inline CTA creates a real PUBLISHED content (contents/blog/<slug>.md)
   // with the typed title preserved in frontmatter and the current cluster
   // linked via `clusters: [<slug>]`. To create a planned satellite, use the
   // `postSatellite` API directly (or future explicit "+ planned" action).
+  //
+  // After the file is created we MUST refresh the workspace page tree
+  // before signalling refetch — otherwise the new slug is missing from
+  // `useWorkspace().pages` and the next click on the row falls back to
+  // pages[0] instead of routing to the new content (Bug 1).
   const commitNewRow = useCallback(async () => {
     const title = newTitle.trim();
     if (!title) {
@@ -555,12 +567,15 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
     }
     setNewTitle('');
     setAddingRow(false);
+    // Refresh the workspace tree FIRST so router.push targets resolve to a
+    // real page before the row becomes clickable in the table.
+    await refreshProjectTree();
     if (result.slug) {
       syncBus.emit({ type: 'content:changed', slug: result.slug });
     }
     syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
     refetch();
-  }, [newTitle, effectiveCluster, refetch]);
+  }, [newTitle, effectiveCluster, refetch, refreshProjectTree]);
 
   const copySelected = useCallback(async () => {
     const selected = rows.filter((r) => selectedSlugs.has(r.slug));
@@ -574,6 +589,61 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
       setPasteStatus('falha ao copiar');
     }
   }, [rows, selectedSlugs]);
+
+  // Bulk delete: only acts on PUBLISHED rows (planned satellites have no
+  // file on disk to trash). Iterates sequentially to avoid hammering the
+  // cluster-sync watcher with concurrent writes.
+  const deleteSelected = useCallback(async () => {
+    const selected = rows.filter((r) => selectedSlugs.has(r.slug) && r.status === 'published');
+    if (selected.length === 0) {
+      setConfirmDeleteOpen(false);
+      return;
+    }
+    setBulkBusy(true);
+    let trashed = 0;
+    for (const row of selected) {
+      const res = await deleteContent(row.slug);
+      if (res.ok) {
+        trashed += 1;
+        syncBus.emit({ type: 'content:changed', slug: row.slug });
+      } else {
+        showToast(`Falha ao excluir ${row.slug}: ${res.reason || 'erro'}`, 'error');
+      }
+    }
+    setBulkBusy(false);
+    setConfirmDeleteOpen(false);
+    setSelectedSlugs(new Set());
+    setPasteStatus(`movido ${trashed} para Trash`);
+    setTimeout(() => setPasteStatus(null), 2500);
+    if (effectiveCluster) syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
+    refetch();
+  }, [rows, selectedSlugs, effectiveCluster, refetch]);
+
+  // Bulk duplicate: same constraints as delete (published rows only). New
+  // files get slug `<slug>-copia[-N]` and title `<title> (cópia)`.
+  const duplicateSelected = useCallback(async () => {
+    const selected = rows.filter((r) => selectedSlugs.has(r.slug) && r.status === 'published');
+    if (selected.length === 0) return;
+    setBulkBusy(true);
+    let created = 0;
+    const lastSlugs: string[] = [];
+    for (const row of selected) {
+      const res = await duplicateContent(row.slug);
+      if (res.ok && res.newSlug) {
+        created += 1;
+        lastSlugs.push(res.newSlug);
+        syncBus.emit({ type: 'content:changed', slug: res.newSlug });
+      } else {
+        showToast(`Falha ao duplicar ${row.slug}: ${res.reason || 'erro'}`, 'error');
+      }
+    }
+    setBulkBusy(false);
+    setSelectedSlugs(new Set());
+    setPasteStatus(`duplicado ${created}`);
+    setTimeout(() => setPasteStatus(null), 2500);
+    if (effectiveCluster) syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
+    refetch();
+  }, [rows, selectedSlugs, effectiveCluster, refetch]);
 
   const pasteRows = useCallback(async () => {
     if (!effectiveCluster) {
@@ -712,15 +782,37 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
               </span>
             )}
             {selectedSlugs.size > 0 && (
-              <button
-                type="button"
-                onClick={() => void copySelected()}
-                className="rounded px-2 py-1 hover:bg-notion-hover hover:text-notion-text cursor-pointer"
-                title="Copiar selecionadas (Cmd+C)"
-                data-testid="cluster-copy-selected"
-              >
-                Copiar
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => void copySelected()}
+                  className="rounded px-2 py-1 hover:bg-notion-hover hover:text-notion-text cursor-pointer"
+                  title="Copiar selecionadas (Cmd+C)"
+                  data-testid="cluster-copy-selected"
+                >
+                  Copiar
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => void duplicateSelected()}
+                  className="rounded px-2 py-1 hover:bg-notion-hover hover:text-notion-text cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={`Duplicar ${selectedSlugs.size} item(s)`}
+                  data-testid="cluster-duplicate-selected"
+                >
+                  Duplicar {selectedSlugs.size}
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => setConfirmDeleteOpen(true)}
+                  className="rounded px-2 py-1 text-red-600 hover:bg-red-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={`Excluir ${selectedSlugs.size} item(s)`}
+                  data-testid="cluster-delete-selected"
+                >
+                  Excluir {selectedSlugs.size}
+                </button>
+              </>
             )}
             <button
               ref={tableMenuButtonRef}
@@ -1067,6 +1159,18 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
           setCreateOpen(false);
           refetch();
         }}
+      />
+      <ConfirmModal
+        isOpen={confirmDeleteOpen}
+        onClose={() => {
+          if (!bulkBusy) setConfirmDeleteOpen(false);
+        }}
+        onConfirm={() => void deleteSelected()}
+        title={`Excluir ${selectedSlugs.size} conteúdo${selectedSlugs.size === 1 ? '' : 's'}?`}
+        description="Os arquivos serão movidos para project/Trash/. É possível restaurar manualmente ou via scripts/restore-from-trash.mjs."
+        confirmLabel={bulkBusy ? 'Excluindo…' : 'Excluir'}
+        cancelLabel="Cancelar"
+        destructive
       />
       <TableSettingsMenu
         open={tableMenuOpen}

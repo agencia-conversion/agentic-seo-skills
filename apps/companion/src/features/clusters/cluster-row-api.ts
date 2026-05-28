@@ -141,3 +141,41 @@ export async function patchContentMetadata(
   );
   return readApiResult(res);
 }
+
+export interface DeleteContentResult extends ClusterApiResult {
+  trashedPath?: string;
+  originalPath?: string;
+}
+
+export async function deleteContent(contentSlug: string): Promise<DeleteContentResult> {
+  const token = getCompanionToken();
+  if (!token) return { ok: false, reason: 'missing-token' };
+  const res = await fetch(
+    `/api/project/content/${encodeURIComponent(contentSlug)}/delete?token=${encodeURIComponent(token)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
+      body: JSON.stringify({ syncWait: true }),
+    },
+  );
+  return readApiResult(res);
+}
+
+export interface DuplicateContentResult extends ClusterApiResult {
+  newSlug?: string;
+  newPath?: string;
+}
+
+export async function duplicateContent(contentSlug: string): Promise<DuplicateContentResult> {
+  const token = getCompanionToken();
+  if (!token) return { ok: false, reason: 'missing-token' };
+  const res = await fetch(
+    `/api/project/content/${encodeURIComponent(contentSlug)}/duplicate?token=${encodeURIComponent(token)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
+      body: JSON.stringify({ syncWait: true }),
+    },
+  );
+  return readApiResult(res);
+}

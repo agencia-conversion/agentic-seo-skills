@@ -154,6 +154,18 @@ The browser-based decision/preview flow runs on the brain model:
 - Project language is stored in `project/.agentic-seo/project.json.language`. The Companion exposes `GET/PATCH /api/project/settings`; UI/report copy is complete for `pt-BR` and `en`, with other report locales falling back to the closest supported language.
 - Report renderers must not emit a duplicate body H1, must hide a legacy first H1 equal to frontmatter title, and must transform raw JSON/object evidence into human-readable prose or tables while linking the `source_artifact`.
 
+## Trash (recoverable content delete)
+
+Bulk delete from the Companion content tables moves files into `project/Trash/` instead of unlinking them. The flow:
+
+- File path: `project/Trash/<YYYY-MM-DD-HHMMSS>-<origin>-<slug>.md`. Collisions append `-2`, `-3`, ….
+- Frontmatter is preserved and gains two fields: `trashed_from` (original `contents/<origin>/<slug>.md`) and `trashed_at` (ISO timestamp).
+- API endpoints: `POST /api/project/content/<slug>/delete` (moves to trash) and `POST /api/project/content/<slug>/duplicate` (creates `<slug>-copia[-N].md`). Both run cluster-sync after the move.
+- Library: `apps/companion/src/lib/content-trash.ts` (`trashContent`, `duplicateContent`). Backed by `findContentBySlug` from `content-mutations.ts`.
+- Restore is manual or via `node scripts/restore-from-trash.mjs <slug>` (also `--list`). The script reads `trashed_from` to put the file back under the right origin and strips the trash markers. Override the default `./project` root with the documented CLI option when needed.
+- Permanent delete is manual: `rm project/Trash/<file>.md`.
+- The Companion bulk toolbar appears whenever ≥1 row is selected on `/contents`, `/contents-<cluster>`, or `/brain-topic-clusters-<cluster>` — all three surfaces share `ClusterContentTable`.
+
 ## Tools
 
 DataForSEO CLI lives in `tools/clis/dataforseo.js`. Other providers (GSC, Ahrefs, Semrush, Similarweb, Keywords Everywhere, AIROPS) remain candidates for future forks from `coreyhaines31/marketingskills`.
