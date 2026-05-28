@@ -52,7 +52,7 @@ For each target page:
 Open `node scripts/companion.mjs approve-page --file brain/<page>.md` for each composed page. The handoff shows the diff (template → composed), missing sources, broken wikilinks. The user approves, rejects, or asks for adjustments. On approval, the file is written and a `type: decision` entry is appended to the log with `approver: <user>`.
 
 **Fallback path** — brain-first protocol:
-If the user explicitly delegates authorship to the agent (e.g., "go ahead and fill it"), the agent writes the pages directly and records each substantive change as a `type: decision` entry in `brain/log.md` with `approver: <user>` (the user's name, not `agent`, because the user delegated). This path is allowed by the brain-first protocol in `AGENTS.md` § Brain Rules → Brain-first protocol.
+If the user explicitly delegates authorship to the agent (e.g., "go ahead and fill it"), the agent writes the pages directly and records each substantive change as a `type: decision` entry in `brain/log.md` with `approver: <user>` (the user's name, not `agent`, because the user delegated). This path is allowed by the brain-first protocol in [`docs/brain.md`](../../../docs/brain.md) § Authorial editing rules.
 
 ### 5. Register the seed run
 

@@ -8,7 +8,7 @@ Escopo deste run: Fase 1 inteira + Fase 2 parcial + Fase 4 parcial
 
 - Toda mudança em `src/seo-brain.ts` mantém retrocompatibilidade: comandos e flags antigos continuam funcionando idênticos. Novos modos são opt-in via flag.
 - Suite de testes existente (`npm test`) deve continuar passando sem alteração. Novos testes vêm em arquivos novos.
-- Módulos JS novos vão em `scripts/lib/preflight/*.mjs` (linear, fixture-driven, ≤200 linhas cada — alinhado com CLAUDE.md "TypeScript vs MJS").
+- Módulos JS novos vão em `scripts/lib/preflight/*.mjs` (linear, fixture-driven, ≤200 linhas cada — alinhado com [`docs/contributing.md`](../contributing.md) "TypeScript vs MJS").
 - Mudanças nas skills markdown são aditivas: nenhum gate existente desliga sem flag explícita.
 
 ## 2. Fase 1 — quick wins
