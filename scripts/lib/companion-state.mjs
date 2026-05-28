@@ -79,20 +79,31 @@ export function readHomeCredentials() {
 }
 
 export function readSessionPort() {
-  if (!existsSync(PATHS.sessionFile)) return 0;
+  const session = readSession();
+  return session?.port || 0;
+}
+
+export function readSession() {
+  if (!existsSync(PATHS.sessionFile)) return null;
   try {
     const data = JSON.parse(readFileSync(PATHS.sessionFile, "utf8"));
-    return Number.isInteger(data?.port) && data.port > 0 ? data.port : 0;
+    const port = Number.isInteger(data?.port) && data.port > 0 ? data.port : 0;
+    if (!port) return null;
+    return {
+      ...data,
+      port,
+      token: typeof data?.token === "string" && data.token ? data.token : null,
+    };
   } catch {
-    return 0;
+    return null;
   }
 }
 
-export function writeSessionPort(port) {
+export function writeSessionPort(port, extra = {}) {
   ensureDirs();
   writeFileSync(
     PATHS.sessionFile,
-    JSON.stringify({ port, updated_at: new Date().toISOString() }, null, 2),
+    JSON.stringify({ port, ...extra, updated_at: new Date().toISOString() }, null, 2),
   );
 }
 

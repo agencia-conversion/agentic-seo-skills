@@ -297,7 +297,7 @@ function pageFromSummary(item: any, sectionId: string, sortOrder: number, parent
   const clusterSlug = isClusterSubpage ? path.replace('brain/topic-clusters/', '').replace(/\.md$/, '') : null;
   return {
     id: path,
-    slug: pathSlug(path, item.title),
+    slug: item.companion_slug || pathSlug(path, item.title),
     title: item.title || path,
     content: emptyDoc(),
     parentId,
@@ -786,7 +786,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
           ? {
               ...p,
               title: file.title || p.title,
-              slug: pathSlug(p.path, file.title || p.title),
+              slug: file.companion_slug || pathSlug(p.path, file.title || p.title),
               frontmatter: file.frontmatter || {},
               frontmatterText: file.frontmatterRaw || frontmatterToText(file.frontmatter || {}),
               bodyMarkdown: file.body || '',
@@ -870,6 +870,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
           return {
             ...p,
             hash: result.hash,
+            slug: result.companion_slug || p.slug,
             bodyMarkdown: fileChangedDuringSave ? p.bodyMarkdown : body,
             sourceBody: fileChangedDuringSave ? p.sourceBody : body,
             dirty: fileChangedDuringSave || uiChangedDuringSave,

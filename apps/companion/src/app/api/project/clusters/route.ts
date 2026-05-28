@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
   const result = createCluster(projectRoot(), body);
   if (result.ok) {
     const target = result.affected.find((path) => path.startsWith('clusters/')) || result.affected[0];
-    const clusterSync = await runClusterSyncHook(projectRoot(), target);
+    const clusterSync = target.endsWith('/cluster.yaml')
+      ? await runClusterSyncHook(projectRoot(), target)
+      : { skipped: true, reason: 'draft-requires-promotion' };
     return NextResponse.json({ ...result, clusterSync });
   }
   return NextResponse.json(result, { status: 400 });

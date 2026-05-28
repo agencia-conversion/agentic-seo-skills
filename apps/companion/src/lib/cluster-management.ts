@@ -210,22 +210,24 @@ export function createCluster(projectRoot: string, input: Record<string, unknown
   if (!name || !slug) return { ok: false as const, reason: 'invalid-name' };
   const root = resolve(projectRoot);
   const yamlPath = join(root, 'clusters', slug, 'cluster.yaml');
-  if (existsSync(yamlPath)) return { ok: false as const, reason: 'cluster-exists' };
+  const draftPath = join(root, 'clusters', slug, 'draft.yaml');
+  if (existsSync(yamlPath) || existsSync(draftPath)) return { ok: false as const, reason: 'cluster-exists' };
 
-  let pillar: ContentRecord | null = null;
   const existingPillar = slugify(input.pillar_slug);
+  let pillarSlug = existingPillar;
+  let pillarTitle = String(input.pillar_title || name).trim() || name;
   if (existingPillar) {
     const located = findContentBySlug(projectRoot, existingPillar);
     if (!located) return { ok: false as const, reason: 'pillar-not-found' };
-    const membership = updateContentClusterMembership(projectRoot, existingPillar, slug, 'pillar');
-    if (!membership.ok) return membership;
-    const contents = scanContents(projectRoot);
-    pillar = contents.find((content) => content.slug === existingPillar) || null;
-  } else {
-    const title = String(input.pillar_title || name).trim();
-    pillar = createContentPillar(projectRoot, slug, title || name, String(input.origin || 'blog'));
+    pillarSlug = located.slug;
+    try {
+      const parsed = parseFm(readFileSync(located.filePath, 'utf8'));
+      pillarTitle = String(parsed.fm.title || pillarTitle).trim() || pillarTitle;
+    } catch {
+      pillarTitle = pillarTitle || located.slug;
+    }
   }
-  if (!pillar) return { ok: false as const, reason: 'pillar-not-found' };
+  if (!pillarSlug) pillarSlug = slugify(pillarTitle);
 
   const data = {
     contract_version: 1,
@@ -233,25 +235,25 @@ export function createCluster(projectRoot: string, input: Record<string, unknown
     name,
     icon: String(input.icon || '').trim() || null,
     area: String(input.area || '').trim() || null,
-    status: 'active',
+    status: 'draft',
     thesis: String(input.thesis || '').trim() || `Cluster ${name}.`,
     pillar: {
-      slug: pillar.slug,
-      keyword: pillar.keyword || pillar.title,
-      intent: pillar.intent || 'informational',
-      volume: pillar.volume,
+      slug: pillarSlug,
+      keyword: pillarTitle,
+      intent: 'informational',
+      volume: null,
       volume_source: null,
     },
     planned_satellites: [],
     satellite_overrides: {},
-    stats: { published: 1, planned: 0, updated: todayIso() },
-    provenance: { created_at: todayIso(), created_by: 'companion' },
+    stats: { published: 0, planned: 0, updated: todayIso() },
+    provenance: { created_at: todayIso(), created_by: 'companion', requires_promotion: true },
     evidence: [],
   };
-  mkdirSync(dirname(yamlPath), { recursive: true });
-  writeFileSync(yamlPath, stringifyYaml(data, { lineWidth: 0 }), 'utf8');
-  appendLog(projectRoot, `Cluster ${name} criado no Companion`, `clusters/${slug}/cluster.yaml`, `Cluster ativo "${name}" criado com pillar "${pillar.slug}".`, `clusters/${slug}/cluster.yaml, ${pillar.path}`);
-  return { ok: true as const, cluster: data, affected: [`clusters/${slug}/cluster.yaml`, pillar.path] };
+  mkdirSync(dirname(draftPath), { recursive: true });
+  writeFileSync(draftPath, stringifyYaml(data, { lineWidth: 0 }), 'utf8');
+  appendLog(projectRoot, `Draft de cluster ${name} criado no Companion`, `clusters/${slug}/draft.yaml`, `Proposta de cluster "${name}" criada no Companion. Brain e conteúdos não foram alterados antes de promoção.`, `clusters/${slug}/draft.yaml`);
+  return { ok: true as const, cluster: data, affected: [`clusters/${slug}/draft.yaml`], draft_path: `clusters/${slug}/draft.yaml` };
 }
 
 export function updateCluster(projectRoot: string, slug: string, updates: Record<string, unknown>) {

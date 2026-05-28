@@ -47,6 +47,7 @@ function patchSharedImport(file) {
     fs
       .readFileSync(file, 'utf8')
       .replaceAll("from '../../../../shared/report-modules'", "from '../../shared/report-modules.js'")
+      .replaceAll("from '../../../../shared/companion-routes.js'", "from '../../shared/companion-routes.js'")
       .replaceAll("from '../../../../shared/locale.mjs'", "from '../../shared/locale.mjs'")
   );
 }

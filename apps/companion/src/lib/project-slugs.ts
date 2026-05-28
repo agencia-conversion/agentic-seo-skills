@@ -1,16 +1,15 @@
+import companionRoutes from '../../../../shared/companion-routes.js';
+
+const { companionSlugForPath, companionSlugMatches, normalizeCompanionSlug } = companionRoutes;
+
 export function projectPageSlug(path: string) {
-  return (
-    path
-      .replace(/\.md$/, '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^A-Za-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-      .toLowerCase() || 'pagina'
-  );
+  return companionSlugForPath(path);
 }
 
 export function projectSlugMatches(slug: string | null | undefined, pageSlug: string) {
-  if (!slug) return false;
-  return slug === pageSlug || slug.endsWith(`-${pageSlug}`);
+  return companionSlugMatches(slug, pageSlug);
+}
+
+export function normalizeProjectRouteSlug(value: string | null | undefined) {
+  return normalizeCompanionSlug(value || '');
 }

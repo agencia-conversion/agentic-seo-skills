@@ -3,6 +3,7 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { REPORT_DIR_NAME, REPORT_MODULE_IDS } from '../../../../shared/report-modules';
+import companionRoutes from '../../../../shared/companion-routes.js';
 import { loadBrainSubpageTemplate } from './brain-templates';
 import { ensureWatcherStarted, silenceWrite } from './auto-block-watcher';
 
@@ -29,12 +30,16 @@ const BRAIN_PAGE_ORDER = [
 
 const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'other']);
 const REPORT_MODULES = new Set<string>(REPORT_MODULE_IDS);
+const ARTIFACT_DRAFT_RE = /^artifacts\/contents\/[A-Za-z0-9._-]+\/draft\.md$/;
+const { companionTargetForPath } = companionRoutes;
 const SUPPORTED_PROJECT_LANGUAGES = new Set(['pt-BR', 'en']);
 const ROOT = process.env.AGENTIC_SEO_PLUGIN_ROOT || process.env.SEO_BRAIN_PLUGIN_ROOT || join(/*turbopackIgnore: true*/ process.cwd(), '..', '..');
 const BRAIN_TEMPLATE_DIR = join(ROOT, 'templates', 'project', 'brain');
 
 export interface ProjectTreeItem {
   path: string;
+  companion_slug: string;
+  companion_path: string;
   title: string;
   icon?: string | null;
   cover?: string | null;
@@ -149,6 +154,7 @@ export function validateProjectFileRel(rawPath: unknown, { write = false } = {})
     /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^brain\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^contents\/(blog|linkedin|podcast|other)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
+    ARTIFACT_DRAFT_RE.test(rel) ||
     /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel) ||
     new RegExp(`^${REPORT_DIR_NAME}\\/[A-Za-z0-9._-]+\\/[A-Za-z0-9._/-]+\\/report\\.md$`).test(rel);
   if (!allowed) return { ok: false as const, reason: 'path-not-allowed' };
@@ -162,7 +168,7 @@ export function validateProjectFileRel(rawPath: unknown, { write = false } = {})
 function resolveAllowedFile(projectRoot: string | undefined, rel: string) {
   const root = normalizeProjectRoot(projectRoot);
   const filePath = resolve(root, rel);
-  const allowedRoots = ['brain', 'contents', 'workbench', REPORT_DIR_NAME].map((dir) => resolve(root, dir));
+  const allowedRoots = ['brain', 'contents', 'artifacts', 'workbench', REPORT_DIR_NAME].map((dir) => resolve(root, dir));
   if (!allowedRoots.some((allowed) => filePath === allowed || filePath.startsWith(`${allowed}${sep}`))) {
     throw new Error('path escaped project root');
   }
@@ -305,7 +311,7 @@ function cleanFrontmatterRaw(raw: unknown) {
 }
 
 function frontmatterFieldsForPath(rel: string, incoming: Record<string, any>, existing: Record<string, any>, title?: string) {
-  if (rel.startsWith('contents/')) {
+  if (rel.startsWith('contents/') || rel.startsWith('artifacts/contents/')) {
     return {
       ...existing,
       ...incoming,
@@ -445,6 +451,7 @@ function readSummary(
   const displayBody = stripDuplicateTitleHeading(rel, body, title);
   const summary: ProjectTreeItem = {
     path: rel,
+    ...companionTargetForPath(rel),
     title,
     updated: frontmatter.updated || frontmatter.published_at || null,
     readOnly: rel === 'brain/log.md',
@@ -586,8 +593,12 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
   const workbenchItems = walkMarkdown(join(root, 'workbench'))
     .map((child) => readSummary(root, `workbench/${child}`, ui))
     .filter(Boolean) as ProjectTreeItem[];
+  const draftItems = walkMarkdown(join(root, 'artifacts', 'contents'))
+    .filter((child) => /^[A-Za-z0-9._-]+\/draft\.md$/.test(child))
+    .map((child) => readSummary(root, `artifacts/contents/${child}`, ui))
+    .filter(Boolean) as ProjectTreeItem[];
   const brainItems = orderedBrain.map((rel) => readSummary(root, rel, ui, clusterIcons)).filter(Boolean) as ProjectTreeItem[];
-  const hasFiles = brainItems.length + contentItems.length + workbenchItems.length > 0;
+  const hasFiles = brainItems.length + contentItems.length + draftItems.length + workbenchItems.length > 0;
   const hasBrain = canonicalBrainExists(root);
 
   const sections: ProjectTreeSection[] = [
@@ -598,6 +609,9 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
     },
   ];
   sections.push({ id: 'contents', title: 'Content', items: contentItems });
+  if (draftItems.length || existsSync(join(root, 'artifacts', 'contents'))) {
+    sections.push({ id: 'drafts', title: 'Rascunhos', items: draftItems });
+  }
   sections.push({ id: 'workbench', title: 'Workbench', items: workbenchItems });
 
   const warnings = detectProjectWarnings(root);
@@ -665,6 +679,7 @@ export function readProjectFile({ projectRoot, fileRel }: { projectRoot?: string
     ok: true,
     projectRoot: root,
     path: validation.rel,
+    ...companionTargetForPath(validation.rel),
     title,
     frontmatter,
     frontmatterRaw: raw,
@@ -716,6 +731,7 @@ export function saveProjectFile({
     return {
       ok: true,
       path: validation.rel,
+      ...companionTargetForPath(validation.rel),
       hash: currentHash,
       uiSaved,
       logAppended: false,
@@ -733,7 +749,10 @@ export function saveProjectFile({
     incomingFrontmatter.title || title || existingFrontmatter.title || titleFromFile(validation.rel, existingFrontmatter)
   ).trim();
   let rawFrontmatter: string;
-  const rawCandidate = validation.rel.startsWith('contents/') ? cleanFrontmatterRaw(frontmatterRaw) : null;
+  const rawCandidate =
+    validation.rel.startsWith('contents/') || validation.rel.startsWith('artifacts/contents/')
+      ? cleanFrontmatterRaw(frontmatterRaw)
+      : null;
   if (rawCandidate !== null) {
     rawFrontmatter = rawCandidate;
   } else {
@@ -766,6 +785,7 @@ export function saveProjectFile({
   return {
     ok: true,
     path: validation.rel,
+    ...companionTargetForPath(validation.rel),
     title: finalTitle,
     updated: todayIso(),
     hash: sha256(next),
@@ -922,14 +942,15 @@ export function deleteProjectFile({
     });
   }
 
-  return { ok: true, path: validation.rel, trashPath };
+  return { ok: true, path: validation.rel, ...companionTargetForPath(validation.rel), trashPath };
 }
 
 export function readProjectLog({ projectRoot }: { projectRoot?: string }) {
   const file = readProjectFile({ projectRoot, fileRel: 'brain/log.md' });
   if (!file.ok) return file;
+  const loaded = file as typeof file & { body?: string };
   const entries = [];
-  const blocks = String(file.body || '').split(/^## /m).slice(1);
+  const blocks = String(loaded.body || '').split(/^## /m).slice(1);
   for (const block of blocks) {
     const heading = block.split(/\r?\n/, 1)[0].trim();
     if (!heading) continue;

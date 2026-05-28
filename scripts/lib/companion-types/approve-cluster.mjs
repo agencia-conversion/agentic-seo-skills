@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, renameSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, renameSync, writeFileSync, mkdirSync, unlinkSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
 import YAML from "yaml";
@@ -81,11 +81,24 @@ function promoteToCluster(projectRoot, slug, approvedBy, statusOverride) {
 function runClusterSync(projectRoot, slug) {
   const repoRoot = resolve(projectRoot, "..");
   try {
-    execFileSync("node", ["scripts/cluster-sync.mjs", `--cluster=${slug}`], { cwd: repoRoot, stdio: "pipe" });
+    execFileSync("node", ["scripts/cluster-sync.mjs", `--root=${projectRoot}`, `--cluster=${slug}`], { cwd: repoRoot, stdio: "pipe" });
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err.message };
   }
+}
+
+function snapshot(file) {
+  return existsSync(file) ? readFileSync(file, "utf8") : null;
+}
+
+function restore(file, text) {
+  if (text === null) {
+    if (existsSync(file)) unlinkSync(file);
+    return;
+  }
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, text, "utf8");
 }
 
 async function handleSubmit(body, ctx) {
@@ -98,32 +111,66 @@ async function handleSubmit(body, ctx) {
   }
   if (!approver) return { ok: false, error: "missing approver" };
 
-  const { clusterPath, draftArchived } = promoteToCluster(ctx.projectRoot, ctx.slug, approver, statusOverride);
-  const sync = runClusterSync(ctx.projectRoot, ctx.slug);
-
-  const logFile = join(ctx.projectRoot, "brain", "log.md");
-  appendLogEntry(logFile, {
-    date: todayIso(),
-    type: "approval",
-    title: `Cluster ${ctx.slug} promovido`,
-    scope: `clusters/${ctx.slug}/cluster.yaml, brain/topic-clusters/${ctx.slug}.md`,
-    decision: `Cluster "${ctx.slug}" promovido para status "${statusOverride || "active"}" via handoff approve-cluster. Draft arquivado em ${draftArchived ? draftArchived.replace(ctx.projectRoot + "/", "") : "—"}. Cluster-sync ${sync.ok ? "ok" : `falhou: ${sync.error}`}.`,
-    evidence: `clusters/${ctx.slug}/cluster.yaml`,
-    approver: approver,
-    approved_at: todayIso(),
-    notes: notes,
-  });
-
-  return {
-    ok: true,
-    decision: "approved",
-    approver,
-    slug: ctx.slug,
-    cluster_path: clusterPath.replace(ctx.projectRoot + "/", ""),
-    draft_archived: draftArchived ? draftArchived.replace(ctx.projectRoot + "/", "") : null,
-    cluster_sync: sync,
-    log_appended: true,
+  const draftState = readDraft(ctx.projectRoot, ctx.slug);
+  const brainIndex = join(ctx.projectRoot, "brain", "topic-clusters.md");
+  const brainSubpage = join(ctx.projectRoot, "brain", "topic-clusters", `${ctx.slug}.md`);
+  const backups = {
+    cluster: snapshot(draftState.clusterPath),
+    draft: snapshot(draftState.draftPath),
+    index: snapshot(brainIndex),
+    subpage: snapshot(brainSubpage),
   };
+
+  let clusterPath = null;
+  let draftArchived = null;
+  try {
+    const promoted = promoteToCluster(ctx.projectRoot, ctx.slug, approver, statusOverride);
+    clusterPath = promoted.clusterPath;
+    draftArchived = promoted.draftArchived;
+    const sync = runClusterSync(ctx.projectRoot, ctx.slug);
+    if (!sync.ok) throw new Error(sync.error || "cluster-sync failed");
+
+    const logFile = join(ctx.projectRoot, "brain", "log.md");
+    appendLogEntry(logFile, {
+      date: todayIso(),
+      type: "approval",
+      title: `Cluster ${ctx.slug} promovido`,
+      scope: `clusters/${ctx.slug}/cluster.yaml, brain/topic-clusters/${ctx.slug}.md`,
+      decision: `Cluster "${ctx.slug}" promovido para status "${statusOverride || "active"}" via handoff approve-cluster. Draft arquivado em ${draftArchived ? draftArchived.replace(ctx.projectRoot + "/", "") : "—"}. Cluster-sync ok.`,
+      evidence: `clusters/${ctx.slug}/cluster.yaml`,
+      approver: approver,
+      approved_at: todayIso(),
+      notes: notes,
+    });
+
+    return {
+      ok: true,
+      decision: "approved",
+      approver,
+      slug: ctx.slug,
+      cluster_path: clusterPath.replace(ctx.projectRoot + "/", ""),
+      draft_archived: draftArchived ? draftArchived.replace(ctx.projectRoot + "/", "") : null,
+      brain_path: `brain/topic-clusters/${ctx.slug}.md`,
+      companion_slug: `brain-topic-clusters-${ctx.slug}`,
+      companion_path: `brain-topic-clusters-${ctx.slug}`,
+      cluster_sync: sync,
+      log_appended: true,
+    };
+  } catch (err) {
+    restore(draftState.clusterPath, backups.cluster);
+    restore(brainIndex, backups.index);
+    restore(brainSubpage, backups.subpage);
+    if (draftArchived && existsSync(draftArchived) && !existsSync(draftState.draftPath)) renameSync(draftArchived, draftState.draftPath);
+    else restore(draftState.draftPath, backups.draft);
+    return {
+      ok: false,
+      error: `promotion rolled back: ${err.message}`,
+      decision: "rollback",
+      approver,
+      slug: ctx.slug,
+      log_appended: false,
+    };
+  }
 }
 
 export async function runApproveCluster(argv = []) {

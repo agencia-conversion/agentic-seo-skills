@@ -89,9 +89,11 @@ try {
   assert.equal(sampleYaml.budgets.keywords, 50, "--sample must cap keywords at 50");
   assert.equal(sampleYaml.budgets.sample_mode, true, "--sample must set sample_mode: true");
 
-  // 4. brain decision gate: quick preset (no M7) → log_appended false; brand-only → true
+  // 4. report contract + log gate: every preset appends a decision log and exposes a Companion route.
   const quickRun = runRaw(["competitive-analysis", "--target", "example.com", "--competitors", "a.com", "--preset", "quick", "--offline"]);
-  assert.equal(quickRun.log_appended, false, "quick preset must not append brain log (no M7)");
+  assert.equal(quickRun.log_appended, true, "quick preset must append brain log");
+  assert.equal(quickRun.companion_path, `analyses-competitive-analysis-${quickRun.run_slug}-report`);
+  assert.equal(quickRun.browser_prompt.companion_path, quickRun.companion_path);
   assert.ok(!quickRun.modules_run.includes("m7_brand"));
   const brandRun = runRaw(["competitive-analysis", "--target", "example.com", "--competitors", "a.com", "--preset", "brand-only", "--offline"]);
   assert.equal(brandRun.log_appended, true, "brand-only preset must append brain log (M7 ran)");

@@ -47,6 +47,7 @@ mkdirSync(join(projectRoot, "contents", "blog"), { recursive: true });
 mkdirSync(join(projectRoot, "contents", "linkedin"), { recursive: true });
 mkdirSync(join(projectRoot, "clusters", "seo-agentico"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "drafts"), { recursive: true });
+mkdirSync(join(projectRoot, "artifacts", "contents", "rascunho-seo"), { recursive: true });
 mkdirSync(join(projectRoot, "analyses", "technical-seo", "run-1"), { recursive: true });
 mkdirSync(join(projectRoot, ".agentic-seo"), { recursive: true });
 writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Projeto Teste" }), "utf8");
@@ -162,6 +163,23 @@ Rascunho.
   "utf8",
 );
 writeFileSync(
+  join(projectRoot, "artifacts", "contents", "rascunho-seo", "draft.md"),
+  `---
+contract_version: 1
+title: "Rascunho SEO"
+slug: "rascunho-seo"
+origin: "blog"
+clusters: []
+primary_keyword: "rascunho seo"
+---
+
+# Rascunho SEO
+
+Conteúdo em draft.
+`,
+  "utf8",
+);
+writeFileSync(
   join(projectRoot, "workbench", "drafts", "_template.md"),
   `---
 title: "Template Workbench"
@@ -200,6 +218,9 @@ assert.deepEqual(validateProjectFileRel("../AGENTS.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/../../AGENTS.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/voice.md").ok, true);
 assert.deepEqual(validateProjectFileRel("contents/blog/post-teste.md").ok, true);
+assert.deepEqual(validateProjectFileRel("artifacts/contents/rascunho-seo/draft.md").ok, true);
+assert.deepEqual(validateProjectFileRel("artifacts/contents/rascunho-seo/notes.md").ok, false);
+assert.deepEqual(validateProjectFileRel("artifacts/contents/rascunho-seo/nested/draft.md").ok, false);
 assert.deepEqual(validateProjectFileRel("workbench/drafts/ideia.md").ok, true);
 assert.deepEqual(validateProjectFileRel("analyses/technical-seo/run-1/report.md").ok, true);
 assert.deepEqual(validateProjectFileRel("analyses/technical-seo/run-1/report.md", { write: true }).ok, true);
@@ -219,17 +240,20 @@ assert.equal(voiceSummary.requiresApproval, false);
 assert.ok(tree.sections.find((section) => section.id === "contents").items.some((item) => item.path === "contents/blog/post-teste.md"));
 assert.equal(tree.sections.find((section) => section.id === "contents").items.some((item) => item.path.endsWith("_template.md")), false);
 assert.ok(tree.sections.find((section) => section.id === "workbench").items.some((item) => item.path === "workbench/drafts/ideia.md"));
+assert.ok(tree.sections.find((section) => section.id === "drafts").items.some((item) => item.path === "artifacts/contents/rascunho-seo/draft.md"));
 
 const contentIndex = listProjectContents({ projectRoot });
 assert.equal(contentIndex.ok, true);
-assert.equal(contentIndex.total, 2);
+assert.equal(contentIndex.total, 3);
 assert.equal(contentIndex.items.some((item) => item.path === "contents/blog/_template.md"), false);
+assert.equal(contentIndex.items.some((item) => item.path === "artifacts/contents/rascunho-seo/draft.md"), true);
+assert.equal(contentIndex.items.find((item) => item.path === "artifacts/contents/rascunho-seo/draft.md").status, "draft");
 assert.equal(contentIndex.items.find((item) => item.path === "contents/blog/post-teste.md").topic_cluster, "seo-agentico");
 assert.equal(contentIndex.items.find((item) => item.path === "contents/linkedin/post-linkedin.md").topicClusterTitle, "SEO agêntico");
 assert.equal(contentIndex.items.find((item) => item.path === "contents/blog/post-teste.md").keyword, "post teste keyword");
 assert.equal(contentIndex.items.find((item) => item.path === "contents/blog/post-teste.md").intent, "informational");
 assert.equal(contentIndex.items.find((item) => item.path === "contents/blog/post-teste.md").keyword_volume, 480);
-assert.equal(listProjectContents({ projectRoot, origin: "blog" }).total, 1);
+assert.equal(listProjectContents({ projectRoot, origin: "blog" }).total, 2);
 assert.equal(listProjectContents({ projectRoot, topicCluster: "seo-agentico" }).total, 2);
 assert.equal(listProjectContents({ projectRoot, query: "comparative" }).total, 1);
 assert.equal(listProjectContents({ projectRoot, pageSize: 1, sort: "title", direction: "asc" }).items[0].title, "Post LinkedIn");

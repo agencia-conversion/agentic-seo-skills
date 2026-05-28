@@ -2,7 +2,10 @@ import { existsSync } from "node:fs";
 import { createServer } from "node:net";
 import { spawn } from "node:child_process";
 import { resolve, join } from "node:path";
-import { PATHS, newToken, readSessionPort, writeSessionPort } from "./companion-state.mjs";
+import { PATHS, newToken, readSession, readSessionPort, writeSessionPort } from "./companion-state.mjs";
+import companionRoutes from "../../shared/companion-routes.js";
+
+const { companionTargetForPath } = companionRoutes;
 
 function openBrowser(url) {
   if (process.env.AGENTIC_SEO_NO_BROWSER === "1") return;
@@ -72,12 +75,71 @@ async function waitForReady(url, child, timeoutMs = 60000) {
   throw new Error("companion did not become ready in time");
 }
 
-export async function startProjectBrowser({ projectRoot = "project", open = true, dev = false } = {}) {
+async function isCompanionReady(url, token, timeoutMs = 1500) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const base = String(url || "").replace(/\/project\/[^/]+\/?$/, "/");
+    const res = await fetch(`${base}api/project/settings`, {
+      cache: "no-store",
+      signal: controller.signal,
+      headers: {
+        "x-companion-token": token,
+      },
+    });
+    if (!res.ok) return false;
+    const data = await res.json().catch(() => null);
+    return data?.ok === true && typeof data.projectRoot === "string";
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function targetFor(url, openPath) {
+  if (!openPath) {
+    return {
+      target_path: null,
+      target_slug: null,
+      target_url: url,
+    };
+  }
+  const target = companionTargetForPath(openPath, url);
+  return {
+    target_path: openPath,
+    target_slug: target.companion_slug,
+    target_url: target.companion_url,
+  };
+}
+
+export async function startProjectBrowser({ projectRoot = "project", open = true, dev = false, openPath = "", detach = false } = {}) {
+  const root = resolve(projectRoot);
+  const existing = readSession();
+  if (existing?.port && existing?.token && (!existing.project_root || resolve(existing.project_root) === root)) {
+    const existingUrl = `http://127.0.0.1:${existing.port}/project/${existing.token}/`;
+    if (await isCompanionReady(existingUrl, existing.token)) {
+      const target = targetFor(existingUrl, openPath);
+      const payload = {
+        ok: true,
+        reused: true,
+        url: existingUrl,
+        ...target,
+        port: existing.port,
+        token: existing.token,
+        project_root: root,
+        mode: existing.mode || "unknown",
+      };
+      process.stdout.write(`${JSON.stringify(payload)}\n`);
+      if (open) openBrowser(target.target_url || existingUrl);
+      return payload;
+    }
+  }
   const token = newToken();
   const desired = readSessionPort();
   const port = await pickPort(desired);
-  const root = resolve(projectRoot);
   const url = `http://127.0.0.1:${port}/project/${token}/`;
+  const target = targetFor(url, openPath);
   const ttlMs = Number(process.env.AGENTIC_SEO_COMPANION_TTL_MS || 4 * 60 * 60 * 1000);
 
   const useDevServer = dev || !hasProductionBuild();
@@ -96,12 +158,15 @@ export async function startProjectBrowser({ projectRoot = "project", open = true
         SEO_BRAIN_COMPANION_TOKEN: token,
         NEXT_TELEMETRY_DISABLED: "1",
       },
-      stdio: ["ignore", "pipe", "pipe"],
+      detached: detach,
+      stdio: detach ? ["ignore", "ignore", "ignore"] : ["ignore", "pipe", "pipe"],
     },
   );
 
-  child.stdout.on("data", (chunk) => process.stderr.write(chunk));
-  child.stderr.on("data", (chunk) => process.stderr.write(chunk));
+  if (!detach) {
+    child.stdout.on("data", (chunk) => process.stderr.write(chunk));
+    child.stderr.on("data", (chunk) => process.stderr.write(chunk));
+  }
 
   const stop = () => {
     if (child.exitCode === null) child.kill("SIGTERM");
@@ -112,10 +177,27 @@ export async function startProjectBrowser({ projectRoot = "project", open = true
 
   try {
     await waitForReady(url, child);
-    writeSessionPort(port);
-    process.stdout.write(`${JSON.stringify({ ok: true, url, project_root: root, mode: useDevServer ? "dev" : "production" })}\n`);
-    process.stderr.write(`[project-browser] ${url} (${useDevServer ? "dev" : "production"})\n`);
-    if (open) openBrowser(url);
+    writeSessionPort(port, { token, project_root: root, mode: useDevServer ? "dev" : "production", pid: child.pid || null });
+    const payload = {
+      ok: true,
+      url,
+      ...target,
+      port,
+      token,
+      project_root: root,
+      mode: useDevServer ? "dev" : "production",
+      detached: !!detach,
+      pid: child.pid || null,
+    };
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+    process.stderr.write(`[project-browser] ${target.target_url || url} (${useDevServer ? "dev" : "production"})\n`);
+    if (open) openBrowser(target.target_url || url);
+
+    if (detach) {
+      child.unref();
+      clearTimeout(ttl);
+      return payload;
+    }
 
     return await new Promise((resolveResult) => {
       child.once("exit", (code, signal) => {
@@ -124,6 +206,9 @@ export async function startProjectBrowser({ projectRoot = "project", open = true
           ok: code === 0 || signal === "SIGTERM",
           reason: signal ? `signal-${signal}` : code === 0 ? "closed" : "companion-exited",
           url,
+          ...target,
+          port,
+          token,
           project_root: root,
           mode: useDevServer ? "dev" : "production",
         });
@@ -145,5 +230,7 @@ export async function runProjectBrowser(argv = []) {
     process.env.AGENTIC_SEO_PROJECT_DIR ??
     "project";
   const open = !args["no-open"];
-  return startProjectBrowser({ projectRoot, open, dev: !!args.dev });
+  const openPath = args["open-path"] || args["target-path"] || "";
+  const detach = !!(args.detach || args["non-blocking"]);
+  return startProjectBrowser({ projectRoot, open, dev: !!args.dev, openPath, detach });
 }
