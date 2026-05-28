@@ -1,0 +1,42 @@
+docs/refactor-status.md
+  s_add44d6c3a39cb::t_8114604c7aacf3 157-164,166-168
+  s_add44d6c3a39cb::t_99be0011d8c256 165
+scripts/restore-from-trash.mjs
+  s_add44d6c3a39cb::t_3d1c8ffb4ce801 1,5-8,10-97,99-102
+  s_add44d6c3a39cb::t_dd70f42705a2be 9
+  s_add44d6c3a39cb::t_9d157287c9d3fd 2-4
+  s_add44d6c3a39cb::t_7ca4745b1860d3 98
+apps/companion/src/features/clusters/cluster-row-api.ts
+  s_add44d6c3a39cb::t_1b99c2cc6d1277 144-181
+apps/companion/src/app/api/project/content/[contentSlug]/delete/route.ts
+  s_add44d6c3a39cb::t_e4beb7bea483ef 1-29
+apps/companion/src/app/api/project/content/[contentSlug]/duplicate/route.ts
+  s_add44d6c3a39cb::t_d34c9037af1814 1-26
+apps/companion/src/features/contents/cluster-content-table.tsx
+  s_add44d6c3a39cb::t_ad9da82d5564c5 785-815
+  s_add44d6c3a39cb::t_bd160c039d90d1 20-21,27
+  s_add44d6c3a39cb::t_d2497d4e892499 535-536,541-545,570-572,578
+  s_add44d6c3a39cb::t_f4e583ba0cfe53 365-366
+  s_add44d6c3a39cb::t_33fba86b9787b1 593-647
+  s_add44d6c3a39cb::t_b5ac7153345a99 1163-1174
+apps/companion/src/lib/content-trash.ts
+  s_add44d6c3a39cb::t_87d6c8f12da113 84-85,88-90,96
+  s_add44d6c3a39cb::t_3afa1c52e22002 1
+  s_add44d6c3a39cb::t_bc4b5e7ab30db6 2-83,86-87,91-95,97-142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "52e34689c9d7f37e5a70f22faacb0f9d0ef8ed93",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
