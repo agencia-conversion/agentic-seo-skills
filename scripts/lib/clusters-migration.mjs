@@ -2,12 +2,13 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, basename } from "node:path";
 import { parse as yamlParse } from "yaml";
 import { parseFrontmatter } from "./brain-page.mjs";
+import { normalizeClusterYaml } from "./cluster-yaml.mjs";
 
 function readExistingClusterIcon(slug) {
   const file = join(process.cwd(), "project", "clusters", slug, "cluster.yaml");
   if (!existsSync(file)) return null;
   try {
-    const data = yamlParse(readFileSync(file, "utf8"));
+    const data = normalizeClusterYaml(yamlParse(readFileSync(file, "utf8")));
     return typeof data?.icon === "string" && data.icon.trim() ? data.icon.trim() : null;
   } catch {
     return null;

@@ -43,6 +43,7 @@ function markdownProse(text) {
     .replace(/^---[\s\S]*?\n---\n/, "")
     .replace(/```[\s\S]*?```/g, "")
     .replace(/`[^`]*`/g, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/\[\[[^\]]+\]\]/g, "")
     .replace(/\[[^\]]*\]\([^)]*\)/g, "");
 }

@@ -25,20 +25,21 @@ assert.equal(asciiFold("ABC 123 á!"), "ABC 123 a!");
 assert.equal(slugify("Análise Técnica"), "analise-tecnica");
 assert.equal(slugify("SEO Agêntico!"), "seo-agentico");
 
-// normalizeLanguage canonicalises common forms
+// normalizeLanguage canonicalises common forms. Default falls back to "en".
 assert.equal(normalizeLanguage("pt-BR"), "pt-BR");
 assert.equal(normalizeLanguage("pt-br"), "pt-BR");
 assert.equal(normalizeLanguage("PT"), "pt-BR");
 assert.equal(normalizeLanguage("en"), "en");
 assert.equal(normalizeLanguage("en-US"), "en");
-assert.equal(normalizeLanguage(null), "pt-BR");
-assert.equal(normalizeLanguage(""), "pt-BR");
-assert.equal(normalizeLanguage("xx"), "pt-BR");
-assert.equal(normalizeLanguage("xx", "en"), "en");
+assert.equal(normalizeLanguage(null), "en");
+assert.equal(normalizeLanguage(""), "en");
+assert.equal(normalizeLanguage("xx"), "en");
+assert.equal(normalizeLanguage("xx", "pt-BR"), "pt-BR");
 assert.ok(SUPPORTED_LANGUAGES.includes("pt-BR"));
 assert.ok(SUPPORTED_LANGUAGES.includes("en"));
+assert.equal(SUPPORTED_LANGUAGES[0], "en", "en must be the primary language");
 
-// getProjectLanguage reads project.json; falls back when missing
+// getProjectLanguage reads project.json; falls back to "en" when missing or invalid.
 const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-locale-"));
 const projectDir = join(tmp, "project");
 mkdirSync(join(projectDir, ".agentic-seo"), { recursive: true });
@@ -47,11 +48,11 @@ assert.equal(getProjectLanguage(projectDir), "en");
 writeFileSync(join(projectDir, ".agentic-seo", "project.json"), JSON.stringify({ language: "pt-BR" }), "utf8");
 assert.equal(getProjectLanguage(projectDir), "pt-BR");
 writeFileSync(join(projectDir, ".agentic-seo", "project.json"), JSON.stringify({ language: "xx" }), "utf8");
-assert.equal(getProjectLanguage(projectDir), "pt-BR");
+assert.equal(getProjectLanguage(projectDir), "en");
 writeFileSync(join(projectDir, ".agentic-seo", "project.json"), "not json", "utf8");
-assert.equal(getProjectLanguage(projectDir), "pt-BR");
+assert.equal(getProjectLanguage(projectDir), "en");
 rmSync(tmp, { recursive: true, force: true });
-assert.equal(getProjectLanguage(join(tmp, "doesnt-exist")), "pt-BR");
+assert.equal(getProjectLanguage(join(tmp, "doesnt-exist")), "en");
 
 // canonicalKeyword: 4 "landing page" variants collapse to the same key
 const landingVariants = [

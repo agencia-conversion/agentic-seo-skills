@@ -48,13 +48,13 @@ if (existing.includes(marker) && existing.includes(endMarker)) {
 
 console.log(`Hook path: ${hookPath}`);
 if (dryRun) {
-  console.log("(dry-run) Conteúdo proposto:");
+  console.log("(dry-run) Proposed content:");
   console.log(next);
-  console.log("Rode novamente com --apply para gravar.");
+  console.log("Run again with --apply to write.");
   process.exit(0);
 }
 
 mkdirSync(dirname(hookPath), { recursive: true });
 writeFileSync(hookPath, next, "utf8");
 chmodSync(hookPath, 0o755);
-console.log("Hook instalado. Pre-commit roda `cluster-sync --check`.");
+console.log("Hook installed. Pre-commit will run `cluster-sync --check`.");

@@ -18,7 +18,7 @@ function ReportBlockView(props: any) {
   const { node, updateAttributes, extension } = props;
   const kind = String(node.attrs.kind || '');
   const data = parseReportBlockPayload(String(node.attrs.data || ''));
-  const locale = String(extension?.options?.locale || 'pt-BR');
+  const locale = String(extension?.options?.locale || 'en');
   if (kind === 'agentic-kpis') return <Kpis data={data} updateAttributes={updateAttributes} />;
   if (kind === 'agentic-chart') return <SimpleChart data={data || {}} updateAttributes={updateAttributes} locale={locale} />;
   return (
@@ -137,7 +137,7 @@ export const ReportBlock = Node.create({
   addOptions() {
     return {
       onScoreRecalculated: null,
-      locale: 'pt-BR',
+      locale: 'en',
     };
   },
 

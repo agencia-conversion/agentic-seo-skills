@@ -197,7 +197,7 @@ function readProjectConfig(root: string): Record<string, any> {
 
 import { normalizeLanguage as sharedNormalizeLanguage } from '../../../../shared/locale.mjs';
 
-function normalizeProjectLanguage(value: unknown, fallback: 'pt-BR' | 'en' = 'pt-BR') {
+function normalizeProjectLanguage(value: unknown, fallback: 'pt-BR' | 'en' = 'en') {
   return sharedNormalizeLanguage(value, fallback);
 }
 
@@ -642,9 +642,9 @@ export function bootstrapBrainFiles({ projectRoot }: { projectRoot?: string }) {
   appendLogEntry(join(root, 'brain', 'log.md'), {
     date: todayIso(),
     type: 'decision',
-    title: 'Brain criado no Companion',
+    title: 'Brain created via Companion',
     scope: created.join(', '),
-    decision: 'Arquivos canônicos do Brain criados no Companion Web.',
+    decision: 'Canonical Brain files created via Companion Web.',
     evidence: created.join(', '),
     approver: 'agent',
   });

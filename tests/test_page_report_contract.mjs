@@ -55,7 +55,7 @@ function assertReport(result, moduleId) {
 }
 
 try {
-  run(["project-init", "Page reports"]);
+  run(["project-init", "Page reports", "--language", "pt-BR"]);
 
   const keyword = run(["keyword-research", "--keyword", "seo agêntico", "--mode", "offline"]);
   assertReport(keyword, "keyword-research");

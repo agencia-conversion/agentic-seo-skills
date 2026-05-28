@@ -745,7 +745,7 @@ function ContentFieldControl({
       { value: '', label: '—' },
       ...INTENT_CANONICAL_OPTIONS.map((option) => ({
         value: option.value,
-        label: intentLabel(option.value, locale === 'en' ? 'en' : 'pt-BR'),
+        label: intentLabel(option.value, locale === 'pt-BR' ? 'pt-BR' : 'en'),
       })),
     ];
     return (

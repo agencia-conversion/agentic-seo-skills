@@ -28,6 +28,7 @@ __pycache__/
 # Runtime/user data produced while testing the plugin locally.
 .agentic-seo/
 !apps/companion/e2e/fixtures/sample-project/.agentic-seo/
+!templates/project/.agentic-seo/
 project/*
 !project/.gitkeep
 

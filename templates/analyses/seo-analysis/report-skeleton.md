@@ -8,7 +8,7 @@ source_artifact: "audits/seo-analysis-{{run_slug}}/report.yaml"
 summary: "{{summary}}"
 ---
 
-## Resumo executivo
+## Executive summary
 
 {{executive_summary}}
 
@@ -19,17 +19,17 @@ items:
     value: "{{top_results_count}}"
 ```
 
-## Top resultados
+## Top results
 
 ```agentic-table
 version: 1
 columns:
   - key: position
-    label: Posição
+    label: Position
   - key: title
-    label: Título
+    label: Title
   - key: domain
-    label: Domínio
+    label: Domain
   - key: url
     label: URL
 rows:
@@ -39,10 +39,10 @@ rows:
     url: "{{url}}"
 ```
 
-## Lacunas e hipóteses
+## Gaps and hypotheses
 
 {{gaps_and_hypotheses}}
 
-## Limitações
+## Limitations
 
 {{limitations}}

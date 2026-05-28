@@ -8,7 +8,7 @@ source_artifact: "keywords/{{run_slug}}/report.yaml"
 summary: "{{summary}}"
 ---
 
-## Resumo executivo
+## Executive summary
 
 {{executive_summary}}
 

@@ -89,4 +89,4 @@ if (existsSync(distEntry)) {
   await mod.clusterSync({ root: project });
 }
 
-console.log(`Renomeado ${from} -> ${to}. ${touchedContents} conteúdos atualizados.`);
+console.log(`Renamed ${from} -> ${to}. ${touchedContents} content files updated.`);

@@ -72,7 +72,7 @@ function readProjectConfig(root) {
   }
 }
 
-function normalizeProjectLanguage(value, fallback = "pt-BR") {
+function normalizeProjectLanguage(value, fallback = "en") {
   if (!value) return fallback;
   const normalized = String(value).trim().toLowerCase();
   if (normalized.startsWith("pt")) return "pt-BR";
@@ -717,9 +717,9 @@ export function bootstrapBrainFiles({ projectRoot }) {
   appendLogEntry(join(root, "brain", "log.md"), {
     date: todayIso(),
     type: "decision",
-    title: "Brain criado no Companion",
+    title: "Brain created via Companion",
     scope: created.join(", "),
-    decision: "Arquivos canônicos do Brain criados no Companion Web.",
+    decision: "Canonical Brain files created via Companion Web.",
     evidence: created.join(", "),
     approver: "agent",
   });

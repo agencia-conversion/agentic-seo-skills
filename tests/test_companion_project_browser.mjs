@@ -31,7 +31,7 @@ assert.equal(bootstrapped.ok, true);
 assert.equal(bootstrapped.created.length, 8);
 assert.ok(existsSync(join(emptyProjectRoot, "brain", "index.md")));
 assert.ok(readFileSync(join(emptyProjectRoot, "brain", "index.md"), "utf8").includes('title: "Agentic SEO"'));
-assert.match(readFileSync(join(emptyProjectRoot, "brain", "log.md"), "utf8"), /Brain criado no Companion/);
+assert.match(readFileSync(join(emptyProjectRoot, "brain", "log.md"), "utf8"), /Brain created via Companion/);
 const bootstrappedTree = buildProjectTree({ projectRoot: emptyProjectRoot });
 assert.equal(bootstrappedTree.hasFiles, true);
 assert.equal(bootstrappedTree.hasBrain, true);
@@ -384,10 +384,10 @@ assert.deepEqual({ ok: reportDelete.ok, reason: reportDelete.reason }, { ok: fal
 
 const settingsBefore = readProjectSettings({ projectRoot });
 assert.equal(settingsBefore.ok, true);
-assert.equal(settingsBefore.language, "pt-BR");
-const settingsUpdated = updateProjectSettings({ projectRoot, language: "en" });
+assert.equal(settingsBefore.language, "en");
+const settingsUpdated = updateProjectSettings({ projectRoot, language: "pt-BR" });
 assert.equal(settingsUpdated.ok, true);
-assert.equal(settingsUpdated.language, "en");
+assert.equal(settingsUpdated.language, "pt-BR");
 assert.equal(updateProjectSettings({ projectRoot, language: "es" }).reason, "invalid-language");
 
 const created = createProjectFile({ projectRoot, kind: "workbench", title: "Página de trabalho" });

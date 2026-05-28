@@ -38,11 +38,11 @@ const warns = result.lints.filter((l) => l.severity === "warn");
 
 console.log(`cluster-doctor — ${projectRoot}`);
 console.log(`  Clusters: ${result.stats.clustersConsidered}`);
-console.log(`  Conteúdos: ${result.stats.contentsConsidered}`);
-console.log(`  Tempo: ${result.stats.durationMs}ms`);
+console.log(`  Content files: ${result.stats.contentsConsidered}`);
+console.log(`  Time: ${result.stats.durationMs}ms`);
 console.log("");
 if (blocks.length === 0 && warns.length === 0) {
-  console.log("Sem lints. Tudo limpo.");
+  console.log("No lints. All clean.");
   process.exit(0);
 }
 if (blocks.length > 0) {

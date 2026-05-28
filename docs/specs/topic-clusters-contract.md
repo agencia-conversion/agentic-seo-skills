@@ -1,16 +1,36 @@
 ---
 title: Topic Clusters — Contract
-contract_version: 1
-plugin_version: ">= 0.2.0"
+contract_version: 2
+plugin_version: ">= 0.3.0"
 status: proposal
-updated: 2026-05-25
+updated: 2026-05-26
 ---
 
-# Topic Clusters Contract v1
+# Topic Clusters Contract v2
 
 Espinha dorsal do plugin Agentic SEO. Define como Topic Clusters e Conteúdos se relacionam, são armazenados, sincronizados e consultados — por humanos (Obsidian, Web Companion) e por agentes (Claude Code, Codex, Antigravity, CLI).
 
-Este documento é o contrato público do subsistema. Mudanças incrementam `contract_version`. A versão atual é **1** (primeira pública, plugin 0.2).
+Este documento é o contrato público do subsistema. Mudanças incrementam `contract_version`. A versão atual é **2** (rename de domínio pt-BR → EN, plugin 0.3).
+
+## Migration v1 → v2
+
+Keys renamed to align with the EN-first vocabulary in `docs/specs/en-rename-map.md`. Readers accept both forms during the transition; writers emit v2 only.
+
+| v1 (pt-BR) | v2 (EN) |
+|---|---|
+| `nome` | `name` |
+| `tese` | `thesis` |
+| `pilar` | `pillar` (cognate alias accepted) |
+| `satelite_overrides` | `satellite_overrides` |
+| `papel: pilar` | `role: pillar` |
+| `papel: satelite` | `role: satellite` |
+| `stats.publicados` | `stats.published` |
+| `stats.planejados` | `stats.planned` |
+| content `origem` | content `origin` |
+| content `origem: outros` | content `origin: other` |
+| content `papel: { <slug>: pilar }` | content `role: { <slug>: pillar }` |
+
+Both `cluster-sync` and the Companion `cluster-yaml` normalizer accept v1 and add v2 aliases at parse time, so downstream code can read either side. The one-off Belo Horizonte brain migration (PR 3 of the bilingual refactor) rewrites all v1 files to v2 in place.
 
 ## 1. Objetivo
 

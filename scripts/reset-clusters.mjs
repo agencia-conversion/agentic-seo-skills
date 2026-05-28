@@ -94,10 +94,10 @@ function ensureTag() {
     const out = execSync(`git tag --list ${TAG}`, { encoding: "utf8" }).trim();
     if (!out) {
       execSync(`git tag ${TAG}`, { stdio: "ignore" });
-      console.log(`Tag git criada: ${TAG}`);
+      console.log(`Git tag created: ${TAG}`);
     }
   } catch (err) {
-    console.warn(`Aviso: não foi possível criar tag ${TAG}: ${err.message}`);
+    console.warn(`Warning: failed to create tag ${TAG}: ${err.message}`);
   }
 }
 
@@ -292,11 +292,11 @@ async function main() {
     }
   }
 
-  console.log(`Clusters reescritos: ${touched.clusters}`);
-  console.log(`Conteúdos atualizados: ${touched.contents}`);
+  console.log(`Clusters rewritten: ${touched.clusters}`);
+  console.log(`Content files updated: ${touched.contents}`);
 
   const syncResult = await runClusterSync();
-  console.log(`Sync: ${syncResult.changedFiles.length} arquivos materializados em ${syncResult.stats.durationMs}ms`);
+  console.log(`Sync: ${syncResult.changedFiles.length} files materialized in ${syncResult.stats.durationMs}ms`);
   if (syncResult.lints.length > 0) {
     console.log(`Lints (${syncResult.lints.length}):`);
     for (const lint of syncResult.lints) {

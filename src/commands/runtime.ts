@@ -405,6 +405,7 @@ function copyDir(src: string, dest: string): void {
   if (!fs.existsSync(src)) return;
   mkdirp(dest);
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    if (entry.isFile() && /\.pt-BR\.(md|template)$/i.test(entry.name)) continue;
     const from = path.join(src, entry.name);
     const to = path.join(dest, entry.name);
     if (entry.isDirectory()) copyDir(from, to);

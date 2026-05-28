@@ -134,7 +134,7 @@ limitations: []
 next_analysis_steps: []
 brain_promotion:
   allowed: false
-  reason: "Keyword research is evidence and synthesis only; promotion to brain pages requires a separate decision with `tipo: decisao` in `brain/log.md`."
+  reason: "Keyword research is evidence and synthesis only; promotion to brain pages requires a separate decision with `type: decision` in `brain/log.md`."
 ```
 
 If blocked because DataForSEO is unavailable and no substitute is recorded, return `status: blocked`, name the missing provider gate, and do not invent metrics.

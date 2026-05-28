@@ -12,7 +12,7 @@ export { REPORT_DIR_NAME };
 
 export const REPORT_MODULES = SHARED_REPORT_MODULES.map((module) => ({
   id: module.id,
-  title: reportModuleLabel(module.id, 'pt-BR'),
+  title: reportModuleLabel(module.id, 'en'),
 }));
 
 export type ReportModuleId = (typeof REPORT_MODULES)[number]['id'];

@@ -2,6 +2,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, write
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { findContentBySlug, updateContentClusterMembership } from './content-mutations';
+import { normalizeClusterYaml } from './cluster-yaml';
 
 const ORIGINS = ['blog', 'linkedin', 'podcast', 'other'] as const;
 const FM_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
@@ -91,7 +92,7 @@ function readClusters(projectRoot: string): Array<{ filePath: string; data: Reco
     const filePath = join(clustersRoot, name, 'cluster.yaml');
     if (!existsSync(filePath)) continue;
     try {
-      const data = parseYaml(readFileSync(filePath, 'utf8')) as Record<string, any>;
+      const data = normalizeClusterYaml(parseYaml(readFileSync(filePath, 'utf8'))) as Record<string, any>;
       if (data?.slug) out.push({ filePath, data });
     } catch {
       // Skip malformed clusters so the table can still load.

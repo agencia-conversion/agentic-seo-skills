@@ -8,7 +8,7 @@ source_artifact: "audits/backlinks-{{run_slug}}/report.yaml"
 summary: "{{summary}}"
 ---
 
-## Resumo executivo
+## Executive summary
 
 {{executive_summary}}
 
@@ -17,7 +17,7 @@ version: 1
 items:
   - label: Backlinks
     value: "{{backlinks}}"
-  - label: Domínios ref.
+  - label: Ref. domains
     value: "{{referring_domains}}"
   - label: Rank
     value: "{{rank}}"
@@ -25,7 +25,7 @@ items:
     value: "{{spam}}"
 ```
 
-## Comparativo
+## Comparison
 
 ```agentic-table
 version: 1
@@ -35,7 +35,7 @@ columns:
   - key: backlinks
     label: Backlinks
   - key: referring_domains
-    label: Domínios ref.
+    label: Ref. domains
   - key: rank
     label: Rank
   - key: spam
@@ -48,7 +48,7 @@ rows:
     spam: "{{spam}}"
 ```
 
-## Amostra de backlinks
+## Backlink sample
 
 {{backlink_sample}}
 
@@ -60,17 +60,17 @@ rows:
 version: 1
 columns:
   - key: referring_domain
-    label: Domínio referenciador
+    label: Referring domain
   - key: intersect_strength
-    label: Força do overlap
+    label: Overlap strength
   - key: rank
     label: Rank
   - key: observed_on
-    label: Observado em
+    label: Observed on
   - key: first_seen
-    label: Primeiro registro
+    label: First seen
   - key: sample
-    label: Backlink de amostra
+    label: Sample backlink
 rows: []
 ```
 
@@ -80,15 +80,15 @@ rows: []
 version: 1
 columns:
   - key: referring_domain
-    label: Domínio referenciador
+    label: Referring domain
   - key: anchors_target
-    label: Âncoras (alvo)
+    label: Anchors (target)
   - key: anchors_competitors
-    label: Âncoras (concorrentes)
+    label: Anchors (competitors)
   - key: backlinks_target
-    label: Backlinks (alvo)
+    label: Backlinks (target)
   - key: backlinks_competitors
-    label: Backlinks (concorrentes)
+    label: Backlinks (competitors)
 rows: []
 ```
 
@@ -100,17 +100,17 @@ columns:
   - key: player
     label: Player
   - key: branded
-    label: Marca (%)
+    label: Branded (%)
   - key: exact_match
-    label: Exato (%)
+    label: Exact match (%)
   - key: partial_match
-    label: Parcial (%)
+    label: Partial match (%)
   - key: naked
-    label: URL nua (%)
+    label: Naked URL (%)
   - key: generic
-    label: Genérico (%)
+    label: Generic (%)
   - key: image_or_empty
-    label: Imagem/vazio (%)
+    label: Image/empty (%)
 rows: []
 ```
 
@@ -124,28 +124,28 @@ columns:
   - key: editorial
     label: Editorial
   - key: directory
-    label: Diretório
+    label: Directory
   - key: ugc
     label: UGC
   - key: news
-    label: Imprensa
+    label: Press
   - key: suspected_spam_network
-    label: Spam suspeito
+    label: Suspected spam
   - key: unknown
-    label: Desconhecido
+    label: Unknown
 rows: []
 ```
 
-## Velocidade de aquisição
+## Acquisition velocity
 
 ```agentic-kpis
 version: 1
 items:
-  - label: Janela
-    value: "{{time_window_days}} dias"
-  - label: Novos RDs (alvo)
+  - label: Window
+    value: "{{time_window_days}} days"
+  - label: New RDs (target)
     value: "{{target_new_rds}}"
-  - label: Perdidos RDs (alvo)
+  - label: Lost RDs (target)
     value: "{{target_lost_rds}}"
 ```
 
@@ -153,11 +153,11 @@ items:
 version: 1
 type: bar
 x_label: Player
-y_label: RDs (novos vs perdidos)
+y_label: RDs (new vs lost)
 series:
-  - name: Novos
+  - name: New
     data: []
-  - name: Perdidos
+  - name: Lost
     data: []
 ```
 
@@ -169,13 +169,13 @@ series:
 version: 1
 columns:
   - key: target_url
-    label: URL alvo
+    label: Target URL
   - key: competitor_url
-    label: URL concorrente
+    label: Competitor URL
   - key: rds_only_competitor
-    label: RDs só no concorrente
+    label: RDs only on competitor
   - key: sample
-    label: Backlink de amostra
+    label: Sample backlink
 rows: []
 ```
 
@@ -187,16 +187,16 @@ rows: []
 version: 1
 columns:
   - key: domain
-    label: Domínio
+    label: Domain
   - key: page_url
-    label: Página
+    label: Page
   - key: mentions_competitor
-    label: Menciona concorrente
+    label: Mentions competitor
   - key: excerpt
-    label: Trecho
+    label: Excerpt
 rows: []
 ```
 
-## Riscos e próximos passos
+## Risks and next steps
 
 {{risks_and_next_actions}}

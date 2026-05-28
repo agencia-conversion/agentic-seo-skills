@@ -9,7 +9,7 @@ summary: "{{summary}}"
 score: "{{score}}"
 ---
 
-## Resumo executivo
+## Executive summary
 
 {{executive_summary}}
 

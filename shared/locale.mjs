@@ -6,8 +6,8 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
-export const SUPPORTED_LANGUAGES = ["pt-BR", "en"];
-const DEFAULT_LANGUAGE = "pt-BR";
+export const SUPPORTED_LANGUAGES = ["en", "pt-BR"];
+const DEFAULT_LANGUAGE = "en";
 
 const ASCII_FOLD = {
   á: "a", à: "a", ã: "a", â: "a", ä: "a", å: "a",
@@ -76,7 +76,8 @@ export function canonicalKeyword(value) {
 
 // Intl wrappers. `formatNumber(null)` → "—". `formatPercent(18)` treats the input
 // as already on the 0..100 scale (consistent with `sov_pct` and the new
-// `ctr_uplift_modeled_pct` field).
+// `ctr_uplift_modeled_pct` field). Default locale is "en"; pass `"pt-BR"` to
+// switch number/percent grouping and decimal separators for Brazilian output.
 export function formatNumber(value, locale = DEFAULT_LANGUAGE, options = {}) {
   if (value == null || (typeof value === "number" && !Number.isFinite(value))) return "—";
   const num = typeof value === "number" ? value : Number(value);
