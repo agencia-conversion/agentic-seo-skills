@@ -3,9 +3,11 @@ import { basename, join, relative, resolve, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { parse as parseYaml } from 'yaml';
 import { parseFrontmatter } from './project-files';
+import companionRoutes from '../../../../shared/companion-routes.js';
 
 const CONTENT_ORIGINS = ['blog', 'linkedin', 'podcast', 'other'] as const;
 const NONE_CLUSTER = '__none__';
+const { companionTargetForPath } = companionRoutes;
 
 interface ClusterContentMeta {
   keyword?: string | null;
@@ -299,6 +301,7 @@ export function listProjectContents({
       rows.push({
         id: sha256(path),
         path,
+        ...companionTargetForPath(path),
         title: clean(frontmatter.title) || titleFromPath(path),
         slug: contentSlug,
         origin: clean(frontmatter.origin) || contentOrigin,
@@ -318,6 +321,65 @@ export function listProjectContents({
         excerpt: body.replace(/\s+/g, ' ').trim().slice(0, 180),
         hash: sha256(text),
       });
+    }
+  }
+  const draftsRoot = resolve(root, 'artifacts', 'contents');
+  if (existsSync(draftsRoot)) {
+    const realRoot = realpathSync(root);
+    const realDraftsRoot = realpathSync(draftsRoot);
+    if (realDraftsRoot.startsWith(`${realRoot}${sep}`)) {
+      for (const child of walkMarkdown(draftsRoot).filter((item) => /^[A-Za-z0-9._-]+\/draft\.md$/.test(item))) {
+        const path = `artifacts/contents/${child}`;
+        const filePath = resolve(root, path);
+        const realFile = realpathSync(filePath);
+        if (!realFile.startsWith(`${realDraftsRoot}${sep}`)) continue;
+        const text = readFileSync(filePath, 'utf8');
+        const { data: frontmatter, body } = parseFrontmatter(text);
+        const contentSlug = clean(frontmatter.slug) || child.split('/')[0] || basename(child, '.md');
+        const matches = inferClusters(frontmatter, contentSlug, clusters);
+        const primary = matches[0] || null;
+        let keyword: string | null = clean(frontmatter.keyword) || clean(frontmatter.keyword_principal?.keyword) || null;
+        let intent: string | null = clean(frontmatter.intent) || null;
+        let keywordVolume: number | null =
+          typeof frontmatter.volume === 'number'
+            ? frontmatter.volume
+            : Number.isFinite(Number(frontmatter.volume))
+              ? Number(frontmatter.volume)
+              : null;
+        for (const match of matches) {
+          const cluster = clusters.find((c) => c.id === match.id);
+          const meta = cluster?.metaBySlug.get(contentSlug);
+          if (!keyword && meta?.keyword) keyword = meta.keyword;
+          if (!intent && meta?.intent) intent = meta.intent;
+          if (keywordVolume == null && typeof meta?.volume === 'number') keywordVolume = meta.volume;
+          if (keyword && intent && keywordVolume != null) break;
+        }
+        if (keywordVolume != null && (!Number.isFinite(keywordVolume) || keywordVolume < 0)) keywordVolume = null;
+        if (keywordVolume != null) keywordVolume = Math.round(keywordVolume);
+        rows.push({
+          id: sha256(path),
+          path,
+          ...companionTargetForPath(path),
+          title: clean(frontmatter.title) || titleFromPath(path),
+          slug: contentSlug,
+          origin: clean(frontmatter.origin) || 'draft',
+          area: clean(frontmatter.area),
+          topic_cluster: primary?.id || null,
+          topicClusterTitle: primary?.title || null,
+          topicClusterPath: primary?.path || null,
+          topic_clusters: matches.map((entry) => entry.id),
+          topicClusterTitles: matches.map((entry) => entry.title),
+          topicClusterPaths: matches.map((entry) => entry.path),
+          keyword,
+          intent,
+          keyword_volume: keywordVolume,
+          published_at: '',
+          updated: clean(frontmatter.updated || frontmatter.updated_at),
+          status: clean(frontmatter.status) || 'draft',
+          excerpt: body.replace(/\s+/g, ' ').trim().slice(0, 180),
+          hash: sha256(text),
+        });
+      }
     }
   }
 
@@ -376,7 +438,7 @@ export function listProjectContents({
     page: safePage,
     pageSize: safePageSize,
     total: filtered.length,
-    origins: CONTENT_ORIGINS.map((id) => ({ id, count: rows.filter((row) => row.origin === id).length })),
+    origins: [...CONTENT_ORIGINS, 'draft'].map((id) => ({ id, count: rows.filter((row) => row.origin === id).length })),
     topicClusters: clusterOptions,
     items: filtered.slice(start, start + safePageSize),
   };

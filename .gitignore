@@ -54,7 +54,8 @@ project/.obsidian/
 
 # Locally installed external skills and lockfile.
 .agents/
-.claude/
+.claude/*
+!.claude/settings.json
 skills-lock.json
 .gstack/
 test-results/

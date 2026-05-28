@@ -3,6 +3,7 @@ name: page-report
 description: Shared report-page contract for Agentic SEO modules that render editable, human-first Markdown reports in the Web Companion.
 metadata:
   version: 1.0.0
+  category: contract
 ---
 
 # Page Report

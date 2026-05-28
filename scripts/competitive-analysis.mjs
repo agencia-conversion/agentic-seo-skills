@@ -6,10 +6,12 @@ import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 import { load as loadCurve, selectPrimary as selectPrimaryCurve } from "../shared/ctr-curves/loader.mjs";
 import { getProjectLanguage, formatNumber, formatPercent, canonicalKeyword } from "../shared/locale.mjs";
+import companionRoutes from "../shared/companion-routes.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PROJECT = process.env.AGENTIC_SEO_PROJECT_DIR || join(ROOT, "project");
 const REPORT_BROWSER_PROMPT_MESSAGE = "Posso abrir o Web Companion para você ver a análise?";
+const { companionTargetForPath } = companionRoutes;
 
 function parseArgs(argv) {
   const out = { _: [] };
@@ -693,22 +695,19 @@ async function main() {
   const md = composeReport({ target, competitors, runYaml, lead, synthesis, limitations, nextActions, locale });
   writeText(reportPath, md);
 
-  // Brain decision gate: M7 (brand synthesis) is the module that proposes brain
-  // entries. Only append to brain/log.md when M7 actually ran so quick / content-only
-  // / non-brand runs do not pollute the log.
-  const logAppended = modulesRun.includes("m7_brand")
-    ? appendBrainLog({ projectRoot: PROJECT, runSlug: slug, target, competitors, modulesRun })
-    : false;
+  const logAppended = appendBrainLog({ projectRoot: PROJECT, runSlug: slug, target, competitors, modulesRun });
 
   const reportRel = relative(PROJECT, reportPath);
+  const companionTarget = companionTargetForPath(reportRel);
   process.stdout.write(JSON.stringify({
     ok: true,
     run_slug: slug,
     report_md: reportRel,
+    ...companionTarget,
     source_artifact: `audits/competitive-${slug}/report.yaml`,
     modules_run: modulesRun,
     log_appended: logAppended,
-    browser_prompt: { recommended: true, message: REPORT_BROWSER_PROMPT_MESSAGE, report_md: reportRel, open_with: "project-browser" },
+    browser_prompt: { recommended: true, message: REPORT_BROWSER_PROMPT_MESSAGE, report_md: reportRel, ...companionTarget, open_with: "project-browser" },
   }, null, 2) + "\n");
 }
 

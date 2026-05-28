@@ -3,6 +3,7 @@ name: eeat
 description: When the user wants to audit, strengthen, or prepare evidence for Experience, Expertise, Authoritativeness, and Trust. Also use before registering proof entries in `project/brain/log.md` or referencing them in `project/brain/topic-clusters.md`.
 metadata:
   version: 1.0.0
+  category: report
 ---
 
 # E-E-A-T
@@ -170,7 +171,7 @@ If the user asks to register proof in `project/brain/topic-clusters.md` or `proj
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/eeat/report-skeleton.md`. The module-specific source artifact is the consensus JSON under `workbench/eeat/<run-id>/report.json`; the Companion page is `project/analyses/eeat/<run-id>/report.md`. Present the proof inventory, gaps, confidence, and do-not-claim items in human-readable prose and tables with friendly risk/check names; never paste raw evidence JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/eeat/report-skeleton.md`. The module-specific source artifact is the consensus JSON under `workbench/eeat/<run-id>/report.json`; the Companion page is `project/analyses/eeat/<run-id>/report.md`. Present the proof inventory, gaps, confidence, and do-not-claim items in human-readable prose and tables with friendly risk/check names; never paste raw evidence JSON or object arrays into the visual report body. The response must return `report_md` plus `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`.
 
 ## Examples
 

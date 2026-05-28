@@ -28,8 +28,16 @@ try {
   assert.match(specific.additionalContext, /\/agentic-seo:agentic-seo/);
   assert.match(specific.additionalContext, /AGENTS\.md/);
   assert.match(specific.additionalContext, /report_md/);
+  assert.match(specific.additionalContext, /artifact_path/);
+  assert.match(specific.additionalContext, /companion_path/);
+  assert.match(specific.additionalContext, /companion_slug/);
   assert.match(specific.additionalContext, /browser_prompt/);
   assert.match(specific.additionalContext, /Posso abrir o Web Companion para você ver a análise\?/);
+  assert.match(specific.additionalContext, /Posso abrir o Web Companion para você revisar esta entrega\?/);
+  assert.match(specific.additionalContext, /content-seo/);
+  assert.match(specific.additionalContext, /content-import/);
+  assert.match(specific.additionalContext, /brain-keeper/);
+  assert.match(specific.additionalContext, /spec-driven/);
   assert.match(specific.additionalContext, /project\/analyses\//);
   assert.match(specific.additionalContext, /humanos primeiro/);
   assert.match(specific.additionalContext, /project\/\.agentic-seo\/project\.json\.language/);

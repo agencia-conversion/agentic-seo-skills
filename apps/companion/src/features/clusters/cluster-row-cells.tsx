@@ -13,6 +13,7 @@ import { useWorkspace } from '@/features/workspace/store';
 import { patchContentMetadata } from '@/features/clusters/cluster-row-api';
 import { formatRowError } from '@/lib/row-error-messages';
 import { cn } from '@/lib/utils';
+import { projectPageSlug } from '@/lib/project-slugs';
 
 export interface ClusterRow {
   slug: string;
@@ -80,7 +81,7 @@ export function ContentLink({
   }
   const origin = row.content.origin;
   const targetPath =
-    token && `/project/${encodeURIComponent(token)}/contents-${encodeURIComponent(origin)}-${encodeURIComponent(row.slug)}`;
+    token && `/project/${encodeURIComponent(token)}/${projectPageSlug(row.content.href || `contents/${origin}/${row.slug}.md`)}`;
   const currentTitle = row.content.title;
 
   // Use event.detail to distinguish single vs double click on the SAME
@@ -94,7 +95,7 @@ export function ContentLink({
       return;
     }
     e.preventDefault();
-    if (e.detail >= 2) {
+    if (e.detail >= 2 && row.status === 'published') {
       // Double-click: cancel any pending navigation and enter edit mode.
       if (clickTimerRef.current) {
         clearTimeout(clickTimerRef.current);

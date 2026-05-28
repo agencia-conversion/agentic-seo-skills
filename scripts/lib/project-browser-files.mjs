@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import sharedReportModules from "../../shared/report-modules.js";
+import companionRoutes from "../../shared/companion-routes.js";
 import { appendLogEntry, parseFrontmatter } from "./brain-page.mjs";
 
 const { REPORT_DIR_NAME, REPORT_MODULE_IDS } = sharedReportModules;
@@ -37,6 +38,8 @@ const BRAIN_PAGE_ORDER = [
 ];
 const CONTENT_ORIGINS = new Set(["blog", "linkedin", "podcast", "other"]);
 const REPORT_MODULES = new Set(REPORT_MODULE_IDS);
+const ARTIFACT_DRAFT_RE = /^artifacts\/contents\/[A-Za-z0-9._-]+\/draft\.md$/;
+const { companionTargetForPath } = companionRoutes;
 const SUPPORTED_PROJECT_LANGUAGES = new Set(["pt-BR", "en"]);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const BRAIN_TEMPLATE_DIR = join(ROOT, "templates", "project", "brain");
@@ -119,6 +122,7 @@ export function validateProjectFileRel(rawPath, { write = false } = {}) {
     /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^brain\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^contents\/(blog|linkedin|podcast|other)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
+    ARTIFACT_DRAFT_RE.test(rel) ||
     /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel) ||
     REPORT_PATH_RE.test(rel);
   if (rel.includes("\\") || !safe || !allowed) {
@@ -134,7 +138,7 @@ export function validateProjectFileRel(rawPath, { write = false } = {}) {
 function resolveAllowedFile(projectRoot, rel) {
   const root = normalizeProjectRoot(projectRoot);
   const filePath = resolve(root, rel);
-  const allowedRoots = ["brain", "contents", "workbench", REPORT_DIR_NAME].map((dir) => resolve(root, dir));
+  const allowedRoots = ["brain", "contents", "artifacts", "workbench", REPORT_DIR_NAME].map((dir) => resolve(root, dir));
   if (!allowedRoots.some((allowedRoot) => filePath === allowedRoot || filePath.startsWith(`${allowedRoot}${sep}`))) {
     throw new Error("path escaped project root");
   }
@@ -286,6 +290,7 @@ function readBrainPageSummary(projectRoot, rel, ui, defaultIcons = null) {
   const displayBody = stripDuplicateTitleHeading(rel, body, title);
   const summary = {
     path: rel,
+    ...companionTargetForPath(rel),
     title,
     updated: frontmatter.updated || frontmatter.published_at || null,
     readOnly: rel === "brain/log.md",
@@ -364,7 +369,11 @@ export function buildProjectTree({ projectRoot }) {
   const workbenchItems = walkMarkdown(join(root, "workbench"))
     .map((child) => readBrainPageSummary(root, `workbench/${child}`, ui))
     .filter(Boolean);
-  const hasFiles = items.length + contentItems.length + workbenchItems.length > 0;
+  const draftItems = walkMarkdown(join(root, "artifacts", "contents"))
+    .filter((child) => /^[A-Za-z0-9._-]+\/draft\.md$/.test(child))
+    .map((child) => readBrainPageSummary(root, `artifacts/contents/${child}`, ui))
+    .filter(Boolean);
+  const hasFiles = items.length + contentItems.length + draftItems.length + workbenchItems.length > 0;
   const hasBrain = canonicalBrainExists(root);
   const sections = [
     {
@@ -374,6 +383,7 @@ export function buildProjectTree({ projectRoot }) {
     },
   ];
   if (contentItems.length || existsSync(join(root, "contents"))) sections.push({ id: "contents", title: "Conteúdos", items: contentItems });
+  if (draftItems.length || existsSync(join(root, "artifacts", "contents"))) sections.push({ id: "drafts", title: "Rascunhos", items: draftItems });
   if (workbenchItems.length) sections.push({ id: "workbench", title: "Workbench", items: workbenchItems });
   return {
     ok: true,
@@ -557,6 +567,7 @@ export function listProjectContents({ projectRoot, page = 1, pageSize = 25, quer
       rows.push({
         id: sha256(rel),
         path: rel,
+        ...companionTargetForPath(rel),
         title: cleanValue(frontmatter.title) || titleFromFile(rel, frontmatter),
         slug: contentSlug,
         origin: cleanValue(frontmatter.origin) || contentOrigin,
@@ -576,6 +587,54 @@ export function listProjectContents({ projectRoot, page = 1, pageSize = 25, quer
         excerpt: body.replace(/\s+/g, " ").trim().slice(0, 180),
         hash: sha256(text),
       });
+    }
+  }
+  const draftsRoot = resolve(root, "artifacts", "contents");
+  if (existsSync(draftsRoot)) {
+    const realRoot = realpathSync(root);
+    const realDraftsRoot = realpathSync(draftsRoot);
+    if (realDraftsRoot.startsWith(`${realRoot}${sep}`)) {
+      for (const child of walkMarkdown(draftsRoot).filter((item) => /^[A-Za-z0-9._-]+\/draft\.md$/.test(item))) {
+        const rel = `artifacts/contents/${child}`;
+        const filePath = resolve(root, rel);
+        const realFile = realpathSync(filePath);
+        if (!realFile.startsWith(`${realDraftsRoot}${sep}`)) continue;
+        const text = readFileSync(filePath, "utf8");
+        const { data: frontmatter, body } = parseFrontmatter(text);
+        const contentSlug = cleanValue(frontmatter.slug) || child.split("/")[0] || basename(child, ".md");
+        const matches = inferContentClusters(frontmatter, contentSlug, clusters);
+        const primary = matches[0] || null;
+        const rawVolume = frontmatter.volume;
+        const keywordVolume =
+          typeof rawVolume === "number"
+            ? rawVolume
+            : Number.isFinite(Number(rawVolume))
+              ? Number(rawVolume)
+              : null;
+        rows.push({
+          id: sha256(rel),
+          path: rel,
+          ...companionTargetForPath(rel),
+          title: cleanValue(frontmatter.title) || titleFromFile(rel, frontmatter),
+          slug: contentSlug,
+          origin: cleanValue(frontmatter.origin) || "draft",
+          area: cleanValue(frontmatter.area),
+          topic_cluster: primary?.id || null,
+          topicClusterTitle: primary?.title || null,
+          topicClusterPath: primary?.path || null,
+          topic_clusters: matches.map((entry) => entry.id),
+          topicClusterTitles: matches.map((entry) => entry.title),
+          topicClusterPaths: matches.map((entry) => entry.path),
+          keyword: cleanValue(frontmatter.keyword || frontmatter.keyword_principal?.keyword),
+          intent: cleanValue(frontmatter.intent),
+          keyword_volume: keywordVolume,
+          published_at: "",
+          updated: cleanValue(frontmatter.updated || frontmatter.updated_at),
+          status: cleanValue(frontmatter.status) || "draft",
+          excerpt: body.replace(/\s+/g, " ").trim().slice(0, 180),
+          hash: sha256(text),
+        });
+      }
     }
   }
 
@@ -633,7 +692,7 @@ export function listProjectContents({ projectRoot, page = 1, pageSize = 25, quer
     page: safePage,
     pageSize: safePageSize,
     total: filtered.length,
-    origins: [...CONTENT_ORIGINS].map((id) => ({ id, count: rows.filter((row) => row.origin === id).length })),
+    origins: [...CONTENT_ORIGINS, "draft"].map((id) => ({ id, count: rows.filter((row) => row.origin === id).length })),
     topicClusters,
     items: filtered.slice(start, start + safePageSize),
   };
@@ -740,6 +799,7 @@ export function readProjectFile({ projectRoot, fileRel }) {
     ok: true,
     projectRoot: root,
     path: validation.rel,
+    ...companionTargetForPath(validation.rel),
     title,
     frontmatter,
     frontmatterRaw: raw,
@@ -792,7 +852,7 @@ function cleanFrontmatterRaw(raw) {
 }
 
 function frontmatterFieldsForPath(rel, incoming, existing, title) {
-  if (rel.startsWith("contents/")) {
+  if (rel.startsWith("contents/") || rel.startsWith("artifacts/contents/")) {
     return {
       ...existing,
       ...incoming,
@@ -844,6 +904,7 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
     return {
       ok: true,
       path: validation.rel,
+      ...companionTargetForPath(validation.rel),
       hash: currentHash,
       uiSaved,
       logAppended: false,
@@ -859,7 +920,10 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
     incomingFrontmatter.title || title || existingFrontmatter.title || titleFromFile(validation.rel, existingFrontmatter)
   ).trim();
   const today = todayIso();
-  const rawCandidate = validation.rel.startsWith("contents/") ? cleanFrontmatterRaw(frontmatterRaw) : null;
+  const rawCandidate =
+    validation.rel.startsWith("contents/") || validation.rel.startsWith("artifacts/contents/")
+      ? cleanFrontmatterRaw(frontmatterRaw)
+      : null;
   let rawFrontmatter;
   if (rawCandidate !== null) {
     rawFrontmatter = rawCandidate;
@@ -892,6 +956,7 @@ export function saveProjectFile({ projectRoot, fileRel, expectedHash, title, bod
   return {
     ok: true,
     path: validation.rel,
+    ...companionTargetForPath(validation.rel),
     title: finalTitle,
     updated: today,
     hash: sha256(next),
@@ -924,7 +989,7 @@ export function createProjectFile({ projectRoot, kind = "workbench", title = "No
   mkdirSync(dirname(filePath), { recursive: true });
   const today = todayIso();
   const text = kind === "content"
-    ? `---\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, ".md"))}\npublished_at: ""\nsource_url: ""\norigin: "other"\narea: ""\n---\n\n`
+    ? `---\ncontract_version: 1\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, ".md"))}\npublished_at: ""\nsource_url: ""\norigin: "other"\nclusters: []\n---\n\n`
     : `---\ntitle: ${yamlString(title)}\nupdated: ${yamlString(today)}\n---\n\n`;
   writeFileSync(filePath, text, "utf8");
   return { ...readProjectFile({ projectRoot: root, fileRel: rel }), created: true };
@@ -972,7 +1037,7 @@ export function deleteProjectFile({ projectRoot, fileRel, expectedHash, dirty = 
     });
   }
 
-  return { ok: true, path: validation.rel, trashPath };
+  return { ok: true, path: validation.rel, ...companionTargetForPath(validation.rel), trashPath };
 }
 
 export function readProjectLog({ projectRoot }) {

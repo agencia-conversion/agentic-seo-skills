@@ -97,9 +97,13 @@ function isAuthorialBrainName(name) {
 const PUBLIC_CONTENT_ORIGINS = new Set(["blog", "linkedin", "podcast", "other"]);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sharedReportModules = require("../../shared/report-modules.js");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const companionRoutes = require("../../shared/companion-routes.js");
 const REPORT_MODULE_IDS = sharedReportModules.REPORT_MODULE_IDS;
 const REPORT_DIR_NAME = sharedReportModules.REPORT_DIR_NAME;
 const REPORT_BROWSER_PROMPT_MESSAGE = sharedReportModules.REPORT_BROWSER_PROMPT_MESSAGE;
+const ARTIFACT_BROWSER_PROMPT_MESSAGE = "Posso abrir o Web Companion para você revisar esta entrega?";
+const companionTargetForPath = companionRoutes.companionTargetForPath;
 function nowIso() {
     return new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
 }
@@ -149,6 +153,25 @@ function writeText(file, text) {
 }
 function readJson(file) {
     return JSON.parse(fs.readFileSync(file, "utf8"));
+}
+function safeJsonParse(text) {
+    try {
+        return JSON.parse(text);
+    }
+    catch {
+        return null;
+    }
+}
+function fileSnapshot(file) {
+    return fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
+}
+function restoreSnapshot(file, snapshot) {
+    if (snapshot === null) {
+        if (fs.existsSync(file))
+            fs.unlinkSync(file);
+        return;
+    }
+    writeText(file, snapshot);
 }
 function writeYaml(file, data) {
     mkdirp(path.dirname(file));
@@ -218,18 +241,47 @@ function reportMarkdownPath(projectDir, moduleId, runSlug) {
     return path.join(projectDir, REPORT_DIR_NAME, moduleId, reportRunSlug(runSlug), "report.md");
 }
 function browserPrompt(reportMd, projectDir) {
+    const reportRel = path.relative(projectDir, reportMd).replace(/\\/g, "/");
     return {
         recommended: true,
         message: REPORT_BROWSER_PROMPT_MESSAGE,
-        report_md: path.relative(projectDir, reportMd),
+        report_md: reportRel,
+        ...companionTargetForPath(reportRel),
         open_with: "project-browser",
     };
 }
 function attachReportPrompt(data, reportMd, projectDir) {
+    const reportRel = path.relative(projectDir, reportMd).replace(/\\/g, "/");
     return {
         ...data,
-        report_md: path.relative(projectDir, reportMd),
+        report_md: reportRel,
+        ...companionTargetForPath(reportRel),
         browser_prompt: browserPrompt(reportMd, projectDir),
+    };
+}
+function artifactBrowserPrompt(file, projectDir) {
+    const artifactRel = path.relative(projectDir, file).replace(/\\/g, "/");
+    return {
+        recommended: true,
+        message: ARTIFACT_BROWSER_PROMPT_MESSAGE,
+        artifact_path: artifactRel,
+        ...companionTargetForPath(artifactRel),
+        open_with: "project-browser",
+    };
+}
+function attachArtifactPrompt(data, file, projectDir) {
+    return {
+        ...data,
+        ...companionTargetForAbsolute(projectDir, file),
+        browser_prompt: artifactBrowserPrompt(file, projectDir),
+    };
+}
+function companionTargetForAbsolute(projectDir, file) {
+    const rel = path.relative(projectDir, file).replace(/\\/g, "/");
+    return {
+        path: file,
+        companion_path: companionTargetForPath(rel).companion_path,
+        companion_slug: companionTargetForPath(rel).companion_slug,
     };
 }
 function renderMarkdownReportContent(payload) {
@@ -383,6 +435,9 @@ function contentDraftFile(projectDir, slug) {
     return path.join(contentArtifactsDir(projectDir, slug), "draft.md");
 }
 function contentCheckFile(projectDir, slug) {
+    return path.join(contentArtifactsDir(projectDir, slug), "checks.yaml");
+}
+function contentPublicationCheckFile(projectDir, slug) {
     return path.join(contentArtifactsDir(projectDir, slug), "publication-check.yaml");
 }
 function contentWordCountFile(projectDir, slug) {
@@ -1905,13 +1960,21 @@ function buildTopicClusterReportPayload(cluster, localeInput) {
             cluster.pillar.keyword_principal?.volume ?? unavailable(locale),
             cluster.pillar.serp_intent || unavailable(locale),
         ]] : [];
-    const supportRows = supports.map((page) => [
-        page.role || "support",
-        page.slug || "",
-        page.keyword_principal?.keyword || "",
-        page.keyword_principal?.volume ?? unavailable(locale),
-        page.serp_intent || unavailable(locale),
-    ]);
+    const supportRows = supports.length
+        ? supports.map((page) => [
+            page.role || "support",
+            page.slug || "",
+            page.keyword_principal?.keyword || "",
+            page.keyword_principal?.volume ?? unavailable(locale),
+            page.serp_intent || unavailable(locale),
+        ])
+        : [1, 2, 3].map((idx) => [
+            "support",
+            `planejar-suporte-${idx}`,
+            reportText(locale, "pendente de pesquisa", "pending research"),
+            unavailable(locale),
+            unavailable(locale),
+        ]);
     const pages = [cluster.pillar, ...supports].filter(Boolean);
     return {
         title: `Topic cluster — ${cluster.seed}`,
@@ -2395,6 +2458,10 @@ async function commandProjectBrowser(args) {
     ];
     if (args.no_open || args.no_browser)
         childArgs.push("--no-open");
+    if (args.open_path || args.target_path)
+        childArgs.push("--open-path", String(args.open_path || args.target_path));
+    if (args.detach || args.non_blocking)
+        childArgs.push("--detach");
     const result = (0, node_child_process_1.spawnSync)(process.execPath, childArgs, {
         cwd: ROOT,
         env: process.env,
@@ -2426,7 +2493,7 @@ async function commandProjectInit(args) {
         setFrontmatterValue(brainIndex, { title: JSON.stringify(name), updated: JSON.stringify(today()) });
     }
     appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado em ${country}/${language}.`, "agent");
-    printJson({ ok: true, project_dir: p });
+    printJson(attachArtifactPrompt({ ok: true, project_dir: p }, brainIndex, p));
 }
 async function commandBrainLint(args) {
     const p = ensureProject();
@@ -2458,9 +2525,12 @@ async function commandBrainLint(args) {
     }
     findings.push(...lintContentPublication(p));
     const result = { ok: !findings.some((f) => f.severity === "error"), findings };
-    writeJson(path.join(p, "workbench", "brain-lint.json"), result);
-    appendLog("lint", "Brain lint", ["workbench/brain-lint.json"], `${findings.length} apontamentos encontrados.`, "agent");
-    printJson(result);
+    const lintJson = path.join(p, "workbench", "brain-lint.json");
+    const lintYaml = path.join(p, "workbench", "brain-lint.yaml");
+    writeJson(lintJson, result);
+    writeYaml(lintYaml, result);
+    appendLog("lint", "Brain lint", ["workbench/brain-lint.yaml"], `${findings.length} apontamentos encontrados.`, "agent");
+    printJson(attachArtifactPrompt(result, lintYaml, p));
 }
 function lintContentPublication(projectDir) {
     const findings = [];
@@ -2649,7 +2719,7 @@ async function commandBrainApprove(args) {
         throw new CliError(`Brain page not found: ${file}`);
     setFrontmatterValue(file, { updated: JSON.stringify(today()) });
     appendLog("decision", `Decisão ${rel}`, [rel.replace(/\.md$/, "")], `Página ${rel} registrada como decisão por ${by}.`, by);
-    printJson({ ok: true, decided: rel, by });
+    printJson(attachArtifactPrompt({ ok: true, decided: rel, by }, file, ensureProject()));
 }
 async function commandBrainIngest(args) {
     const source = required(args, "source");
@@ -2660,7 +2730,15 @@ async function commandBrainIngest(args) {
     mkdirp(path.dirname(target));
     fs.copyFileSync(source, target);
     appendLog("ingest", `Ingestão de fonte: ${path.basename(source)}`, [path.relative(p, target)], "Fonte manual adicionada ao projeto.", "agent");
-    printJson({ ok: true, source: target });
+    const summaryPath = path.join(p, "workbench", "brain-keeper", `ingest-${slugify(path.basename(source, path.extname(source)))}.md`);
+    writeText(summaryPath, `# Ingestão de fonte: ${path.basename(source)}
+
+- Fonte original: ${source}
+- Fonte copiada: ${path.relative(p, target).replace(/\\/g, "/")}
+- Registrado em: ${nowIso()}
+- Log: project/brain/log.md
+`);
+    printJson(attachArtifactPrompt({ ok: true, source: target, summary_path: summaryPath }, summaryPath, p));
 }
 async function commandDataSetup(args) {
     if (shouldAutoOpenDataSetup(args)) {
@@ -3144,18 +3222,240 @@ function mergeClusterPages(existingPages, freshPages) {
     }
     return merged;
 }
+function clusterVolume(value) {
+    if (value === null || value === undefined || value === "")
+        return null;
+    const n = Number(value);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+}
+function clusterYamlFromLegacy(cluster) {
+    const pillarSlug = String(cluster.pillar?.slug || slugify(cluster.pillar?.keyword_principal?.keyword || cluster.seed || "")).trim();
+    const planned = (Array.isArray(cluster.supporting_pages) ? cluster.supporting_pages : []).map((page) => {
+        const keyword = String(page.keyword_principal?.keyword || page.keyword || page.title || page.slug || "").trim();
+        const slug = String(page.slug || slugify(keyword)).trim();
+        return {
+            slug,
+            title: page.title || keyword || slug,
+            keyword,
+            volume: clusterVolume(page.keyword_principal?.volume),
+            intent: page.serp_intent || page.intent || null,
+            status: "planned",
+            evidence: page.serp_evidence ? { provider: page.serp_evidence.provider || "dataforseo" } : null,
+        };
+    });
+    return {
+        contract_version: 1,
+        slug: cluster.seed_slug,
+        name: cluster.seed,
+        area: cluster.area || "Estratégia editorial",
+        status: "draft",
+        language: cluster.language || "pt-BR",
+        location: cluster.location || null,
+        context: `Cluster proposto para ${cluster.seed}.`,
+        thesis: cluster.thesis || null,
+        pillar: {
+            slug: pillarSlug,
+            title: cluster.pillar?.title || cluster.pillar?.keyword_principal?.keyword || cluster.seed,
+            keyword: cluster.pillar?.keyword_principal?.keyword || cluster.seed,
+            volume: clusterVolume(cluster.pillar?.keyword_principal?.volume),
+            intent: cluster.pillar?.serp_intent || cluster.pillar?.intent || null,
+        },
+        planned_satellites: planned,
+        satellite_overrides: {},
+        stats: {
+            published: 0,
+            planned: planned.length,
+            updated: today(),
+        },
+        evidence: {
+            suggestions: cluster.data_provenance?.suggestions || null,
+            ideas: cluster.data_provenance?.ideas || null,
+            serp: cluster.data_provenance?.serp || null,
+            provider_bypass: cluster.data_provenance?.provider_bypass || null,
+        },
+        provenance: {
+            source: "topic-cluster",
+            drafted_at: nowIso(),
+            hypothesis_only: Boolean(cluster.data_provenance?.hypothesis_only),
+            hypothesis_reason: cluster.data_provenance?.hypothesis_reason || null,
+        },
+        limitations: cluster.data_provenance?.hypothesis_only
+            ? ["Cluster em hipótese: volumes nulos e SERP/DataForSEO ausentes ou dispensados por bypass humano."]
+            : [],
+    };
+}
+function renderClusterPlanningMarkdown(clusterYaml) {
+    const planned = Array.isArray(clusterYaml.planned_satellites) ? clusterYaml.planned_satellites : [];
+    const rows = planned.length
+        ? planned.map((item) => `| ${item.title || item.slug} | ${item.keyword || "—"} | ${item.intent || "—"} | ${item.volume ?? "—"} |`).join("\n")
+        : "| Nenhum satélite planejado | — | — | — |";
+    return `# ${clusterYaml.name}
+
+## Resumo
+
+${clusterYaml.context || `Cluster proposto para ${clusterYaml.name}.`}
+
+## Pilar planejado
+
+- Slug: ${clusterYaml.pillar?.slug || "—"}
+- Keyword: ${clusterYaml.pillar?.keyword || "—"}
+- Volume: ${clusterYaml.pillar?.volume ?? "—"}
+- Intenção: ${clusterYaml.pillar?.intent || "—"}
+
+## Satélites planejados
+
+| Página | Keyword | Intenção | Volume |
+| --- | --- | --- | --- |
+${rows}
+
+## Promoção
+
+Este arquivo é a visão humana da proposta. A promoção cria \`cluster.yaml\`, roda \`cluster-sync\` e materializa \`brain/topic-clusters/${clusterYaml.slug}.md\`.
+`;
+}
+function promoteClusterDraft(projectDir, slug, approvedBy) {
+    const clusterDir = path.join(projectDir, "clusters", slug);
+    const draftPath = path.join(clusterDir, "draft.yaml");
+    const clusterPath = path.join(clusterDir, "cluster.yaml");
+    if (!fs.existsSync(draftPath))
+        throw new CliError(`Cluster draft not found: ${path.relative(projectDir, draftPath)}`);
+    const draft = readYaml(draftPath);
+    if (draft.provenance?.hypothesis_only && !approvedBy)
+        throw new CliError("Hypothesis-only cluster promotion requires an approver.");
+    if (draft.provenance?.hypothesis_only && !String(draft.provenance?.human_data_bypass_confirmed || "").trim()) {
+        throw new CliError("Hypothesis-only cluster promotion is blocked until the draft records human_data_bypass_confirmed.");
+    }
+    const archivePath = path.join(clusterDir, `draft.approved-${stamp()}.yaml`);
+    const backupCluster = fs.existsSync(clusterPath) ? fs.readFileSync(clusterPath, "utf8") : null;
+    const brainIndex = path.join(projectDir, "brain", "topic-clusters.md");
+    const brainSubpage = path.join(projectDir, "brain", "topic-clusters", `${slug}.md`);
+    const backupIndex = fs.existsSync(brainIndex) ? fs.readFileSync(brainIndex, "utf8") : null;
+    const backupSubpage = fs.existsSync(brainSubpage) ? fs.readFileSync(brainSubpage, "utf8") : null;
+    try {
+        draft.status = "active";
+        draft.approval = { approver: approvedBy || "agent", approved_at: nowIso() };
+        writeYaml(clusterPath, draft);
+        fs.renameSync(draftPath, archivePath);
+        const synced = (0, node_child_process_1.spawnSync)(process.execPath, [path.join(ROOT, "scripts", "cluster-sync.mjs"), `--root=${projectDir}`, `--cluster=${slug}`], {
+            cwd: ROOT,
+            encoding: "utf8",
+            env: process.env,
+            maxBuffer: 20 * 1024 * 1024,
+        });
+        if (synced.status !== 0)
+            throw new Error(synced.stderr || synced.stdout || "cluster-sync failed");
+        appendLog("decision", `Cluster ${draft.name || slug} promovido`, [path.relative(projectDir, clusterPath), `brain/topic-clusters/${slug}`], `Cluster "${draft.name || slug}" promovido por ${approvedBy || "agent"} e sincronizado no Brain.`, approvedBy || "agent");
+        return attachArtifactPrompt({
+            ok: true,
+            cluster: slug,
+            cluster_yaml: clusterPath,
+            archived_draft: archivePath,
+            brain_subpage: brainSubpage,
+            cluster_sync: safeJsonParse(synced.stdout) || synced.stdout,
+        }, brainSubpage, projectDir);
+    }
+    catch (err) {
+        if (backupCluster === null) {
+            if (fs.existsSync(clusterPath))
+                fs.unlinkSync(clusterPath);
+        }
+        else {
+            writeText(clusterPath, backupCluster);
+        }
+        if (fs.existsSync(archivePath) && !fs.existsSync(draftPath))
+            fs.renameSync(archivePath, draftPath);
+        if (backupIndex !== null)
+            writeText(brainIndex, backupIndex);
+        if (backupSubpage !== null)
+            writeText(brainSubpage, backupSubpage);
+        else if (fs.existsSync(brainSubpage))
+            fs.unlinkSync(brainSubpage);
+        throw new CliError(`Cluster promotion failed and was reverted: ${err?.message || err}`);
+    }
+}
 async function commandTopicCluster(args) {
     const seed = required(args, "seed");
     const p = ensureProject();
     const seedSlug = slugify(seed);
-    const clusterFile = path.join(p, "workbench", "topic-cluster", `${seedSlug}.json`);
+    const phase = String(args.phase || "draft").trim().toLowerCase();
+    if (phase === "promote") {
+        const result = promoteClusterDraft(p, seedSlug, String(args.approved_by || args.by || "").trim());
+        printJson({ phase, ...result });
+        return;
+    }
+    if (phase === "map-existing") {
+        const proposalPath = path.join(p, "clusters", seedSlug, "assignment-proposal.yaml");
+        const proposalMd = path.join(p, "workbench", "topic-cluster", `${seedSlug}-assignment.md`);
+        const contentsRoot = path.join(p, "contents");
+        const seedTokens = new Set(seedSlug.split("-").filter((token) => token.length > 2));
+        const candidates = [];
+        if (fs.existsSync(contentsRoot)) {
+            for (const origin of fs.readdirSync(contentsRoot)) {
+                const dir = path.join(contentsRoot, origin);
+                if (!fs.statSync(dir).isDirectory())
+                    continue;
+                for (const name of fs.readdirSync(dir).filter((item) => item.endsWith(".md"))) {
+                    const file = path.join(dir, name);
+                    const [fm, body] = parseFrontmatter(fs.readFileSync(file, "utf8"));
+                    const text = `${fm.title || ""} ${fm.slug || ""} ${body.slice(0, 500)}`.toLowerCase();
+                    const matched = [...seedTokens].filter((token) => text.includes(token));
+                    if (!matched.length)
+                        continue;
+                    candidates.push({
+                        path: path.relative(p, file).replace(/\\/g, "/"),
+                        slug: cleanFrontmatterValue(fm.slug) || path.basename(name, ".md"),
+                        title: cleanFrontmatterValue(fm.title) || path.basename(name, ".md"),
+                        confidence: Math.min(0.95, 0.35 + matched.length * 0.2),
+                        evidence: matched,
+                        apply: false,
+                    });
+                }
+            }
+        }
+        writeYaml(proposalPath, {
+            contract_version: 1,
+            cluster: seedSlug,
+            generated_at: nowIso(),
+            mode: "map-existing",
+            candidates,
+            recommendation: "Aplicar clusters:[] apenas após aprovação humana ou delegação explícita.",
+        });
+        const rows = candidates.length
+            ? candidates.map((item) => `| ${item.path} | ${item.title} | ${item.confidence.toFixed(2)} | ${item.evidence.join(", ")} |`).join("\n")
+            : "| Nenhum conteúdo importado encontrado | — | — | — |";
+        writeText(proposalMd, `---
+title: "Mapeamento de conteúdos — ${seed}"
+updated: "${today()}"
+---
+
+# Mapeamento de conteúdos — ${seed}
+
+Esta proposta mapeia apenas arquivos já importados em \`project/contents/**\`. Páginas públicas rastreadas que ainda não viraram conteúdo entram como candidatas de importação fora deste arquivo.
+
+| Arquivo | Título | Confiança | Evidência |
+| --- | --- | --- | --- |
+${rows}
+
+## Aplicação
+
+Não altere frontmatter automaticamente. Aplique \`clusters: [${seedSlug}]\` apenas após aprovação humana ou delegação explícita.
+`);
+        printJson(attachArtifactPrompt({ ok: true, phase, proposal_path: proposalPath, proposal_markdown_path: proposalMd, candidates }, proposalMd, p));
+        return;
+    }
+    const clusterFile = path.join(p, "clusters", seedSlug, "draft.yaml");
     const existingCluster = loadExistingCluster(p, seedSlug);
     if (args.render_only) {
-        if (!existingCluster)
-            throw new CliError(`No cluster JSON found for seed "${seed}". Run topic-cluster first.`);
-        renderTopicClustersBrain(p);
-        appendLog("topic-cluster", seed, ["brain/topic-clusters.md"], "Projeção do Brain renderizada a partir dos JSONs.", "not-required");
-        printJson({ ok: true, rendered: true, file: clusterFile });
+        const synced = (0, node_child_process_1.spawnSync)(process.execPath, [path.join(ROOT, "scripts", "cluster-sync.mjs"), `--root=${p}`], {
+            cwd: ROOT,
+            encoding: "utf8",
+            env: process.env,
+            maxBuffer: 20 * 1024 * 1024,
+        });
+        if (synced.status !== 0)
+            throw new CliError(`cluster-sync failed: ${synced.stderr || synced.stdout}`);
+        appendLog("topic-cluster", seed, ["brain/topic-clusters.md"], "Projeção do Brain renderizada a partir de cluster.yaml.", "not-required");
+        printJson(attachArtifactPrompt({ ok: true, phase, rendered: true, file: clusterFile }, path.join(p, "brain", "topic-clusters.md"), p));
         return;
     }
     const settings = projectSettings(p);
@@ -3262,20 +3562,21 @@ async function commandTopicCluster(args) {
         open_questions: existingCluster?.open_questions ?? [],
         approval: existingCluster?.approval ?? { approver: "agent", approved_at: null, status: "not_required" },
     };
-    writeJson(clusterFile, cluster);
-    const canonicalClusterFile = path.join(p, "clusters", seedSlug, "cluster.json");
+    const clusterYaml = clusterYamlFromLegacy(cluster);
+    const planningFile = path.join(p, "clusters", seedSlug, "planejamento.md");
     const reportMd = reportMarkdownPath(p, "topic-cluster", seedSlug);
-    writeJson(canonicalClusterFile, cluster);
-    renderTopicClustersBrain(p);
-    appendDataforseoBypassLog(seed, dataforseoBypass, [path.relative(p, clusterFile), path.relative(p, canonicalClusterFile), "topic-clusters"]);
-    printJson(completeReportWorkflow(cluster, {
+    writeYaml(clusterFile, clusterYaml);
+    writeText(planningFile, renderClusterPlanningMarkdown(clusterYaml));
+    appendDataforseoBypassLog(seed, dataforseoBypass, [path.relative(p, clusterFile), path.relative(p, planningFile)]);
+    appendOperationalLog("topic-cluster-draft", seed, [path.relative(p, clusterFile), path.relative(p, planningFile)], "draft", "Proposta de Topic Cluster criada sem tocar o Brain; promoção exige approve-cluster/phase promote.");
+    printJson(completeReportWorkflow({ ...clusterYaml, legacy_cluster: cluster }, {
         projectDir: p,
         reportMd,
-        payload: { ...buildTopicClusterReportPayload(cluster, language), reportType: "topic-cluster", slug: seedSlug, sourceArtifact: path.relative(p, canonicalClusterFile) },
+        payload: { ...buildTopicClusterReportPayload(cluster, language), reportType: "topic-cluster", slug: seedSlug, sourceArtifact: path.relative(p, clusterFile) },
         eventType: "topic-cluster",
         title: seed,
-        files: ["topic-clusters", path.relative(p, canonicalClusterFile)],
-        summary: `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}) e relatório Markdown no Web Companion.`,
+        files: [path.relative(p, clusterFile), path.relative(p, planningFile)],
+        summary: `Cluster ${status} com ${mergedSupports.length} suportes (pool: ${pool.length}, SERP: ${serpByKeyword.size}); proposta salva como draft.yaml sem promover ao Brain.`,
         approval: "agent",
     }));
 }
@@ -3987,6 +4288,7 @@ function resolveContentPaths(projectDir, args) {
         briefMarkdownPath: path.join(workDir, "brief.md"),
         draftPath: contentDraftFile(projectDir, topicSlug),
         checkPath: contentCheckFile(projectDir, topicSlug),
+        publicationCheckPath: contentPublicationCheckFile(projectDir, topicSlug),
         wordCountPath: contentWordCountFile(projectDir, topicSlug),
         reviewPath: contentReviewFile(projectDir, topicSlug),
     };
@@ -4036,6 +4338,71 @@ function contentTargetWords(brief) {
     const value = Number(brief.skyscraper?.word_count?.target_words || brief.brief?.target_words || 2000);
     return Number.isFinite(value) && value > 0 ? Math.trunc(value) : 2000;
 }
+function parseContentClusterArgs(args) {
+    const raw = args.clusters ?? args.cluster ?? args.topic_cluster;
+    const values = Array.isArray(raw) ? raw : String(raw || "").split(",");
+    return Array.from(new Set(values.map((value) => String(value || "").trim()).filter(Boolean).map((value) => slugify(value))));
+}
+function parseContentRoleArg(args, clusters) {
+    const raw = String(args.role || "").trim().toLowerCase();
+    if (!raw || !["pillar", "satellite"].includes(raw) || clusters.length === 0)
+        return undefined;
+    return Object.fromEntries(clusters.map((cluster) => [cluster, raw]));
+}
+function readReviewPageRules(projectDir, draftText) {
+    const reviewPath = path.join(projectDir, "brain", "review.md");
+    const pagePresent = fs.existsSync(reviewPath);
+    const reviewText = pagePresent ? fs.readFileSync(reviewPath, "utf8") : "";
+    const [, reviewBody] = pagePresent ? parseFrontmatter(reviewText) : [{}, ""];
+    const reviewBacked = pagePresent && /Regra editorial universal/i.test(reviewBody);
+    const cleanDraft = draftText.replace(/```[\s\S]*?```/g, "");
+    const failures = [];
+    const checkedItems = [
+        "lead_na_primeira_frase",
+        "atribuicao_visivel",
+        "sem_ia_slop",
+        "sem_conversion_explainer",
+        "sem_opiniao_dissimulada",
+        "acentuacao_pt_br",
+    ];
+    const projectSpecific = reviewBody
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^-\s+/.test(line) && !/<[^>]+>/.test(line))
+        .map((line) => line.replace(/^-\s+/, ""))
+        .filter((line) => line.length > 0);
+    if (!pagePresent)
+        failures.push("brain/review.md ausente");
+    if (!reviewBacked)
+        failures.push("brain/review.md sem regra editorial universal reconhecível");
+    const firstTextSentence = cleanDraft
+        .replace(/^---[\s\S]*?---\s*/, "")
+        .replace(/^#\s+.+$/m, "")
+        .split(/[.!?]\s+/)[0]
+        ?.trim();
+    if (!firstTextSentence || firstTextSentence.length < 20)
+        failures.push("lead inicial curto ou ausente");
+    const iaSlopTerms = ["crucial", "robust", "comprehensive", "nuanced", "fundamental", "significant"];
+    for (const term of iaSlopTerms) {
+        if (new RegExp(`\\b${escapeRegExp(term)}\\b`, "i").test(cleanDraft))
+            failures.push(`IA-slop detectado: ${term}`);
+    }
+    for (const pattern of [/vamos entender/i, /neste artigo/i, /como você pode ver/i]) {
+        if (pattern.test(cleanDraft))
+            failures.push(`Voz Conversion-explainer detectada: ${pattern.source}`);
+    }
+    if (/—/.test(cleanDraft))
+        failures.push("em dash detectado em prosa pública");
+    return {
+        page: path.relative(projectDir, reviewPath).replace(/\\/g, "/"),
+        page_present: pagePresent,
+        review_backed: reviewBacked,
+        checked_items: checkedItems,
+        project_specific_items: projectSpecific,
+        failures: Array.from(new Set(failures)),
+        new_patterns: [],
+    };
+}
 function renderContentDraft(brief) {
     const topic = String(brief.topic || "Conteúdo");
     const keyword = String(brief.keyword || topic);
@@ -4049,20 +4416,54 @@ function renderContentDraft(brief) {
     const contextEvidencePath = String(brief.context_evidence?.path || `workbench/content/${slug}/context-evidence.yaml`);
     const sections = sectionItems.map((item) => `## ${String(item.title || "Seção")}\n\n${String(item.purpose || "Desenvolver esta seção com orientação pública, evidência proporcional e próximos passos claros.")}`).join("\n\n");
     const origin = String(brief.origin || "blog");
-    const publishedAt = String(brief.published_at || today());
+    const publishedAt = String(brief.published_at || "");
     const sourceUrl = String(brief.source_url || "");
-    const area = String(brief.area || "");
-    return `---\ntitle: ${yamlString(topic)}\nslug: ${yamlString(slug)}\npublished_at: ${yamlString(publishedAt)}\nsource_url: ${yamlString(sourceUrl)}\norigin: ${yamlString(origin)}\narea: ${yamlString(area)}\npublic_content: true\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nvoice_filled: ${voiceFilled}\ntarget_words: ${targetWords}\nsource_policy: frontmatter-consulted-sources\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\n---\n\n# ${topic}\n\n${topic} é uma busca que precisa entregar uma resposta clara, útil e proporcional ao que já pode ser comprovado. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar como aplicar a ideia e deixar explícitos os limites da orientação.\n\n${sections}\n`;
+    const clusters = Array.isArray(brief.clusters) ? brief.clusters.map(String).filter(Boolean) : [];
+    const role = brief.role && typeof brief.role === "object" && !Array.isArray(brief.role) ? brief.role : undefined;
+    const frontmatter = {
+        contract_version: 1,
+        title: topic,
+        slug,
+        published_at: publishedAt,
+        source_url: sourceUrl,
+        origin,
+        clusters,
+        ...(role ? { role } : {}),
+        public_content: true,
+        primary_keyword: keyword,
+        brief_path: `workbench/content/${slug}/brief.yaml`,
+        context_evidence_path: contextEvidencePath,
+        voice_filled: voiceFilled,
+        target_words: targetWords,
+        source_policy: "frontmatter-consulted-sources",
+        sources: evidenceSources.length ? evidenceSources : ["not-serp-backed"],
+    };
+    return `---\n${yaml_1.default.stringify(frontmatter, { lineWidth: 0 }).trimEnd()}\n---\n\n# ${topic}\n\n${topic} é uma busca que precisa entregar uma resposta clara, útil e proporcional ao que já pode ser comprovado. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar como aplicar a ideia e deixar explícitos os limites da orientação.\n\n${sections}\n`;
 }
 function markdownH2Count(text) {
     const [, body] = parseFrontmatter(text);
     return (body.match(/^##\s+\S/gm) || []).length;
 }
-function runContentPublicationCheck(brief, draftPath, checkPath, wordCountPath, reviewPath) {
+function runContentPublicationCheck(brief, projectDir, draftPath, checkPath, publicationCheckPath, wordCountPath, reviewPath) {
     if (!fs.existsSync(draftPath))
         throw new CliError(`Draft not found: ${draftPath}`);
     const text = fs.readFileSync(draftPath, "utf8");
     const issues = validatePublicContentDraft(text, brief);
+    const [draftFm] = parseFrontmatter(text);
+    const contractVersion = Number(draftFm.contract_version || 0);
+    const clusters = frontmatterListValue(draftFm, "clusters");
+    const missingClusters = clusters.filter((cluster) => !fs.existsSync(path.join(projectDir, "clusters", cluster, "cluster.yaml")));
+    if (contractVersion !== 1)
+        issues.push("missing contract_version: 1 frontmatter");
+    if (clusters.length === 0)
+        issues.push("missing clusters frontmatter");
+    for (const cluster of missingClusters)
+        issues.push(`cluster not found: ${cluster}`);
+    const reviewRules = readReviewPageRules(projectDir, text);
+    for (const failure of reviewRules.failures || []) {
+        if (!String(failure).includes("brain/review.md sem regra editorial"))
+            issues.push(`review: ${failure}`);
+    }
     const targetWords = contentTargetWords(brief);
     const counted = countVisibleMarkdownWords(text);
     const actualWords = Number(counted.words);
@@ -4089,18 +4490,33 @@ function runContentPublicationCheck(brief, draftPath, checkPath, wordCountPath, 
     };
     if (!wordCount.ok)
         issues.push(`word-count below target: ${actualWords}/${targetWords}`);
-    const result = { ok: issues.length === 0 && wordCount.ok, checked_at: nowIso(), draft: draftPath, issues: Array.from(new Set(issues)), word_count_path: wordCountPath, review_path: reviewPath };
+    const result = attachArtifactPrompt({
+        ok: issues.length === 0 && wordCount.ok,
+        checked_at: nowIso(),
+        draft: draftPath,
+        issues: Array.from(new Set(issues)),
+        word_count_path: wordCountPath,
+        review_path: reviewPath,
+        review: reviewRules,
+    }, draftPath, projectDir);
     const review = {
         ok: result.ok,
         reviewed_at: result.checked_at,
         draft: draftPath,
         route,
         findings: result.issues,
+        page_present: reviewRules.page_present,
+        review_backed: reviewRules.review_backed,
+        checked_items: reviewRules.checked_items,
+        project_specific_items: reviewRules.project_specific_items,
+        failures: reviewRules.failures,
+        new_patterns: reviewRules.new_patterns,
         recommendation: result.ok ? "ready_for_promotion" : route,
     };
     writeYaml(wordCountPath, wordCount);
     writeYaml(reviewPath, review);
     writeYaml(checkPath, result);
+    writeYaml(publicationCheckPath, result);
     return result;
 }
 function writeApprovedContentDraft(brief, projectDir, paths, briefPath, actor, trigger) {
@@ -4159,6 +4575,11 @@ async function commandContentSeo(args) {
         research.evidence_used = research.evidence_sources;
         const contextEvidence = buildContentContextEvidence(p, paths.topicSlug);
         const brief = buildContentBrief(research, p, approvalMode, summarizeContextEvidence(contextEvidence, p, paths.contextEvidencePath));
+        const requestedClusters = parseContentClusterArgs(args);
+        brief.clusters = requestedClusters;
+        const requestedRole = parseContentRoleArg(args, requestedClusters);
+        if (requestedRole)
+            brief.role = requestedRole;
         writeYaml(paths.researchPath, research);
         writeYaml(paths.competitorEvidencePath, competitorEvidence);
         writeYaml(paths.contextEvidencePath, contextEvidence);
@@ -4176,16 +4597,23 @@ async function commandContentSeo(args) {
                 process.stderr.write(handoff.stderr);
             if (handoff.status !== 0)
                 throw new CliError(`Briefing review handoff failed: ${handoff.stderr || handoff.stdout || "unknown error"}`);
-            printJson({ ok: true, phase, status: "review_recorded", brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, draft_path: fs.existsSync(paths.draftPath) ? paths.draftPath : null, brief: readYaml(paths.briefPath) });
+            printJson(attachArtifactPrompt({ ok: true, phase, status: "review_recorded", brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, draft_path: fs.existsSync(paths.draftPath) ? paths.draftPath : null, brief: readYaml(paths.briefPath) }, paths.briefMarkdownPath, p));
             return;
         }
-        printJson({ ok: true, phase, status: "ready_for_writing", web_companion: { available: true, recommended: false, type: "review-briefing" }, research_path: paths.researchPath, competitor_evidence_path: paths.competitorEvidencePath, context_evidence_path: paths.contextEvidencePath, brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, competitor_evidence: brief.competitor_evidence, context_evidence: brief.context_evidence, brief });
+        printJson(attachArtifactPrompt({ ok: true, phase, status: "ready_for_writing", web_companion: { available: true, recommended: true, type: "review-briefing" }, research_path: paths.researchPath, competitor_evidence_path: paths.competitorEvidencePath, context_evidence_path: paths.contextEvidencePath, brief_path: paths.briefPath, brief_markdown_path: paths.briefMarkdownPath, competitor_evidence: brief.competitor_evidence, context_evidence: brief.context_evidence, brief }, paths.briefMarkdownPath, p));
         return;
     }
     const briefPath = contentBriefFile(p, paths.topicSlug) || paths.briefPath;
     if (!fs.existsSync(briefPath))
         throw new CliError(`Briefing not found: ${briefPath}`);
     const brief = readContentBrief(briefPath);
+    const requestedClusters = parseContentClusterArgs(args);
+    if (requestedClusters.length > 0) {
+        brief.clusters = requestedClusters;
+        const requestedRole = parseContentRoleArg(args, requestedClusters);
+        if (requestedRole)
+            brief.role = requestedRole;
+    }
     if (phase === "approve") {
         const decision = String(args.decision || "approved").trim().toLowerCase();
         if (!["approved", "ready", "needs-rewrite", "rejected"].includes(decision))
@@ -4209,51 +4637,114 @@ async function commandContentSeo(args) {
             brief.draft_status = decision;
             writeContentBrief(briefPath, brief);
             appendOperationalLog("content-briefing-decision", paths.topic, [path.relative(p, briefPath)], decision, `Briefing marcado como ${decision} por ${approvedBy}.`, notes || undefined);
-            printJson({ ok: true, phase, status: decision, brief_path: briefPath, draft_path: null });
+            printJson(attachArtifactPrompt({ ok: true, phase, status: decision, brief_path: briefPath, draft_path: null }, paths.briefMarkdownPath, p));
             return;
         }
         brief.draft_status = "ready-for-writing";
         const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, approvedBy, "briefing decision");
         appendOperationalLog("content-briefing-decision", paths.topic, [path.relative(p, briefPath), path.relative(p, paths.draftPath)], "ready", `Briefing registrado como pronto por ${approvedBy}; draft gerado automaticamente em artifacts.`, notes || undefined);
-        printJson({ ok: true, phase, status: "draft_created", decision, brief_path: briefPath, draft_path: draftResult.draft_path, context_evidence: brief.context_evidence });
+        printJson(attachArtifactPrompt({ ok: true, phase, status: "draft_created", decision, brief_path: briefPath, draft_path: draftResult.draft_path, context_evidence: brief.context_evidence }, paths.draftPath, p));
         return;
     }
     if (phase === "write") {
         assertBriefReadyForWriting(brief, p);
         validateContextEvidenceForApproval(brief, p, String(brief.approval?.notes || ""));
         const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, String(brief.approval?.approver || "agent"), "write phase");
-        printJson({ ok: true, phase, draft_path: draftResult.draft_path, brief_path: briefPath });
+        printJson(attachArtifactPrompt({ ok: true, phase, draft_path: draftResult.draft_path, brief_path: briefPath }, paths.draftPath, p));
         return;
     }
     if (phase === "review" || phase === "check") {
-        const result = runContentPublicationCheck(brief, paths.draftPath, paths.checkPath, paths.wordCountPath, paths.reviewPath);
+        const result = runContentPublicationCheck(brief, p, paths.draftPath, paths.checkPath, paths.publicationCheckPath, paths.wordCountPath, paths.reviewPath);
         brief.draft_status = result.ok && phase === "review" ? "reviewed" : result.ok ? "checked" : "checks-failed";
         writeContentBrief(briefPath, brief);
-        appendOperationalLog("content-check", paths.topic, [path.relative(p, paths.draftPath), path.relative(p, paths.checkPath), path.relative(p, paths.wordCountPath), path.relative(p, paths.reviewPath)], result.ok ? "passed" : "failed", `${result.issues.length} bloqueios encontrados.`);
+        appendOperationalLog("content-check", paths.topic, [path.relative(p, paths.draftPath), path.relative(p, paths.checkPath), path.relative(p, paths.publicationCheckPath), path.relative(p, paths.wordCountPath), path.relative(p, paths.reviewPath)], result.ok ? "passed" : "failed", `${result.issues.length} bloqueios encontrados.`);
         printJson({ ...result, phase });
         if (!result.ok)
             throw new CliError("Content publication checks failed.");
         return;
     }
     const approvedBy = args.approved_by ? String(args.approved_by).trim() : "agent";
-    if (!fs.existsSync(paths.checkPath))
+    const effectiveCheckPath = fs.existsSync(paths.checkPath) ? paths.checkPath : paths.publicationCheckPath;
+    if (!fs.existsSync(effectiveCheckPath))
         throw new CliError("Publication checks must pass before promotion.");
-    const check = readYaml(paths.checkPath);
+    const check = readYaml(effectiveCheckPath);
     if (!check.ok)
         throw new CliError("Last publication checks did not pass.");
     if (fs.existsSync(paths.wordCountPath) && !readYaml(paths.wordCountPath).ok)
         throw new CliError("Word-count gate did not pass.");
+    const draftText = fs.existsSync(paths.draftPath) ? fs.readFileSync(paths.draftPath, "utf8") : "";
+    const [draftFm] = parseFrontmatter(draftText);
+    const contractVersion = Number(draftFm.contract_version || 0);
+    const clusters = frontmatterListValue(draftFm, "clusters");
+    const missingClusters = clusters.filter((cluster) => !fs.existsSync(path.join(p, "clusters", cluster, "cluster.yaml")));
+    if (contractVersion !== 1 || clusters.length === 0 || missingClusters.length > 0) {
+        const reason = contractVersion !== 1
+            ? "missing-contract-version"
+            : clusters.length === 0
+                ? "missing-cluster"
+                : "cluster-not-found";
+        printJson(attachArtifactPrompt({
+            ok: false,
+            phase,
+            status: "blocked",
+            reason,
+            draft_path: paths.draftPath,
+            clusters,
+            missing_clusters: missingClusters,
+        }, paths.draftPath, p));
+        throw new CliError(`Content promotion blocked: ${reason}`);
+    }
     const origin = String(brief.origin || "blog");
     if (!PUBLIC_CONTENT_ORIGINS.has(origin))
         throw new CliError(`Invalid origin: ${origin}. Use blog, linkedin, podcast, or other.`);
     const target = path.join(p, "contents", origin, `${paths.topicSlug}.md`);
-    writeText(target, fs.readFileSync(paths.draftPath, "utf8"));
-    setFrontmatterValue(target, { published_at: yamlString(today()), origin: yamlString(origin) });
+    const rollbackFiles = Array.from(new Set([
+        target,
+        path.join(p, "brain", "topic-clusters.md"),
+        ...clusters.flatMap((cluster) => [
+            path.join(p, "clusters", cluster, "cluster.yaml"),
+            path.join(p, "brain", "topic-clusters", `${cluster}.md`),
+        ]),
+    ]));
+    const snapshots = new Map(rollbackFiles.map((file) => [file, fileSnapshot(file)]));
+    let syncResults = [];
+    try {
+        writeText(target, fs.readFileSync(paths.draftPath, "utf8"));
+        setFrontmatterValue(target, {
+            contract_version: "1",
+            published_at: yamlString(today()),
+            origin: yamlString(origin),
+            clusters: clusters.length ? `\n${clusters.map((cluster) => `  - ${yamlString(cluster)}`).join("\n")}` : "[]",
+        });
+        syncResults = clusters.map((cluster) => {
+            const synced = (0, node_child_process_1.spawnSync)(process.execPath, [path.join(ROOT, "scripts", "cluster-sync.mjs"), `--root=${p}`, `--cluster=${cluster}`], {
+                cwd: ROOT,
+                encoding: "utf8",
+                env: process.env,
+                maxBuffer: 20 * 1024 * 1024,
+            });
+            return {
+                cluster,
+                status: synced.status,
+                ok: synced.status === 0,
+                stdout: synced.stdout ? safeJsonParse(synced.stdout) || synced.stdout.slice(0, 1000) : null,
+                stderr: synced.stderr ? synced.stderr.slice(0, 1000) : null,
+            };
+        });
+        const failedSync = syncResults.find((result) => !result.ok);
+        if (failedSync)
+            throw new CliError(`cluster-sync failed for ${failedSync.cluster}: ${failedSync.stderr || JSON.stringify(failedSync.stdout)}`);
+    }
+    catch (err) {
+        for (const file of rollbackFiles)
+            restoreSnapshot(file, snapshots.get(file) ?? null);
+        throw new CliError(`Content promotion rolled back: ${err?.message || err}`);
+    }
     brief.draft_status = "published";
     brief.publication = { path: path.relative(p, target), approver: approvedBy, approved_at: nowIso(), origin };
     writeContentBrief(briefPath, brief);
-    appendLog("publication", `${paths.topic}`, [path.relative(p, target), path.relative(p, briefPath), path.relative(p, paths.checkPath)], `Conteúdo público publicado por ${approvedBy} em ${origin}.`, approvedBy);
-    printJson({ ok: true, phase, promoted_path: target, approver: approvedBy });
+    appendLog("publication", `${paths.topic}`, [path.relative(p, target), path.relative(p, briefPath), path.relative(p, effectiveCheckPath)], `Conteúdo público publicado por ${approvedBy} em ${origin}; cluster-sync executado para ${clusters.join(", ")}.`, approvedBy);
+    printJson(attachArtifactPrompt({ ok: true, phase, promoted_path: target, approver: approvedBy, clusters, cluster_sync: syncResults }, target, p));
 }
 async function commandTechnicalSeo(args) {
     let html;

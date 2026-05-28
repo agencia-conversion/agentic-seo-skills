@@ -2,12 +2,14 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import sharedModules from "../../shared/report-modules.js";
+import companionRoutes from "../../shared/companion-routes.js";
 
 const {
   REPORT_BROWSER_PROMPT_MESSAGE: SHARED_PROMPT,
   REPORT_MODULE_IDS: SHARED_IDS,
   REPORT_DIR_NAME: SHARED_DIR,
 } = sharedModules;
+const { companionTargetForPath } = companionRoutes;
 
 export const REPORT_BROWSER_PROMPT_MESSAGE = SHARED_PROMPT;
 
@@ -43,18 +45,22 @@ export function reportMarkdownPath(projectDir, moduleId, runSlug) {
 }
 
 export function browserPrompt(reportMd, projectDir) {
+  const reportRel = path.relative(projectDir, reportMd).replace(/\\/g, "/");
   return {
     recommended: true,
     message: REPORT_BROWSER_PROMPT_MESSAGE,
-    report_md: path.relative(projectDir, reportMd),
+    report_md: reportRel,
+    ...companionTargetForPath(reportRel),
     open_with: "project-browser",
   };
 }
 
 export function attachReportPrompt(data, reportMd, projectDir) {
+  const reportRel = path.relative(projectDir, reportMd).replace(/\\/g, "/");
   return {
     ...data,
-    report_md: path.relative(projectDir, reportMd),
+    report_md: reportRel,
+    ...companionTargetForPath(reportRel),
     browser_prompt: browserPrompt(reportMd, projectDir),
   };
 }

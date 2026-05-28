@@ -36,6 +36,7 @@ import { formatRowError } from '@/lib/row-error-messages';
 import { useWorkspace } from '@/features/workspace/store';
 import { syncBus } from '@/lib/sync-bus';
 import { CreateContentModal } from './create-content-modal';
+import { projectPageSlug } from '@/lib/project-slugs';
 
 interface ClusterResponse {
   ok: boolean;
@@ -892,10 +893,9 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
                   const editCluster: string | null = effectiveCluster || singleClusterFallback;
                   const canEditClusterFields = Boolean(editCluster);
                   const canEditContentMetadata = kind === 'published' || Boolean(editCluster);
-                  const rowOrigin = row.content.kind === 'published' ? row.content.origin : null;
                   const navTarget =
-                    kind === 'published' && rowOrigin && workspaceToken
-                      ? `/project/${encodeURIComponent(workspaceToken)}/contents-${encodeURIComponent(rowOrigin)}-${encodeURIComponent(row.slug)}`
+                    row.content.kind === 'published' && workspaceToken
+                      ? `/project/${encodeURIComponent(workspaceToken)}/${projectPageSlug(row.content.href || `contents/${row.content.origin}/${row.slug}.md`)}`
                       : null;
                   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
                     if (event.defaultPrevented) return;

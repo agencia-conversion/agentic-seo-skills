@@ -3,6 +3,7 @@ name: content-import
 description: When the user wants to bulk-import existing public content from a website (via sitemap or a list of URLs) into project/contents/<origin>/<slug>.md as the starting point for editorial work in this brain.
 metadata:
   version: 1.0.0
+  category: delivery
 ---
 
 # Content Import
@@ -31,6 +32,7 @@ Do not use this skill to:
 - Source separation: the import preserves the body in Markdown; raw HTML or provider responses do not go in `contents/` — they belong in `project/sources/` if needed.
 - Append a single consolidated `type: ingestion` entry to `brain/log.md` per import run, listing files by origin. Do not write 1 entry per file.
 - Respect robots.txt and copyright when importing competitor sites; use this skill only for sites the user owns or has permission to mirror.
+- Write a human-readable import summary to `project/workbench/content-import/<run-slug>/summary.md` for every substantive run, including dry runs. Return `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "project/workbench/content-import/<run-slug>/summary.md", open_with: "project-browser" }`. Ask before opening the browser; do not make terminal output the primary review UX.
 
 ## Inputs
 
@@ -106,6 +108,10 @@ After the import, suggest:
 2. Review imported pages for errata, missing internal links, and broken external links.
 3. Optionally re-extract pages where extraction quality was poor (e.g., interactive tools that render via JS — use `--no-fallback` to debug).
 
+### 7. Companion Summary
+
+Create `project/workbench/content-import/<run-slug>/summary.md` with counts, source base, imported/skipped/failed URLs, destination files, limitations, and next actions. This summary is the primary delivery surface in the Web Companion. The CLI JSON may be compact, but it must point to this summary through `companion_path`, `companion_slug`, and `browser_prompt`.
+
 ## Tooling
 
 This skill is a thin orchestrator. The deterministic work happens in:
@@ -127,6 +133,14 @@ files:
   blog: [<slug>, …]
   other: [<slug>, …]
 log_appended: true
+summary_markdown: project/workbench/content-import/<run-slug>/summary.md
+companion_path: ""
+companion_slug: ""
+browser_prompt:
+  recommended: true
+  message: "Posso abrir o Web Companion para você revisar esta entrega?"
+  artifact_path: project/workbench/content-import/<run-slug>/summary.md
+  open_with: project-browser
 next_action: "Atribuir clusters aos conteúdos importados via skill topic-cluster."
 ```
 
@@ -137,3 +151,4 @@ next_action: "Atribuir clusters aos conteúdos importados via skill topic-cluste
 - Brain log carries one consolidated `type: ingestion` entry for the run.
 - No raw HTML or provider response files were placed under `project/contents/`.
 - pt-BR accents preserved in titles, bylines, and the imported body.
+- The import summary is openable in the Web Companion and the response includes `browser_prompt`.

@@ -40,6 +40,7 @@ This repository root is the plugin root.
 - Do not rely on terminal output as the primary UX for nontechnical users.
 - Prefer local web UI artifacts for previews, decisions, and reports.
 - Do not commit secrets, raw user project data, generated runs, or provider responses from real clients.
+- The `UserPromptSubmit` hook that reinforces the Delivery Checkpoint per turn (`scripts/delivery-checkpoint.mjs`) is Claude Code only. The canonical contract lives in the `## Delivery Checkpoint` section of `skills/agentic-seo/SKILL.md` and is honored by Codex/Antigravity through standard `SKILL.md` + `AGENTS.md` reading.
 
 ## Process Integrity
 
@@ -173,6 +174,8 @@ Subpáginas brain criadas via Companion (botão `+` na sidebar) ou regeneradas p
 
 ## Browser Handoff
 
+Any response that created or changed an artifact under `project/` (report, brief, draft, spec, audit, brain change, import summary, public content, cluster, project init) MUST end with the canonical consent line — `Posso abrir o Web Companion para você ver a análise?` for reports, `Posso abrir o Web Companion para você revisar esta entrega?` for non-report deliverables — and include a `browser_prompt` block pointing to the artifact path. Listing created paths, file trees, bullet inventories of created files, or asking "posso seguir com…" in place of the canonical line counts as a delivery failure. Short status replies, clarifications, and blocked routes without artifacts stay in plain chat prose.
+
 For previews, decisions, sensitive input, and option selection, prefer a local browser handoff over terminal interaction.
 
 - Implementation lives in `scripts/companion.mjs` and templates under `templates/companion/`.
@@ -188,6 +191,9 @@ Use these rules when changing manifests, skills, templates, scripts, or agent in
 
 - Read `docs/refactor-status.md` for the current refactor state before starting work.
 - Canonical skills should be self-sufficient narrative `SKILL.md` files. Do not reintroduce required cross-skill reads through `skills/_shared/`.
+- Every skill declares `metadata.category` in the frontmatter. Valid values: `report | delivery | setup | meta | router | contract | alias`. The category is determined by the primary close artifact, not by topic. `report` writes to `project/analyses/<module>/<run-slug>/report.md`; `delivery` writes to `project/{workbench,artifacts,brain,contents,clusters,keywords,eeat}/...`; `setup` writes masked status to `project/.agentic-seo/project.json` and uses browser handoff for secrets; `router` and `contract` define close patterns for downstream skills (no own artifact); `meta` produces outside `project/` (e.g., `.context/`, `skills/`, `tools/`); `alias` delegates to another skill.
+- Categories `report`, `delivery`, and `setup` MUST include a literal YAML `browser_prompt:` block in the Output Format with the canonical consent line for their category — `Posso abrir o Web Companion para você ver a análise?` (reports) or `Posso abrir o Web Companion para você revisar esta entrega?` (delivery, setup). Categories `meta` and `alias` MUST NOT declare a delivery `browser_prompt:` block. `router` and `contract` may demonstrate the YAML as exemplars.
+- Skill creation via `seo-skills-creator` enforces category + close contract through the template at `skills/seo-skills-creator/references/template-skill.md` and the rubric Automatic Blocker at `skills/seo-skills-creator/references/approval-rubric.md`. The validator `scripts/validate_skills.mjs` reads `metadata.category` directly; legacy skills without the field fall back to hardcoded sets with a WARN until migration completes.
 - Data/report skills should reference `page-report` for the shared report contract instead of duplicating the full Web Companion report rules.
 - Deterministic provider and audit behavior belongs in `tools/`, `scripts/`, or `src/commands/`, not hidden inside natural-language skill contracts.
 - Keep agent files short; put durable workflow detail in `skills/<skill>/SKILL.md`, local skill references, scripts, fixtures, or templates.

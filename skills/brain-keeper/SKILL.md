@@ -3,6 +3,7 @@ name: brain-keeper
 description: When the user wants to ingest sources, change brain pages, register decisions, catalog content publications, or lint brain pages for provenance and link integrity.
 metadata:
   version: 2.0.0
+  category: delivery
 ---
 
 # Brain Keeper
@@ -18,6 +19,8 @@ Do not use this skill to draft strategic content from scratch, run keyword resea
 ## Critical Points
 
 Hard rules for every brain-keeper run.
+
+- Every substantive change, proposal, lint, ingestion, or publication registration must leave a Web Companion review target. If an authorial page changed, point to that `project/brain/<page>.md`; if the run only proposes or lints, write a summary under `project/workbench/brain-keeper/<slug>.md` or `.yaml`. Return `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "<project-relative path>", open_with: "project-browser" }`. Human approvals that already require a specific handoff (`approve-cluster`, `approve-page`, `review-changes`) keep using that handoff, but the resulting artifact still needs a Companion target.
 
 ## Boundaries
 
@@ -218,6 +221,15 @@ lint:
   ran_at: <ISO timestamp>
   blockers: []
   warnings: []
+delivery:
+  artifact_path: project/brain/<page>.md | project/workbench/brain-keeper/<slug>.md | project/workbench/brain-keeper/<slug>.yaml
+  companion_path: ""
+  companion_slug: ""
+  browser_prompt:
+    recommended: true
+    message: "Posso abrir o Web Companion para você revisar esta entrega?"
+    artifact_path: ""
+    open_with: project-browser
 next_action: ""
 ```
 
@@ -232,3 +244,4 @@ next_action: ""
 - Active language accents preserved (pt-BR by default).
 - Contradictions and gaps surfaced as `type: lint` entries when found.
 - No file in `brain/` still contains `<!-- REGRA:`, `<preencher>`, `gap`, `TODO`, `[?]`, `<YYYY-MM-DD>`, "a confirmar", or "a definir".
+- The response points to the changed brain page or workbench summary in the Web Companion and includes `browser_prompt`.

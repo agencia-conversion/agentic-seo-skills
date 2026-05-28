@@ -3,6 +3,7 @@ name: data-setup
 description: When the user wants to configure, validate, or troubleshoot DataForSEO or another SEO data provider securely. Also use when provider credentials are missing before keyword, SERP, or SEO analysis work.
 metadata:
   version: 1.0.0
+  category: setup
 ---
 
 # Data Setup
@@ -152,10 +153,19 @@ log:
   path: null
   tipo: decisao
 limitations: []
+delivery:
+  artifact_path: project/.agentic-seo/project.json
+  companion_path: ""
+  companion_slug: ""
+  browser_prompt:
+    recommended: true
+    message: "Posso abrir o Web Companion para você revisar esta entrega?"
+    artifact_path: project/.agentic-seo/project.json
+    open_with: project-browser
 next_action: ""
 ```
 
-For a blocked setup, set `status: blocked`, explain the gate in plain language, and do not ask the user to paste secrets into chat.
+For a blocked setup, set `status: blocked`, explain the gate in plain language, and do not ask the user to paste secrets into chat. The masked setup status is itself a substantive delivery — close the message with the canonical line `Posso abrir o Web Companion para você revisar esta entrega?` and the `browser_prompt` block above. Never print credentials or provider raw payloads to chat.
 
 ## Examples
 

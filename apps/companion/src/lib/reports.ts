@@ -7,6 +7,7 @@ import {
   REPORT_MODULES as SHARED_REPORT_MODULES,
   reportModuleLabel,
 } from '../../../../shared/report-modules';
+import companionRoutes from '../../../../shared/companion-routes.js';
 
 export { REPORT_DIR_NAME };
 
@@ -14,6 +15,7 @@ export const REPORT_MODULES = SHARED_REPORT_MODULES.map((module) => ({
   id: module.id,
   title: reportModuleLabel(module.id, 'en'),
 }));
+const { companionTargetForPath } = companionRoutes;
 
 export type ReportModuleId = (typeof REPORT_MODULES)[number]['id'];
 
@@ -71,6 +73,7 @@ function reportSummary(projectRoot: string, moduleId: string, childRel: string) 
   return {
     id: sha256(rel),
     path: rel,
+    ...companionTargetForPath(rel),
     moduleId,
     moduleTitle: reportModule?.title || moduleId,
     title: String(frontmatter.title || basename(childRel, '.md') || rel).replace(/^["']|["']$/g, ''),

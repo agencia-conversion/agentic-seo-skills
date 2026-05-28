@@ -3,6 +3,7 @@ name: topic-cluster
 description: When the user wants to build, refresh, or promote an SEO topic cluster (pillar + satellites) backed by keyword and SERP evidence. Runs in four phases — Pesquisar, Curar, Estruturar, Promover — with the cluster draft kept outside the brain until human approval.
 metadata:
   version: 2.0.0
+  category: report
 ---
 
 # Topic Cluster
@@ -25,6 +26,7 @@ Do not use this skill to write the articles, run technical audits, or invent key
 - Promotion of a NEW cluster requires explicit human approval through the Companion `approve-cluster` handoff. Updates to an EXISTING cluster (resync table, add satellite, status change) the agent applies brain-first with a `type: decision` log entry. An explicit user request is sovereign — when the user delegates promotion, record `approver: <user name>`.
 - Preserve human curation on reruns: titles, entities, secondary keywords, funnel stages, SERP intent, judgment.
 - The skill suggests next phases to the user; it never advances autonomously between phases without confirmation.
+- Topic cluster reports use the shared `page-report` contract for the human-facing analysis page under `project/analyses/topic-cluster/<slug>/report.md`. Phase artifacts also remain in `project/clusters/<slug>/draft.yaml`, `project/clusters/<slug>/planejamento.md`, and, after promotion, `project/brain/topic-clusters/<slug>.md`. Return `report_md` for the report and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`; for non-report phase artifacts, return the Companion review prompt with the artifact path.
 - Preserve pt-BR accents in prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
 ## Framework
@@ -160,6 +162,15 @@ evidence_gates:
   volume_sources: complete | partial | missing
 bypasses: []
 limitations: []
+delivery:
+  report_md: project/analyses/topic-cluster/<slug>/report.md
+  artifact_path: project/clusters/<slug>/planejamento.md | project/brain/topic-clusters/<slug>.md
+  companion_path: ""
+  companion_slug: ""
+  browser_prompt:
+    recommended: true
+    message: "Posso abrir o Web Companion para você ver a análise?"
+    open_with: project-browser
 next_action: ""
 ```
 

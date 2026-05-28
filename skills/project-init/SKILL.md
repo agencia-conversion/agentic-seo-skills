@@ -3,6 +3,7 @@ name: project-init
 description: When the user wants to create, initialize, or prepare one Agentic SEO project with the standard local project structure, blank brain templates, content directories, and initial log entry.
 metadata:
   version: 2.0.0
+  category: delivery
 ---
 
 # Project Init
@@ -25,6 +26,7 @@ Do not use this skill to write strategic content, draft brand identity, run SEO 
 - Be idempotent: rerunning project init creates missing directories and missing files without overwriting existing content.
 - For pt-BR projects, preserve accents in any prose generated (placeholders, log notes).
 - Do not fabricate brand facts, market data, or technical decisions.
+- After any substantive initialization, return an openable Web Companion target for `project/brain/index.md` (or `project/.agentic-seo/project.json` if initialization is blocked before brain files exist) with `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "<project-relative path>", open_with: "project-browser" }`. Ask before opening the browser.
 
 ## Optional: Seed-From-Doc
 
@@ -142,6 +144,8 @@ Before reporting completion, verify:
 
 ## Output Format
 
+Project init is ALWAYS a substantive artifact. The closing chat message must follow `## Delivery Checkpoint` in `agentic-seo` SKILL.md: at most 1-2 short prose sentences naming the project + the canonical line `Posso abrir o Web Companion para você revisar esta entrega?`. Forbidden in the closing message: listing created directories, bullet inventories of brain files, tree diagrams, "Projeto criado:" headers with paths, or asking "posso seguir com…" before offering the Companion. The `created` and `unchanged` arrays in the YAML below stay in the structured response for downstream skills — they are NOT chat prose.
+
 ```yaml
 status: complete | blocked
 project_root: project
@@ -158,6 +162,15 @@ unchanged:
 log_entry:
   appended: true | false
   title: ""
+delivery:
+  artifact_path: project/brain/index.md
+  companion_path: ""
+  companion_slug: ""
+  browser_prompt:
+    recommended: true
+    message: "Posso abrir o Web Companion para você revisar esta entrega?"
+    artifact_path: project/brain/index.md
+    open_with: project-browser
 next_action: ""
 ```
 
@@ -186,3 +199,4 @@ Output: "Create only missing directories and files. Do not overwrite brain files
 - Init log entry appended only when structural change occurred.
 - pt-BR accents preserved in placeholders and log.
 - Zero references to `wiki/`, `judgment_level`, `pillar`, status enums.
+- Completion points to the initialized project in the Web Companion with `browser_prompt`.

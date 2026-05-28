@@ -40,6 +40,15 @@ function dataforseoBypassArgs(reason = "teste explícito sem DataForSEO") {
   ];
 }
 
+function assertArtifactPrompt(json, artifactSuffix) {
+  assert.equal(json.browser_prompt?.recommended, true);
+  assert.equal(json.browser_prompt.message, "Posso abrir o Web Companion para você revisar esta entrega?");
+  assert.equal(json.browser_prompt.open_with, "project-browser");
+  assert.equal(json.browser_prompt.artifact_path.endsWith(artifactSuffix), true);
+  assert.ok(json.companion_path);
+  assert.ok(json.companion_slug);
+}
+
 function competitorPage(title, h1, words) {
   const sentence = "Conteúdo público com análise, página, evidência e orientação técnica para o leitor brasileiro. ";
   return `<!doctype html><html lang="pt-BR"><head><title>${title}</title><meta name="description" content="Descrição pública para teste de concorrente SEO."><link rel="canonical" href="https://example.com/${title}"></head><body><main><h1>${h1}</h1><h2>Primeira seção</h2><p>${sentence.repeat(Math.ceil(words / 12))}</p><h2>Segunda seção</h2><p>${sentence.repeat(20)}</p></main></body></html>`;
@@ -89,13 +98,18 @@ run(["project-init", "Process Test"]);
   assert.equal(existsSync(join(workDir, "brief.md")), true);
   assert.equal(existsSync(join(workDir, "draft.md")), false);
   assert.equal(existsSync(join(artifactDir, "draft.md")), false);
-  assert.equal(json.web_companion?.recommended, false);
+  assert.equal(json.web_companion?.recommended, true);
+  assertArtifactPrompt(json, "workbench/content/seo-sem-serp/brief.md");
   assert.equal(json.brief_markdown_path.endsWith(join("workbench", "content", "seo-sem-serp", "brief.md")), true);
 
-  const written = run(["content-seo", "--phase", "write", "--topic", "SEO sem SERP"]);
+  const written = run(["content-seo", "--phase", "write", "--topic", "SEO sem SERP", "--cluster", "seo-sem-serp"]);
   assert.equal(written.status, 0, written.stderr);
+  assertArtifactPrompt(JSON.parse(written.stdout), "artifacts/contents/seo-sem-serp/draft.md");
   assert.equal(existsSync(join(artifactDir, "draft.md")), true);
   assert.equal(existsSync(join(workDir, "draft.md")), false);
+  const initialDraft = readFileSync(join(artifactDir, "draft.md"), "utf8");
+  assert.match(initialDraft, /contract_version: 1/);
+  assert.match(initialDraft, /clusters:\n  - seo-sem-serp/);
   let brief = YAML.parse(readFileSync(join(workDir, "brief.yaml"), "utf8"));
   assert.equal(brief.draft_status, "draft");
   assert.equal(brief.draft_path, "artifacts/contents/seo-sem-serp/draft.md");
@@ -105,6 +119,8 @@ run(["project-init", "Process Test"]);
   const badCheck = run(["content-seo", "--phase", "check", "--topic", "SEO sem SERP"]);
   assert.notEqual(badCheck.status, 0);
   assert.match(badCheck.stdout, /generic Markdown anchor|non-public link target|word-count below target/);
+  assertArtifactPrompt(JSON.parse(badCheck.stdout), "artifacts/contents/seo-sem-serp/draft.md");
+  assert.equal(existsSync(join(artifactDir, "checks.yaml")), true);
   assert.equal(existsSync(join(artifactDir, "publication-check.yaml")), true);
   assert.equal(existsSync(join(artifactDir, "word-count.yaml")), true);
   assert.equal(existsSync(join(artifactDir, "review.yaml")), true);
@@ -131,13 +147,45 @@ run(["project-init", "Process Test"]);
   assert.match(badSourcesCheck.stdout, /consulted public source link in public body/);
 
   writeFileSync(join(artifactDir, "draft.md"), `${sourceFrontmatter}\n\n${longBody("SEO sem SERP")}`, "utf8");
+  const missingClusterCheck = run(["content-seo", "--phase", "check", "--topic", "SEO sem SERP"]);
+  assert.notEqual(missingClusterCheck.status, 0);
+  assert.match(missingClusterCheck.stdout, /cluster not found: seo-sem-serp/);
+
+  mkdirSync(join(projectDir, "clusters", "seo-sem-serp"), { recursive: true });
+  writeFileSync(join(projectDir, "clusters", "seo-sem-serp", "cluster.yaml"), YAML.stringify({
+    contract_version: 1,
+    slug: "seo-sem-serp",
+    name: "SEO sem SERP",
+    area: "Estratégia editorial",
+    status: "active",
+    pillar: { slug: "seo-sem-serp", keyword: "SEO sem SERP", intent: "informational", volume: null },
+    planned_satellites: [],
+    satellite_overrides: {},
+    stats: { published: 0, planned: 0, updated: "2026-05-06" },
+    provenance: { created_at: "2026-05-06", created_by: "test" },
+    evidence: [],
+  }, { lineWidth: 0 }));
+
   const goodCheck = run(["content-seo", "--phase", "check", "--topic", "SEO sem SERP"]);
   assert.equal(goodCheck.status, 0, goodCheck.stderr);
-  assert.equal(JSON.parse(goodCheck.stdout).ok, true);
+  const goodCheckJson = JSON.parse(goodCheck.stdout);
+  assert.equal(goodCheckJson.ok, true);
+  assertArtifactPrompt(goodCheckJson, "artifacts/contents/seo-sem-serp/draft.md");
+  assert.equal(YAML.parse(readFileSync(join(artifactDir, "checks.yaml"), "utf8")).review.review_backed, true);
   assert.equal(YAML.parse(readFileSync(join(artifactDir, "word-count.yaml"), "utf8")).ok, true);
+
+  const publishableDraft = readFileSync(join(artifactDir, "draft.md"), "utf8");
+  writeFileSync(join(artifactDir, "draft.md"), publishableDraft.replace(/clusters:\n  - seo-sem-serp/, "clusters: []"), "utf8");
+  const noClusterPromote = run(["content-seo", "--phase", "promote", "--topic", "SEO sem SERP"]);
+  assert.notEqual(noClusterPromote.status, 0);
+  assert.match(noClusterPromote.stdout, /"reason": "missing-cluster"/);
+  assert.match(noClusterPromote.stdout, /"companion_path": "artifacts-contents-seo-sem-serp-draft"/);
+  assertArtifactPrompt(JSON.parse(noClusterPromote.stdout), "artifacts/contents/seo-sem-serp/draft.md");
+  writeFileSync(join(artifactDir, "draft.md"), publishableDraft, "utf8");
 
   const promoted = run(["content-seo", "--phase", "promote", "--topic", "SEO sem SERP"]);
   assert.equal(promoted.status, 0, promoted.stderr);
+  assertArtifactPrompt(JSON.parse(promoted.stdout), "contents/blog/seo-sem-serp.md");
   const published = readFileSync(join(projectDir, "contents", "blog", "seo-sem-serp.md"), "utf8");
   assert.match(published, /origin: "blog"/);
   assert.match(published, /published_at:/);

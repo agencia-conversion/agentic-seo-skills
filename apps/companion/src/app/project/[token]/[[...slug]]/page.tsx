@@ -10,7 +10,7 @@ import { SearchModal } from '@/features/workspace/search-modal';
 import { ToastContainer } from '@/components/toast';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { usePagePath } from '@/hooks/use-page-path';
-import { projectSlugMatches } from '@/lib/project-slugs';
+import { normalizeProjectRouteSlug, projectSlugMatches } from '@/lib/project-slugs';
 import { useI18n } from '@/components/i18n-provider';
 import { AnalysesIndexPanel } from '@/features/analyses/analyses-index-panel';
 import { ContentIndexPanel } from '@/features/contents/content-index-panel';
@@ -31,7 +31,8 @@ export default function ProjectPage() {
   const pathname = usePathname();
   const pagePath = usePagePath();
   const token = params.token;
-  const slug = params.slug?.[0] || null;
+  const rawSlug = params.slug?.join('/') || null;
+  const slug = rawSlug ? normalizeProjectRouteSlug(rawSlug) : null;
   const [error, setError] = useState<string | null>(null);
 
   const initializeProject = useWorkspace((s) => s.initializeProject);

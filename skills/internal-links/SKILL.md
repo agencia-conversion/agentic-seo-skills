@@ -3,6 +3,7 @@ name: internal-links
 description: When the user wants internal link opportunities, contextual link recommendations, anchor text improvements, or validation before applying internal links.
 metadata:
   version: 1.0.0
+  category: report
 ---
 
 # Internal Links
@@ -167,7 +168,7 @@ If blocked by missing scope, unavailable validation, or unclear apply scope, ret
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/internal-links/report-skeleton.md`. The module-specific source artifact is the normalized internal-link YAML under `audits/internal-links-<run-slug>/report.yaml` or `workbench/internal-links/`; the Companion page is `project/analyses/internal-links/<run-slug>/report.md`. Present recommendations as readable source/target/anchor decisions with friendly validation names and exact `before`/`after` snippets in natural language; never paste raw crawl JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/internal-links/report-skeleton.md`. The module-specific source artifact is the normalized internal-link YAML under `audits/internal-links-<run-slug>/report.yaml` or `workbench/internal-links/`; the Companion page is `project/analyses/internal-links/<run-slug>/report.md`. Present recommendations as readable source/target/anchor decisions with friendly validation names and exact `before`/`after` snippets in natural language; never paste raw crawl JSON or object arrays into the visual report body. The response must return `report_md` plus `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`.
 
 ## Examples
 
