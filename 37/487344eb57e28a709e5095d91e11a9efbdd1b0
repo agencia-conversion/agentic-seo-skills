@@ -1,0 +1,20 @@
+apps/companion/src/lib/reports.ts
+  s_9d23383c7bd933::t_42d43c877e7ad6 90-92,95
+  s_9d23383c7bd933::t_77df84bd1a7e60 70,75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "37487344eb57e28a709e5095d91e11a9efbdd1b0",
+  "prompts": {},
+  "sessions": {
+    "s_9d23383c7bd933": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d453a750-4df4-47b2-a753-d0f45338606a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
