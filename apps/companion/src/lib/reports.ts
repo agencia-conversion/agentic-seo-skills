@@ -67,12 +67,12 @@ function reportSummary(projectRoot: string, moduleId: string, childRel: string) 
   const { data: frontmatter, body } = parseFrontmatter(text);
   const contractOk = hasCurrentReportContract(moduleId, frontmatter, body);
   const st = statSync(filePath);
-  const module = REPORT_MODULES.find((item) => item.id === moduleId);
+  const reportModule = REPORT_MODULES.find((item) => item.id === moduleId);
   return {
     id: sha256(rel),
     path: rel,
     moduleId,
-    moduleTitle: module?.title || moduleId,
+    moduleTitle: reportModule?.title || moduleId,
     title: String(frontmatter.title || basename(childRel, '.md') || rel).replace(/^["']|["']$/g, ''),
     reportType: String(frontmatter.report_type || moduleId),
     generatedAt: String(frontmatter.generated_at || frontmatter.updated || st.mtime.toISOString()).replace(/^["']|["']$/g, ''),
@@ -87,12 +87,12 @@ function reportSummary(projectRoot: string, moduleId: string, childRel: string) 
 }
 
 export function listReportModules({ projectRoot }: { projectRoot: string }) {
-  const modules = REPORT_MODULES.map((module) => {
-    const root = safeProjectReportRoot(projectRoot, module.id);
-    const reports = walkReportMarkdown(root).map((child) => reportSummary(projectRoot, module.id, child));
+  const modules = REPORT_MODULES.map((reportModule) => {
+    const root = safeProjectReportRoot(projectRoot, reportModule.id);
+    const reports = walkReportMarkdown(root).map((child) => reportSummary(projectRoot, reportModule.id, child));
     reports.sort((a, b) => String(b.generatedAt || b.updatedAt).localeCompare(String(a.generatedAt || a.updatedAt)));
     return {
-      ...module,
+      ...reportModule,
       count: reports.length,
       latestGeneratedAt: reports[0]?.generatedAt || null,
     };
