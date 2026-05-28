@@ -3,6 +3,7 @@ import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { docToMarkdown, markdownToDoc } from '@/lib/markdown';
 import { LocalePreference } from '@/lib/i18n';
 import { projectPageSlug } from '@/lib/project-slugs';
+import { syncBus } from '@/lib/sync-bus';
 import { REPORT_DIR_NAME } from '../../../../../shared/report-modules';
 
 const SIDEBAR_STORAGE_KEY = 'agentic-seo:companion:sidebar';
@@ -644,6 +645,25 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
   };
 }
 
+// Module-level guard: subscribe the workspace tree to the cross-view sync bus
+// exactly once per session. Re-running on every initializeProject() would
+// stack listeners and cause duplicate refreshes.
+let workspaceSyncBusBound = false;
+function ensureWorkspaceSyncBusSubscription(get: () => WorkspaceState) {
+  if (workspaceSyncBusBound) return;
+  workspaceSyncBusBound = true;
+  syncBus.on((event) => {
+    // Any mutation that adds/removes a file (content created, cluster
+    // renamed, etc.) must refresh the page tree so routing knows about the
+    // new slug. Cell-level field edits (keyword/intent) emit content:changed
+    // too — refreshing is idempotent, so it is safe to refresh on every
+    // event of interest.
+    if (event.type === 'content:changed' || event.type === 'cluster:changed' || event.type === 'clusters:changed') {
+      void get().refreshProjectTree();
+    }
+  });
+}
+
 export const useWorkspace = create<WorkspaceState>((set, get) => ({
   pages: [],
   sections: [],
@@ -690,6 +710,10 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       _hasHydrated: true,
     });
     if (built.firstPageId) void get().loadPage(built.firstPageId);
+    // Subscribe the workspace tree to cross-view mutations exactly once per
+    // session so newly created/renamed/deleted contents become routable
+    // without forcing every API caller to remember to refresh the tree.
+    ensureWorkspaceSyncBusSubscription(get);
   },
 
   refreshProjectTree: async () => {
