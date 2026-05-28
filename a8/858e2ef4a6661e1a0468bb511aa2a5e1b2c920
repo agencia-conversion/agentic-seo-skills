@@ -1,0 +1,120 @@
+skills/page-report/SKILL.md
+  s_509de4ceea4691::t_c80203d7101352 6
+skills/topic-cluster/SKILL.md
+  s_56f4df5e106c66::t_891d4629f52d31 29,165-173
+  s_509de4ceea4691::t_21e87892296027 6
+skills/competitive-analysis/SKILL.md
+  s_509de4ceea4691::t_21e87892296027 6
+  s_56f4df5e106c66::t_d419697be3740e 220
+skills/spec-driven/SKILL.md
+  s_509de4ceea4691::t_c80203d7101352 6
+  s_56f4df5e106c66::t_64efe908b5fbb6 42,189-204,233
+skills/agentic-seo/SKILL.md
+  s_509de4ceea4691::t_219b55e826f1a0 253
+  s_56f4df5e106c66::t_c6508d75ba3038 31-33,207-215,252
+  s_509de4ceea4691::t_c80203d7101352 6
+  s_509de4ceea4691::t_f32c4c2302fc14 39-42,44-46,48,61
+  s_509de4ceea4691::t_3c744c90468234 43,47,49-60
+skills/seo-skills-creator/SKILL.md
+  s_509de4ceea4691::t_c80203d7101352 6
+  s_509de4ceea4691::t_50f5dccf8c354c 25,29-49
+  s_509de4ceea4691::t_fe61d6657904fc 110,123-125
+skills/seo-tools-creator/SKILL.md
+  s_509de4ceea4691::t_c80203d7101352 6
+skills/serp-extract/SKILL.md
+  s_56f4df5e106c66::t_da5e836ba2bc08 171
+  s_509de4ceea4691::t_21e87892296027 6
+.gitignore
+  s_509de4ceea4691::t_edfeb08fcdcef1 57
+  s_509de4ceea4691::t_318d7c54ea72ef 58
+skills/content-import/SKILL.md
+  s_509de4ceea4691::t_c80203d7101352 6
+  s_56f4df5e106c66::t_476fb361bd45cf 35,111-114,136-143,154
+skills/data-setup/SKILL.md
+  s_509de4ceea4691::t_cc61382f53dfa7 6
+  s_509de4ceea4691::t_cf83ba9c32e121 156-164,168
+skills/keyword-research/SKILL.md
+  s_509de4ceea4691::t_21e87892296027 6
+  s_56f4df5e106c66::t_fc52a2cd57e016 145
+skills/seo-skills-creator/references/template-skill.md
+  s_509de4ceea4691::t_f992f062076d01 43-46,49,54-108
+  s_509de4ceea4691::t_f39bc7be357f4e 6
+skills/seo-analysis/SKILL.md
+  s_509de4ceea4691::t_21e87892296027 6
+  s_56f4df5e106c66::t_4f32069b56acb8 163
+skills/seo-skills-creator/references/approval-rubric.md
+  s_509de4ceea4691::t_6664071f256db8 57-59
+scripts/delivery-checkpoint.mjs
+  s_509de4ceea4691::t_4264494360a2ba 1-2,6-53
+  s_509de4ceea4691::t_405dcc9d90c554 3-5
+AGENTS.md
+  s_509de4ceea4691::t_33978a7346a169 43
+  s_509de4ceea4691::t_445cefd35b6b32 194-196
+  s_509de4ceea4691::t_4bc3d12b52d7b2 177-178
+.claude/settings.json
+  s_509de4ceea4691::t_644f806f77d0c9 1-8,10-15
+  s_509de4ceea4691::t_fccb749497bafd 9
+skills/autoresearch/SKILL.md
+  s_509de4ceea4691::t_c80203d7101352 6
+skills/project-init/SKILL.md
+  s_56f4df5e106c66::t_d1fda16398fefa 29,165-173,202
+  s_509de4ceea4691::t_c21080adcb94e0 147-148
+  s_509de4ceea4691::t_c80203d7101352 6
+skills/eeat/SKILL.md
+  s_509de4ceea4691::t_21e87892296027 6
+  s_56f4df5e106c66::t_3db1e5bb2287ed 174
+skills/start/SKILL.md
+  s_509de4ceea4691::t_c80203d7101352 6
+hooks/hooks.json
+  s_509de4ceea4691::t_ce73aa98838a6b 24-34
+skills/technical-seo/SKILL.md
+  s_56f4df5e106c66::t_a6b7ada6c4fc96 165
+  s_509de4ceea4691::t_21e87892296027 6
+skills/internal-links/SKILL.md
+  s_56f4df5e106c66::t_3df99d25908ba9 171
+  s_509de4ceea4691::t_21e87892296027 6
+skills/brain-keeper/SKILL.md
+  s_509de4ceea4691::t_c80203d7101352 6
+  s_56f4df5e106c66::t_3d41d142aba7f4 23-24,224-232,247
+scripts/validate_skills.mjs
+  s_509de4ceea4691::t_449fe1fd5a3186 94,96
+  s_509de4ceea4691::t_d61b551c0df1e3 156-159,161
+  s_509de4ceea4691::t_613cc226ca305f 3-7,18-24,26-27,29-33,36-58,66-93,95,97-99,103,106-107,132-137,140-147,150-155,160,162,165,186,190-192,194
+  s_56f4df5e106c66::t_98daf9ea401a2b 25,28,34-35,59-65,104,138-139,148-149,163
+skills/backlink-analysis/SKILL.md
+  s_56f4df5e106c66::t_2ce5a896040504 223
+  s_509de4ceea4691::t_21e87892296027 6
+skills/content-seo/SKILL.md
+  s_56f4df5e106c66::t_62baf689ef411b 235-243
+  s_56f4df5e106c66::t_74ed57f9293368 306-313
+  s_56f4df5e106c66::t_73451ff7de300d 30
+  s_509de4ceea4691::t_c80203d7101352 6
+scripts/session-bootstrap.mjs
+  s_56f4df5e106c66::t_d07d3504690c51 54-55,61
+  s_56f4df5e106c66::t_5457e9c75055a2 60
+  s_509de4ceea4691::t_4b614570efcffe 64-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a8858e2ef4a6661e1a0468bb511aa2a5e1b2c920",
+  "prompts": {},
+  "sessions": {
+    "s_509de4ceea4691": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "77da8db7-3039-40a7-8914-6425011d30bd",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    },
+    "s_56f4df5e106c66": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6eff-2795-70f1-a2ca-d0e7e10b531e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
