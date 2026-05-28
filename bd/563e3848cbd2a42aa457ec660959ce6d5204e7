@@ -1,0 +1,144 @@
+apps/companion/src/app/api/project/clusters/route.ts
+  s_b4358e4f06836f::t_4053195ed98586 21-23
+apps/companion/src/lib/project-slugs.ts
+  s_b4358e4f06836f::t_950f8b7f11936c 4,6,10-14
+  s_b4358e4f06836f::t_56eb69b5d5db18 1-3
+apps/companion/src/features/workspace/store.ts
+  s_b4358e4f06836f::t_f04217c433fe9b 300,789,873
+apps/companion/src/features/contents/cluster-content-table.tsx
+  s_b4358e4f06836f::t_0c3065a0efafc9 39,897-898
+scripts/lib/project-browser-files.mjs
+  s_b4358e4f06836f::t_82828582ee0634 41,125,141
+  s_b4358e4f06836f::t_b23911626e9337 293,372-376,386
+  s_b4358e4f06836f::t_2a6761d7f17c98 570,592-639,695
+  s_b4358e4f06836f::t_beaedd117317cd 7,42
+  s_b4358e4f06836f::t_d6029052d57018 802,855,907,923-926,959,992,1040
+apps/companion/src/lib/project-files.ts
+  s_b4358e4f06836f::t_74b106fd28309f 314,682,734,752-755,788,945
+  s_b4358e4f06836f::t_38bbbd878cc1f2 613
+  s_b4358e4f06836f::t_1e333293836313 6,34
+  s_b4358e4f06836f::t_28fdd1f5bc8b82 454,596-599,601,612,614
+  s_b4358e4f06836f::t_322749fd5d2028 33,41-42,157,171
+  s_b4358e4f06836f::t_857b893c9b8018 951,953
+tests/test_agentic_seo_skill.mjs
+  s_56f4df5e106c66::t_b1cd835c0a06ca 60-62,64-66
+scripts/competitive-analysis.mjs
+  s_b4358e4f06836f::t_7a67aac5fb620a 9,14,698,701,706,710
+apps/companion/src/app/project/[token]/[[...slug]]/page.tsx
+  s_b4358e4f06836f::t_c9ffe5efdc87b7 13,34-35
+tests/test_content_seo_process.mjs
+  s_b4358e4f06836f::t_780f350f4a0d2e 153
+  s_b4358e4f06836f::t_36b4fd6d7d79bf 150-152,168,174,177-182,184
+  s_56f4df5e106c66::t_9bf7259fca8299 43-51,101-102,107,122,171-173,183,188
+  s_b4358e4f06836f::t_2bb969e4c5550c 105,110-112,123,154-167
+scripts/lib/companion-state.mjs
+  s_b4358e4f06836f::t_0b615c538c278c 82-86,90-96,98,102,106
+  s_b4358e4f06836f::t_464e512e82a310 87
+shared/companion-routes.js
+  s_b4358e4f06836f::t_75a052ae38efc0 1-63
+scripts/lib/project-browser-server.mjs
+  s_b4358e4f06836f::t_d21b072a20f670 5-8,79-81,93-116,118,120,122-129,131-137,142,162,166-169,180-200,209-211,233-235
+  s_b4358e4f06836f::t_9388f20def64f3 161
+  s_b4358e4f06836f::t_2c07c2a5dc3e1b 117,119,130
+  s_b4358e4f06836f::t_a144ad9895d709 78,82-92,121
+tests/test_competitive_analysis.mjs
+  s_b4358e4f06836f::t_9c591bae974983 92,94-96
+apps/companion/src/lib/cluster-management.ts
+  s_b4358e4f06836f::t_b357fceb8eec65 213-214,217-218,222,230,238,241-244,249-250,253-256
+  s_b4358e4f06836f::t_19a00b3bf1d3b6 223-228
+tests/test_graph_builder.mjs
+  s_b4358e4f06836f::t_e108f580504d0b 49
+scripts/lib/page-report.mjs
+  s_b4358e4f06836f::t_ae044397b84fb5 5,12,48,52-53,59,62-63
+tests/test_companion_project_browser.mjs
+  s_b4358e4f06836f::t_a53fec1699258a 256
+  s_b4358e4f06836f::t_29cc0a485a6765 50,165-181,221,243,247,249-250
+  s_b4358e4f06836f::t_4479d6c25e6ed9 222-223
+apps/companion/src/lib/reports.ts
+  s_b4358e4f06836f::t_b92bb44894cb1c 10,18,76
+tests/test_companion_project_slugs.mjs
+  s_b4358e4f06836f::t_e65ac81e5ce68b 2,6-8,10-11
+  s_b4358e4f06836f::t_60fe8da0ef537e 37,41-42
+apps/companion/src/features/clusters/cluster-row-cells.tsx
+  s_b4358e4f06836f::t_f6bdf66f83a0d7 16,84,98
+dist/commands/runtime.js
+  s_b4358e4f06836f::t_55be268b336345 165-175,4701-4717,4719-4742
+  s_b4358e4f06836f::t_ced4119db93ef4 4344
+  s_56f4df5e106c66::t_b8576895b72f13 2496,2528-2533,2722,2733-2741
+  s_b4358e4f06836f::t_e74786cf58819e 3226-3227
+  s_b4358e4f06836f::t_47e3268f2ac0e8 100-101,106,157-164,244,248-249,254,257-258,279-286,438-440,2461-2464,3225,3228-3324,3328-3347,3349-3354,3356-3375,3380-3381,3383-3422,3444-3446,3449-3457,3565-3566,3568-3572,3575,3578-3579,4291,4341-4343,4345-4405,4419,4421-4441,4447,4462-4466,4494-4500,4508-4513,4519,4578-4582,4610-4616,4657,4660,4667-4668,4670,4675-4685,4687-4693,4695-4696,4718,4746
+  s_56f4df5e106c66::t_161291267ea0ce 105,262-278,3348,3355,3443,3458,4493,4501,4600,4603,4640,4646,4653,4686,4694,4747
+  s_b4358e4f06836f::t_cac8701796c0b6 1963-1977
+  s_b4358e4f06836f::t_fc63823351af2a 3325-3327,4452-4461
+  s_b4358e4f06836f::t_c1d8b2d0d443f1 3382
+tests/test_tag_index.mjs
+  s_b4358e4f06836f::t_15f0d938ede078 53
+scripts/lib/companion-types/approve-cluster.mjs
+  s_b4358e4f06836f::t_3d3ac39f50c873 1,84,91-103,114-131,133-144,146-173
+shared/companion-routes.d.ts
+  s_b4358e4f06836f::t_abea14d6558f19 1-15
+src/commands/runtime.ts
+  s_b4358e4f06836f::t_e1b3fcd3f3e6e4 4246,4270
+  s_b4358e4f06836f::t_fd378635d967e0 4384
+  s_b4358e4f06836f::t_c6cb6ed300dc93 4414-4422,4433-4436,4463-4469,4477-4482,4488
+  s_56f4df5e106c66::t_9ff6bf676c13d0 2491,2519-2524,2701,2712-2720
+  s_b4358e4f06836f::t_dad41a2988872e 3191,3193-3290,3294-3312,3314-3319,3321-3334,3339-3340,3342-3346,3348-3379,3401-3403,3407-3414
+  s_b4358e4f06836f::t_1fa0d544c5bd7a 4560-4563,4588-4593,4635,4638
+  s_b4358e4f06836f::t_3b5ba0e2d89619 138-149
+  s_b4358e4f06836f::t_98361f00a030a3 2461-2462
+  s_56f4df5e106c66::t_8977cafdba4831 3313,3320,3400,3415
+  s_b4358e4f06836f::t_ba4a25e3f2e434 3291-3293
+  s_b4358e4f06836f::t_c1ed26b98d5659 3347,3380-3399
+  s_b4358e4f06836f::t_8da0e7659a959c 64-67,72,228,232-233,239,242-243
+  s_b4358e4f06836f::t_488cbed7bab102 4645-4647,4650-4660,4662-4668,4670-4671,4692,4717
+  s_b4358e4f06836f::t_d70f2650e19ff3 3528-3529,3531-3535,3538,3541-3542
+  s_b4358e4f06836f::t_35fa88ff6b719d 4426-4432
+  s_b4358e4f06836f::t_2e083a62f8fc14 130-137
+  s_b4358e4f06836f::t_52c9d74e231086 1988-2002
+  s_56f4df5e106c66::t_0a8fa4a2b10147 71,248-263
+  s_b4358e4f06836f::t_199d458d25fdb2 267-275
+  s_56f4df5e106c66::t_342a3c20f5c30d 4462,4470,4578,4581,4616,4622,4630,4661,4669,4718
+  s_b4358e4f06836f::t_c35abb39fc88d1 4310-4312,4314-4370,4386-4406
+  s_b4358e4f06836f::t_2d641cc8f51233 4675-4691,4693-4713
+  s_b4358e4f06836f::t_9a52a22e09cce2 3192
+  s_b4358e4f06836f::t_3b23564b1c01a9 4313
+  s_b4358e4f06836f::t_47a2ca3de0c68a 3341
+  s_b4358e4f06836f::t_281935d7a06930 451-454
+tests/test_companion_delivery_contract.mjs
+  s_56f4df5e106c66::t_254cea1708d33e 1-66
+tests/test_agentic_query.mjs
+  s_b4358e4f06836f::t_faea94bea82640 50
+tests/test_session_bootstrap.mjs
+  s_56f4df5e106c66::t_95d01480e19162 31-33,36-40
+apps/companion/src/lib/contents.ts
+  s_b4358e4f06836f::t_a5520a072c5807 6,10,304,326-384,441
+package.json
+  s_56f4df5e106c66::t_86ecbf6a412140 15
+tests/test_topic_cluster_hypothesis_e2e.mjs
+  s_b4358e4f06836f::t_4bc7e1c72069ee 7,23-27,31,34-38,40-44,47,49-54,58,63,66-70,78-83
+  s_b4358e4f06836f::t_abe22a6ac0895c 2,71-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bd563e3848cbd2a42aa457ec660959ce6d5204e7",
+  "prompts": {},
+  "sessions": {
+    "s_56f4df5e106c66": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6eff-2795-70f1-a2ca-d0e7e10b531e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    },
+    "s_b4358e4f06836f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6e5a-10ff-7240-9917-b9f864a9e87a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
