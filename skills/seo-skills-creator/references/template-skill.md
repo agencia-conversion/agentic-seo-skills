@@ -3,6 +3,7 @@ name: <kebab-name>
 description: When the user wants <specific task>. Also use when they say "<phrase>" or need <trigger>.
 metadata:
   version: 1.0.0
+  category: <report | delivery | setup | meta | router | contract | alias>
 ---
 
 # <Human Title>
@@ -39,15 +40,72 @@ Use this skill for one task. Do not use it for nearby work that belongs to anoth
 
 ## Output Format
 
+Pick ONE close block matching `metadata.category` and delete the others. The close contract (canonical line + `browser_prompt`) is required for `report`, `delivery`, and `setup`. Skills in `meta`, `router`, `contract`, or `alias` SHOULD NOT declare a YAML `browser_prompt:` block (their artifacts live outside `project/` or they delegate).
+
+<!-- ===== close block: REPORT (artifact in project/analyses/) ===== -->
+
 ```yaml
 status: complete | blocked | incomplete
-artifact:
-  path: project/workbench/...
+report_md: project/analyses/<module>/<run-slug>/report.md
 sources:
   - path: project/sources/...
 synthesis:
   summary: ""
-open_questions: []
+browser_prompt:
+  recommended: true
+  message: "Posso abrir o Web Companion para você ver a análise?"
+  open_with: project-browser
+next_action: ""
+```
+
+<!-- ===== close block: DELIVERY (artifact in project/workbench, artifacts, brain, contents, clusters, keywords, eeat) ===== -->
+
+```yaml
+status: complete | blocked | incomplete
+artifact_path: project/workbench/<slug>/...
+sources:
+  - path: project/sources/...
+synthesis:
+  summary: ""
+companion_path: ""
+companion_slug: ""
+browser_prompt:
+  recommended: true
+  message: "Posso abrir o Web Companion para você revisar esta entrega?"
+  artifact_path: project/workbench/<slug>/...
+  open_with: project-browser
+next_action: ""
+```
+
+<!-- ===== close block: SETUP (masked status; sensitive input via browser handoff) ===== -->
+
+```yaml
+status: complete | blocked | failed | skipped
+provider: ""
+runtime: plugin | standalone_project | unknown
+browser_handoff:
+  used: true | false
+  reason: ""
+delivery:
+  artifact_path: project/.agentic-seo/project.json
+  companion_path: ""
+  companion_slug: ""
+  browser_prompt:
+    recommended: true
+    message: "Posso abrir o Web Companion para você revisar esta entrega?"
+    artifact_path: project/.agentic-seo/project.json
+    open_with: project-browser
+next_action: ""
+```
+
+<!-- ===== close block: META / ROUTER / CONTRACT / ALIAS (NO own browser_prompt) ===== -->
+
+```yaml
+status: complete | blocked | incomplete
+synthesis:
+  summary: ""
+# No browser_prompt: this skill does not own a project/ artifact.
+# router/contract may demonstrate browser_prompt as an exemplar for downstream skills inside prose, not in own Output Format.
 next_action: ""
 ```
 

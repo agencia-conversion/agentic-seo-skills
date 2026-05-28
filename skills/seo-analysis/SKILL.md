@@ -3,6 +3,7 @@ name: seo-analysis
 description: When the user wants a keyword SERP analysis with competitor comparison, target page gaps, or player-score interpretation. Also use before topic cluster or content brief work that needs SERP evidence.
 metadata:
   version: 1.0.0
+  category: report
 ---
 
 # SEO Analysis
@@ -159,7 +160,7 @@ If blocked by a missing provider or missing bypass record, return `status: block
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/seo-analysis/report-skeleton.md`. The module-specific source artifact is the normalized SEO-analysis YAML under `audits/seo-analysis-<keyword-slug>/report.yaml` or `workbench/seo-analysis/`; the Companion page is `project/analyses/seo-analysis/<keyword-slug>/report.md`. Start with the executive reading and priorities, then show competitor/player details and limitations as readable tables and prose. Translate labels/status/severities/nulls, use friendly check names, and never paste raw SERP, heading, player-score, or provider JSON into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/seo-analysis/report-skeleton.md`. The module-specific source artifact is the normalized SEO-analysis YAML under `audits/seo-analysis-<keyword-slug>/report.yaml` or `workbench/seo-analysis/`; the Companion page is `project/analyses/seo-analysis/<keyword-slug>/report.md`. Start with the executive reading and priorities, then show competitor/player details and limitations as readable tables and prose. Translate labels/status/severities/nulls, use friendly check names, and never paste raw SERP, heading, player-score, or provider JSON into the visual report body. The response must return `report_md` plus `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`.
 
 ## Examples
 

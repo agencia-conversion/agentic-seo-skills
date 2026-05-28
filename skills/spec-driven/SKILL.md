@@ -3,6 +3,7 @@ name: spec-driven
 description: MUST USE PROACTIVELY before executing a user request with two or more distinct deliverables, downstream skills, Agentic SEO pillars, dependencies, or decision/evidence/check gates. Use for compound requests such as research plus brain updates, technical audit plus content plan, content plus publication review, or any bulleted/numbered request with separate outcomes. Do not use for a single clear task.
 metadata:
   version: 1.0.0
+  category: delivery
 ---
 
 # Spec Driven
@@ -38,6 +39,7 @@ Do not use this skill for a single clear task. If the user asks only for one key
 - If public content depends on missing strategy, missing evidence, or unchecked content, mark the dependent deliverable blocked until the upstream gate passes.
 - Preserve the requested output language. For pt-BR, keep accents in all human-facing text: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Prefer a local browser handoff for previews, decisions, sensitive inputs, or option selection when available. Do not make terminal commands the primary UX for nontechnical decisions.
+- The primary delivery is the workbench spec in the Web Companion. Return `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "project/workbench/specs/<slug>/spec.md", open_with: "project-browser" }`; preserve the paths for `spec.md`, `plan.md`, and `result-check.md`. Ask before opening the browser.
 
 ## Framework
 
@@ -184,6 +186,22 @@ registrado_em: <timestamp or null>
 - [ ] pt-BR accents or other requested language features were preserved.
 ```
 
+### Delivery Summary
+
+```yaml
+status: complete | blocked
+spec_markdown: project/workbench/specs/<slug>/spec.md
+plan_markdown: project/workbench/specs/<slug>/plan.md
+result_check_markdown: project/workbench/specs/<slug>/result-check.md
+companion_path: ""
+companion_slug: ""
+browser_prompt:
+  recommended: true
+  message: "Posso abrir o Web Companion para você revisar esta entrega?"
+  artifact_path: project/workbench/specs/<slug>/spec.md
+  open_with: project-browser
+```
+
 ## Examples
 
 ### Example: Compound Request
@@ -212,3 +230,4 @@ Output: Immediately update `project/brain/`, draft articles, and create site pag
 - Every deliverable has an owner, dependency, expected location, gate, and success check.
 - Missing brain decision logs, DataForSEO evidence, content checks, source review, or publication checks are visible as gates or blockers.
 - No specs, drafts, hypotheses, or unevidenced strategy were written to `project/brain/`.
+- The final response points to `spec.md` in the Web Companion with `browser_prompt`, while preserving `plan.md` and `result-check.md` paths.

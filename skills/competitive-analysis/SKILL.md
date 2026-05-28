@@ -3,6 +3,7 @@ name: competitive-analysis
 description: When the user wants to compare domains or URLs against competitors across SEO footprint, share of voice, keyword/content gap, head-to-head pages, off-page link gap (via backlink-analysis), and brand positioning. Orchestrates evidence from serp-extract, keyword-research, backlink-analysis, and topic-cluster without duplicating their work.
 metadata:
   version: 1.0.0
+  category: report
 ---
 
 # Competitive Analysis
@@ -216,7 +217,7 @@ If the run is fully blocked (no provider, no fixture), return `status: blocked`,
 
 ### Default delivery and runtime
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/competitive-analysis/report-skeleton.md`. The run YAML lives at `audits/competitive-<run-slug>/report.yaml`; the Companion page at `project/analyses/competitive-analysis/<run-slug>/report.md`. Each module renders as one H2 with `agentic-kpis` and `agentic-table` blocks; modules that did not run are dropped. The skill is exposed as `node dist/agentic-seo.js competitive-analysis`, dispatched by `src/commands/runtime.ts` to the orchestrator `scripts/competitive-analysis.mjs`, which calls DataForSEO Labs + Backlinks, the sitemap, and homepage HTML extraction, reads `shared/ctr-curves/` for the modeled curve, writes the YAML + Markdown, appends one `type: decision` entry to `project/brain/log.md`, and returns the standard `{ report_md, source_artifact, modules_run, browser_prompt }` JSON.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/competitive-analysis/report-skeleton.md`. The run YAML lives at `audits/competitive-<run-slug>/report.yaml`; the Companion page at `project/analyses/competitive-analysis/<run-slug>/report.md`. Each module renders as one H2 with `agentic-kpis` and `agentic-table` blocks; modules that did not run are dropped. The skill is exposed as `node dist/agentic-seo.js competitive-analysis`, dispatched by `src/commands/runtime.ts` to the orchestrator `scripts/competitive-analysis.mjs`, which calls DataForSEO Labs + Backlinks, the sitemap, and homepage HTML extraction, reads `shared/ctr-curves/` for the modeled curve, writes the YAML + Markdown, appends one `type: decision` entry to `project/brain/log.md`, and returns the standard `{ report_md, source_artifact, modules_run, browser_prompt }` JSON. The `browser_prompt.message` is always `"Posso abrir o Web Companion para você ver a análise?"`.
 
 ## Examples
 

@@ -3,6 +3,7 @@ name: backlink-analysis
 description: When the user wants backlink, referring-domain, anchor, link-quality, link-gap, link-intersect, anchor-diff, link-velocity, brand-mention, or competitor link-profile analysis for one target domain or URL.
 metadata:
   version: 2.0.0
+  category: report
 ---
 
 # Backlink Analysis
@@ -219,7 +220,7 @@ If blocked by missing provider access, missing target, or unavailable competitor
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/backlink-analysis/report-skeleton.md`. The module-specific source artifact is the normalized YAML under `audits/backlinks-<run-slug>/`, `sources/backlinks/`, or `workbench/`; the Companion page is `project/analyses/backlink-analysis/<run-slug>/report.md`. Single-mode reports show the executive reading, KPI strip, comparison table, sample backlinks, and risks. Multi-competitor reports add Link Gap, Link Intersect, Anchor Distribution Comparison, Quality Mix, Velocity, optional Page-Level Link Gap, and optional Brand Mention Gap as readable tables. Never paste raw provider JSON or object arrays into the visual report body. See `references/multi-competitor.md` for the detailed multi-competitor decision rules, edge cases, and naming.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/backlink-analysis/report-skeleton.md`. The module-specific source artifact is the normalized YAML under `audits/backlinks-<run-slug>/`, `sources/backlinks/`, or `workbench/`; the Companion page is `project/analyses/backlink-analysis/<run-slug>/report.md`. Single-mode reports show the executive reading, KPI strip, comparison table, sample backlinks, and risks. Multi-competitor reports add Link Gap, Link Intersect, Anchor Distribution Comparison, Quality Mix, Velocity, optional Page-Level Link Gap, and optional Brand Mention Gap as readable tables. Never paste raw provider JSON or object arrays into the visual report body. The response must return `report_md` plus `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`. See `references/multi-competitor.md` for the detailed multi-competitor decision rules, edge cases, and naming.
 
 ## Examples
 

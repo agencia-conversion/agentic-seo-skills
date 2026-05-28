@@ -3,6 +3,7 @@ name: agentic-seo
 description: Load Agentic SEO's canonical runtime context and route broad, ambiguous, or compound Agentic SEO requests through the right gates and downstream skills.
 metadata:
   version: 2.0.0
+  category: router
 ---
 
 # Agentic SEO
@@ -27,11 +28,36 @@ For any substantive deliverable (report, analysis, content, brief, audit, recomm
 
 Whenever a workflow generates `report.md`, the CLI or skill output must include `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?" }`. Ask that exact consent line in chat before opening any browser. Never expose `node scripts/companion.mjs ...` to the user; run it as the agent after consent. If the user declines, leave the artifact in place and tell them where it lives.
 
-The nine data and report skills — `seo-analysis`, `technical-seo`, `backlink-analysis`, `keyword-research`, `serp-extract`, `internal-links`, `eeat`, `topic-cluster`, `competitive-analysis` — must always apply `page-report`, write a Companion report Markdown file under `project/analyses/`, return `report_md`, and offer browser access through the chat prompt. Editorial skills like `content-seo` use the existing `approve-briefing` and `approve-page` handoffs.
+Whenever a workflow generates a substantive non-report deliverable — briefs, drafts, specs, import summaries, review notes, checks, public content, or brain changes — the CLI or skill output must include an artifact openable in the Web Companion plus `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "<project-relative path>", companion_path: "<route>", open_with: "project-browser" }`. Preserve existing compatibility fields such as `path`, `brief_markdown_path`, `draft_path`, `companion_path`, and `companion_slug`. Ask the consent line before opening the browser. Short status replies and clarifying questions stay in chat.
+
+The nine data and report skills — `seo-analysis`, `technical-seo`, `backlink-analysis`, `keyword-research`, `serp-extract`, `internal-links`, `eeat`, `topic-cluster`, `competitive-analysis` — must always apply `page-report`, write a Companion report Markdown file under `project/analyses/`, return `report_md`, and offer browser access through the chat prompt. Non-report delivery skills use project artifacts instead of reports: `content-seo` points each phase to `brief.md`, `draft.md`, `checks.yaml`, or the published Markdown; `content-import` writes an import summary under `project/workbench/`; `brain-keeper` points to the changed brain page or a workbench summary; `spec-driven` points to `spec.md`, `plan.md`, or `result-check.md`. Sensitive setup still uses browser handoff, not `page-report`.
 
 Report pages are presentation artifacts for humans. Write the executive reading first, keep depth in human-readable appendices, never paste raw JSON/object dumps into visual tables, and keep raw evidence in `source_artifact` plus `sources/`, `audits/`, `workbench/`, or module-specific normalized files. Checks, severities, status, evidence, score labels, chart labels, and table headers must use friendly names in the project language rather than internal IDs such as `image_alt` or provider payload keys. Use `project/.agentic-seo/project.json.language` as the default report/UI language; v1 supports `pt-BR` and `en`, with explicit command language overrides allowed.
 
 Conversational replies (clarifications, status checks, short factual questions) stay as plain prose in the chat. Do not force HTML or open the companion for these.
+
+## Delivery Checkpoint
+
+Before closing any message, decide in silence:
+
+1. Did this response create or change a substantive artifact in `project/` (report, brief, draft, spec, audit, brain change, import summary, public content, cluster, project initialization)?
+2. Is that artifact the delivery — does the user need to read it?
+3. Did I offer to open the Web Companion with the canonical consent line?
+
+If yes to (1) and (2), close the message with `browser_prompt` pointing to the artifact. Forbidden in the closing of an artifact-bearing message: listing paths, file trees, directory structures, bullet inventories of created files, or asking "quer que eu…" / "posso seguir com…" in place of the canonical line.
+
+### Mandatory canonical close
+
+When `## Delivery Checkpoint` triggers, the last sentence of the message MUST be EXACTLY one of these two lines, with no rewording, no softening, no additional question after:
+
+- Reports: `Posso abrir o Web Companion para você ver a análise?`
+- Non-report deliverables (briefs, drafts, specs, brain changes, project init, content, clusters): `Posso abrir o Web Companion para você revisar esta entrega?`
+
+Above the canonical line, keep the message to ≤ 2 short prose sentences naming what was delivered (e.g. "Projeto Conversion inicializado em pt-BR." or "Brief publicado em `<slug>`."). No bullet inventories. No tree diagrams. No "criados:" headers. The artifact path goes inside `browser_prompt.artifact_path`, not in chat.
+
+### Escape (plain chat prose, no Companion)
+
+Short replies, clarifications, status checks, blocked routes without any artifact generated, and questions about how something works.
 
 ## Operating Model
 
@@ -178,6 +204,15 @@ source_separation:
 browser_handoff:
   recommended: true | false
   purpose: credentials | decision | preview | option_selection | none
+artifact_delivery:
+  report_md: project/analyses/<module>/<run-slug>/report.md | null
+  artifact_path: project/workbench/<...>.md | project/artifacts/<...>.md | project/brain/<...>.md | project/contents/<origin>/<slug>.md | null
+  companion_path: ""
+  companion_slug: ""
+  browser_prompt:
+    recommended: true | false
+    message: "Posso abrir o Web Companion para você ver a análise? | Posso abrir o Web Companion para você revisar esta entrega?"
+    open_with: project-browser
 message_to_user: ""
 next_action: ""
 ```
@@ -214,5 +249,7 @@ Output: "Use WebSearch, estimate volume, write the article, and mark the strateg
 - Website creation, CMS setup, deployment, and frontend implementation requests are marked out of scope instead of routed to a removed skill.
 - Any bypass is recorded with consequence and marked not data-backed for the skipped dimension.
 - Raw evidence, synthesis, artifacts, public content, and logged brain state remain separated.
+- Every substantive report or non-report deliverable returns the appropriate Web Companion artifact path and `browser_prompt`; terminal output is never the primary UX for review, credentials, decisions, or final delivery.
+- Every message that generated a substantive artifact closes with the canonical Web Companion consent line; narrating paths or directory structures in chat counts as a delivery failure. Short replies, status checks, and clarifications keep flowing as plain prose.
 - User-facing prose preserves the requested language and diacritics.
 - The user receives the decision, consequence, and next action rather than hidden shortcuts or terminal-first gate handling.

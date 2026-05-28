@@ -3,6 +3,7 @@ name: autoresearch
 description: When the user wants a rigorous iteration loop for an artifact, prompt, briefing, content structure, or Agentic SEO skill. Also use for Karpathy-style experiment runs that need baseline scoring, explicit metrics, stop rules, and keep/reject decisions.
 metadata:
   version: 1.0.0
+  category: meta
 ---
 
 # Autoresearch

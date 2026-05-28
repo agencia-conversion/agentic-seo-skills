@@ -3,6 +3,7 @@ name: keyword-research
 description: When the user wants keyword research, keyword expansion, search volume, CPC, competition, long-tail opportunities, or clustering inputs for a market. Also use before topic-cluster or content planning work that needs keyword evidence.
 metadata:
   version: 1.0.0
+  category: report
 ---
 
 # Keyword Research
@@ -141,7 +142,7 @@ If blocked because DataForSEO is unavailable and no substitute is recorded, retu
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/keyword-research/report-skeleton.md`. The module-specific source artifact is the normalized keyword YAML/JSON under `keywords/`, `sources/keyword-research/`, or `workbench/`; the Companion page is `project/analyses/keyword-research/<seed-or-topic-slug>/report.md`. Write an executive reading first, keep metrics and limitations in human-readable tables, translate labels/status/nulls, use friendly metric names, and never paste raw provider JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/keyword-research/report-skeleton.md`. The module-specific source artifact is the normalized keyword YAML/JSON under `keywords/`, `sources/keyword-research/`, or `workbench/`; the Companion page is `project/analyses/keyword-research/<seed-or-topic-slug>/report.md`. Write an executive reading first, keep metrics and limitations in human-readable tables, translate labels/status/nulls, use friendly metric names, and never paste raw provider JSON or object arrays into the visual report body. The response must return `report_md` plus `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`.
 
 ## Examples
 

@@ -3,6 +3,7 @@ name: start
 description: Friendly first-run alias that routes new Agentic SEO users to the canonical agentic-seo and project-init workflow without duplicating process rules.
 metadata:
   version: 1.0.0
+  category: alias
   alias_for: agentic-seo
 ---
 

@@ -3,6 +3,7 @@ name: technical-seo
 description: When the user wants a deterministic technical SEO audit, page-template validation, JSON audit interpretation, or repair-priority report for a rendered page or site URL.
 metadata:
   version: 1.1.0
+  category: report
 ---
 
 # Technical SEO
@@ -161,7 +162,7 @@ When the user provides existing JSON, include it unchanged under `deterministic_
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/technical-seo/report-skeleton.md`. The module-specific source artifact is `project/audits/<slug>/report.yaml`; the Companion page is `project/analyses/technical-seo/<slug>/report.md`. Use visual blocks for score, lost points, severity/status, and "Memória de cálculo" / "Calculation memory"; calculation columns must include stable keys plus `role: weight`, `role: points`, and `role: loss`. Put "Meta e indexabilidade" / "Meta and indexability" immediately after the executive reading, use friendly check names for every visible row, and turn deterministic evidence into readable sentences such as "Foram encontrados 8 exemplos de H2..." rather than JSON/object dumps.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/technical-seo/report-skeleton.md`. The module-specific source artifact is `project/audits/<slug>/report.yaml`; the Companion page is `project/analyses/technical-seo/<slug>/report.md`. Use visual blocks for score, lost points, severity/status, and "Memória de cálculo" / "Calculation memory"; calculation columns must include stable keys plus `role: weight`, `role: points`, and `role: loss`. Put "Meta e indexabilidade" / "Meta and indexability" immediately after the executive reading, use friendly check names for every visible row, and turn deterministic evidence into readable sentences such as "Foram encontrados 8 exemplos de H2..." rather than JSON/object dumps. The response must return `report_md` plus `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`.
 
 ## Examples
 

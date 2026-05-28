@@ -3,6 +3,7 @@ name: serp-extract
 description: When the user wants to capture SERP evidence, search result snapshots, competitor URLs, or SERP features for specific keywords without doing SEO analysis.
 metadata:
   version: 1.1.0
+  category: report
 ---
 
 # SERP Extract
@@ -167,7 +168,7 @@ If blocked, include the missing input, credential, fixture, or provider conditio
 
 ### Default delivery
 
-Follow the shared `page-report` contract and the module skeleton at `templates/analyses/serp-extract/report-skeleton.md`. The module-specific source artifact is the normalized SERP YAML under `sources/serp/` or `audits/serp-<slug>/report.yaml`; the Companion page is `project/analyses/serp-extract/<slug>/report.md`. Present provider, market, device, organic results, SERP features, and limitations as a readable SERP briefing with friendly field names; never paste raw provider JSON or object arrays into the visual report body.
+Follow the shared `page-report` contract and the module skeleton at `templates/analyses/serp-extract/report-skeleton.md`. The module-specific source artifact is the normalized SERP YAML under `sources/serp/` or `audits/serp-<slug>/report.yaml`; the Companion page is `project/analyses/serp-extract/<slug>/report.md`. Present provider, market, device, organic results, SERP features, and limitations as a readable SERP briefing with friendly field names; never paste raw provider JSON or object arrays into the visual report body. The response must return `report_md` plus `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?", open_with: "project-browser" }`.
 
 ## Examples
 

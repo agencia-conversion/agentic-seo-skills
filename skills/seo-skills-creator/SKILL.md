@@ -3,6 +3,7 @@ name: seo-skills-creator
 description: When the user wants to create, rewrite, evaluate, or improve an Agentic SEO skill. Also use when planning a skill-loop run or converting a formal contract skill into a narrative self-sufficient skill.
 metadata:
   version: 1.0.0
+  category: meta
 ---
 
 # SEO Skills Creator
@@ -21,8 +22,31 @@ Use this skill for creating or refactoring `skills/<name>/SKILL.md`. Do not use 
 - Human judgment owns strategy. Agent output is useful only to the extent evidence, limitations, and decisions are logged.
 - Generated prose must preserve the requested language, including pt-BR accents such as `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, and `até`.
 - Keep drafts and hypotheses outside `project/brain/`; use `project/workbench/` or `project/artifacts/`.
+- Every new skill must declare `metadata.category` in the frontmatter. Valid values: `report | delivery | setup | meta | router | contract | alias`. Choose by primary close artifact, not by topic. Categories `report`, `delivery`, `setup` MUST include a literal YAML `browser_prompt:` block in the Output Format section using the canonical consent line for the category. Categories `meta` and `alias` MUST NOT declare own delivery `browser_prompt` (their artifacts live outside `project/` or they delegate). Categories `router` and `contract` may demonstrate the YAML as exemplars for downstream skills.
 
 ## Framework
+
+### 0. Choose The Category
+
+**Check:** What artifact does this skill ultimately deliver to the user, and where does it live?
+
+Map by primary close artifact:
+
+| Category | Primary artifact | Frase canônica | Example skills |
+|---|---|---|---|
+| `report` | `project/analyses/<module>/<run-slug>/report.md` | `Posso abrir o Web Companion para você ver a análise?` | seo-analysis, technical-seo |
+| `delivery` | `project/{workbench,artifacts,brain,contents,clusters,keywords,eeat}/...` | `Posso abrir o Web Companion para você revisar esta entrega?` | content-seo, brain-keeper, project-init |
+| `setup` | `project/.agentic-seo/project.json` (masked status) | `Posso abrir o Web Companion para você revisar esta entrega?` | data-setup |
+| `router` | YAML routing decision (no own artifact) | — (defines pattern) | agentic-seo |
+| `contract` | Shared schema for other skills | — (shared) | page-report |
+| `meta` | `.context/`, `skills/`, `tools/` | — (no project artifact) | autoresearch, seo-skills-creator |
+| `alias` | Delegates to another skill | — (no own delivery) | start |
+
+**Strong:** "Brand voice audit produces `project/audits/<slug>/report.md` and reuses `page-report` → `category: report`."
+
+**Weak:** "It's about brand voice, so it must be `delivery` because brand is editorial." Topic does not decide category; artifact path does.
+
+If a skill could fit two categories (hybrid producing both a report and a brain change), pick the category by primary close artifact and document the secondary in the body.
 
 ### 1. Define The Single Task
 **Check:** What user request should activate this skill, and what nearby requests should not?
@@ -83,6 +107,7 @@ skill:
   name: ""
   path: skills/<skill>/SKILL.md
   task: ""
+  category: report | delivery | setup | meta | router | contract | alias
 activation:
   use_when: []
   do_not_use_when: []
@@ -95,6 +120,9 @@ framework_steps:
 output_contract:
   format: yaml | markdown | json | mixed
   required_fields: []
+  close_contract:
+    canonical_line: "" # required for report/delivery/setup; empty for meta/router/contract/alias
+    yaml_browser_prompt_present: true | false
 evaluation:
   fixture: skills/<skill>/evals/fixture.md
   rubric: skills/seo-skills-creator/references/approval-rubric.md

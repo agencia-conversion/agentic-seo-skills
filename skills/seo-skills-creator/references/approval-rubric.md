@@ -54,3 +54,6 @@ Maximum iterations: 5 before escalation.
 - Tells a nontechnical user to run terminal commands as the primary decision or sensitive-input flow.
 - Strips accents from pt-BR human-facing prose.
 - Requires shared references for normal execution.
+- Missing or wrong `metadata.category` in the frontmatter — valid values are `report`, `delivery`, `setup`, `meta`, `router`, `contract`, `alias`.
+- Category-incompatible close contract: a `report`, `delivery`, or `setup` skill missing the literal YAML `browser_prompt:` block in the Output Format with the canonical consent line for its category; OR a `meta` or `alias` skill declaring a YAML `browser_prompt:` block (their artifacts live outside `project/`).
+- Canonical consent line altered, reworded, or softened — must be exactly `Posso abrir o Web Companion para você ver a análise?` for reports and `Posso abrir o Web Companion para você revisar esta entrega?` for delivery/setup.

@@ -3,6 +3,7 @@ name: seo-tools-creator
 description: When the user wants to create, port, fork, or review deterministic provider tools for Agentic SEO. Also use when adding tool attribution, registry entries, or provider integration docs.
 metadata:
   version: 1.0.0
+  category: meta
 ---
 
 # SEO Tools Creator

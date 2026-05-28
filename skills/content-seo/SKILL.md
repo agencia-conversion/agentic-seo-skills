@@ -3,6 +3,7 @@ name: content-seo
 description: When the user wants to brief, write, review, optimize, or publish public SEO content. Also use for article outlines, blog posts, landing-page copy, refreshes, and ranking-oriented editorial drafts.
 metadata:
   version: 1.2.0
+  category: delivery
 ---
 
 # Content SEO
@@ -26,6 +27,7 @@ Do not use this skill for raw keyword discovery, one-keyword SERP analysis witho
 - The voice gate is mandatory before voice-backed drafting. Read `project/brain/voice.md` and record path, key principles, and limitations. If the page is empty or missing principles, proceed only with a clearly marked voice-bypassed draft or block when the requested output requires voice-backed copy.
 - The review gate is mandatory in the `check` phase. Read `project/brain/review.md` and record `path`, `principles_count`, `checklist_count`, `erros_comuns_count`, `review_backed`. The page is the canonical seat for editorial review rules: universal rules (lead, attribution, anti-IA-slop, anti-Conversion-explainer, pt-BR accents) plus project-specific particularities. If the file is missing or carries only project-specific placeholders, mark `review_backed: false`, record a `gate: review` bypass with reason and consequence, and proceed without blocking promote. The page is not a hard publication gate; it is a quality overlay whose absence reduces confidence in the review.
 - Keep construction files in `project/workbench/content/<slug>/`; keep draft and review deliverables in `project/artifacts/contents/<slug>/`; write public content to `project/contents/<origin>/<slug>.md` only after checks pass. Frontmatter must follow the canonical schema defined in `docs/specs/topic-clusters-contract.md` (contract_version 1): `contract_version: 1`, `title`, `slug`, `published_at`, `source_url`, `origin`, `clusters: [<slug>, ...]` (required, ≥1), optional `role: { <cluster-slug>: pillar | satellite }`. `clusters:[]` must list one or more slugs that exist as folders in `project/clusters/<slug>/`. `area:` (singular) is legacy and dropped in v1.
+- Every substantive phase returns a Web Companion review target. `brief` points to `project/workbench/content/<slug>/brief.md`; `write` points to `project/artifacts/contents/<slug>/draft.md`; `check` points to the check result plus the draft target; `promote` points to `project/contents/<origin>/<slug>.md`. Include `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "<project-relative path>", open_with: "project-browser" }` while preserving compatibility fields such as `brief_markdown_path`, `draft_path`, `path`, and `companion_path`. Ask before opening the browser.
 - Every brief receives `clusters:[]` (one or many) as input. Read each `project/brain/topic-clusters/<slug>.md` referenced to extract the cluster's tese, adjacent satellites (for internal links), and editorial tone inherited. Promotion to public content must trigger `node scripts/cluster-sync.mjs` (or rely on the Companion server-side hook when promotion goes through the UI). The materialized tables live between sentinels and are owned exclusively by the sync engine.
 - Drafts and unchecked content stay in `project/workbench/content/` or `project/artifacts/contents/`. Never publish to `project/contents/` with failed or missing checks.
 - Separate raw evidence, synthesis, and human judgment. Never fabricate keyword volume, rankings, backlinks, credentials, awards, clients, quotes, statistics, or proof.
@@ -230,6 +232,15 @@ publication_checks:
   required: true
   passed: true | false | null
   timestamp: null
+delivery:
+  artifact_path: project/workbench/content/<slug>/brief.md | project/artifacts/contents/<slug>/draft.md | project/artifacts/contents/<slug>/checks.yaml | project/contents/<origin>/<slug>.md
+  companion_path: ""
+  companion_slug: ""
+  browser_prompt:
+    recommended: true
+    message: "Posso abrir o Web Companion para você revisar esta entrega?"
+    artifact_path: ""
+    open_with: project-browser
 source_policy:
   public_links_only: true
   local_paths_in_public_prose: false
@@ -291,6 +302,14 @@ Output: "Write only the requested draft to `project/artifacts/contents/seo-agent
 Input: "Write and publish an article about `seo agêntico`."
 
 Output: "Guess SERP intent, draft from memory, add local source paths in the article, and publish to `project/contents/`." This is weak because it skips DataForSEO/SERP/Top 3 disclosures, skips the three research sub-agents, treats drafting as publication readiness, violates source-link policy, and hides missing checks.
+
+## Done Criteria
+
+- The current phase wrote or identified the correct artifact: `brief.md`, `draft.md`, `checks.yaml`, or published content.
+- The response includes `companion_path`, `companion_slug`, and `browser_prompt` with the Web Companion review message.
+- Required evidence, bypass, review, and publication gates are visible; failed checks block promotion.
+- Public content stays out of `project/contents/` until checks pass.
+- pt-BR accents and requested language are preserved.
 
 ## Related Skills
 
