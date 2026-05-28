@@ -123,8 +123,8 @@ export async function handleSubmit(body, ctx) {
     seed: ctx.proposal.seed,
     mode: ctx.proposal.mode,
     status,
-    aprovador: approverClean,
-    aprovado_em: null,
+    approver: approverClean,
+    approved_at: null,
     decided_at: new Date().toISOString(),
     data_provenance: ctx.proposal.data_provenance ?? null,
     pillar: finalPillar,
@@ -143,14 +143,14 @@ export async function handleSubmit(body, ctx) {
 
   appendLogEntry(join(ctx.projectRoot, "brain", "log.md"), {
     date: today,
-    tipo: "decisao",
-    titulo: `Cluster ${ctx.proposal.seed} · ${status}`,
-    escopo: writeBrain ? "topic-clusters" : ctx.proposal.seed,
-    decisao: `${kept.length}/${ctx.proposal.supporting.length} suportes mantidos · modo ${ctx.proposal.mode}`,
-    evidencia: reportPath,
-    aprovador: approverClean,
-    aprovado_em: null,
-    notas: notes?.trim() || null,
+    type: "decision",
+    title: `Cluster ${ctx.proposal.seed} · ${status}`,
+    scope: writeBrain ? "topic-clusters" : ctx.proposal.seed,
+    decision: `${kept.length}/${ctx.proposal.supporting.length} suportes mantidos · modo ${ctx.proposal.mode}`,
+    evidence: reportPath,
+    approver: approverClean,
+    approved_at: null,
+    notes: notes?.trim() || null,
   });
 
   return {

@@ -32,7 +32,7 @@ export function readContents(blogDir) {
     });
 }
 
-function inferPilarSlug(subCluster) {
+function inferPillarSlug(subCluster) {
   const published = subCluster.topics.find((t) => t.status === "published");
   return published?.slug || subCluster.topics[0]?.slug || null;
 }
@@ -40,18 +40,18 @@ function inferPilarSlug(subCluster) {
 export function buildClusterEntries(rawClusters, contents) {
   const bySlug = new Map(contents.map((c) => [c.slug, c]));
   return rawClusters.map((sub) => {
-    const pilarSlug = inferPilarSlug(sub);
-    const satelites = sub.topics
-      .filter((t) => t.slug !== pilarSlug)
+    const pillarSlug = inferPillarSlug(sub);
+    const satellites = sub.topics
+      .filter((t) => t.slug !== pillarSlug)
       .map((t) => ({
         slug: t.slug,
-        papel: "satelite",
+        role: "satellite",
         status: bySlug.has(t.slug) ? "published" : "planned",
         intent: t.intent || null,
         keyword: t.topic,
         volume: null,
         volume_source: null,
-        acao: bySlug.has(t.slug) ? "manter" : "criar",
+        action: bySlug.has(t.slug) ? "keep" : "create",
         note: t.note || null,
       }));
     const existingIcon = readExistingClusterIcon(sub.slug);
@@ -60,27 +60,27 @@ export function buildClusterEntries(rawClusters, contents) {
       target_path: `project/clusters/${sub.slug}/cluster.yaml`,
       yaml: {
         slug: sub.slug,
-        nome: sub.name,
+        name: sub.name,
         ...(existingIcon ? { icon: existingIcon } : {}),
         area: sub.area,
         status: "active",
         context: sub.context,
-        pilar: pilarSlug
+        pillar: pillarSlug
           ? {
-              slug: pilarSlug,
-              keyword: sub.topics.find((t) => t.slug === pilarSlug)?.topic || sub.name,
+              slug: pillarSlug,
+              keyword: sub.topics.find((t) => t.slug === pillarSlug)?.topic || sub.name,
               volume: null,
               volume_source: null,
             }
           : null,
-        satelites,
+        satellites,
         stats: {
           total_keywords: sub.topics.length,
-          publicados: sub.topics.filter((t) => bySlug.has(t.slug)).length,
-          planejados: sub.topics.filter((t) => !bySlug.has(t.slug)).length,
+          published: sub.topics.filter((t) => bySlug.has(t.slug)).length,
+          planned: sub.topics.filter((t) => !bySlug.has(t.slug)).length,
         },
         provenance: {
-          origem: "site-derived-agentic-seo",
+          origin: "site-derived-agentic-seo",
           migrated_at: new Date().toISOString().slice(0, 10),
           source: "project/clusters/site-derived-agentic-seo/cluster.json",
         },
@@ -95,15 +95,15 @@ export function buildContentUpdates(contents, clusterEntries) {
     const area = c.frontmatter.area || null;
     const inferred = area ? areaToCluster.get(area) : null;
     const ownerCluster = clusterEntries.find(
-      (e) => e.yaml.pilar?.slug === c.slug || e.yaml.satelites.some((s) => s.slug === c.slug),
+      (e) => e.yaml.pillar?.slug === c.slug || e.yaml.satellites.some((s) => s.slug === c.slug),
     );
     const cluster = ownerCluster?.slug || inferred;
-    const papel = ownerCluster?.yaml.pilar?.slug === c.slug ? "pilar" : "satelite";
+    const role = ownerCluster?.yaml.pillar?.slug === c.slug ? "pillar" : "satellite";
     return {
-      path: `project/conteudos/blog/${c.name}`,
+      path: `project/contents/blog/${c.name}`,
       current_area: area,
       add_clusters: cluster ? [cluster] : [],
-      papel: cluster ? { [cluster]: papel } : null,
+      role: cluster ? { [cluster]: role } : null,
       remove_area_field: "Fase 4 (não nesta)",
       blocker: cluster ? null : "Conteúdo sem cluster correspondente; revisão humana necessária",
     };
@@ -143,7 +143,7 @@ export function buildPlan({ mode, seedPath, blogDir }) {
     generated_at: new Date().toISOString(),
     inputs: {
       cluster_json: "project/clusters/site-derived-agentic-seo/cluster.json",
-      blog_dir: `project/conteudos/blog/ (${contents.length} arquivos)`,
+      blog_dir: `project/contents/blog/ (${contents.length} arquivos)`,
       brain_topic_clusters: "project/brain/topic-clusters.md",
       brain_editorial: "project/brain/editorial.md",
     },
@@ -161,7 +161,7 @@ export function buildPlan({ mode, seedPath, blogDir }) {
     notes: [
       "Pilar inferido por convenção: primeiro topic com status: published em cada sub-cluster.",
       "`area:` no frontmatter de conteúdo é mantido nesta fase; remoção é Fase 4.",
-      "Conteúdos com `status: source-only` no cluster.json (sem .md em conteudos/blog/) ficam como `status: planned` no cluster.yaml.",
+      "Conteúdos com `status: source-only` no cluster.json (sem .md em contents/blog/) ficam como `status: planned` no cluster.yaml.",
       "`status: active` é atribuído provisoriamente; a Fase 4 (handoff humano `review-changes`) confirma promoção.",
     ],
   };

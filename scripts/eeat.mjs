@@ -12,7 +12,6 @@ import { renderMarkdown } from "./lib/eeat/render.mjs";
 import { renderMarkdownReport } from "./lib/markdown-report.mjs";
 import { appendReportLog, attachReportPrompt, reportMarkdownPath } from "./lib/page-report.mjs";
 import { writeReportOrThrow } from "./lib/report-writer.mjs";
-import { getProjectLanguage } from "../shared/locale.mjs";
 import YAML from "yaml";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -89,81 +88,75 @@ function naturalIdCompare(a, b) {
 }
 
 function reportTable(columns, rows) {
-  const normalizedColumns = columns.map((label, index) => ({
-    key: String(label || `c${index}`).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || `c${index}`,
-    label: String(label || `Coluna ${index + 1}`),
-  }));
+  const normalizedColumns = columns.map((entry, index) => {
+    if (entry && typeof entry === "object" && entry.key) {
+      return { key: String(entry.key), label: String(entry.label || entry.key) };
+    }
+    const label = String(entry || `Column ${index + 1}`);
+    const key = label.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || `c${index}`;
+    return { key, label };
+  });
   const normalizedRows = rows.map((row) => Object.fromEntries(normalizedColumns.map((column, index) => [column.key, String(row?.[index] ?? "")])));
   return ["```agentic-table", YAML.stringify({ version: 1, columns: normalizedColumns, rows: normalizedRows }, { lineWidth: 0 }).replace(/\s+$/, ""), "```"].join("\n");
 }
 
-function reportText(locale, en, pt) {
-  return String(locale) === "pt-BR" ? pt : en;
+function friendlySeverity(value) {
+  const labels = { critical: "crítico", high: "alto", medium: "médio", low: "baixo", warning: "atenção" };
+  return labels[String(value || "").toLowerCase()] || String(value || "não informado").replace(/_/g, " ");
 }
 
-function friendlySeverity(value, locale) {
-  const en = { critical: "critical", high: "high", medium: "medium", low: "low", warning: "warning" };
-  const pt = { critical: "crítico", high: "alto", medium: "médio", low: "baixo", warning: "atenção" };
-  const key = String(value || "").toLowerCase();
-  const map = locale === "pt-BR" ? pt : en;
-  return map[key] || reportText(locale, "not informed", "não informado").replace(/_/g, " ");
-}
-
-function friendlyState(value, locale) {
-  const en = { met: "met", partially_met: "partial", not_met: "not met", unknown: "unknown", expected: "expected" };
-  const pt = { met: "atendido", partially_met: "parcial", not_met: "não atendido", unknown: "não informado", expected: "esperado" };
-  const key = String(value || "").toLowerCase();
-  const map = locale === "pt-BR" ? pt : en;
-  return map[key] || reportText(locale, "not informed", "não informado").replace(/_/g, " ");
+function friendlyState(value) {
+  const labels = { met: "atendido", partially_met: "parcial", not_met: "não atendido", unknown: "não informado", expected: "esperado" };
+  return labels[String(value || "").toLowerCase()] || String(value || "não informado").replace(/_/g, " ");
 }
 
 function friendlyIssue(value) {
   return String(value || "item").replace(/_/g, " ");
 }
 
-function renderCompanionReport(report, locale) {
-  const target = report.target?.mode === "url" ? report.target.value : reportText(locale, "project brain", "brain do projeto");
+function renderCompanionReport(report) {
+  const target = report.target?.mode === "url" ? report.target.value : "brain do projeto";
   const pillarRows = EEAT_PILLARS.map((pillar) => [
     EEAT_PILLAR_LABELS[pillar],
-    report.numeric_scores?.[pillar] == null ? reportText(locale, "not informed", "não informado") : report.numeric_scores[pillar].toFixed(1),
+    report.numeric_scores?.[pillar] == null ? "não informado" : report.numeric_scores[pillar].toFixed(1),
   ]);
   const issueRows = (report.issues || []).map((issue) => [
-    friendlySeverity(issue.severity, locale),
+    friendlySeverity(issue.severity),
     friendlyIssue(issue.issue_type),
     friendlyIssue(issue.criterion_id),
     friendlyIssue(issue.page_type),
-    issue.recommendation || reportText(locale, "No recommendation recorded.", "Sem recomendação registrada."),
-    issue.evidence || reportText(locale, "No compact evidence recorded.", "Sem evidência compacta registrada."),
+    issue.recommendation || "Sem recomendação registrada.",
+    issue.evidence || "Sem evidência compacta registrada.",
   ]);
   const evidenceRows = EEAT_PILLARS.flatMap((pillar) =>
     [...(report.checklist_consensus?.[pillar] || [])].sort(naturalIdCompare).map((item) => [
       EEAT_PILLAR_LABELS[pillar],
       item.label || friendlyIssue(item.id),
-      friendlyState(item.applicability, locale),
-      friendlyState(item.consensus_state, locale),
-      item.criterion_score == null ? reportText(locale, "not informed", "não informado") : item.criterion_score,
-      item.evidence_quotes?.[0]?.quote || reportText(locale, "No short quote recorded.", "Sem citação curta registrada."),
+      friendlyState(item.applicability),
+      friendlyState(item.consensus_state),
+      item.criterion_score == null ? "não informado" : item.criterion_score,
+      item.evidence_quotes?.[0]?.quote || "Sem citação curta registrada.",
     ])
   );
   return renderMarkdownReport({
-    title: `E-E-A-T — ${report.run_id || reportText(locale, "report", "relatório")}`,
+    title: `E-E-A-T — ${report.run_id || "relatório"}`,
     slug: slugify(report.run_id || "eeat"),
     reportType: "eeat",
     generatedAt: new Date().toISOString(),
     status: "ready",
     sourceArtifact: `workbench/eeat/${report.run_id}/report.json`,
-    summary: reportText(locale, `Score ${report.score ?? "unknown"}; quality ${report.page_quality ?? "unknown"}.`, `Score ${report.score ?? "unknown"}; qualidade ${report.page_quality ?? "unknown"}.`),
+    summary: `Score ${report.score ?? "unknown"}; qualidade ${report.page_quality ?? "unknown"}.`,
     score: report.score,
-    locale,
+    locale: "pt-BR",
     kpis: [
-      { label: "Score", value: report.score == null ? reportText(locale, "not informed", "não informado") : `${report.score}/100`, detail: reportText(locale, `Quality: ${report.page_quality ?? "not informed"}`, `Qualidade: ${report.page_quality ?? "não informada"}`), tone: Number(report.score || 0) >= 80 ? "good" : "warn" },
-      { label: reportText(locale, "Page type", "Tipo de página"), value: friendlyIssue(report.page_type || "homepage"), tone: "info" },
-      { label: "YMYL", value: report.ymyl ? reportText(locale, "yes", "sim") : reportText(locale, "no", "não"), tone: report.ymyl ? "warn" : "info" },
+      { label: "Score", value: report.score == null ? "não informado" : `${report.score}/100`, detail: `Qualidade: ${report.page_quality ?? "não informada"}`, tone: Number(report.score || 0) >= 80 ? "good" : "warn" },
+      { label: "Tipo de página", value: friendlyIssue(report.page_type || "homepage"), tone: "info" },
+      { label: "YMYL", value: report.ymyl ? "sim" : "não", tone: report.ymyl ? "warn" : "info" },
       { label: "Issues", value: String((report.issues || []).length), tone: (report.issues || []).length ? "warn" : "good" },
     ],
     charts: [{
-      title: reportText(locale, "Pillar scores", "Score por pilar"),
-      description: reportText(locale, "Consolidated reading of the E-E-A-T pillars.", "Leitura consolidada dos pilares E-E-A-T."),
+      title: "Score por pilar",
+      description: "Leitura consolidada dos pilares E-E-A-T.",
       type: "bar",
       data: {
         labels: EEAT_PILLARS.map((pillar) => EEAT_PILLAR_LABELS[pillar]),
@@ -171,30 +164,26 @@ function renderCompanionReport(report, locale) {
       },
     }],
     leadSections: [{
-      heading: reportText(locale, "Executive summary", "Resumo executivo"),
-      body_markdown: reportText(
-        locale,
-        `The E-E-A-T analysis evaluated **${target}** and reached **${report.score ?? "score not informed"}/100**. The visual report summarizes the main signals; the full auditable evidence remains in the technical artifact.`,
-        `A análise E-E-A-T avaliou **${target}** e chegou a **${report.score ?? "score não informado"}/100**. O relatório visual resume os sinais principais; a evidência auditável completa permanece no artefato técnico.`,
-      ),
+      heading: "Resumo executivo",
+      body_markdown: `A análise E-E-A-T avaliou **${target}** e chegou a **${report.score ?? "score não informado"}/100**. O relatório visual resume os sinais principais; a evidência auditável completa permanece no artefato técnico.`,
     }],
     sections: [
-      { heading: reportText(locale, "Analysis", "Análise"), body_markdown: report.consolidated_narrative || reportText(locale, "_Consolidated narrative has not been synthesized yet._", "_Narrativa consolidada ainda não foi sintetizada._") },
-      { heading: reportText(locale, "Pillar scores", "Score por pilar"), body_markdown: reportTable([reportText(locale, "Pillar", "Pilar"), "Score"], pillarRows) },
-      { heading: reportText(locale, "Prioritized issues", "Issues priorizadas"), body_markdown: issueRows.length ? reportTable([reportText(locale, "Severity", "Severidade"), reportText(locale, "Type", "Tipo"), reportText(locale, "Criterion", "Critério"), reportText(locale, "Page", "Página"), reportText(locale, "Recommendation", "Recomendação"), reportText(locale, "Evidence", "Evidência")], issueRows) : reportText(locale, "No structured issues.", "Nenhuma issue estruturada.") },
-      { heading: reportText(locale, "Evidence by pillar", "Evidência por pilar"), body_markdown: evidenceRows.length ? reportTable([reportText(locale, "Pillar", "Pilar"), "Check", reportText(locale, "Applicability", "Aplicabilidade"), reportText(locale, "State", "Estado"), "Score", reportText(locale, "Evidence", "Evidência")], evidenceRows) : reportText(locale, "No structured evidence.", "Nenhuma evidência estruturada.") },
-      { heading: reportText(locale, "Limitations", "Limitações"), body_markdown: (report.limitations || []).length ? (report.limitations || []).map((item) => `- ${item}`).join("\n") : reportText(locale, "No limitation recorded.", "Nenhuma limitação registrada.") },
+      { heading: "Análise", body_markdown: report.consolidated_narrative || "_Narrativa consolidada ainda não foi sintetizada._" },
+      { heading: "Score por pilar", body_markdown: reportTable([{ key: "pillar", label: "Pilar" }, { key: "score", label: "Score" }], pillarRows) },
+      { heading: "Issues priorizadas", body_markdown: issueRows.length ? reportTable([{ key: "severity", label: "Severidade" }, { key: "type", label: "Tipo" }, { key: "criterion", label: "Critério" }, { key: "page", label: "Página" }, { key: "recommendation", label: "Recomendação" }, { key: "evidence", label: "Evidência" }], issueRows) : "Nenhuma issue estruturada." },
+      { heading: "Evidência por pilar", body_markdown: evidenceRows.length ? reportTable([{ key: "pillar", label: "Pilar" }, { key: "check", label: "Check" }, { key: "applicability", label: "Aplicabilidade" }, { key: "state", label: "Estado" }, { key: "score", label: "Score" }, { key: "evidence", label: "Evidência" }], evidenceRows) : "Nenhuma evidência estruturada." },
+      { heading: "Limitações", body_markdown: (report.limitations || []).length ? (report.limitations || []).map((item) => `- ${item}`).join("\n") : "Nenhuma limitação registrada." },
     ],
-  }, { locale });
+  }, { locale: "pt-BR" });
 }
 
 function defaultPagesForBrain(projDir) {
   return [
-    { id: "brain/identidade", path: "brain/identidade.md", page_type: "about" },
+    { id: "brain/identity", path: "brain/identity.md", page_type: "about" },
     { id: "brain/index", path: "brain/index.md", page_type: "homepage" },
-    { id: "brain/editorial", path: "brain/editorial.md", page_type: "service" },
-    { id: "brain/voz", path: "brain/voz.md", page_type: "policy" },
-    { id: "brain/tecnologia", path: "brain/tecnologia.md", page_type: "policy" },
+    { id: "brain/topic-clusters", path: "brain/topic-clusters.md", page_type: "service" },
+    { id: "brain/voice", path: "brain/voice.md", page_type: "policy" },
+    { id: "brain/technology", path: "brain/technology.md", page_type: "policy" },
   ].filter((p) => fs.existsSync(path.join(projDir, p.path)));
 }
 
@@ -224,7 +213,7 @@ const SUBCOMMANDS = {
   init(args, cwd) {
     const mode = args.mode || (args.url ? "url" : "brain");
     if (!["brain", "url"].includes(mode)) fail("--mode must be brain|url");
-    const value = mode === "url" ? args.url : (args.value || path.join(projectDir(cwd), "brain", "identidade.md"));
+    const value = mode === "url" ? args.url : (args.value || path.join(projectDir(cwd), "brain", "identity.md"));
     if (mode === "url" && !value) fail("--url required for url mode");
     const targetSlug = slugify(args.slug || (mode === "url" ? new URL(value).hostname : "brain"));
     const proj = projectDir(cwd);
@@ -268,14 +257,14 @@ const SUBCOMMANDS = {
     const outJson = path.join(runDir, "report.json");
     const outMd = path.join(runDir, "report.md");
     const companionMd = companionReportPath(proj, report.run_id);
-    const body = renderMarkdown(report, getProjectLanguage(proj));
+    const body = renderMarkdown(report);
     writeJson(outJson, report);
     writeText(outMd, body);
     writeReportOrThrow({
       projectDir: proj,
       moduleId: "eeat",
       runSlug: report.run_id,
-      markdown: renderCompanionReport(report, getProjectLanguage(proj)),
+      markdown: renderCompanionReport(report),
       sourceArtifactPath: outJson,
       appendLog: false,
     });
@@ -305,7 +294,7 @@ const SUBCOMMANDS = {
     if (narrative.length < 80) fail("narrative too short — write at least one substantive paragraph (≥80 chars)");
     const reportPath = path.join(runDir, "report.json");
     const report = { ...readJson(reportPath), consolidated_narrative: narrative };
-    const body = renderMarkdown(report, getProjectLanguage(proj));
+    const body = renderMarkdown(report);
     writeJson(reportPath, report);
     writeText(path.join(runDir, "report.md"), body);
     const companionMd = companionReportPath(proj, report.run_id);
@@ -313,7 +302,7 @@ const SUBCOMMANDS = {
       projectDir: proj,
       moduleId: "eeat",
       runSlug: report.run_id,
-      markdown: renderCompanionReport(report, getProjectLanguage(proj)),
+      markdown: renderCompanionReport(report),
       sourceArtifactPath: reportPath,
       appendLog: false,
     });

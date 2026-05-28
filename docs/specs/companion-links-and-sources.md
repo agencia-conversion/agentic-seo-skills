@@ -68,7 +68,7 @@ Escopo: editor do Companion (Tiptap), renderização de marks de link no documen
 8. **VERIFY-8 — Round-trip test passa.**
    - `node tests/test_companion_markdown_roundtrip.mjs` exit 0.
 9. **VERIFY-9 — Smoke render no browser.**
-   - Carrega `brain/identidade.md` no Companion; navega para um link `sources/`; modal abre; iframe carrega.
+   - Carrega `brain/identity.md` no Companion; navega para um link `sources/`; modal abre; iframe carrega.
    - Carrega link externo; nova aba abriria (verificado via spy).
 
 ## Plano de implementação

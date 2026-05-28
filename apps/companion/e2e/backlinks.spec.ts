@@ -4,21 +4,21 @@ import { TEST_TOKEN } from './test-constants';
 const TOKEN = TEST_TOKEN;
 
 test.describe('Backlinks & broken links', () => {
-  test('API returns incoming + outgoing for brain/identidade.md', async ({ request }) => {
-    const res = await request.get(`/api/project/backlinks?path=brain/identidade.md&token=${TOKEN}`);
+  test('API returns incoming + outgoing for brain/identity.md', async ({ request }) => {
+    const res = await request.get(`/api/project/backlinks?path=brain/identity.md&token=${TOKEN}`);
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
-    expect(body.path).toBe('brain/identidade.md');
+    expect(body.path).toBe('brain/identity.md');
     const sources = body.incoming.map((m: any) => m.source);
     expect(sources).toContain('brain/index.md');
-    expect(sources).toContain('brain/voz.md');
+    expect(sources).toContain('brain/voice.md');
     const indexMention = body.incoming.find((m: any) => m.type === 'wikilink' && m.source === 'brain/index.md');
-    expect(indexMention, 'index should mention identidade with a regular wikilink').toBeTruthy();
+    expect(indexMention, 'index should mention identity with a regular wikilink').toBeTruthy();
   });
 
   test('API rejects requests without the companion token', async ({ request }) => {
-    const res = await request.get('/api/project/backlinks?path=brain/identidade.md', {
+    const res = await request.get('/api/project/backlinks?path=brain/identity.md', {
       headers: { 'x-companion-token': '' },
     });
     expect([401, 403]).toContain(res.status());
@@ -33,9 +33,9 @@ test.describe('Backlinks & broken links', () => {
     expect(fantasma, 'fantasma should not be present in the index fixture').toBeFalsy();
   });
 
-  test('Linked mentions panel renders incoming + outgoing on the identidade page', async ({ page }) => {
+  test('Linked mentions panel renders incoming + outgoing on the identity page', async ({ page }) => {
     // Set token cookie/localStorage by visiting project root first
-    await page.goto(`/project/${TOKEN}/brain-identidade`);
+    await page.goto(`/project/${TOKEN}/brain-identity`);
     // Wait for store to hydrate and editor to load
     await page.waitForSelector('[data-testid="linked-mentions-panel"]', { timeout: 20_000 });
 
@@ -45,7 +45,7 @@ test.describe('Backlinks & broken links', () => {
     await expect(incomingSection).toHaveAttribute('data-open', 'false');
     await expect(outgoingSection).toHaveAttribute('data-open', 'false');
 
-    // identidade is referenced by index.md and voz.md with regular wikilinks.
+    // identity is referenced by index.md and voice.md with regular wikilinks.
     const incoming = page.locator('[data-testid="incoming-mention"]');
     await expect(incoming).toHaveCount(2);
 
@@ -79,7 +79,7 @@ test.describe('Backlinks & broken links', () => {
   });
 
   test('Linked mentions sections start collapsed by default', async ({ page }) => {
-    await page.goto(`/project/${TOKEN}/brain-identidade`);
+    await page.goto(`/project/${TOKEN}/brain-identity`);
     await page.waitForSelector('[data-testid="linked-mentions-panel"]', { timeout: 20_000 });
 
     const incomingSection = page.locator('[data-testid="linked-mentions-incoming"]');

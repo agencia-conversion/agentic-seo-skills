@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, LayoutGroup } from 'framer-motion';
 import { ArrowDown, ArrowUp, Plus, Search, Sliders } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,36 +11,42 @@ import { EditableSelectCell } from '@/features/clusters/editable-select-cell';
 import {
   ContentLink,
   EditableCell,
-  PapelToggle,
-  TambemEmChips,
+  RoleToggle,
+  AlsoInChips,
   type ClusterRow,
 } from '@/features/clusters/cluster-row-cells';
 import { TableSettingsMenu, type TableColumnDef, type SortState } from './table-settings-menu';
 import {
+  deleteContent,
+  duplicateContent,
   getCompanionToken,
   patchContentMetadata,
   patchRow,
-  postSatellite,
+  postPublishedContent,
 } from '@/features/clusters/cluster-row-api';
+import { ConfirmModal } from '@/components/confirm-modal';
+import { dataTableWidthClass } from '@/features/workspace/page-width';
 import {
   intentLabel,
   editorialStatusLabel,
   INTENT_CANONICAL_OPTIONS,
   EDITORIAL_STATUS_CANONICAL_OPTIONS,
 } from '@/lib/cluster-labels';
+import { formatRowError } from '@/lib/row-error-messages';
 import { useWorkspace } from '@/features/workspace/store';
+import { syncBus } from '@/lib/sync-bus';
 import { CreateContentModal } from './create-content-modal';
 
 interface ClusterResponse {
   ok: boolean;
   cluster: {
     slug: string;
-    nome: string;
+    name: string;
     icon: string | null;
     area: string | null;
     status: string | null;
-    tese: string | null;
-    pilar_slug: string | null;
+    thesis: string | null;
+    pillar_slug: string | null;
   };
   rows: ClusterRow[];
 }
@@ -79,6 +86,8 @@ function useClusterData(slug: string | null) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [tick, setTick] = useState(0);
+  const dataRef = useRef<ClusterResponse | null>(null);
+  dataRef.current = data;
 
   useEffect(() => {
     if (!slug) {
@@ -92,7 +101,8 @@ function useClusterData(slug: string | null) {
       setError('missing-token');
       return;
     }
-    setLoading(true);
+    const silent = dataRef.current !== null;
+    if (!silent) setLoading(true);
     fetch(`/api/project/cluster/${encodeURIComponent(slug)}?token=${encodeURIComponent(token)}`, {
       headers: { 'x-companion-token': token },
     })
@@ -102,10 +112,21 @@ function useClusterData(slug: string | null) {
         setError(null);
       })
       .catch((err) => setError(String(err?.message || err)))
-      .finally(() => setLoading(false));
+      .finally(() => { if (!silent) setLoading(false); });
   }, [slug, tick]);
 
   const refetch = useCallback(() => setTick((n) => n + 1), []);
+
+  // Refetch on cross-view events that may have mutated the rows.
+  useEffect(() => {
+    if (!slug) return;
+    return syncBus.on((event) => {
+      if (event.type === 'cluster:changed' && event.slug === slug) refetch();
+      else if (event.type === 'content:changed') refetch();
+      else if (event.type === 'clusters:changed') refetch();
+    });
+  }, [slug, refetch]);
+
   return { data, error, loading, refetch };
 }
 
@@ -120,6 +141,9 @@ function useAllContentsData(
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [tick, setTick] = useState(0);
+  const dataRef = useRef<AllContentsResponse | null>(null);
+  dataRef.current = data;
+  const lastParamsRef = useRef<string>('');
 
   useEffect(() => {
     if (!enabled) {
@@ -137,11 +161,15 @@ function useAllContentsData(
     if (query.trim()) params.set('query', query.trim());
     if (topicCluster) params.set('topicCluster', topicCluster);
     if (sort?.column) {
-      const mapped = sort.column === 'conteudo' ? 'title' : sort.column === 'clusters' ? 'clusters' : sort.column;
+      const mapped = sort.column === 'content' ? 'title' : sort.column === 'clusters' ? 'clusters' : sort.column;
       params.set('sort', mapped);
       params.set('direction', sort.direction);
     }
-    setLoading(true);
+    const paramsKey = params.toString();
+    const paramsChanged = paramsKey !== lastParamsRef.current;
+    const silent = dataRef.current !== null && !paramsChanged;
+    lastParamsRef.current = paramsKey;
+    if (!silent) setLoading(true);
     fetch(`/api/project/contents?${params}`, {
       headers: { 'x-companion-token': token },
     })
@@ -151,10 +179,17 @@ function useAllContentsData(
         setError(null);
       })
       .catch((err) => setError(String(err?.message || err)))
-      .finally(() => setLoading(false));
+      .finally(() => { if (!silent) setLoading(false); });
   }, [enabled, query, topicCluster, page, sort, tick]);
 
   const refetch = useCallback(() => setTick((n) => n + 1), []);
+
+  // Refetch when sibling views mutate anything visible here.
+  useEffect(() => {
+    if (!enabled) return;
+    return syncBus.on(() => refetch());
+  }, [enabled, refetch]);
+
   return { data, error, loading, refetch };
 }
 
@@ -162,30 +197,30 @@ function normalizeContentToClusterRow(item: AllContentsItem): ClusterRow {
   const updated = item.updated || item.published_at || '—';
   return {
     slug: item.slug,
-    papel: 'satelite',
-    papel_label: '—',
-    conteudo: {
+    role: 'satellite',
+    role_label: '—',
+    content: {
       kind: 'published',
       title: item.title,
       href: item.path,
-      origem: item.origin,
+      origin: item.origin,
     },
     keyword: item.keyword || '',
     keyword_volume: item.keyword_volume,
     intent: item.intent || '',
-    status: item.status === 'published' ? 'publicado' : 'planejado',
+    status: item.status === 'published' ? 'published' : 'planned',
     editorial_status: 'published',
-    acao: '—',
+    action: '—',
     updated,
-    tambem_em: item.topic_clusters || [],
+    also_in: item.topic_clusters || [],
   };
 }
 
 function rowsToTsv(rows: ClusterRow[]): string {
   const header = ['Papel', 'Conteúdo', 'Keyword', 'Intenção', 'Status', 'Ação', 'Atualizado'];
   const body = rows.map((row) => {
-    const conteudo = row.conteudo.kind === 'published' ? row.conteudo.title : row.conteudo.slug;
-    return [row.papel_label, conteudo, row.keyword, row.intent, row.status, row.acao, row.updated]
+    const content = row.content.kind === 'published' ? row.content.title : row.content.slug;
+    return [row.role_label, content, row.keyword, row.intent, row.status, row.action, row.updated]
       .map((v) => String(v).replace(/\t/g, ' ').replace(/\n/g, ' '))
       .join('\t');
   });
@@ -196,7 +231,7 @@ function parseTsvForBatch(tsv: string): Array<{ title: string }> {
   const lines = tsv.split(/\r?\n/).filter((l) => l.trim().length > 0);
   if (lines.length === 0) return [];
   const firstCols = lines[0].split('\t').map((c) => c.trim().toLowerCase());
-  const start = firstCols.includes('papel') || firstCols.includes('conteúdo') ? 1 : 0;
+  const start = firstCols.includes('role') || firstCols.includes('conteúdo') || firstCols.includes('content') ? 1 : 0;
   const out: Array<{ title: string }> = [];
   for (let i = start; i < lines.length; i++) {
     const cols = lines[i].split('\t');
@@ -240,12 +275,12 @@ function SortableHeader({
 
 function readCellValue(row: ClusterRow, column: string): string {
   switch (column) {
-    case 'papel':
-      return row.papel_label || row.papel;
+    case 'role':
+      return row.role_label || row.role;
     case 'clusters':
-      return (row.tambem_em || []).join(', ');
-    case 'conteudo':
-      return row.conteudo.kind === 'published' ? row.conteudo.title : row.conteudo.slug;
+      return (row.also_in || []).join(', ');
+    case 'content':
+      return row.content.kind === 'published' ? row.content.title : row.content.slug;
     case 'keyword':
       return keywordDisplay(row);
     case 'intent':
@@ -276,9 +311,11 @@ function keywordDisplay(row: ClusterRow): string {
 export interface ClusterContentTableProps {
   clusterSlug?: string;
   bleedMargin?: boolean;
+  followPageWidth?: boolean;
 }
 
-export function ClusterContentTable({ clusterSlug, bleedMargin = false }: ClusterContentTableProps) {
+export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPageWidth = true }: ClusterContentTableProps) {
+  const router = useRouter();
   const isClusterScopedByProp = Boolean(clusterSlug);
   const [localClusterFilter, setLocalClusterFilter] = useState<string>('');
   const effectiveCluster = clusterSlug || localClusterFilter || null;
@@ -298,7 +335,8 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
 
   const language = useWorkspace((s) => s.settings.language);
   const customIntents = useWorkspace((s) => s.settings.customIntents);
-  const locale: 'pt-BR' | 'en' = language === 'pt-BR' ? 'pt-BR' : 'en';
+  const workspaceToken = useWorkspace((s) => s.token);
+  const locale: 'pt-BR' | 'en' = language === 'en' ? 'en' : 'pt-BR';
   const intentOptions = useMemo(() => {
     const canonical = INTENT_CANONICAL_OPTIONS.map((opt) => ({
       value: opt.value,
@@ -324,6 +362,8 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [pasteStatus, setPasteStatus] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
   const [tableMenuOpen, setTableMenuOpen] = useState(false);
@@ -396,7 +436,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
       const q = query.trim().toLowerCase();
       if (q) {
         working = working.filter((r) => {
-          const title = r.conteudo.kind === 'published' ? r.conteudo.title : r.conteudo.slug;
+          const title = r.content.kind === 'published' ? r.content.title : r.content.slug;
           return (
             title.toLowerCase().includes(q) ||
             r.keyword.toLowerCase().includes(q) ||
@@ -427,13 +467,13 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
 
   const counts = useMemo(() => {
     if (isClusterScoped) {
-      const published = allRows.filter((r) => r.status === 'publicado').length;
-      const planned = allRows.filter((r) => r.status === 'planejado').length;
+      const published = allRows.filter((r) => r.status === 'published').length;
+      const planned = allRows.filter((r) => r.status === 'planned').length;
       return { published, planned, total: allRows.length };
     }
     return {
-      published: allRows.filter((r) => r.status === 'publicado').length,
-      planned: allRows.filter((r) => r.status === 'planejado').length,
+      published: allRows.filter((r) => r.status === 'published').length,
+      planned: allRows.filter((r) => r.status === 'planned').length,
       total: allContentsData.data?.total ?? allRows.length,
     };
   }, [allRows, isClusterScoped, allContentsData.data]);
@@ -492,6 +532,17 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
     [],
   );
 
+  const refreshProjectTree = useWorkspace((s) => s.refreshProjectTree);
+
+  // Inline CTA creates a real PUBLISHED content (contents/blog/<slug>.md)
+  // with the typed title preserved in frontmatter and the current cluster
+  // linked via `clusters: [<slug>]`. To create a planned satellite, use the
+  // `postSatellite` API directly (or future explicit "+ planned" action).
+  //
+  // After the file is created we MUST refresh the workspace page tree
+  // before signalling refetch — otherwise the new slug is missing from
+  // `useWorkspace().pages` and the next click on the row falls back to
+  // pages[0] instead of routing to the new content (Bug 1).
   const commitNewRow = useCallback(async () => {
     const title = newTitle.trim();
     if (!title) {
@@ -504,7 +555,11 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
     }
     setSubmitting(true);
     setSubmitError(null);
-    const result = await postSatellite(effectiveCluster, title);
+    const result = await postPublishedContent({
+      title,
+      origin: 'blog',
+      clusters: [effectiveCluster],
+    });
     setSubmitting(false);
     if (!result.ok) {
       setSubmitError(result.reason || 'erro');
@@ -512,8 +567,15 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
     }
     setNewTitle('');
     setAddingRow(false);
+    // Refresh the workspace tree FIRST so router.push targets resolve to a
+    // real page before the row becomes clickable in the table.
+    await refreshProjectTree();
+    if (result.slug) {
+      syncBus.emit({ type: 'content:changed', slug: result.slug });
+    }
+    syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
     refetch();
-  }, [newTitle, effectiveCluster, refetch]);
+  }, [newTitle, effectiveCluster, refetch, refreshProjectTree]);
 
   const copySelected = useCallback(async () => {
     const selected = rows.filter((r) => selectedSlugs.has(r.slug));
@@ -527,6 +589,61 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
       setPasteStatus('falha ao copiar');
     }
   }, [rows, selectedSlugs]);
+
+  // Bulk delete: only acts on PUBLISHED rows (planned satellites have no
+  // file on disk to trash). Iterates sequentially to avoid hammering the
+  // cluster-sync watcher with concurrent writes.
+  const deleteSelected = useCallback(async () => {
+    const selected = rows.filter((r) => selectedSlugs.has(r.slug) && r.status === 'published');
+    if (selected.length === 0) {
+      setConfirmDeleteOpen(false);
+      return;
+    }
+    setBulkBusy(true);
+    let trashed = 0;
+    for (const row of selected) {
+      const res = await deleteContent(row.slug);
+      if (res.ok) {
+        trashed += 1;
+        syncBus.emit({ type: 'content:changed', slug: row.slug });
+      } else {
+        showToast(`Falha ao excluir ${row.slug}: ${res.reason || 'erro'}`, 'error');
+      }
+    }
+    setBulkBusy(false);
+    setConfirmDeleteOpen(false);
+    setSelectedSlugs(new Set());
+    setPasteStatus(`movido ${trashed} para Trash`);
+    setTimeout(() => setPasteStatus(null), 2500);
+    if (effectiveCluster) syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
+    refetch();
+  }, [rows, selectedSlugs, effectiveCluster, refetch]);
+
+  // Bulk duplicate: same constraints as delete (published rows only). New
+  // files get slug `<slug>-copia[-N]` and title `<title> (cópia)`.
+  const duplicateSelected = useCallback(async () => {
+    const selected = rows.filter((r) => selectedSlugs.has(r.slug) && r.status === 'published');
+    if (selected.length === 0) return;
+    setBulkBusy(true);
+    let created = 0;
+    const lastSlugs: string[] = [];
+    for (const row of selected) {
+      const res = await duplicateContent(row.slug);
+      if (res.ok && res.newSlug) {
+        created += 1;
+        lastSlugs.push(res.newSlug);
+        syncBus.emit({ type: 'content:changed', slug: res.newSlug });
+      } else {
+        showToast(`Falha ao duplicar ${row.slug}: ${res.reason || 'erro'}`, 'error');
+      }
+    }
+    setBulkBusy(false);
+    setSelectedSlugs(new Set());
+    setPasteStatus(`duplicado ${created}`);
+    setTimeout(() => setPasteStatus(null), 2500);
+    if (effectiveCluster) syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
+    refetch();
+  }, [rows, selectedSlugs, effectiveCluster, refetch]);
 
   const pasteRows = useCallback(async () => {
     if (!effectiveCluster) {
@@ -544,11 +661,16 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
       setPasteStatus(`colando ${batch.length}…`);
       let created = 0;
       for (const item of batch) {
-        const res = await postSatellite(effectiveCluster, item.title);
+        const res = await postPublishedContent({
+          title: item.title,
+          origin: 'blog',
+          clusters: [effectiveCluster],
+        });
         if (res.ok) created++;
       }
       setPasteStatus(`adicionado ${created}/${batch.length}`);
       setTimeout(() => setPasteStatus(null), 2500);
+      if (created > 0) syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
       refetch();
     } catch {
       setPasteStatus('falha ao colar');
@@ -583,14 +705,14 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
 
   const columnDefs = useMemo<TableColumnDef[]>(() => {
     const roleCol: TableColumnDef = isClusterScoped
-      ? { id: 'papel', label: 'Papel', filterKind: 'select', filterOptions: [
-          { value: 'pilar', label: 'Pilar' },
-          { value: 'satelite', label: 'Satélite' },
+      ? { id: 'role', label: 'Papel', filterKind: 'select', filterOptions: [
+          { value: 'pillar', label: 'Pilar' },
+          { value: 'satellite', label: 'Satélite' },
         ] }
       : { id: 'clusters', label: 'Cluster(s)', filterKind: 'text' };
     return [
       roleCol,
-      { id: 'conteudo', label: 'Conteúdo', filterKind: 'text' },
+      { id: 'content', label: 'Conteúdo', filterKind: 'text' },
       { id: 'keyword', label: 'Keyword', filterKind: 'text' },
       {
         id: 'intent',
@@ -616,7 +738,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
   return (
     <div
       data-cluster-table={dataTableAttr || 'unknown'}
-      className={cn('my-2 not-prose', bleedMargin && '-mx-12 md:-mx-16')}
+      className={cn('my-2 not-prose', dataTableWidthClass(followPageWidth), bleedMargin && '-mx-12 md:-mx-16')}
     >
       <div ref={wrapperRef} tabIndex={-1} className="overflow-hidden rounded-md bg-background">
         <header className="flex items-center justify-between gap-2 bg-background px-2.5 py-1.5">
@@ -660,15 +782,37 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
               </span>
             )}
             {selectedSlugs.size > 0 && (
-              <button
-                type="button"
-                onClick={() => void copySelected()}
-                className="rounded px-2 py-1 hover:bg-notion-hover hover:text-notion-text cursor-pointer"
-                title="Copiar selecionadas (Cmd+C)"
-                data-testid="cluster-copy-selected"
-              >
-                Copiar
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => void copySelected()}
+                  className="rounded px-2 py-1 hover:bg-notion-hover hover:text-notion-text cursor-pointer"
+                  title="Copiar selecionadas (Cmd+C)"
+                  data-testid="cluster-copy-selected"
+                >
+                  Copiar
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => void duplicateSelected()}
+                  className="rounded px-2 py-1 hover:bg-notion-hover hover:text-notion-text cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={`Duplicar ${selectedSlugs.size} item(s)`}
+                  data-testid="cluster-duplicate-selected"
+                >
+                  Duplicar {selectedSlugs.size}
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => setConfirmDeleteOpen(true)}
+                  className="rounded px-2 py-1 text-red-600 hover:bg-red-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={`Excluir ${selectedSlugs.size} item(s)`}
+                  data-testid="cluster-delete-selected"
+                >
+                  Excluir {selectedSlugs.size}
+                </button>
+              </>
             )}
             <button
               ref={tableMenuButtonRef}
@@ -694,13 +838,13 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
 
         {error && <div className="px-4 py-3 text-xs text-red-600">Erro ao carregar: {error}</div>}
         {loading && !data && <div className="px-4 py-3 text-xs text-notion-text-muted">Carregando…</div>}
-        {data && rows.length === 0 && (
+        {data && rows.length === 0 && !addingRow && (
           <div className="px-4 py-3 text-xs text-notion-text-muted">
             {isClusterScoped ? 'Nenhum conteúdo neste cluster ainda.' : 'Nenhum conteúdo encontrado.'}
           </div>
         )}
 
-        {data && rows.length > 0 && (
+        {data && (rows.length > 0 || addingRow) && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -716,14 +860,14 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                       data-testid="cluster-select-all"
                     />
                   </th>
-                  {isClusterScoped && isColVisible('papel') && (
-                    <SortableHeader column="papel" label="Papel" sort={sort} onToggle={cycleSort} width="w-[88px]" />
+                  {isClusterScoped && isColVisible('role') && (
+                    <SortableHeader column="role" label="Papel" sort={sort} onToggle={cycleSort} width="w-[88px]" />
                   )}
                   {!isClusterScoped && isColVisible('clusters') && (
                     <SortableHeader column="clusters" label="Cluster(s)" sort={sort} onToggle={cycleSort} width="w-[180px]" />
                   )}
-                  {isColVisible('conteudo') && (
-                    <SortableHeader column="conteudo" label="Conteúdo" sort={sort} onToggle={cycleSort} />
+                  {isColVisible('content') && (
+                    <SortableHeader column="content" label="Conteúdo" sort={sort} onToggle={cycleSort} />
                   )}
                   {isColVisible('keyword') && (
                     <SortableHeader column="keyword" label="Keyword (vol.)" sort={sort} onToggle={cycleSort} width="w-[180px]" />
@@ -742,12 +886,25 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
               <tbody>
                 <LayoutGroup>
                 {rows.map((row) => {
-                  const kind: 'published' | 'planned' = row.status === 'publicado' ? 'published' : 'planned';
+                  const kind: 'published' | 'planned' = row.status === 'published' ? 'published' : 'planned';
                   const isSelected = selectedSlugs.has(row.slug);
-                  const singleClusterFallback = !isClusterScoped && row.tambem_em.length === 1 ? row.tambem_em[0] : null;
+                  const singleClusterFallback = !isClusterScoped && row.also_in.length === 1 ? row.also_in[0] : null;
                   const editCluster: string | null = effectiveCluster || singleClusterFallback;
                   const canEditClusterFields = Boolean(editCluster);
                   const canEditContentMetadata = kind === 'published' || Boolean(editCluster);
+                  const rowOrigin = row.content.kind === 'published' ? row.content.origin : null;
+                  const navTarget =
+                    kind === 'published' && rowOrigin && workspaceToken
+                      ? `/project/${encodeURIComponent(workspaceToken)}/contents-${encodeURIComponent(rowOrigin)}-${encodeURIComponent(row.slug)}`
+                      : null;
+                  const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
+                    if (event.defaultPrevented) return;
+                    if (!navTarget) return;
+                    // Ignore non-left clicks and modifier-clicks (let the browser
+                    // handle middle-click, cmd-click, etc.).
+                    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                    router.push(navTarget);
+                  };
                   return (
                     <motion.tr
                       key={`${row.slug}`}
@@ -755,31 +912,38 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                       transition={{ type: 'spring', damping: 28, stiffness: 280 }}
                       data-cluster-row={row.slug}
                       data-cluster-row-kind={kind}
+                      onClick={navTarget ? handleRowClick : undefined}
                       className={cn(
                         'border-b border-notion-border last:border-0 transition-colors',
-                        row.status === 'planejado' && 'bg-notion-sidebar/20',
+                        row.status === 'planned' && 'bg-notion-sidebar/20',
                         isSelected ? 'bg-blue-50/60' : 'hover:bg-notion-hover/50',
+                        navTarget && 'cursor-pointer',
                       )}
                     >
-                      <td className="px-2 py-1.5 align-top">
+                      <td className="px-2 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={isSelected}
                           onChange={(e) =>
                             toggleSelect(row.slug, (e.nativeEvent as MouseEvent | KeyboardEvent).metaKey || (e.nativeEvent as MouseEvent | KeyboardEvent).ctrlKey || true)
                           }
+                          onClick={(e) => e.stopPropagation()}
                           className="cursor-pointer"
                           aria-label={`Selecionar ${row.slug}`}
                         />
                       </td>
-                      {isClusterScoped && effectiveCluster && isColVisible('papel') && (
-                        <td className="px-2.5 py-1.5 align-top">
-                          <PapelToggle
-                            current={row.papel}
+                      {isClusterScoped && effectiveCluster && isColVisible('role') && (
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
+                          <RoleToggle
+                            current={row.role}
                             onCommit={async (next) => {
-                              const res = await patchRow(effectiveCluster, row.slug, 'papel', next, kind);
-                              if (res.ok && next === 'pilar') {
-                                showToast('Promovido a pilar — movido para o topo', 'success');
+                              const res = await patchRow(effectiveCluster, row.slug, 'role', next, kind);
+                              if (res.ok) {
+                                if (next === 'pillar') {
+                                  showToast('Promovido a pillar — movido para o topo', 'success');
+                                }
+                                syncBus.emit({ type: 'cluster:changed', slug: effectiveCluster });
+                                syncBus.emit({ type: 'content:changed', slug: row.slug, fields: ['role'] });
                               }
                               refetch();
                             }}
@@ -787,17 +951,37 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                         </td>
                       )}
                       {!isClusterScoped && isColVisible('clusters') && (
-                        <td className="px-2.5 py-1.5 align-top">
-                          <TambemEmChips slugs={row.tambem_em} />
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
+                          <AlsoInChips slugs={row.also_in} />
                         </td>
                       )}
-                      {isColVisible('conteudo') && (
-                        <td className="px-2.5 py-1.5 align-top max-w-[280px]">
-                          <ContentLink row={row} />
+                      {isColVisible('content') && (
+                        <td className="px-2.5 py-1.5 align-top">
+                          <div className="max-w-[280px] overflow-hidden">
+                            <ContentLink
+                              row={row}
+                              onTitleChange={(slug, nextTitle) => {
+                                if (row.content.kind === 'published') {
+                                  applyOptimistic(slug, {
+                                    content: { ...row.content, title: nextTitle },
+                                  });
+                                }
+                                syncBus.emit({
+                                  type: 'content:changed',
+                                  slug,
+                                  fields: ['title'],
+                                });
+                                if (editCluster) {
+                                  syncBus.emit({ type: 'cluster:changed', slug: editCluster });
+                                }
+                                refetch();
+                              }}
+                            />
+                          </div>
                         </td>
                       )}
                       {isColVisible('keyword') && (
-                        <td className="px-2.5 py-1.5 align-top">
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                           {canEditContentMetadata ? (
                             <div className="flex items-center gap-1">
                               <div className="flex-1">
@@ -813,9 +997,16 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                                         : { ok: false, reason: 'missing-cluster' };
                                     if (!res.ok) {
                                       clearOptimistic(row.slug);
-                                      showToast('Falha ao salvar keyword', 'error');
+                                      showToast(formatRowError('keyword', res.reason, locale), 'error');
                                       return;
                                     }
+                                    if (kind === 'published') {
+                                      syncBus.emit({ type: 'content:changed', slug: row.slug, fields: ['keyword'] });
+                                    }
+                                    if (editCluster) {
+                                      syncBus.emit({ type: 'cluster:changed', slug: editCluster });
+                                    }
+                                    refetch();
                                   }}
                                 />
                               </div>
@@ -831,7 +1022,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                         </td>
                       )}
                       {isColVisible('intent') && (
-                        <td className="px-2.5 py-1.5 align-top">
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                           {canEditContentMetadata ? (
                             <EditableSelectCell
                               value={row.intent}
@@ -846,8 +1037,16 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                                     : { ok: false, reason: 'missing-cluster' };
                                 if (!res.ok) {
                                   clearOptimistic(row.slug);
-                                  showToast('Falha ao salvar intent', 'error');
+                                  showToast(formatRowError('intent', res.reason, locale), 'error');
+                                  return;
                                 }
+                                if (kind === 'published') {
+                                  syncBus.emit({ type: 'content:changed', slug: row.slug, fields: ['intent'] });
+                                }
+                                if (editCluster) {
+                                  syncBus.emit({ type: 'cluster:changed', slug: editCluster });
+                                }
+                                refetch();
                               }}
                             />
                           ) : (
@@ -856,7 +1055,7 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                         </td>
                       )}
                       {isColVisible('editorial_status') && (
-                        <td className="px-2.5 py-1.5 align-top">
+                        <td className="px-2.5 py-1.5 align-top" onClick={(e) => e.stopPropagation()}>
                           {canEditClusterFields && editCluster ? (
                             <EditableSelectCell
                               value={row.editorial_status as ClusterRow['editorial_status']}
@@ -867,13 +1066,16 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
                                 const res = await patchRow(editCluster, row.slug, 'editorial_status', value, kind);
                                 if (!res.ok) {
                                   clearOptimistic(row.slug);
-                                  showToast('Falha ao salvar status', 'error');
+                                  showToast(formatRowError('status', res.reason, locale), 'error');
+                                  return;
                                 }
+                                syncBus.emit({ type: 'cluster:changed', slug: editCluster });
+                                refetch();
                               }}
                             />
                           ) : (
                             <span className="text-xs text-notion-text-muted">
-                              {row.status === 'publicado' ? 'Publicado' : 'Planejado'}
+                              {row.status === 'published' ? 'Publicado' : 'Planejado'}
                             </span>
                           )}
                         </td>
@@ -957,6 +1159,18 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false }: Cluste
           setCreateOpen(false);
           refetch();
         }}
+      />
+      <ConfirmModal
+        isOpen={confirmDeleteOpen}
+        onClose={() => {
+          if (!bulkBusy) setConfirmDeleteOpen(false);
+        }}
+        onConfirm={() => void deleteSelected()}
+        title={`Excluir ${selectedSlugs.size} conteúdo${selectedSlugs.size === 1 ? '' : 's'}?`}
+        description="Os arquivos serão movidos para project/Trash/. É possível restaurar manualmente ou via scripts/restore-from-trash.mjs."
+        confirmLabel={bulkBusy ? 'Excluindo…' : 'Excluir'}
+        cancelLabel="Cancelar"
+        destructive
       />
       <TableSettingsMenu
         open={tableMenuOpen}

@@ -35,6 +35,13 @@ if (existsSync(pfJs)) renameSync(pfJs, pfMjs);
 const btJs = join(outDir, 'brain-templates.js');
 const btMjs = join(outDir, 'brain-templates.mjs');
 if (existsSync(btJs)) renameSync(btJs, btMjs);
+// Stub for `auto-block-watcher` (uses chokidar; not available in this test).
+writeFileSync(
+  join(outDir, 'auto-block-watcher.mjs'),
+  `export function ensureWatcherStarted() {}
+export function silenceWrite() {}
+`,
+);
 // Patch import in tag-index.mjs to use .mjs extension.
 const fs = await import('node:fs');
 function patchSharedImport(file) {
@@ -54,7 +61,10 @@ fs.writeFileSync(
 );
 fs.writeFileSync(
   pfMjs,
-  fs.readFileSync(pfMjs, 'utf8').replace("from './brain-templates'", "from './brain-templates.mjs'")
+  fs
+    .readFileSync(pfMjs, 'utf8')
+    .replace("from './brain-templates'", "from './brain-templates.mjs'")
+    .replace("from './auto-block-watcher'", "from './auto-block-watcher.mjs'")
 );
 
 const { buildTagIndex, extractFrontmatterTags, extractInlineTags } = await import(`../${mjsFile}`);
@@ -82,10 +92,10 @@ const tmp = mkdtempSync(join(tmpdir(), 'agentic-seo-tags-'));
 const projectRoot = join(tmp, 'project');
 const brain = join(projectRoot, 'brain');
 mkdirSync(brain, { recursive: true });
-mkdirSync(join(projectRoot, 'conteudos', 'blog'), { recursive: true });
+mkdirSync(join(projectRoot, 'contents', 'blog'), { recursive: true });
 
 writeFileSync(
-  join(brain, 'identidade.md'),
+  join(brain, 'identity.md'),
   `---
 title: "Identidade"
 updated: "2026-05-24"
@@ -102,7 +112,7 @@ Frase #exemplo inline.
 );
 
 writeFileSync(
-  join(brain, 'voz.md'),
+  join(brain, 'voice.md'),
   `---
 title: "Voz"
 tags: [voz-editorial, exemplo]
@@ -116,11 +126,11 @@ Tom #voz-editorial e #exemplo.
 );
 
 writeFileSync(
-  join(projectRoot, 'conteudos', 'blog', 'post.md'),
+  join(projectRoot, 'contents', 'blog', 'post.md'),
   `---
 title: "Post"
 slug: "post"
-origem: "blog"
+origin: "blog"
 tags: "geo, exemplo"
 ---
 
@@ -140,7 +150,7 @@ assert.equal(exemplo.count, 3);
 const exemploSources = exemplo.files.map((f) => f.source).sort();
 assert.deepEqual(exemploSources, ['both', 'both', 'both']);
 
-// Tag 'identidade-marca' only in identidade.md frontmatter
+// Tag 'identidade-marca' only in identity.md frontmatter
 const idMarca = index.tags.find((t) => t.tag === 'identidade-marca');
 assert.ok(idMarca);
 assert.equal(idMarca.count, 1);

@@ -28,7 +28,7 @@ assert.equal(emptyTree.canBootstrapBrain, true);
 
 const bootstrapped = bootstrapBrainFiles({ projectRoot: emptyProjectRoot });
 assert.equal(bootstrapped.ok, true);
-assert.equal(bootstrapped.created.length, 9);
+assert.equal(bootstrapped.created.length, 8);
 assert.ok(existsSync(join(emptyProjectRoot, "brain", "index.md")));
 assert.ok(readFileSync(join(emptyProjectRoot, "brain", "index.md"), "utf8").includes('title: "Agentic SEO"'));
 assert.match(readFileSync(join(emptyProjectRoot, "brain", "log.md"), "utf8"), /Brain created via Companion/);
@@ -43,8 +43,8 @@ const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-browser-"));
 const projectRoot = join(tmp, "project");
 const brain = join(projectRoot, "brain");
 mkdirSync(brain, { recursive: true });
-mkdirSync(join(projectRoot, "conteudos", "blog"), { recursive: true });
-mkdirSync(join(projectRoot, "conteudos", "linkedin"), { recursive: true });
+mkdirSync(join(projectRoot, "contents", "blog"), { recursive: true });
+mkdirSync(join(projectRoot, "contents", "linkedin"), { recursive: true });
 mkdirSync(join(projectRoot, "clusters", "seo-agentico"), { recursive: true });
 mkdirSync(join(projectRoot, "workbench", "drafts"), { recursive: true });
 mkdirSync(join(projectRoot, "analyses", "technical-seo", "run-1"), { recursive: true });
@@ -52,7 +52,7 @@ mkdirSync(join(projectRoot, ".agentic-seo"), { recursive: true });
 writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify({ name: "Projeto Teste" }), "utf8");
 
 writeFileSync(
-  join(brain, "voz.md"),
+  join(brain, "voice.md"),
   `---
 title: "Tom de Voz"
 updated: "2026-05-07"
@@ -75,29 +75,29 @@ updated: "2026-05-07"
 
 ## 2026-05-07 - Projeto criado
 
-- tipo: decisao
-- escopo: index
-- decisao: Projeto criado.
-- evidencia: index
-- aprovador: agent
+- type: decision
+- scope: index
+- decision: Projeto criado.
+- evidence: index
+- approver: agent
 `,
   "utf8",
 );
 writeFileSync(
-  join(projectRoot, "conteudos", "blog", "post-teste.md"),
+  join(projectRoot, "contents", "blog", "post-teste.md"),
   `---
 title: "Post Teste"
 slug: "post-teste"
 published_at: ""
 source_url: ""
-origem: "blog"
+origin: "blog"
 keyword: "post teste keyword"
 intent: "informational"
 volume: 480
 clusters:
   - seo-agentico
-papel:
-  seo-agentico: pilar
+role:
+  seo-agentico: pillar
 ---
 
 # Post
@@ -107,7 +107,7 @@ Conteúdo público.
   "utf8",
 );
 writeFileSync(
-  join(projectRoot, "conteudos", "blog", "_template.md"),
+  join(projectRoot, "contents", "blog", "_template.md"),
   `---
 title: "Template"
 ---
@@ -117,11 +117,11 @@ Não deve aparecer na tabela.
   "utf8",
 );
 writeFileSync(
-  join(projectRoot, "conteudos", "linkedin", "post-linkedin.md"),
+  join(projectRoot, "contents", "linkedin", "post-linkedin.md"),
   `---
 title: "Post LinkedIn"
 slug: "post-linkedin"
-origem: "linkedin"
+origin: "linkedin"
 keyword: "linkedin keyword"
 intent: "comparative"
 volume: 90
@@ -139,13 +139,13 @@ writeFileSync(
   [
     "contract_version: 1",
     "slug: seo-agentico",
-    "nome: SEO agêntico",
+    "name: SEO agêntico",
     "status: active",
-    "pilar:",
+    "pillar:",
     "  slug: post-teste",
     "  keyword: legacy cluster keyword",
     "planned_satellites: []",
-    "satelite_overrides: {}",
+    "satellite_overrides: {}",
     "",
   ].join("\n"),
   "utf8",
@@ -172,7 +172,7 @@ Não deve aparecer.
   "utf8",
 );
 try {
-  symlinkSync(join(brain, "voz.md"), join(projectRoot, "workbench", "drafts", "symlink.md"));
+  symlinkSync(join(brain, "voice.md"), join(projectRoot, "workbench", "drafts", "symlink.md"));
 } catch {
   // Symlink creation can be unavailable in some restricted environments.
 }
@@ -198,13 +198,13 @@ Conteúdo do análise.
 
 assert.deepEqual(validateProjectFileRel("../AGENTS.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/../../AGENTS.md").ok, false);
-assert.deepEqual(validateProjectFileRel("brain/voz.md").ok, true);
-assert.deepEqual(validateProjectFileRel("conteudos/blog/post-teste.md").ok, true);
+assert.deepEqual(validateProjectFileRel("brain/voice.md").ok, true);
+assert.deepEqual(validateProjectFileRel("contents/blog/post-teste.md").ok, true);
 assert.deepEqual(validateProjectFileRel("workbench/drafts/ideia.md").ok, true);
 assert.deepEqual(validateProjectFileRel("analyses/technical-seo/run-1/report.md").ok, true);
 assert.deepEqual(validateProjectFileRel("analyses/technical-seo/run-1/report.md", { write: true }).ok, true);
 assert.deepEqual(validateProjectFileRel("analyses/not-a-module/run-1/report.md").ok, false);
-assert.deepEqual(validateProjectFileRel("workbench/../brain/voz.md").ok, false);
+assert.deepEqual(validateProjectFileRel("workbench/../brain/voice.md").ok, false);
 assert.deepEqual(validateProjectFileRel("brain/log.md", { write: true }), { ok: false, reason: "read-only-log" });
 
 const tree = buildProjectTree({ projectRoot });
@@ -213,22 +213,22 @@ assert.equal(tree.project.name, "Projeto Teste");
 assert.equal(tree.hasFiles, true);
 assert.equal(tree.hasBrain, true);
 assert.equal(tree.canBootstrapBrain, false);
-const vozSummary = tree.sections[0].items.find((item) => item.path === "brain/voz.md");
-assert.equal(vozSummary.title, "Tom de Voz");
-assert.equal(vozSummary.requiresApproval, false);
-assert.ok(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path === "conteudos/blog/post-teste.md"));
-assert.equal(tree.sections.find((section) => section.id === "conteudos").items.some((item) => item.path.endsWith("_template.md")), false);
+const voiceSummary = tree.sections[0].items.find((item) => item.path === "brain/voice.md");
+assert.equal(voiceSummary.title, "Tom de Voz");
+assert.equal(voiceSummary.requiresApproval, false);
+assert.ok(tree.sections.find((section) => section.id === "contents").items.some((item) => item.path === "contents/blog/post-teste.md"));
+assert.equal(tree.sections.find((section) => section.id === "contents").items.some((item) => item.path.endsWith("_template.md")), false);
 assert.ok(tree.sections.find((section) => section.id === "workbench").items.some((item) => item.path === "workbench/drafts/ideia.md"));
 
 const contentIndex = listProjectContents({ projectRoot });
 assert.equal(contentIndex.ok, true);
 assert.equal(contentIndex.total, 2);
-assert.equal(contentIndex.items.some((item) => item.path === "conteudos/blog/_template.md"), false);
-assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").topic_cluster, "seo-agentico");
-assert.equal(contentIndex.items.find((item) => item.path === "conteudos/linkedin/post-linkedin.md").topicClusterTitle, "SEO agêntico");
-assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").keyword, "post teste keyword");
-assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").intent, "informational");
-assert.equal(contentIndex.items.find((item) => item.path === "conteudos/blog/post-teste.md").keyword_volume, 480);
+assert.equal(contentIndex.items.some((item) => item.path === "contents/blog/_template.md"), false);
+assert.equal(contentIndex.items.find((item) => item.path === "contents/blog/post-teste.md").topic_cluster, "seo-agentico");
+assert.equal(contentIndex.items.find((item) => item.path === "contents/linkedin/post-linkedin.md").topicClusterTitle, "SEO agêntico");
+assert.equal(contentIndex.items.find((item) => item.path === "contents/blog/post-teste.md").keyword, "post teste keyword");
+assert.equal(contentIndex.items.find((item) => item.path === "contents/blog/post-teste.md").intent, "informational");
+assert.equal(contentIndex.items.find((item) => item.path === "contents/blog/post-teste.md").keyword_volume, 480);
 assert.equal(listProjectContents({ projectRoot, origin: "blog" }).total, 1);
 assert.equal(listProjectContents({ projectRoot, topicCluster: "seo-agentico" }).total, 2);
 assert.equal(listProjectContents({ projectRoot, query: "comparative" }).total, 1);
@@ -249,7 +249,7 @@ writeFileSync(join(projectRoot, ".agentic-seo", "project.json"), JSON.stringify(
 const conversionTree = buildProjectTree({ projectRoot });
 assert.equal(conversionTree.project.icon, null);
 
-const file = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
+const file = readProjectFile({ projectRoot, fileRel: "brain/voice.md" });
 assert.equal(file.ok, true);
 assert.equal(file.title, "Tom de Voz");
 assert.match(file.body, /página, análise, aprovação/);
@@ -257,40 +257,40 @@ assert.match(file.body, /página, análise, aprovação/);
 const logBeforeUi = readFileSync(join(brain, "log.md"), "utf8");
 const uiSaved = saveProjectFile({
   projectRoot,
-  fileRel: "brain/voz.md",
+  fileRel: "brain/voice.md",
   ui: { icon: "✨", cover: "https://example.com/capa.png" },
 });
 assert.equal(uiSaved.ok, true);
 assert.equal(uiSaved.uiSaved, true);
 assert.equal(readFileSync(join(brain, "log.md"), "utf8"), logBeforeUi);
-assert.doesNotMatch(readFileSync(join(brain, "voz.md"), "utf8"), /capa\.png/);
-const uiFile = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
+assert.doesNotMatch(readFileSync(join(brain, "voice.md"), "utf8"), /capa\.png/);
+const uiFile = readProjectFile({ projectRoot, fileRel: "brain/voice.md" });
 assert.equal(uiFile.icon, "✨");
 assert.equal(uiFile.cover, "https://example.com/capa.png");
-const uiTreeItem = buildProjectTree({ projectRoot }).sections[0].items.find((item) => item.path === "brain/voz.md");
+const uiTreeItem = buildProjectTree({ projectRoot }).sections[0].items.find((item) => item.path === "brain/voice.md");
 assert.equal(uiTreeItem.icon, "✨");
 assert.equal(uiTreeItem.cover, "https://example.com/capa.png");
 
-const contentFile = readProjectFile({ projectRoot, fileRel: "conteudos/blog/post-teste.md" });
+const contentFile = readProjectFile({ projectRoot, fileRel: "contents/blog/post-teste.md" });
 const contentSaved = saveProjectFile({
   projectRoot,
-  fileRel: "conteudos/blog/post-teste.md",
+  fileRel: "contents/blog/post-teste.md",
   expectedHash: contentFile.hash,
   title: "Post Teste Revisado",
   body: contentFile.body,
   frontmatter: { ...contentFile.frontmatter, title: "Post Teste Revisado", keyword: "keyword revisada" },
   frontmatterRaw:
-    'title: "Post Teste Revisado"\nslug: "post-teste"\npublished_at: ""\nsource_url: ""\norigem: "blog"\nkeyword: "keyword revisada"\nintent: "informational"\nvolume: 480\nclusters:\n  - seo-agentico\npapel:\n  seo-agentico: pilar',
+    'title: "Post Teste Revisado"\nslug: "post-teste"\npublished_at: ""\nsource_url: ""\norigin: "blog"\nkeyword: "keyword revisada"\nintent: "informational"\nvolume: 480\nclusters:\n  - seo-agentico\nrole:\n  seo-agentico: pillar',
 });
 assert.equal(contentSaved.ok, true);
-const contentText = readFileSync(join(projectRoot, "conteudos", "blog", "post-teste.md"), "utf8");
+const contentText = readFileSync(join(projectRoot, "contents", "blog", "post-teste.md"), "utf8");
 assert.match(contentText, /title: "Post Teste Revisado"/);
 assert.match(contentText, /keyword: "keyword revisada"/);
 
-writeFileSync(join(brain, "voz.md"), readFileSync(join(brain, "voz.md"), "utf8") + "\nMudança externa.\n", "utf8");
+writeFileSync(join(brain, "voice.md"), readFileSync(join(brain, "voice.md"), "utf8") + "\nMudança externa.\n", "utf8");
 const stale = saveProjectFile({
   projectRoot,
-  fileRel: "brain/voz.md",
+  fileRel: "brain/voice.md",
   expectedHash: file.hash,
   title: "Tom de Voz",
   body: "# Tom de Voz\n\nTexto novo.",
@@ -298,22 +298,22 @@ const stale = saveProjectFile({
 });
 assert.equal(stale.ok, false);
 assert.equal(stale.reason, "file-modified");
-assert.match(readFileSync(join(brain, "voz.md"), "utf8"), /Mudança externa/);
+assert.match(readFileSync(join(brain, "voice.md"), "utf8"), /Mudança externa/);
 
-const fresh = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
+const fresh = readProjectFile({ projectRoot, fileRel: "brain/voice.md" });
 const savedWithoutApprover = saveProjectFile({
   projectRoot,
-  fileRel: "brain/voz.md",
+  fileRel: "brain/voice.md",
   expectedHash: fresh.hash,
   title: "Tom de Voz",
   body: "# Tom de Voz\n\nTexto novo com conteúdo e evidência.",
 });
 assert.equal(savedWithoutApprover.ok, true);
 
-const freshAfterAgentSave = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
+const freshAfterAgentSave = readProjectFile({ projectRoot, fileRel: "brain/voice.md" });
 const saved = saveProjectFile({
   projectRoot,
-  fileRel: "brain/voz.md",
+  fileRel: "brain/voice.md",
   expectedHash: freshAfterAgentSave.hash,
   title: "Tom de Voz Revisado",
   body: "# Tom de Voz\n\nTexto novo com conteúdo e evidência.",
@@ -322,17 +322,17 @@ const saved = saveProjectFile({
 });
 assert.equal(saved.ok, true);
 assert.equal(saved.requiresApproval, false);
-const savedText = readFileSync(join(brain, "voz.md"), "utf8");
+const savedText = readFileSync(join(brain, "voice.md"), "utf8");
 assert.match(savedText, /title: "Tom de Voz Revisado"/);
 assert.match(savedText, /updated: "\d{4}-\d{2}-\d{2}"/);
 assert.match(savedText, /Texto novo com conteúdo e evidência/);
 
 const logText = readFileSync(join(brain, "log.md"), "utf8");
-assert.match(logText, /- tipo: decisao/);
-assert.match(logText, /- escopo: brain\/voz\.md/);
-assert.match(logText, /- aprovador: agent/);
-assert.match(logText, /- aprovador: Diego Ivo/);
-assert.match(logText, /- notas: aprovado no companion/);
+assert.match(logText, /- type: decision/);
+assert.match(logText, /- scope: brain\/voice\.md/);
+assert.match(logText, /- approver: agent/);
+assert.match(logText, /- approver: Diego Ivo/);
+assert.match(logText, /- notes: aprovado no companion/);
 
 const logSave = saveProjectFile({
   projectRoot,
@@ -397,39 +397,39 @@ assert.match(readFileSync(join(projectRoot, created.path), "utf8"), /Página de 
 
 const staleDelete = deleteProjectFile({
   projectRoot,
-  fileRel: "conteudos/blog/post-teste.md",
+  fileRel: "contents/blog/post-teste.md",
   expectedHash: "stale",
 });
 assert.equal(staleDelete.ok, false);
 assert.equal(staleDelete.reason, "file-modified");
 const dirtyDelete = deleteProjectFile({
   projectRoot,
-  fileRel: "conteudos/blog/post-teste.md",
-  expectedHash: readProjectFile({ projectRoot, fileRel: "conteudos/blog/post-teste.md" }).hash,
+  fileRel: "contents/blog/post-teste.md",
+  expectedHash: readProjectFile({ projectRoot, fileRel: "contents/blog/post-teste.md" }).hash,
   dirty: true,
 });
 assert.equal(dirtyDelete.ok, false);
 assert.equal(dirtyDelete.reason, "dirty-file");
-const contentDeleteTarget = readProjectFile({ projectRoot, fileRel: "conteudos/blog/post-teste.md" });
+const contentDeleteTarget = readProjectFile({ projectRoot, fileRel: "contents/blog/post-teste.md" });
 const deletedContent = deleteProjectFile({
   projectRoot,
-  fileRel: "conteudos/blog/post-teste.md",
+  fileRel: "contents/blog/post-teste.md",
   expectedHash: contentDeleteTarget.hash,
 });
 assert.equal(deletedContent.ok, true);
-assert.match(deletedContent.trashPath, /^\.agentic-seo\/trash\/.+\/conteudos\/blog\/post-teste\.md$/);
-assert.equal(existsSync(join(projectRoot, "conteudos", "blog", "post-teste.md")), false);
+assert.match(deletedContent.trashPath, /^\.agentic-seo\/trash\/.+\/contents\/blog\/post-teste\.md$/);
+assert.equal(existsSync(join(projectRoot, "contents", "blog", "post-teste.md")), false);
 assert.equal(existsSync(join(projectRoot, deletedContent.trashPath)), true);
 
-const brainDeleteTarget = readProjectFile({ projectRoot, fileRel: "brain/voz.md" });
+const brainDeleteTarget = readProjectFile({ projectRoot, fileRel: "brain/voice.md" });
 const deletedBrain = deleteProjectFile({
   projectRoot,
-  fileRel: "brain/voz.md",
+  fileRel: "brain/voice.md",
   expectedHash: brainDeleteTarget.hash,
 });
 assert.equal(deletedBrain.ok, true);
-assert.equal(existsSync(join(projectRoot, "brain", "voz.md")), false);
-assert.match(readFileSync(join(projectRoot, "brain", "log.md"), "utf8"), /brain\/voz\.md movido para a lixeira do Companion Web/);
+assert.equal(existsSync(join(projectRoot, "brain", "voice.md")), false);
+assert.match(readFileSync(join(projectRoot, "brain", "log.md"), "utf8"), /brain\/voice\.md movido para a lixeira do Companion Web/);
 
 rmSync(tmp, { recursive: true, force: true });
 console.log("companion project-browser ok");

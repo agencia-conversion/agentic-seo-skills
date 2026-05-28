@@ -1,6 +1,6 @@
 ---
 name: topic-cluster
-description: When the user wants to build, refresh, or promote an SEO topic cluster (pillar + satellites) backed by keyword and SERP evidence. Runs in four phases — Research, Curate, Structure, Promote — with the cluster draft kept outside the brain until human approval.
+description: When the user wants to build, refresh, or promote an SEO topic cluster (pillar + satellites) backed by keyword and SERP evidence. Runs in four phases — Pesquisar, Curar, Estruturar, Promover — with the cluster draft kept outside the brain until human approval.
 metadata:
   version: 2.0.0
 ---
@@ -19,7 +19,7 @@ Do not use this skill to write the articles, run technical audits, or invent key
 
 - DataForSEO is the default for keyword suggestions and SERP evidence. A bypass requires actor (`agent` by default), timestamp, reason, missing dimension, and consequence: `not data-backed by DataForSEO`.
 - `hypothesis-only` is allowed only with a recorded bypass. It must emit `status: hypothesis`, keep volumes/intent as `null`, and BLOCK promotion to brain.
-- Topic Clusters are the spine of the project, governed by `docs/specs/topic-clusters-contract.md` (contract_version 2, plugin 0.3). Each active cluster lives in `project/clusters/<slug>/cluster.yaml` (machine source of truth, with `contract_version: 2`, `pillar`, `planned_satellites[]`, `satellite_overrides`) plus `project/brain/topic-clusters/<slug>.md` (authorial projection with materialized table between sentinels). Drafts live in `project/clusters/<slug>/draft.yaml` and never touch the brain. Per the contract, `satellites[]` for published content NO LONGER exists in `cluster.yaml`; affiliation lives in each `content/<origin>/<slug>.md` frontmatter `clusters: [<slug>, ...]`. After promotion or any cluster change, run `node scripts/cluster-sync.mjs` to materialize the brain.
+- Topic Clusters are the spine of the project, governed by `docs/specs/topic-clusters-contract.md` (contract_version 1, plugin 0.2). Each active cluster lives in `project/clusters/<slug>/cluster.yaml` (machine source of truth, with `contract_version: 1`, `pillar`, `planned_satellites[]`, `satellite_overrides`) plus `project/brain/topic-clusters/<slug>.md` (autoral projection with materialized table between sentinels). Drafts live in `project/clusters/<slug>/draft.yaml` and never touch the brain. Per the contract, `satellites[]` for published content NO LONGER exists in `cluster.yaml`; affiliation lives in each `contents/<origin>/<slug>.md` frontmatter `clusters: [<slug>, ...]`. After promotion or any cluster change, run `node scripts/cluster-sync.mjs` to materialize the brain.
 - Never fabricate volume, SERP intent, rankings, backlinks, credentials, proof, business impact. Unknown values stay `null`.
 - Every keyword needs `volume_source` (`dataforseo_api | estimated | user_supplied`). Volumes without source block the cluster.
 - Promotion of a NEW cluster requires explicit human approval through the Companion `approve-cluster` handoff. Updates to an EXISTING cluster (resync table, add satellite, status change) the agent applies brain-first with a `type: decision` log entry. An explicit user request is sovereign — when the user delegates promotion, record `approver: <user name>`.
@@ -31,7 +31,7 @@ Do not use this skill to write the articles, run technical audits, or invent key
 
 The skill runs in four phases. Suggest the next phase at the end of each one.
 
-### Phase 1 — Research
+### Phase 1 — Pesquisar
 
 **Check:** Are DataForSEO suggestions and SERP evidence captured under `project/sources/`?
 
@@ -52,9 +52,9 @@ If DataForSEO is unavailable and no bypass is recorded, stop here. Ask the user 
 
 **Suggest next:** propose Phase 2 with a candidate keyword pool to curate.
 
-### Phase 2 — Curate
+### Phase 2 — Curar
 
-**Check:** Did the human curate the pillar and satellites from the candidate pool?
+**Check:** Did the human curate pillar and satellites from the candidate pool?
 
 Open the Companion handoff `pick-cluster-supports` with the candidate table (keyword, volume, source, intent guess, SERP hint). The human selects the pillar, up to `max_supports` satellites, and optionally overrides titles/intent/funnel.
 
@@ -64,7 +64,7 @@ This is a hard human gate. If the user explicitly delegates the curation to the 
 
 **Suggest next:** Phase 3 — write the draft.
 
-### Phase 3 — Structure
+### Phase 3 — Estruturar
 
 **Check:** Is the draft written to `project/clusters/<slug>/draft.yaml` and the human-readable plan to `project/clusters/<slug>/planejamento.md`?
 
@@ -73,22 +73,21 @@ Write both files. The draft never touches the brain.
 `draft.yaml` schema:
 
 ```yaml
-contract_version: 2
 slug: <kebab-slug>
 name: "<Cluster Name>"
-area: <slug-from-brain-editorial>
+area: <slug-from-brain-topic-clusters>
 status: draft                       # draft | active | retired
-context: "<2-3 line cluster thesis>"
+context: "<2-3 line thesis do cluster>"
 pillar:
   slug: <content-slug>
   keyword: "<pillar keyword>"
   volume: <int|null>
   volume_source: dataforseo_api | estimated | user_supplied | null
-planned_satellites:
+satellites:
   - slug: <content-slug>
     role: satellite
     status: planned | drafting | published
-    action: create | revise | maintain | evaluate
+    acao: criar | revisar | manter | avaliar
     intent: informational | comparative | commercial | navigational | null
     keyword: "<keyword>"
     volume: <int|null>
@@ -114,14 +113,14 @@ On `import-from-existing` reruns, merge by slug: keep curated `title`, `entity`,
 
 **Suggest next:** Phase 4 — promote.
 
-### Phase 4 — Promote
+### Phase 4 — Promover
 
 **Check:** Is the draft fit for the brain and is a human approver available?
 
 NEW cluster (no `project/brain/topic-clusters/<slug>.md` yet): open Companion handoff `approve-cluster`. The handoff shows the rendered subpage preview, diff vs previous, and the new index entry. The human approves; the skill then:
 
 1. Moves `draft.yaml` → `cluster.yaml` (sets `status: active`, sets `provenance.promoted_at` and `promoted_by`).
-2. Writes `project/brain/topic-clusters/<slug>.md` (authorial projection: title + summary + pillar link + content table + gaps + evidence).
+2. Writes `project/brain/topic-clusters/<slug>.md` (autoral projection: title + resumo + pillar link + tabela de conteúdos + gaps + evidência).
 3. Updates `project/brain/topic-clusters.md` index (adds the cluster row, refreshes counts).
 4. Appends a `type: decision` entry to `project/brain/log.md` with `scope: brain/topic-clusters/<slug>.md, brain/topic-clusters.md, project/clusters/<slug>/cluster.yaml`, `approver: <human name>`, evidence pointing to `cluster.yaml` and `planejamento.md`.
 
@@ -146,7 +145,7 @@ cluster:
   slug: ""
   status: draft | active | retired
   area: ""
-  pilar_slug: ""
+  pillar_slug: ""
 artifacts:
   draft: project/clusters/<slug>/draft.yaml
   planejamento: project/clusters/<slug>/planejamento.md

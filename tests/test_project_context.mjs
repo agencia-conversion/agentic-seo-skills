@@ -20,18 +20,16 @@ const config = JSON.parse(readFileSync(join(project, ".agentic-seo", "project.js
 assert.equal(config.country, "Portugal");
 assert.equal(config.market, "Portugal");
 assert.equal(config.language, "pt-PT");
-assert.equal(config.schema_version, "3.0.0");
+assert.equal(config.schema_version, "2.0.0");
 assert.equal(config.single_project_root, "project");
 
 const brainIndex = readFileSync(join(project, "brain", "index.md"), "utf8");
 assert.ok(brainIndex.includes('title: "Context test"'));
 
-// Filenames are EN-canonical; titles come from the pt-BR variant when language=pt-BR.
 const expectedBrainTitles = {
   "identity.md": "Identidade",
   "voice.md": "Tom de Voz",
   "technology.md": "Tecnologia",
-  "editorial.md": "Editorial",
   "topic-clusters.md": "Topic Clusters",
   "review.md": "Revisão",
   "log.md": "Log",
@@ -42,11 +40,11 @@ for (const [page, title] of Object.entries(expectedBrainTitles)) {
   assert.doesNotMatch(text, /title:\s*".+ — Context test"/, `brain/${page} should not include project suffix`);
 }
 
-for (const page of ["index.md", "identity.md", "voice.md", "technology.md", "editorial.md", "topic-clusters.md", "review.md", "log.md"]) {
+for (const page of ["index.md", "identity.md", "voice.md", "technology.md", "topic-clusters.md", "review.md", "log.md"]) {
   assert.ok(existsSync(join(project, "brain", page)), `missing brain/${page}`);
 }
-for (const origem of ["blog", "linkedin", "podcast", "other"]) {
-  assert.ok(existsSync(join(project, "content", origem, "_template.md")), `missing content/${origem}/_template.md`);
+for (const origin of ["blog", "linkedin", "podcast", "other"]) {
+  assert.ok(existsSync(join(project, "contents", origin, "_template.md")), `missing contents/${origin}/_template.md`);
 }
 
 const log = readFileSync(join(project, "brain", "log.md"), "utf8");

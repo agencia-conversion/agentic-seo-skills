@@ -7,6 +7,13 @@ updated: "2026-05-24"
 
 Topic Clusters organiza os temas editoriais da fixture em torno de um conteúdo pilar e seus satélites publicados.
 
+## Fundamentos
+
+```agentic-clusters-by-area
+version: 1
+area: fundamentos
+```
+
 <!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->
 ## Painel
 
@@ -22,7 +29,7 @@ Topic Clusters organiza os temas editoriais da fixture em torno de um conteúdo 
 
 | Cluster | Pilar | Publicados | Planejados | Status |
 | --- | --- | ---: | ---: | --- |
-| [Sample Cluster](topic-clusters/sample-cluster.md) | [Sample Pilar](../conteudos/blog/sample-pilar.md) | 2 | 0 | active |
+| [Sample Cluster](topic-clusters/sample-cluster.md) | [Sample Pilar](../contents/blog/sample-pilar.md) | 2 | 0 | active |
 
 <!-- END cluster-index-table:auto -->
 

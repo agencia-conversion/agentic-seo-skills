@@ -22,7 +22,7 @@ for (const required of [
   "project/workbench/",
   "project/artifacts/",
   "project/brain/",
-  "project/content/",
+  "project/contents/",
   "browser handoff",
   "página",
   "conteúdo",

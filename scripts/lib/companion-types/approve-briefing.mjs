@@ -63,7 +63,7 @@ function renderDraft(brief) {
   const evidenceSources = asStringList(brief.evidence_sources);
   const voiceFilled = brief.context_evidence?.voice_evidence?.filled === true || brief.voice_context?.filled === true;
   const contextEvidencePath = String(brief.context_evidence?.path || `workbench/content/${slug}/context-evidence.yaml`);
-  const origem = String(brief.origem || "blog");
+  const origin = String(brief.origin || "blog");
   const publishedAt = String(brief.published_at || todayIso());
   const sourceUrl = String(brief.source_url || "");
   const area = String(brief.area || "");
@@ -77,7 +77,7 @@ function renderDraft(brief) {
     .filter((item) => Number(item.level) === 2)
     .map((item) => `## ${String(item.title || "Seção")}\n\n${String(item.purpose || "Desenvolver esta seção com orientação pública, evidência proporcional e próximos passos claros.")}`)
     .join("\n\n");
-  return `---\ntitle: ${yamlString(topic)}\nslug: ${yamlString(slug)}\npublished_at: ${yamlString(publishedAt)}\nsource_url: ${yamlString(sourceUrl)}\norigem: ${yamlString(origem)}\narea: ${yamlString(area)}\npublic_content: true\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nvoice_filled: ${voiceFilled}\ntarget_words: ${targetWords}\nsource_policy: frontmatter-consulted-sources\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\n---\n\n# ${topic}\n\n${topic} precisa responder à intenção de busca com clareza, utilidade e limites explícitos. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar aplicação prática e evitar promessas que não possam ser sustentadas.\n\n${sections}\n`;
+  return `---\ntitle: ${yamlString(topic)}\nslug: ${yamlString(slug)}\npublished_at: ${yamlString(publishedAt)}\nsource_url: ${yamlString(sourceUrl)}\norigin: ${yamlString(origin)}\narea: ${yamlString(area)}\npublic_content: true\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nvoice_filled: ${voiceFilled}\ntarget_words: ${targetWords}\nsource_policy: frontmatter-consulted-sources\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\n---\n\n# ${topic}\n\n${topic} precisa responder à intenção de busca com clareza, utilidade e limites explícitos. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar aplicação prática e evitar promessas que não possam ser sustentadas.\n\n${sections}\n`;
 }
 
 function writeDraft(projectRoot, brief) {
@@ -181,8 +181,8 @@ export async function handleSubmit(body, ctx) {
   brief.approval = {
     mode: brief.approval?.mode || "handoff",
     status,
-    aprovador: approverClean,
-    aprovado_em: null,
+    approver: approverClean,
+    approved_at: null,
     decided_at: new Date().toISOString(),
     notes: notes?.trim() || null,
   };
@@ -198,14 +198,14 @@ export async function handleSubmit(body, ctx) {
 
   appendLogEntry(join(ctx.projectRoot, "brain", "log.md"), {
     date: today,
-    tipo: "decisao",
-    titulo: `${brief.topic} · ${status}`,
-    escopo: [ctx.briefRel, ...(draftPath ? [relative(ctx.projectRoot, draftPath)] : [])],
-    decisao: status === "ready" ? `Briefing ${ctx.briefRel} registrado como pronto e draft gerado em artifacts.` : `Briefing ${ctx.briefRel} marcado como ${status}.`,
-    evidencia: ctx.briefRel,
-    aprovador: approverClean,
-    aprovado_em: null,
-    notas: notes?.trim() || null,
+    type: "decision",
+    title: `${brief.topic} · ${status}`,
+    scope: [ctx.briefRel, ...(draftPath ? [relative(ctx.projectRoot, draftPath)] : [])],
+    decision: status === "ready" ? `Briefing ${ctx.briefRel} registrado como pronto e draft gerado em artifacts.` : `Briefing ${ctx.briefRel} marcado como ${status}.`,
+    evidence: ctx.briefRel,
+    approver: approverClean,
+    approved_at: null,
+    notes: notes?.trim() || null,
   });
   return { ok: true, status, approver: approverClean, brief: ctx.briefPath, draft: draftPath };
 }

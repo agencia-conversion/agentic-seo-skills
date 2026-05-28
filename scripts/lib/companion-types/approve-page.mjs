@@ -16,13 +16,20 @@ import {
 const VALID_DECISIONS = new Set(["approved", "rejected", "needs-evidence"]);
 const AUTHORIAL_BRAIN_PAGES = new Set([
   "brain/index.md",
-  "brain/identidade.md",
-  "brain/voz.md",
-  "brain/tecnologia.md",
-  "brain/editorial.md",
+  "brain/identity.md",
+  "brain/voice.md",
+  "brain/technology.md",
   "brain/topic-clusters.md",
-  "brain/revisao.md",
+  "brain/products.md",
+  "brain/review.md",
 ]);
+
+// Any other top-level brain/<name>.md page is also authorial when registered
+// as `type: decision` in brain/log.md (contract: extensible brain).
+function isExtensibleBrainPage(rel) {
+  if (typeof rel !== "string") return false;
+  return /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) && rel !== "brain/log.md";
+}
 
 function parseArgs(argv) {
   const out = {};
@@ -56,7 +63,7 @@ export function buildContext({ projectRoot, fileRel }) {
   const missingSources = findMissingSources(body, logFile);
   const brokenLinks = findBrokenWikilinks(body, brainRoot);
   const diff = diffAgainstSnapshot(projectRoot, fileRel, body);
-  const isAuthorial = AUTHORIAL_BRAIN_PAGES.has(fileRel);
+  const isAuthorial = AUTHORIAL_BRAIN_PAGES.has(fileRel) || isExtensibleBrainPage(fileRel);
   return {
     filePath,
     fileRel,
@@ -106,19 +113,19 @@ export async function handleSubmit(body, ctx, deps = {}) {
     sourcesAdded = [...ctx.missingSources];
   }
 
-  const tipo = "decisao";
+  const type = "decision";
   const decisionLabel = decision === "approved" ? "registrado" : decision;
-  const decisao = `${ctx.fileRel} marcado como ${decisionLabel} por ${approverClean}.`;
+  const decision_text = `${ctx.fileRel} marcado como ${decisionLabel} por ${approverClean}.`;
   appendLogEntry(logFile, {
     date: today,
-    tipo,
-    titulo: `${ctx.pageBaseName} ${decisionLabel}`,
-    escopo: ctx.fileRel,
-    decisao,
-    evidencia: ctx.fileRel,
-    aprovador: approverClean,
-    aprovado_em: null,
-    notas: notes ? notes.trim() : null,
+    type,
+    title: `${ctx.pageBaseName} ${decisionLabel}`,
+    scope: ctx.fileRel,
+    decision: decision_text,
+    evidence: ctx.fileRel,
+    approver: approverClean,
+    approved_at: null,
+    notes: notes ? notes.trim() : null,
   });
 
   return {

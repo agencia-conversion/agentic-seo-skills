@@ -158,14 +158,14 @@ export async function handleSubmit(body, ctx, projectRoot) {
   const accepted = classification["unchanged-from-v1"].length !== ctx.files.length;
   appendLogEntry(logFile, {
     date: today,
-    tipo: "decisao",
-    titulo: `Review revisado em ${ctx.files.length} arquivo(s)`,
-    escopo: ctx.files.map((f) => f.path.replace(/^brain\//, "").replace(/\.md$/, "")).join(", "),
-    decisao: summaryParts.join("; ") + " | " + detailLines.join(" / "),
-    evidencia: ctx.files.map((f) => f.path).join(", "),
-    aprovador: approverClean,
-    aprovado_em: null,
-    notas: notes ? notes.trim() : null,
+    type: "decision",
+    title: `Review revisado em ${ctx.files.length} arquivo(s)`,
+    scope: ctx.files.map((f) => f.path.replace(/^brain\//, "").replace(/\.md$/, "")).join(", "),
+    decision: summaryParts.join("; ") + " | " + detailLines.join(" / "),
+    evidence: ctx.files.map((f) => f.path).join(", "),
+    approver: approverClean,
+    approved_at: null,
+    notes: notes ? notes.trim() : null,
   });
 
   return { ok: true, approver: approverClean, classification };

@@ -1,204 +1,207 @@
 ---
-title: "Tone of Voice"
+title: "Tom de Voz"
 updated: "<YYYY-MM-DD>"
 ---
 
-# Tone of Voice
+# Tom de Voz
 
 <!--
-PURPOSE: Executable editorial guideline for this project. Not an adjective
-brandbook. It defines what is publishable and what is not, with project-
-specific examples. The global journalistic rule (lead, attribution,
-anti-AI-slop, anti-Conversion-explainer, pt-BR accent preservation,
-em-dash ban in pt-BR prose) lives in `skills/brain-keeper/SKILL.md` and
-applies to every project. This file carries the particularities of this
-project and materializes the global rule in "good vs bad" pairs taken
-from this brand. <!-- RULE: --> comments are binding and must be REMOVED
-when the file is filled.
+PROPOSITO: Guideline editorial executavel deste projeto. Não e um
+brandbook de adjetivos. Define o que e publicavel e o que não e, com
+exemplos especificos deste projeto. A regra global jornalistica (lead,
+atribuicao, anti-IA-slop, anti-Conversion-explainer, acentuacao pt-BR,
+banimento de em-dash em prosa pt-BR) vive em `skills/brain-keeper/SKILL.md`
+e se aplica a todo projeto. Este arquivo carrega as particularidades
+deste projeto e materializa a regra global em pares "bom vs ruim" tirados
+desta marca. Comentarios <!-- REGRA: --> sao vinculantes e devem ser
+REMOVIDOS quando o arquivo for preenchido.
 -->
 
-## Principles
+## Princípios
 
 <!--
-RULE: 3 to 7 editorial principles SPECIFIC to this project. Each
-principle on a single imperative line, in the project's language. DO
-NOT repeat the global journalistic rule here (lead, attribution, etc.) —
-it already applies. Here go the choices that differentiate this
-project: register, point of view, author positioning, editorial taboo.
+REGRA: 3 a 7 principios editoriais ESPECIFICOS deste projeto. Cada
+principio em uma linha imperativa, em pt-BR ou no idioma do projeto.
+NÃO repita a regra global jornalistica aqui (lead, atribuicao, etc) —
+ela ja vale. Aqui ficam as escolhas que diferenciam este projeto:
+registro, ponto de vista, posicionamento de autor, tabu editorial.
 
-Examples of the right kind:
-- "Write in first-person singular, with the author taking a position."
-- "Never use a client case without explicit authorization."
-- "Treat the discipline as a practice in construction, not a finished
-  product."
+Exemplos do tipo certo:
+- "Escrever em primeira pessoa do singular, com o autor assumindo a
+  posicao."
+- "Nunca usar caso de cliente sem autorizacao explicita."
+- "Tratar a disciplina como pratica em construcao, não como produto
+  pronto."
 -->
 
-- <principle 1>
-- <principle 2>
-- <principle 3>
+- <princípio 1>
+- <princípio 2>
+- <princípio 3>
 
-## Lead and introduction
+## Lead e apresentação
 
 <!--
-RULE: Lead in the first sentence: what it is, for whom, why it matters.
-Short sentences. Subject + verb + object. No rhetorical preamble ("in
-this article we will understand", "have you ever wondered"). In
-authorial brain pages, the introduction of the brand or entity NEVER
-describes the source ("the home says", "the site states") — it asserts
-directly and puts the source in the evidence section. Particularity of
-this project:
+REGRA: Lead na primeira frase: o que e, para quem, por que importa.
+Frases curtas. Sujeito + verbo + objeto. Sem proemio retorico ("neste
+artigo vamos entender", "voce ja se perguntou"). Em páginas autorais
+do brain, a apresentacao da marca ou da entidade NUNCA descreve a
+fonte ("a home diz", "o site afirma") — afirma diretamente e poe a
+fonte na secao de evidência. Particularidade deste projeto:
 -->
 
-<how this project treats leads and openings, in 2-4 lines>
+<como este projeto trata leads e aberturas, em 2-4 linhas>
 
-## Attribution
+## Atribuição
 
 <!--
-GLOBAL RULE: Every factual statement cites a source. Attribution goes
-in the body when it is a number, metric, opinion on third parties, or
-direct quote. Attribution goes in the footer (## Evidence) when the
-brand itself asserts something about itself. DO NOT invent endorsement,
-award, client, citation.
+REGRA GLOBAL: Toda afirmacao factual cita fonte. Atribuicao vai no
+corpo quando se trata de numero, metrica, opiniao sobre terceiros,
+ou citacao direta. Atribuicao vai no rodape (## Evidência) quando se
+trata da propria marca afirmando sobre si mesma. NÃO inventar
+endosso, premio, cliente, citacao.
 
-Particularity of this project (fill in):
+Particularidade deste projeto (preencher):
 -->
 
-### When to attribute in the body
+### Quando atribuir no corpo
 
 <!--
-Example: "Number of site visitors", "comparison with competitor",
-"third-party statement". Fill in with cases specific to this project.
+Exemplo: "Numero de visitantes do site", "comparacao com concorrente",
+"declaracao de terceiro". Preencha com os casos especificos deste
+projeto.
 -->
 
-- <case 1>
+- <caso 1>
 
-### When attribution goes to Evidence (footer)
+### Quando a atribuição vai para a Evidência (rodapé)
 
 <!--
-Example: "Brand asserting about itself on an institutional page",
-"information from an about page". Fill in with specific cases.
+Exemplo: "Marca afirmando sobre si mesma em página institucional",
+"informacao de página sobre nos". Preencha com casos especificos.
 -->
 
-- <case 1>
+- <caso 1>
 
-## Vocabulary to avoid
+## Vocabulário a evitar
 
-### AI-slop and empty adjectives
+### IA-slop e adjetivos vazios
 
 <!--
-GLOBAL RULE: Avoid "crucial", "robust", "comprehensive", "nuanced",
-"fundamental", "significant", "holistic", "essential", "synergistic",
-"scalable" (without vector), "revolutionary", "disruptive", "innovative"
-(self-referential), "leverage", "optimize" (without object), "maximize",
-"ensure" (empty), "deliver value", "ecosystem" (outside biology/tech),
-"journey" (marketing), "empower", "actionable", "strategic" (alibi),
-"intelligent" (product), "transformational", "next-gen", "end-to-end"
-(only if true). Particularities of this project (specific adjectives
-agents keep trying and you want to ban):
+REGRA GLOBAL: Evite "crucial", "robusto", "compreensivo", "nuançado",
+"fundamental", "significativo", "abrangente", "holistico", "essencial",
+"sinergico", "escalavel" (sem vetor), "revolucionario", "disruptivo",
+"inovador" (autoreferente), "alavancar", "otimizar" (sem objeto),
+"maximizar", "garantir" (vazio), "entregar valor", "ecossistema"
+(fora de biologia/técnico), "jornada" (marketing), "empoderar",
+"acionavel", "estrategico" (alibi), "inteligente" (produto),
+"transformacional", "next-gen", "end-to-end" (prefira "de ponta a
+ponta" e so se for verdade). Particularidades deste projeto (adjetivos
+especificos que agentes vem tentando usar e voce quer banir):
 -->
 
-- <banned term 1>
-- <banned term 2>
+- <termo banido 1>
+- <termo banido 2>
 
-### Conversion-explainer voice (faux didacticism)
+### Voz Conversion-explainer (didatismo postiço)
 
 <!--
-GLOBAL RULE: Avoid "let us understand", "in this article", "as you can
-see", "as we saw", "it is worth remembering", "it is important to note",
-"do not forget", "stay tuned", "now that we have seen", "in other
-words", "simplifying", "basically", "in summary" (at the opening), "you
-will learn", "discover how", "keep reading to know", "before anything
-else", "without further ado", "you must have heard of", "the answer is
-simple", "the truth is that", "the secret is in". The text explains by
-asserting, not by leading the reader by the hand. Particularities:
+REGRA GLOBAL: Evite "vamos entender", "neste artigo", "como voce pode
+ver", "como vimos", "vale lembrar", "e importante notar", "não
+esqueca", "fique atento", "agora que vimos", "em outras palavras",
+"simplificando", "basicamente", "em resumo" (na abertura), "voce vai
+aprender", "descubra como", "continue lendo para saber", "antes de
+mais nada", "sem mais delongas", "voce ja deve ter ouvido falar", "a
+resposta e simples", "a verdade e que", "o segredo esta em". O texto
+explica afirmando, não conduzindo o leitor pela mao. Particularidades:
 -->
 
-- <banned pattern 1>
+- <padrao banido 1>
 
-### Promotional adjectives without proof
+### Adjetivos promocionais sem prova
 
 <!--
-GLOBAL RULE: "Leader", "main", "largest", "best", "unique", "pioneering",
-"reference", "consolidated", "renowned", "recognized", "award-winning",
-"respected", "innovative", "avant-garde", "complete", "exclusive",
-"definitive", "historic", "remarkable", "memorable" only enter with
-proof cited in the same sentence or in ## Evidence, with a named
-external source and date. Size adjectives ("large", "small", "medium")
-only with explicit criteria ("above 500 employees, IBGE definition").
-Particularities:
+REGRA GLOBAL: "Lider", "principal", "maior", "melhor", "unico",
+"pioneiro", "referencia", "consagrado", "renomado", "reconhecido",
+"premiado", "respeitado", "inovador", "vanguardista", "completo",
+"exclusivo", "definitivo", "historico", "marcante", "memoravel" so
+entram com prova citada na mesma frase ou em ## Evidência, com fonte
+externa nominal e data. Adjetivos de tamanho ("grande", "pequeno",
+"medio") so com criterio explicito ("acima de 500 funcionarios,
+definicao IBGE"). Particularidades:
 -->
 
-- <banned adjective 1>
+- <adjetivo banido 1>
 
-## Preferred vocabulary by area
+## Vocabulário preferido por área
 
 <!--
-RULE: Table with canonical terms for this project, by editorial area.
-The "Instead of" column lists alternatives you want to avoid; the "Why"
-column justifies the choice. Initially the template carries 1 blank
-line; the filling agent should add at least 1 term per active editorial
-area.
+REGRA: Tabela com termos canonicos deste projeto, por area editorial.
+A coluna "Em vez de" lista as alternativas que voce quer evitar; a
+coluna "Por que" justifica a escolha. Inicialmente o template traz
+1 linha em branco; o preenchedor deve adicionar pelo menos 1 termo
+por area editorial ativa.
 -->
 
-| Area | Preferred term | Instead of | Why |
+| Área | Termo preferido | Em vez de | Por quê |
 | --- | --- | --- | --- |
-| <area> | <term> | <rejected alternative> | <short reason> |
+| <área> | <termo> | <alternativa rejeitada> | <razão curta> |
 
-## Accents and language
-
-<!--
-GLOBAL RULE: pt-BR preserves accents in prose, titles, authorial slugs
-and logs ("pagina" is wrong; the correct form is "página"). ASCII only
-for file slugs, IDs and code. en preserves apostrophes and canonical
-formatting. Other languages follow their canonical rules. Em-dash (—)
-in pt-BR prose is forbidden; use comma, period or colon. Particularity
-of this project: primary language, secondary languages, and any
-specific typographic convention (e.g.: use guillemets, avoid emoji,
-etc.).
--->
-
-- Primary language: <pt-BR | en | ...>
-- Secondary languages: <list or `none`>
-- Specific typographic conventions: <e.g. curly quotes, no emoji>
-
-## Errata and corrections
+## Acentuação e idioma
 
 <!--
-RULE: How this project handles published errors. Common options: silent
-edit, edit with note, keep and add an errata note, take down. The
-decision for this project:
+REGRA GLOBAL: pt-BR preserva acentos em prosa, titulos, slugs autorais
+e logs ("página" e errado; o correto e "página"). ASCII so para slugs
+de arquivo, IDs e codigo. en preserva apostrofes e formatacao
+canonica. Outros idiomas seguem suas regras canonicas. Em dash (—) em
+prosa pt-BR e proibido; use virgula, ponto ou dois-pontos.
+Particularidade deste projeto: idioma primario, idiomas secundarios,
+e qualquer convencao tipografica especifica (ex.: usar aspas baixas,
+evitar emoji, etc).
 -->
 
-<2-4 lines on this project's errata treatment, with reference to [[log]]
-as the recording mechanism>
+- Idioma primário: <pt-BR | en | ...>
+- Idiomas secundários: <lista ou `nenhum`>
+- Convenções tipográficas específicas: <ex.: aspas curvas, sem emoji>
 
-## Reference examples
+## Erratas e correções
 
 <!--
-RULE: AT LEAST 2 "Good vs Bad" pairs specific to this project. Do not
-copy generic examples from brain-keeper. Take them from real pages,
-already-written drafts, or previous attempts that failed lint.
-
-Structure of each pair:
-- Context (1 line).
-- Good: real or plausible excerpt from this project.
-- Bad: variant of the same excerpt with the defect the team wants to
-  avoid (AI-slop, inverted lead, wrong attribution, promotional
-  adjective).
+REGRA: Como este projeto trata erros publicados. Opcoes comuns:
+edita silenciosamente, edita com nota, mantem e adiciona nota de
+errata, retira do ar. A decisao deste projeto:
 -->
 
-### Example 1 — <context>
+<2-4 linhas sobre o tratamento de errata deste projeto, com
+referencia a [[log]] como mecanismo de registro>
 
-**Good**
-<good excerpt>
+## Exemplos de referência
 
-**Bad**
-<bad excerpt>
+<!--
+REGRA: PELO MENOS 2 pares "Bom vs Ruim" especificos deste projeto.
+Não copiar exemplos genericos do brain-keeper. Tirar de páginas reais,
+de drafts ja escritos, ou de tentativas anteriores que falharam o
+lint.
 
-### Example 2 — <context>
+Estrutura de cada par:
+- Contexto (1 linha).
+- Bom: trecho real ou plausivel deste projeto.
+- Ruim: variante do mesmo trecho com o defeito que o time quer
+  evitar (IA-slop, lead invertido, atribuicao errada, adjetivo
+  promocional).
+-->
 
-**Good**
-<good excerpt>
+### Exemplo 1 — <contexto>
 
-**Bad**
-<bad excerpt>
+**Bom**
+<trecho bom>
+
+**Ruim**
+<trecho ruim>
+
+### Exemplo 2 — <contexto>
+
+**Bom**
+<trecho bom>
+
+**Ruim**
+<trecho ruim>

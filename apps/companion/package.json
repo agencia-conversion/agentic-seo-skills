@@ -30,6 +30,7 @@
     "@tiptap/react": "^3.23.6",
     "@tiptap/starter-kit": "^3.23.6",
     "@tiptap/suggestion": "^3.23.6",
+    "chokidar": "^3.6.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "cytoscape": "^3.33.4",

@@ -19,12 +19,10 @@ required_tables:
     min_rows: 1
     columns:
       - key: role
-        aliases: ["papel"]
       - key: slug
       - key: keyword
       - key: volume
       - key: intent
-        aliases: ["intencao"]
   - id: supports
     section:
       headings: ["Supports", "Suportes"]
@@ -35,9 +33,7 @@ required_tables:
         min_rows: 0
     columns:
       - key: role
-        aliases: ["papel"]
       - key: slug
       - key: keyword
       - key: volume
       - key: intent
-        aliases: ["intencao"]

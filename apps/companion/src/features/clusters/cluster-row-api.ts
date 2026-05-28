@@ -21,6 +21,24 @@ export function slugify(input: string): string {
     .slice(0, 60);
 }
 
+async function readApiResult(res: Response): Promise<ClusterApiResult> {
+  let body: any = null;
+  try {
+    body = await res.json();
+  } catch {
+    body = null;
+  }
+  if (body && typeof body === 'object') {
+    if (res.ok && body.ok !== false) {
+      return { ok: true, ...body };
+    }
+    if (typeof body.reason === 'string') {
+      return { ok: false, reason: body.reason };
+    }
+  }
+  return { ok: false, reason: `http-${res.status}` };
+}
+
 export async function postSatellite(
   clusterSlug: string,
   title: string,
@@ -34,11 +52,56 @@ export async function postSatellite(
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
-      body: JSON.stringify({ slug, keyword: title, syncWait: true }),
+      body: JSON.stringify({ slug, syncWait: true }),
     },
   );
-  if (!res.ok) return { ok: false, reason: `http-${res.status}` };
-  return res.json();
+  return readApiResult(res);
+}
+
+export interface PostPublishedContentInput {
+  title: string;
+  origin: 'blog' | 'linkedin' | 'podcast' | 'other';
+  clusters: string[];
+}
+
+export interface PostPublishedContentResult extends ClusterApiResult {
+  path?: string;
+  slug?: string;
+}
+
+// Creates a real published content file under contents/<origin>/<slug>.md
+// with the typed title preserved verbatim in frontmatter and the cluster
+// linked via clusters: []. Used by inline CTA on cluster pages so the user
+// gets a clickable row immediately, not a planned-satellite placeholder.
+export async function postPublishedContent(
+  input: PostPublishedContentInput,
+): Promise<PostPublishedContentResult> {
+  const token = getCompanionToken();
+  if (!token) return { ok: false, reason: 'missing-token' };
+  const title = String(input.title || '').trim();
+  if (!title) return { ok: false, reason: 'invalid-title' };
+  const res = await fetch(
+    `/api/project/file/create?token=${encodeURIComponent(token)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
+      body: JSON.stringify({
+        kind: 'content',
+        title,
+        origin: input.origin,
+        clusters: input.clusters,
+        syncWait: true,
+      }),
+    },
+  );
+  const body = await res.json().catch(() => null) as Record<string, unknown> | null;
+  if (!res.ok || !body || body.ok === false) {
+    const reason = typeof body?.reason === 'string' ? body.reason : `http-${res.status}`;
+    return { ok: false, reason };
+  }
+  const path = typeof body.path === 'string' ? body.path : undefined;
+  const slug = path ? path.replace(/\.md$/, '').split('/').pop() : undefined;
+  return { ok: true, path, slug };
 }
 
 export async function patchRow(
@@ -58,13 +121,12 @@ export async function patchRow(
       body: JSON.stringify({ field, value, kind, syncWait: true }),
     },
   );
-  if (!res.ok) return { ok: false, reason: `http-${res.status}` };
-  return res.json();
+  return readApiResult(res);
 }
 
 export async function patchContentMetadata(
   contentSlug: string,
-  field: 'keyword' | 'intent' | 'volume',
+  field: 'title' | 'keyword' | 'intent' | 'volume',
   value: string,
 ): Promise<ClusterApiResult> {
   const token = getCompanionToken();
@@ -77,6 +139,43 @@ export async function patchContentMetadata(
       body: JSON.stringify({ field, value, syncWait: true }),
     },
   );
-  if (!res.ok) return { ok: false, reason: `http-${res.status}` };
-  return res.json();
+  return readApiResult(res);
+}
+
+export interface DeleteContentResult extends ClusterApiResult {
+  trashedPath?: string;
+  originalPath?: string;
+}
+
+export async function deleteContent(contentSlug: string): Promise<DeleteContentResult> {
+  const token = getCompanionToken();
+  if (!token) return { ok: false, reason: 'missing-token' };
+  const res = await fetch(
+    `/api/project/content/${encodeURIComponent(contentSlug)}/delete?token=${encodeURIComponent(token)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
+      body: JSON.stringify({ syncWait: true }),
+    },
+  );
+  return readApiResult(res);
+}
+
+export interface DuplicateContentResult extends ClusterApiResult {
+  newSlug?: string;
+  newPath?: string;
+}
+
+export async function duplicateContent(contentSlug: string): Promise<DuplicateContentResult> {
+  const token = getCompanionToken();
+  if (!token) return { ok: false, reason: 'missing-token' };
+  const res = await fetch(
+    `/api/project/content/${encodeURIComponent(contentSlug)}/duplicate?token=${encodeURIComponent(token)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
+      body: JSON.stringify({ syncWait: true }),
+    },
+  );
+  return readApiResult(res);
 }

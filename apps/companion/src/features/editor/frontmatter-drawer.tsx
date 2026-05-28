@@ -10,23 +10,24 @@ import { Select } from '@/components/select';
 import { useI18n } from '@/components/i18n-provider';
 import { getCompanionToken } from '@/features/clusters/cluster-row-api';
 import { INTENT_CANONICAL_OPTIONS, intentLabel } from '@/lib/cluster-labels';
+import { syncBus } from '@/lib/sync-bus';
 
-const ORIGEM_OPTIONS = [
+const ORIGIN_OPTIONS = [
   { value: 'blog', label: 'blog' },
   { value: 'linkedin', label: 'linkedin' },
   { value: 'podcast', label: 'podcast' },
-  { value: 'outros', label: 'outros' },
+  { value: 'other', label: 'other' },
 ];
 
-const PAPEL_OPTIONS = [
-  { value: 'pilar', label: 'pilar' },
-  { value: 'satelite', label: 'satelite' },
+const ROLE_OPTIONS = [
+  { value: 'pillar', label: 'pillar' },
+  { value: 'satellite', label: 'satellite' },
 ];
 
 const CONTENT_FIELD_ORDER = [
   'title',
   'slug',
-  'origem',
+  'origin',
   'published_at',
   'source_url',
   'keyword',
@@ -36,15 +37,15 @@ const CONTENT_FIELD_ORDER = [
 ] as const;
 
 const CONTENT_FIELD_SET = new Set<string>(CONTENT_FIELD_ORDER);
-const DEDICATED_KEYS = new Set(['clusters', 'papel']);
+const DEDICATED_KEYS = new Set(['clusters', 'role']);
 const TITLE_KEY = 'title';
 
 interface ClusterOption {
   slug: string;
-  nome: string;
+  name: string;
   icon?: string;
   status?: string;
-  pilar_slug?: string;
+  pillar_slug?: string;
 }
 
 function useClusterOptions(enabled: boolean): { options: ClusterOption[]; refresh: () => Promise<void> } {
@@ -93,7 +94,7 @@ export function FrontmatterDrawer({
   const savePage = useWorkspace((s) => s.savePage);
   const loadPage = useWorkspace((s) => s.loadPage);
   const refreshProjectTree = useWorkspace((s) => s.refreshProjectTree);
-  const isContent = page.path.startsWith('conteudos/');
+  const isContent = page.path.startsWith('contents/');
   const { options: clusterOptions, refresh: refreshClusterOptions } = useClusterOptions(open && isContent);
   const [clusterError, setClusterError] = useState<string | null>(null);
 
@@ -105,6 +106,23 @@ export function FrontmatterDrawer({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, onClose]);
+
+  // Listen for content:changed coming from other views (contents list /
+  // cluster table) and reload the current page so the drawer reflects
+  // the new frontmatter values.
+  const contentSlugForBus = String(
+    (page.frontmatter as Record<string, unknown> | undefined)?.slug
+      || page.path.split('/').pop()?.replace(/\.md$/, '')
+      || '',
+  );
+  useEffect(() => {
+    if (!open || !isContent || !contentSlugForBus) return;
+    return syncBus.on((event) => {
+      if (event.type === 'content:changed' && event.slug === contentSlugForBus) {
+        void loadPage(page.id, { force: true });
+      }
+    });
+  }, [open, isContent, contentSlugForBus, page.id, loadPage]);
 
   if (!open) return null;
 
@@ -122,10 +140,10 @@ export function FrontmatterDrawer({
   const clustersValue: string[] = Array.isArray(frontmatter.clusters)
     ? (frontmatter.clusters as unknown[]).map((c) => String(c))
     : [];
-  const papelValue: Record<string, string> =
-    frontmatter.papel && typeof frontmatter.papel === 'object'
+  const roleValue: Record<string, string> =
+    frontmatter.role && typeof frontmatter.role === 'object'
       ? Object.fromEntries(
-          Object.entries(frontmatter.papel as Record<string, unknown>).map(([k, v]) => [k, String(v)]),
+          Object.entries(frontmatter.role as Record<string, unknown>).map(([k, v]) => [k, String(v)]),
         )
       : {};
 
@@ -150,7 +168,7 @@ export function FrontmatterDrawer({
     await loadPage(page.id, { force: true });
   };
 
-  const patchClusterMembership = async (clusterSlug: string, role: 'pilar' | 'satelite' | null) => {
+  const patchClusterMembership = async (clusterSlug: string, role: 'pillar' | 'satellite' | null) => {
     const token = getCompanionToken();
     if (!token) {
       setClusterError('Token do Companion ausente. Reabra o projeto para editar clusters.');
@@ -168,11 +186,13 @@ export function FrontmatterDrawer({
     );
     const json = await res.json().catch(() => null);
     if (!res.ok || !json?.ok) {
-      setClusterError(json?.reason === 'active-pilar-required'
-        ? 'Escolha outro pilar antes de remover ou rebaixar este conteúdo em um cluster ativo.'
+      setClusterError(json?.reason === 'active-pillar-required'
+        ? 'Escolha outro pillar antes de remover ou rebaixar este conteúdo em um cluster ativo.'
         : 'Não foi possível atualizar o vínculo com o cluster.');
       return false;
     }
+    syncBus.emit({ type: 'cluster:changed', slug: clusterSlug });
+    syncBus.emit({ type: 'content:changed', slug: contentSlug, fields: ['clusters', 'role'] });
     return true;
   };
 
@@ -195,7 +215,7 @@ export function FrontmatterDrawer({
     const res = await fetch(`/api/project/clusters?token=${encodeURIComponent(token)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-companion-token': token },
-      body: JSON.stringify({ nome: title, pilar_slug: contentSlug, syncWait: true }),
+      body: JSON.stringify({ name: title, pillar_slug: contentSlug, syncWait: true }),
     });
     const json = await res.json().catch(() => null);
     if (!res.ok || !json?.ok) {
@@ -204,6 +224,8 @@ export function FrontmatterDrawer({
         : 'Não foi possível criar o cluster a partir deste conteúdo.');
       return false;
     }
+    syncBus.emit({ type: 'clusters:changed' });
+    syncBus.emit({ type: 'content:changed', slug: contentSlug, fields: ['clusters', 'role'] });
     await reloadCurrentPage();
     return true;
   };
@@ -218,15 +240,15 @@ export function FrontmatterDrawer({
     const removed = clustersValue.filter((slug) => !clusters.includes(slug));
     const blocked = removed.find((slug) => {
       const option = clusterOptions.find((cluster) => cluster.slug === slug);
-      return option?.status === 'active' && option.pilar_slug === contentSlug;
+      return option?.status === 'active' && option.pillar_slug === contentSlug;
     });
     if (blocked) {
-      setClusterError('Escolha outro pilar antes de remover este conteúdo de um cluster ativo.');
+      setClusterError('Escolha outro pillar antes de remover este conteúdo de um cluster ativo.');
       return;
     }
     const added = clusters.filter((slug) => !clustersValue.includes(slug));
     for (const slug of added) {
-      const ok = await patchClusterMembership(slug, 'satelite');
+      const ok = await patchClusterMembership(slug, 'satellite');
       if (!ok) return;
     }
     for (const slug of removed) {
@@ -236,15 +258,15 @@ export function FrontmatterDrawer({
     await reloadCurrentPage();
   };
 
-  const updatePapel = async (clusterSlug: string, value: string) => {
+  const updateRole = async (clusterSlug: string, value: string) => {
     if (!canEditStructured) return;
     setClusterError(null);
     const option = clusterOptions.find((cluster) => cluster.slug === clusterSlug);
-    if (papelValue[clusterSlug] === 'pilar' && value !== 'pilar' && option?.status === 'active' && option.pilar_slug === contentSlug) {
-      setClusterError('Escolha outro pilar antes de rebaixar este conteúdo em um cluster ativo.');
+    if (roleValue[clusterSlug] === 'pillar' && value !== 'pillar' && option?.status === 'active' && option.pillar_slug === contentSlug) {
+      setClusterError('Escolha outro pillar antes de rebaixar este conteúdo em um cluster ativo.');
       return;
     }
-    const ok = await patchClusterMembership(clusterSlug, value === 'pilar' ? 'pilar' : 'satelite');
+    const ok = await patchClusterMembership(clusterSlug, value === 'pillar' ? 'pillar' : 'satellite');
     if (ok) await reloadCurrentPage();
   };
 
@@ -313,7 +335,7 @@ export function FrontmatterDrawer({
                 field={field}
                 value={frontmatter[field]}
                 readOnly={!canEditStructured || (isBrainRestricted && field !== 'title')}
-                isOrigem={field === 'origem'}
+                isOrigin={field === 'origin'}
                 onChange={(value) => updateField(field, value)}
               />
             ))}
@@ -337,15 +359,15 @@ export function FrontmatterDrawer({
             )}
             {clustersValue.length > 0 && (
               <div className="space-y-2">
-                <div className="text-[10px] uppercase tracking-wider text-notion-text-muted">papel</div>
+                <div className="text-[10px] uppercase tracking-wider text-notion-text-muted">role</div>
                 {clustersValue.map((slug) => (
-                  <label key={slug} data-testid={`papel-field-${slug}`} className="flex items-center gap-2">
+                  <label key={slug} data-testid={`role-field-${slug}`} className="flex items-center gap-2">
                     <span className="text-xs text-notion-text-muted min-w-[120px] truncate">{slug}</span>
                     <Select
-                      value={papelValue[slug] || 'satelite'}
-                      onChange={(v) => void updatePapel(slug, v)}
+                      value={roleValue[slug] || 'satellite'}
+                      onChange={(v) => void updateRole(slug, v)}
                       disabled={!canEditStructured}
-                      options={PAPEL_OPTIONS}
+                      options={ROLE_OPTIONS}
                       className="flex-1"
                       triggerClassName="w-full justify-between rounded-md border border-notion-border bg-background px-2.5 py-1.5"
                     />
@@ -410,15 +432,15 @@ function ClusterMultiSelect({
   const visibleOptions = useMemo(() => {
     if (!queryKey) return options;
     return options.filter((o) =>
-      clusterSearchKey(o.nome).includes(queryKey) ||
+      clusterSearchKey(o.name).includes(queryKey) ||
       clusterSearchKey(o.slug).includes(queryKey)
     );
   }, [options, queryKey]);
   const exactOption = queryValue
     ? options.find((o) =>
-        clusterSearchKey(o.nome) === queryKey ||
+        clusterSearchKey(o.name) === queryKey ||
         clusterSearchKey(o.slug) === queryKey ||
-        slugifyCluster(o.nome) === querySlug ||
+        slugifyCluster(o.name) === querySlug ||
         slugifyCluster(o.slug) === querySlug
       )
     : null;
@@ -605,7 +627,7 @@ function ClusterMultiSelect({
                         )}
                       >
                         {opt.icon ? <span>{opt.icon}</span> : null}
-                        <span className="min-w-0 flex-1 truncate">{opt.nome}</span>
+                        <span className="min-w-0 flex-1 truncate">{opt.name}</span>
                         <span className="shrink-0 text-notion-text-muted">{linked ? 'vinculado' : opt.slug}</span>
                       </button>
                     );
@@ -789,7 +811,7 @@ function ContentFieldControl({
       field={field}
       value={value == null ? '' : value}
       readOnly={readOnly}
-      isOrigem={field === 'origem'}
+      isOrigin={field === 'origin'}
       onChange={onChange}
     />
   );
@@ -799,24 +821,24 @@ function GenericFieldControl({
   field,
   value,
   readOnly,
-  isOrigem,
+  isOrigin,
   onChange,
 }: {
   field: string;
   value: unknown;
   readOnly: boolean;
-  isOrigem?: boolean;
+  isOrigin?: boolean;
   onChange: (value: unknown) => void;
 }) {
-  if (isOrigem) {
+  if (isOrigin) {
     return (
       <label className="block space-y-1.5" data-testid={`frontmatter-field-${field}`}>
         <span className="text-xs font-medium text-notion-text-muted">{field}</span>
         <Select
-          value={typeof value === 'string' ? value : 'outros'}
+          value={typeof value === 'string' ? value : 'other'}
           onChange={(v) => onChange(v)}
           disabled={readOnly}
-          options={ORIGEM_OPTIONS}
+          options={ORIGIN_OPTIONS}
           className="w-full"
           triggerClassName="w-full justify-between rounded-md border border-notion-border bg-background px-2.5 py-1.5 disabled:bg-notion-active/40 disabled:text-notion-text-muted"
         />

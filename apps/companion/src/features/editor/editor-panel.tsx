@@ -21,7 +21,6 @@ import {
   Image as ImageIcon,
   Italic,
   Link2,
-  Maximize2,
   MoreHorizontal,
   Save,
   Settings,
@@ -46,18 +45,23 @@ import { CoverPicker } from './cover-picker';
 import { TitleEditor } from './title-editor';
 import { BlockPlusButton } from './block-plus-button';
 import { BlockHandleMenu } from './block-handle-menu';
-import { getPageWidthOptions, resolvePageWidth, widthToClass } from '../workspace/page-width';
 import { usePagePath } from '@/hooks/use-page-path';
 import { MentionPopup } from './mention-popup';
 import { MentionChipHydrator } from './mention-chip-hydrator';
+import { syncBus } from '@/lib/sync-bus';
 import { AgenticQueryHydrator } from './agentic-query-hydrator';
+import { AutoBlockHydrator } from './auto-block-hydrator';
 import { MermaidHydrator } from './mermaid-hydrator';
 import { FrontmatterDrawer } from './frontmatter-drawer';
 import { LinkedMentionsPanel } from './linked-mentions-panel';
 import { useI18n } from '@/components/i18n-provider';
 import { ConfirmModal } from '@/components/confirm-modal';
+import { ImageEmbedModal } from '@/components/image-embed-modal';
+import { ClusterPickModal } from '@/components/cluster-pick-modal';
 import { BreadcrumbTrail } from '../workspace/breadcrumb-trail';
 import { WorkspaceHeader } from '../workspace/workspace-header';
+import { LayoutMenuSection } from '../workspace/layout-menu';
+import { pageHasDataTable, resolvePageWidth, widthToClass } from '../workspace/page-width';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
   ssr: false,
@@ -187,22 +191,25 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
   const deleteFile = useWorkspace((s) => s.deleteFile);
   const setSourceMode = useWorkspace((s) => s.setSourceMode);
   const toggleFavorite = useWorkspace((s) => s.toggleFavorite);
-  const effectiveWidth = useWorkspace((s) =>
-    resolvePageWidth(effectivePageId || null, s.pages, s.settings.defaultPageWidth)
-  );
+  const effectiveWidth = useWorkspace((s) => resolvePageWidth(effectivePageId || null, s.pages, s.settings.defaultPageWidth));
   const pagePath = usePagePath();
   const isReadOnly = activePage?.readOnly ?? true;
 
   const [mounted, setMounted] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [showWidthSub, setShowWidthSub] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [showFrontmatterDrawer, setShowFrontmatterDrawer] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pendingPasteHtml, setPendingPasteHtml] = useState<{ html?: string; text?: string } | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [imageEmbedOpen, setImageEmbedOpen] = useState(false);
+  const imageEmbedCallbackRef = useRef<((url: string, alt?: string) => void) | null>(null);
+  const [clusterPickOpen, setClusterPickOpen] = useState(false);
+  const [clusterPickTitle, setClusterPickTitle] = useState('Selecione o cluster');
+  const clusterPickCallbackRef = useRef<((slug: string) => void) | null>(null);
+  const workspaceToken = useWorkspace((s) => s.token);
 
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -215,7 +222,6 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
   useClickOutside(emojiPickerRef, () => setShowEmojiPicker(false));
   useClickOutside(menuRef, () => {
     setShowMenu(false);
-    setShowWidthSub(false);
   });
 
   useEffect(() => setMounted(true), []);
@@ -274,6 +280,12 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
     if (ok) {
       setLastSavedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
       if (!silent) showToast(t('editorToasts.fileSaved'), 'success');
+      // Broadcast to sibling views (contents list, cluster tables) that this
+      // content's frontmatter/body may have changed.
+      if (activePage.path && activePage.path.startsWith('contents/')) {
+        const slug = activePage.path.split('/').pop()?.replace(/\.md$/, '') || '';
+        if (slug) syncBus.emit({ type: 'content:changed', slug });
+      }
     } else if (!silent) {
       showToast(useWorkspace.getState().pages.find((p) => p.id === activePage.id)?.saveError || t('editorToasts.saveFailed'), 'error');
     }
@@ -330,13 +342,23 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
     );
   }
 
-  const pageWidthOptions = getPageWidthOptions(t);
-  const isContentPage = activePage.path.startsWith('conteudos/');
+  const isContentPage = activePage.path.startsWith('contents/');
+  const hasDataTable = pageHasDataTable(activePage);
   const validContent: JSONContent =
     activePage.content && typeof activePage.content === 'object' && 'type' in activePage.content
       ? (activePage.content as JSONContent)
       : (INITIAL_DOC as JSONContent);
-  const suggestionItems: SuggestionItem[] = buildSuggestionItems(t);
+  const suggestionItems: SuggestionItem[] = buildSuggestionItems(t, {
+    openImageEmbed: (onInsert) => {
+      imageEmbedCallbackRef.current = onInsert;
+      setImageEmbedOpen(true);
+    },
+    openClusterPick: (title, onPick) => {
+      clusterPickCallbackRef.current = onPick;
+      setClusterPickTitle(title);
+      setClusterPickOpen(true);
+    },
+  });
 
   const statusLabel = activePage.saving
     ? t('editor.saving')
@@ -455,14 +477,19 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
                 ariaLabel={activePage.favorite ? t('sidebar.removeFavorite') : t('sidebar.addFavorite')}
               />
               <div className="relative">
-                <HeaderButton icon={<MoreHorizontal className="w-4 h-4" />} onClick={() => setShowMenu(!showMenu)} ariaLabel={t('editor.more')} />
+                <HeaderButton
+                  icon={<MoreHorizontal className="w-4 h-4" />}
+                  onClick={() => setShowMenu(!showMenu)}
+                  ariaLabel={t('editor.more')}
+                  dataTestId="editor-layout-menu"
+                />
                 <AnimatePresence>
                   {showMenu && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="absolute right-0 top-full mt-2 w-60 bg-background border border-notion-border rounded-md shadow-lg z-50 py-1 overflow-hidden"
+                      className="absolute right-0 top-full mt-2 w-60 bg-background border border-notion-border rounded-md shadow-lg z-50 py-1 overflow-visible"
                     >
                       <MenuAction
                         icon={<Check className="w-4 h-4" />}
@@ -491,35 +518,11 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
                           }}
                         />
                       )}
-                      <div className="relative">
-                        <button
-                          onClick={() => setShowWidthSub((v) => !v)}
-                          className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm hover:bg-notion-hover cursor-pointer text-notion-text"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Maximize2 className="w-4 h-4" />
-                            {t('pageWidth.pageWidth')}
-                          </span>
-                          <span className="text-[10px] text-notion-text-muted uppercase">{activePage.width || t('pageWidth.auto')}</span>
-                        </button>
-                        {showWidthSub && (
-                          <div className="absolute left-full top-0 ml-1 w-64 bg-background border border-notion-border rounded-md shadow-lg py-1 z-[60]">
-                            {pageWidthOptions.map((opt) => (
-                              <WidthMenuItem
-                                key={opt.value}
-                                active={activePage.width === opt.value}
-                                label={opt.label}
-                                description={opt.description}
-                                onClick={() => {
-                                  updatePage(activePage.id, { width: opt.value });
-                                  setShowWidthSub(false);
-                                  setShowMenu(false);
-                                }}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      <LayoutMenuSection
+                        pageId={activePage.id}
+                        hasDataTable={hasDataTable}
+                        onClose={() => setShowMenu(false)}
+                      />
                       <div className="h-px bg-notion-border my-1" />
                       <div className="px-3 py-1.5 text-[10px] text-notion-text-muted truncate">{activePage.path}</div>
                     </motion.div>
@@ -547,6 +550,7 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
         )}
 
         <div
+          data-testid="page-width-frame"
           className={cn(
             'w-full mx-auto',
             widthToClass(effectiveWidth),
@@ -662,7 +666,7 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
                 onClick={() => setShowFrontmatterDrawer(true)}
                 className="rounded bg-notion-active hover:bg-notion-hover px-2 py-0.5 cursor-pointer text-notion-text-muted hover:text-notion-text"
               >
-                {t('editor.frontmatter')} · {activePage.path.startsWith('conteudos/') ? activePage.frontmatter?.origem || t('project.content') : activePage.path.startsWith('brain/') ? 'brain' : 'local'} · {t('project.fieldCount', { count: Object.keys(activePage.frontmatter || {}).length })}
+                {t('editor.frontmatter')} · {activePage.path.startsWith('contents/') ? activePage.frontmatter?.origin || t('project.content') : activePage.path.startsWith('brain/') ? 'brain' : 'local'} · {t('project.fieldCount', { count: Object.keys(activePage.frontmatter || {}).length })}
               </button>
               <span className="truncate">{activePage.path}</span>
             </div>
@@ -727,6 +731,30 @@ export function EditorPanel({ pageId, isModal, slotAfterEditor }: EditorPanelPro
           destructive
         />
       )}
+      <ImageEmbedModal
+        isOpen={imageEmbedOpen}
+        onInsert={(url, alt) => {
+          imageEmbedCallbackRef.current?.(url, alt);
+          imageEmbedCallbackRef.current = null;
+        }}
+        onClose={() => {
+          setImageEmbedOpen(false);
+          imageEmbedCallbackRef.current = null;
+        }}
+      />
+      <ClusterPickModal
+        isOpen={clusterPickOpen}
+        title={clusterPickTitle}
+        token={workspaceToken || ''}
+        onPick={(slug) => {
+          clusterPickCallbackRef.current?.(slug);
+          clusterPickCallbackRef.current = null;
+        }}
+        onClose={() => {
+          setClusterPickOpen(false);
+          clusterPickCallbackRef.current = null;
+        }}
+      />
     </div>
   );
 }
@@ -907,6 +935,7 @@ function TiptapEditorSurface({
     <div id={`noteblock-editor-${pageId}`} className="noteblock-editor relative group/editor">
       <MentionChipHydrator editorRootId={`noteblock-editor-${pageId}`} />
       <AgenticQueryHydrator editorRootId={`noteblock-editor-${pageId}`} />
+      <AutoBlockHydrator />
       <MermaidHydrator editorRootId={`noteblock-editor-${pageId}`} />
       {editor && (
         <BubbleMenu
@@ -990,11 +1019,22 @@ function BubbleSep() {
   return <div className="w-px h-5 bg-notion-border self-center" />;
 }
 
-function HeaderButton({ icon, onClick, ariaLabel }: { icon: ReactNode; onClick?: () => void; ariaLabel?: string }) {
+function HeaderButton({
+  icon,
+  onClick,
+  ariaLabel,
+  dataTestId,
+}: {
+  icon: ReactNode;
+  onClick?: () => void;
+  ariaLabel?: string;
+  dataTestId?: string;
+}) {
   return (
     <button
       onClick={onClick}
       aria-label={ariaLabel}
+      data-testid={dataTestId}
       className="p-1.5 rounded hover:bg-notion-hover text-notion-text-muted hover:text-notion-text transition-colors cursor-pointer"
     >
       {icon}
@@ -1026,33 +1066,6 @@ function MenuAction({
     >
       {icon}
       <span>{label}</span>
-    </button>
-  );
-}
-
-function WidthMenuItem({
-  active,
-  label,
-  description,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  description: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn('w-full flex items-start gap-2 px-3 py-2 text-left hover:bg-notion-hover cursor-pointer', active && 'bg-notion-active')}
-    >
-      <span className="w-4 h-4 mt-0.5 flex items-center justify-center">
-        {active && <Check className="w-3.5 h-3.5 text-notion-text" />}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-sm text-notion-text">{label}</span>
-        <span className="block text-[11px] text-notion-text-muted">{description}</span>
-      </span>
     </button>
   );
 }

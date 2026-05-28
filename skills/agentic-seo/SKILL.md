@@ -25,7 +25,7 @@ For any substantive deliverable (report, analysis, content, brief, audit, recomm
 2. **Specific local handoff** when a decision or sensitive input is required — `approve-page`, `approve-briefing`, `pick-cluster`, `review-changes`, `dataforseo-bypass`, or `collect-env`.
 3. **Plain Markdown/prose in chat** only for quick clarifications, status, or when the user explicitly asks for inline output.
 
-Whenever a workflow generates `report.md`, the CLI or skill output must include `report_md` and `browser_prompt: { recommended: true, message: "Can I open the Web Companion so you can see the analysis?" }`. The message field must be translated to the project language before being shown — use `"Posso abrir o Web Companion para você ver a análise?"` when `project.json.language` is `pt-BR`. Ask that exact consent line in chat before opening any browser. Never expose `node scripts/companion.mjs ...` to the user; run it as the agent after consent. If the user declines, leave the artifact in place and tell them where it lives.
+Whenever a workflow generates `report.md`, the CLI or skill output must include `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?" }`. Ask that exact consent line in chat before opening any browser. Never expose `node scripts/companion.mjs ...` to the user; run it as the agent after consent. If the user declines, leave the artifact in place and tell them where it lives.
 
 The nine data and report skills — `seo-analysis`, `technical-seo`, `backlink-analysis`, `keyword-research`, `serp-extract`, `internal-links`, `eeat`, `topic-cluster`, `competitive-analysis` — must always apply `page-report`, write a Companion report Markdown file under `project/analyses/`, return `report_md`, and offer browser access through the chat prompt. Editorial skills like `content-seo` use the existing `approve-briefing` and `approve-page` handoffs.
 
@@ -38,7 +38,7 @@ Conversational replies (clarifications, status checks, short factual questions) 
 Agentic SEO Skills implements Agentic SEO through six pillars:
 
 - Strategy: positioning, business goals, priorities, risks, and strategic decisions.
-- Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identity`, `voice`, `technology`, `editorial`, `topic-clusters` index + one subpage `topic-clusters/<slug>.md` per active cluster, `review`, `log`). `review` is the canonical seat of editorial review rules (universal + project-specific). Cluster operational data lives outside the brain in `project/clusters/<slug>/cluster.yaml`.
+- Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identity`, `voice`, `technology`, `topic-clusters` index + one subpage `topic-clusters/<slug>.md` per active cluster, `review`, `log`). `review` is the canonical seat of editorial review rules (universal + project-specific). Cluster operational data lives outside the brain in `project/clusters/<slug>/cluster.yaml`.
 - Technology: observed technical context, crawl/indexability constraints, metadata/schema evidence, analytics context, and technical SEO decisions recorded without implementing stack, CMS, deploy, or website code.
 - Technical SEO: crawlability, indexability, metadata, internal health, structured data, performance signals, and deterministic page audits.
 - Content: briefs, drafts, topical clusters, editorial artifacts, refreshes, and publication readiness.
@@ -49,8 +49,8 @@ Humans own judgment. Agents execute repeatable intelligence, extraction, formatt
 ## Critical Points
 
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, case studies, or proof. Unknown metrics stay `null`, `unknown`, or blocked.
-- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, report pages in `project/analyses/`, complete non-report deliverables in `project/artifacts/`, public content in `project/content/`, and authorial knowledge in `project/brain/`.
-- Authorial brain pages (`identity`, `voice`, `technology`, `editorial`, `topic-clusters`, `review`, `index`) may change directly when the agent records a `type: decision` entry in `brain/log.md` with evidence, actor, and limitations. For `review.md`, stylistic minor additions auto-apply; checklist changes register as `type: lint` and wait for human approval.
+- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, report pages in `project/analyses/`, complete non-report deliverables in `project/artifacts/`, public content in `project/contents/`, and authorial knowledge in `project/brain/`.
+- Authorial brain pages (`identity`, `voice`, `technology`, `topic-clusters`, `review`, `index`) may change directly when the agent records a `type: decision` entry in `brain/log.md` with evidence, actor, and limitations. For `review.md`, stylistic minor additions auto-apply; checklist changes register as `type: lint` and wait for human approval.
 - DataForSEO is the default provider for SEO metrics, SERP evidence, and backlink data. Agentic SEO is not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
 - Do not silently fall back to WebSearch, intuition, or hypothesis-only output when DataForSEO is missing. Record the provider decision, reason, timestamp, and consequence.
 - A bypass must name the skipped step, actor, timestamp, reason, and consequence. A decision on an artifact is not acceptance of an undisclosed bypass.
@@ -80,7 +80,7 @@ Name missing gates before downstream execution. Common blockers:
 - `DataForSEO decision gate`: WebSearch, skip-data, or hypothesis-only output must record reason and consequence.
 - `Brain decision gate`: authorial brain changes must be logged as `type: decision` with evidence and actor.
 - `Voice gate`: `brain/voice.md` is missing required principles before voice-backed public content. User-directed drafting may proceed as a workbench draft when the bypass is recorded.
-- `Revisao gate`: `brain/review.md` is missing or carries only placeholders for the project-specific sections during a content `check`. Records `revisao_backed: false` with a logged bypass; does not block promotion.
+- `Review gate`: `brain/review.md` is missing or carries only placeholders for the project-specific sections during a content `check`. Records `review_backed: false` with a logged bypass; does not block promotion.
 - `Content check gate`: a brief, draft, or final public content artifact needs provenance and publication checks before publishing or promotion.
 - `Source separation gate`: raw evidence has not been captured under `project/sources/` or cited separately from synthesis.
 - `Browser handoff gate`: sensitive input, decision, or preview should be completed through a local browser flow rather than terminal-first instructions.
@@ -102,7 +102,7 @@ Route to the narrowest skill that owns the next step:
 - `technical-seo`: run deterministic audits for metadata, canonicals, robots, headings, links, images, structured data, hreflang, indexability, viewport, status, and crawlable words.
 - `brain-keeper`: ingest sources, change brain pages with logged decisions, catalog publications, and lint brain pages.
 - `eeat`: evaluate or document experience, expertise, authoritativeness, trust, proof, authors, reviewers, and claims.
-- `topic-cluster`: build, refresh, or promote one Topic Cluster as a draft in `project/clusters/<slug>/draft.yaml`, then promote to brain via human handoff `approve-cluster` (writes `cluster.yaml` + `brain/topic-clusters/<slug>.md` + updates the index). Four phases: Pesquisar, Curar, Estruturar, Promover. Cluster discovery: when the user says "escrever sobre X" route the request through cluster lookup first — match X against `cluster.yaml` pilar/satelite slugs or `brain/topic-clusters/<slug>.md` prose; if no cluster covers X, propose creating a cluster before drafting content.
+- `topic-cluster`: build, refresh, or promote one Topic Cluster as a draft in `project/clusters/<slug>/draft.yaml`, then promote to brain via human handoff `approve-cluster` (writes `cluster.yaml` + `brain/topic-clusters/<slug>.md` + updates the index). Four phases: Pesquisar, Curar, Estruturar, Promover. Cluster discovery: when the user says "escrever sobre X" route the request through cluster lookup first — match X against `cluster.yaml` pillar/satellite slugs or `brain/topic-clusters/<slug>.md` prose; if no cluster covers X, propose creating a cluster before drafting content.
 - `content-seo`: create public content briefs, drafts, refreshes, rewrites, reviews, and publication artifacts.
 - `seo-skills-creator`: create, rewrite, evaluate, or improve Agentic SEO skills.
 - `seo-tools-creator`: create deterministic provider CLIs, integrations, registries, or reusable tool behavior.
@@ -113,7 +113,7 @@ If multiple skills are needed, route in dependency order and stop at the first m
 
 **Check:** Does each artifact make clear what came from raw evidence, what the agent inferred, and what decision was recorded?
 
-Use normal Markdown links for `project/sources/` files and Obsidian wikilinks only for real pages inside `project/brain/`. Append important operational events and strategic decisions to `project/brain/log.md` with the right `type:` (`aprovacao | decisao | errata | lint | ingestao | publicacao | prova`), using `type: approval` only for legacy compatibility.
+Use normal Markdown links for `project/sources/` files and Obsidian wikilinks only for real pages inside `project/brain/`. Append important operational events and strategic decisions to `project/brain/log.md` with the right `type:` (`approval | decision | correction | lint | ingestion | publication | evidence`), using `type: approval` only for legacy compatibility.
 
 **Strong:** "Store SERP JSON in `project/sources/serp/`, write the analysis in `project/workbench/seo-analysis/`, record a `type: decision` entry in `brain/log.md`, then update brain pages with evidence references."
 
@@ -173,7 +173,7 @@ source_separation:
   raw_sources_path: project/sources/
   drafts_path: project/workbench/
   artifacts_path: project/artifacts/
-  content_path: project/content/
+  contents_path: project/contents/
   brain_path: project/brain/
 browser_handoff:
   recommended: true | false

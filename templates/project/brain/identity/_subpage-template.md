@@ -5,16 +5,16 @@ updated: "{{updated}}"
 
 # {{title}}
 
-<!-- Subpage of [[identity]]. Use it to detail a facet of the brand's identity: extended appositive, manifesto, visual brandbook, detailed anti-positioning. -->
+<!-- Subpágina de [[identity]]. Use para detalhar um aspecto da identidade da marca: aposto longo, manifesto, brandbook visual, anti-posicionamento detalhado. -->
 
-## Context
+## Contexto
 
-<!-- In one line, which aspect of identity this subpage deepens. -->
+<!-- Em uma linha, qual aspecto da identidade esta subpágina aprofunda. -->
 
-## Content
+## Conteúdo
 
-<!-- Free text. Keep references to [[identity]] for the short appositive. -->
+<!-- Texto livre. Mantenha referências em [[identity]] para o aposto curto. -->
 
-## Evidence
+## Evidência
 
-- <source or proof>
+- <fonte ou prova>

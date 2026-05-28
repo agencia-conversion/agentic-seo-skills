@@ -6,7 +6,7 @@ Observable positioning, value proposition, social proof, pricing surface, and CT
 
 - `target` (domain) and `competitors[]` (domains).
 - Per-player `key_pages[]` (optional): defaults to homepage; can include `/sobre`, primary service/product pages.
-- `brand_context`: read from `project/brain/identidade.md` and `project/brain/voz.md` when present; otherwise `brand_context: absent`.
+- `brand_context`: read from `project/brain/identity.md` and `project/brain/voice.md` when present; otherwise `brand_context: absent`.
 - `attach_eeat_run: <slug>` (optional) for the project's own E-E-A-T baseline.
 
 ## Extraction surfaces (HTML deterministic)
@@ -89,5 +89,5 @@ differentiation_synthesis:
 - Calling a CTA "agressivo" without an `excerpt_literal` + `position` row supporting it.
 - Treating a customer logo as proof when it appears in a partner grid with no naming.
 - Translating tone-of-voice observation into quality judgment ("amador", "fraco"). Stay descriptive.
-- Auto-writing to `brain/identidade.md` or `brain/voz.md`. Only propose `tipo: decisao` log entries.
+- Auto-writing to `brain/identity.md` or `brain/voice.md`. Only propose `type: decision` log entries.
 - Extracting numbers like "300% growth" without the adjacent source line; route to `claims_unverified`.

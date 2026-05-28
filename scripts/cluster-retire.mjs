@@ -66,18 +66,18 @@ function visit(dir) {
       continue;
     }
     fm.clusters = next;
-    if (fm.papel && typeof fm.papel === "object") {
-      const papel = { ...fm.papel };
-      delete papel[slug];
-      if (reassignTo && !papel[reassignTo]) papel[reassignTo] = "satelite";
-      fm.papel = papel;
+    if (fm.role && typeof fm.role === "object") {
+      const role = { ...fm.role };
+      delete role[slug];
+      if (reassignTo && !role[reassignTo]) role[reassignTo] = "satellite";
+      fm.role = role;
     }
     const yaml = yamlStringify(fm, { lineWidth: 0 }).trimEnd();
     writeFileSync(fp, text.replace(match[0], `---\n${yaml}\n---`), "utf8");
     touched++;
   }
 }
-visit(join(project, "conteudos"));
+visit(join(project, "contents"));
 
 if (orphans.length > 0 && !force) {
   console.error(`Blocked: ${orphans.length} content files would end up with clusters:[] empty.`);

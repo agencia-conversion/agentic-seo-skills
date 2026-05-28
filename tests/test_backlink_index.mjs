@@ -41,7 +41,7 @@ const tmp = mkdtempSync(join(tmpdir(), 'agentic-seo-backlink-'));
 const projectRoot = join(tmp, 'project');
 const brainDir = join(projectRoot, 'brain');
 mkdirSync(brainDir, { recursive: true });
-mkdirSync(join(projectRoot, 'conteudos', 'blog'), { recursive: true });
+mkdirSync(join(projectRoot, 'contents', 'blog'), { recursive: true });
 
 writeFileSync(
   join(brainDir, 'index.md'),
@@ -53,20 +53,20 @@ updated: "2026-05-24"
 # Index
 
 Mapa do brain:
-- [[identidade]] — quem somos
-- [[voz]] — princípios editoriais
-- [[editorial#GEO e otimização para IA]] — área específica
+- [[identity]] — quem somos
+- [[voice]] — princípios editoriais
+- [[topic-clusters#GEO e otimização para IA]] — área específica
 - [[topic-clusters|clusters]] — aliased link
 - [[fantasma]] — link quebrado
-- ![[identidade#Frase-marca]] — embed transclusion
-- [Link Markdown](../conteudos/blog/post-real.md)
+- ![[identity#Frase-marca]] — embed transclusion
+- [Link Markdown](../contents/blog/post-real.md)
 - [Externo](https://example.com)
 `,
   'utf8',
 );
 
 writeFileSync(
-  join(brainDir, 'identidade.md'),
+  join(brainDir, 'identity.md'),
   `---
 title: "Identidade"
 updated: "2026-05-24"
@@ -78,13 +78,13 @@ updated: "2026-05-24"
 
 "Exemplo de marca."
 
-Reciprocidade: [[voz]] e [[index]].
+Reciprocidade: [[voice]] e [[index]].
 `,
   'utf8',
 );
 
 writeFileSync(
-  join(brainDir, 'voz.md'),
+  join(brainDir, 'voice.md'),
   `---
 title: "Voz"
 updated: "2026-05-24"
@@ -92,27 +92,11 @@ updated: "2026-05-24"
 
 # Voz
 
-Linkando [[identidade]] de volta.
+Linkando [[identity]] de volta.
 
 \`\`\`
 [[isto-deve-ser-ignorado]] dentro de fence
 \`\`\`
-`,
-  'utf8',
-);
-
-writeFileSync(
-  join(brainDir, 'editorial.md'),
-  `---
-title: "Editorial"
-updated: "2026-05-24"
----
-
-# Editorial
-
-## GEO e otimização para IA
-
-Sem links nesta seção.
 `,
   'utf8',
 );
@@ -126,17 +110,19 @@ updated: "2026-05-24"
 
 # Topic clusters
 
-Referência a [[editorial]].
+## GEO e otimização para IA
+
+Sem links nesta seção.
 `,
   'utf8',
 );
 
 writeFileSync(
-  join(projectRoot, 'conteudos', 'blog', 'post-real.md'),
+  join(projectRoot, 'contents', 'blog', 'post-real.md'),
   `---
 title: "Post real"
 slug: "post-real"
-origem: "blog"
+origin: "blog"
 area: "geo-otimizacao-para-ia"
 ---
 
@@ -151,20 +137,20 @@ const index = buildBacklinkIndex(projectRoot);
 
 // File set
 assert.ok(index.files.has('brain/index.md'));
-assert.ok(index.files.has('brain/identidade.md'));
-assert.ok(index.files.has('brain/voz.md'));
-assert.ok(index.files.has('conteudos/blog/post-real.md'));
+assert.ok(index.files.has('brain/identity.md'));
+assert.ok(index.files.has('brain/voice.md'));
+assert.ok(index.files.has('contents/blog/post-real.md'));
 
-// Backlinks for identidade.md — should be referenced by index.md (wikilink + embed) and voz.md (wikilink)
-const identidadeBacklinks = backlinksFor(index, 'brain/identidade.md');
-const identidadeSources = identidadeBacklinks.map((b) => b.source);
-assert.ok(identidadeSources.includes('brain/index.md'), 'identidade should be backlinked from index');
-assert.ok(identidadeSources.includes('brain/voz.md'), 'identidade should be backlinked from voz');
+// Backlinks for identity.md — should be referenced by index.md (wikilink + embed) and voice.md (wikilink)
+const identityBacklinks = backlinksFor(index, 'brain/identity.md');
+const identitySources = identityBacklinks.map((b) => b.source);
+assert.ok(identitySources.includes('brain/index.md'), 'identity should be backlinked from index');
+assert.ok(identitySources.includes('brain/voice.md'), 'identity should be backlinked from voice');
 
-// Embed should be detected as type 'embed' for identidade backlink.
-const identidadeEmbed = identidadeBacklinks.find((b) => b.type === 'embed' && b.source === 'brain/index.md');
-assert.ok(identidadeEmbed, 'embed backlink from index must be detected');
-assert.equal(identidadeEmbed.anchor, 'Frase-marca');
+// Embed should be detected as type 'embed' for identity backlink.
+const identityEmbed = identityBacklinks.find((b) => b.type === 'embed' && b.source === 'brain/index.md');
+assert.ok(identityEmbed, 'embed backlink from index must be detected');
+assert.equal(identityEmbed.anchor, 'Frase-marca');
 
 // Aliased link to topic-clusters from index
 const tcBacklinks = backlinksFor(index, 'brain/topic-clusters.md');
@@ -172,7 +158,7 @@ const aliased = tcBacklinks.find((b) => b.source === 'brain/index.md' && b.alias
 assert.ok(aliased, 'aliased wikilink should preserve alias');
 
 // Wikilinks inside code fences must be ignored.
-const ignoredTarget = resolveWikilinkTarget('isto-deve-ser-ignorado', 'brain/voz.md', index.files);
+const ignoredTarget = resolveWikilinkTarget('isto-deve-ser-ignorado', 'brain/voice.md', index.files);
 assert.equal(ignoredTarget, null, 'unrelated wikilink should not resolve to a real file');
 const ignoredBacklinks = backlinksFor(index, 'brain/isto-deve-ser-ignorado.md');
 assert.equal(ignoredBacklinks.length, 0, 'wikilink inside code fence must not produce a backlink');
@@ -187,9 +173,9 @@ assert.equal(fantasma.type, 'wikilink');
 // Outgoing links from index — should include all 7 in-project links (5 wikilinks + 1 embed + 1 markdown) plus the broken one
 const outgoing = outgoingFor(index, 'brain/index.md');
 const outRawTargets = outgoing.map((o) => o.rawTarget);
-assert.ok(outRawTargets.includes('identidade'));
-assert.ok(outRawTargets.includes('voz'));
-assert.ok(outRawTargets.includes('editorial#GEO e otimização para IA') || outRawTargets.includes('editorial'));
+assert.ok(outRawTargets.includes('identity'));
+assert.ok(outRawTargets.includes('voice'));
+assert.ok(outRawTargets.includes('topic-clusters#GEO e otimização para IA') || outRawTargets.includes('topic-clusters'));
 assert.ok(outRawTargets.includes('topic-clusters|clusters') || outRawTargets.includes('topic-clusters'));
 assert.ok(outRawTargets.includes('fantasma'));
 assert.ok(outRawTargets.some((t) => t.includes('post-real.md')), 'markdown link to post-real.md must be in outgoing');
@@ -199,19 +185,19 @@ assert.equal(outRawTargets.some((t) => t.includes('example.com')), false);
 // Embed appears as outgoing of type 'embed'
 const embedOut = outgoing.find((o) => o.type === 'embed');
 assert.ok(embedOut, 'embed must appear in outgoing');
-assert.equal(embedOut.rawTarget, 'identidade');
+assert.equal(embedOut.rawTarget, 'identity');
 assert.equal(embedOut.anchor, 'Frase-marca');
 
 // Markdown link should resolve correctly relative to source dir.
 const mdOut = outgoing.find((o) => o.type === 'markdown');
 assert.ok(mdOut, 'markdown link must appear in outgoing');
-assert.equal(mdOut.resolved, 'conteudos/blog/post-real.md');
+assert.equal(mdOut.resolved, 'contents/blog/post-real.md');
 
 // Context preservation: backlink context should include surrounding text
-const indexFromIdentidade = backlinksFor(index, 'brain/index.md').find((b) => b.source === 'brain/identidade.md');
-assert.ok(indexFromIdentidade);
-assert.ok(indexFromIdentidade.context.includes('Reciprocidade') || indexFromIdentidade.context.includes('voz'),
-  `context should include surrounding text, got: ${indexFromIdentidade.context}`);
+const indexFromIdentity = backlinksFor(index, 'brain/index.md').find((b) => b.source === 'brain/identity.md');
+assert.ok(indexFromIdentity);
+assert.ok(indexFromIdentity.context.includes('Reciprocidade') || indexFromIdentity.context.includes('voice'),
+  `context should include surrounding text, got: ${indexFromIdentity.context}`);
 
 // Conversion brain — if present, sanity-check that it indexes without crash.
 const conversionRoot = join(process.cwd(), 'project');

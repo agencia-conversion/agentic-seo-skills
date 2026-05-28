@@ -9,8 +9,8 @@ const ALLOWED_FIELDS = new Set([
   'display_title',
   'keyword',
   'intent',
-  'acao',
-  'papel',
+  'action',
+  'role',
   'note',
   'editorial_status',
   'volume',
@@ -35,8 +35,8 @@ export async function PATCH(
       | 'display_title'
       | 'keyword'
       | 'intent'
-      | 'acao'
-      | 'papel'
+      | 'action'
+      | 'role'
       | 'note'
       | 'editorial_status'
       | 'volume',
@@ -47,7 +47,7 @@ export async function PATCH(
     const affected = Array.isArray((result as { affected?: string[] }).affected)
       ? (result as { affected: string[] }).affected
       : [`clusters/${slug}/cluster.yaml`];
-    const syncTarget = affected.find((path) => path.startsWith('conteudos/')) || `clusters/${slug}/cluster.yaml`;
+    const syncTarget = affected.find((path) => path.startsWith('contents/')) || `clusters/${slug}/cluster.yaml`;
     if (body.syncWait === true) {
       await runClusterSyncHook(projectRoot(), syncTarget);
     } else {

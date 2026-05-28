@@ -5,16 +5,16 @@ updated: "{{updated}}"
 
 # {{title}}
 
-<!-- Subpage of [[technology]]. Use it to detail a specific technical area: indexability audit, structured-data evidence, performance run-through. -->
+<!-- Subpágina de [[technology]]. Use para detalhar stack, decisão técnica registrada, ou prática operacional. -->
 
-## Context
+## Stack
 
-<!-- In one line, which technical aspect this subpage deepens. -->
+<!-- Quais ferramentas, frameworks, integrações estão envolvidas. -->
 
-## Content
+## Decisões técnicas
 
-<!-- Free text. Keep references to [[technology]] for the macro map. -->
+- <decisão 1: contexto + escolha + alternativa rejeitada>
 
-## Evidence
+## Operação
 
-- <audit or source link>
+<!-- Como a coisa roda no dia a dia: cron, healthcheck, ownership, observabilidade. -->

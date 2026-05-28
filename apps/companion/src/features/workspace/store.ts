@@ -3,6 +3,7 @@ import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { docToMarkdown, markdownToDoc } from '@/lib/markdown';
 import { LocalePreference } from '@/lib/i18n';
 import { projectPageSlug } from '@/lib/project-slugs';
+import { syncBus } from '@/lib/sync-bus';
 import { REPORT_DIR_NAME } from '../../../../../shared/report-modules';
 
 const SIDEBAR_STORAGE_KEY = 'agentic-seo:companion:sidebar';
@@ -132,6 +133,8 @@ interface WorkspaceState {
     advancedExpanded?: boolean;
     hiddenColumns?: string[];
     hiddenColumnsByTable?: Record<string, string[]>;
+    dataTableFollowPageByPage?: Record<string, boolean>;
+    clusterAreaFiltersByTable?: Record<string, string[]>;
   };
   _hasHydrated: boolean;
 
@@ -192,6 +195,7 @@ const DEFAULT_SETTINGS: WorkspaceState['settings'] = {
   usageLimit: 10 * 1024 * 1024,
   defaultPageWidth: 'md',
   language: 'system',
+  dataTableFollowPageByPage: {},
 };
 const SETTINGS_STORAGE_KEY = 'agentic-seo-companion-settings';
 
@@ -207,6 +211,16 @@ function readInitialSettings(): WorkspaceState['settings'] {
       defaultPageWidth: ['sm', 'md', 'lg', 'full'].includes(parsed?.defaultPageWidth)
         ? parsed.defaultPageWidth
         : DEFAULT_SETTINGS.defaultPageWidth,
+      dataTableFollowPageByPage:
+        parsed?.dataTableFollowPageByPage &&
+        typeof parsed.dataTableFollowPageByPage === 'object' &&
+        !Array.isArray(parsed.dataTableFollowPageByPage)
+          ? Object.fromEntries(
+              Object.entries(parsed.dataTableFollowPageByPage).filter(
+                ([key, value]) => typeof key === 'string' && typeof value === 'boolean'
+              )
+            )
+          : {},
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -252,13 +266,12 @@ function emptyDoc() {
 
 const BRAIN_PAGE_ICONS: Record<string, string> = {
   'brain/index.md': '🧠',
-  'brain/identidade.md': '🪪',
-  'brain/voz.md': '🗣️',
-  'brain/tecnologia.md': '🛠️',
-  'brain/editorial.md': '📐',
+  'brain/identity.md': '🪪',
+  'brain/voice.md': '🗣️',
+  'brain/technology.md': '🛠️',
   'brain/topic-clusters.md': '🧩',
-  'brain/produtos.md': '📦',
-  'brain/revisao.md': '📝',
+  'brain/products.md': '📦',
+  'brain/review.md': '📝',
   'brain/log.md': '📋',
 };
 
@@ -266,10 +279,10 @@ function iconForPath(path: string) {
   const canonical = BRAIN_PAGE_ICONS[path];
   if (canonical) return canonical;
   if (path.startsWith('brain/')) return '📄';
-  if (path.startsWith('conteudos/blog/')) return '📝';
-  if (path.startsWith('conteudos/linkedin/')) return '💼';
-  if (path.startsWith('conteudos/podcast/')) return '🎧';
-  if (path.startsWith('conteudos/')) return '✍️';
+  if (path.startsWith('contents/blog/')) return '📝';
+  if (path.startsWith('contents/linkedin/')) return '💼';
+  if (path.startsWith('contents/podcast/')) return '🎧';
+  if (path.startsWith('contents/')) return '✍️';
   if (path.startsWith(`${REPORT_DIR_NAME}/`)) return '📊';
   return '📝';
 }
@@ -455,7 +468,7 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
   for (const section of tree.sections || []) {
     const pageIds: string[] = [];
     const items = section.items || [];
-    if (section.id === 'conteudos') {
+    if (section.id === 'contents') {
       items.forEach((item: any, index: number) => {
         pages.push({
           ...pageFromSummary(item, section.id, index, null),
@@ -533,12 +546,12 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
         (c: { slug?: string; status?: string }) => c?.slug && c.status !== 'archived',
       );
       for (let idx = 0; idx < activeClusters.length; idx++) {
-        const cluster = activeClusters[idx] as { slug: string; nome?: string; icon?: string };
+        const cluster = activeClusters[idx] as { slug: string; name?: string; icon?: string };
         const subId = `contents-${cluster.slug}`;
         pages.push(
           virtualPage({
             id: subId,
-            title: cluster.nome || cluster.slug,
+            title: cluster.name || cluster.slug,
             icon: cluster.icon || '🗂️',
             parentId: contentsRootId,
             sortOrder: idx,
@@ -632,6 +645,25 @@ async function buildPagesAndSections(token: string): Promise<BuiltTree> {
   };
 }
 
+// Module-level guard: subscribe the workspace tree to the cross-view sync bus
+// exactly once per session. Re-running on every initializeProject() would
+// stack listeners and cause duplicate refreshes.
+let workspaceSyncBusBound = false;
+function ensureWorkspaceSyncBusSubscription(get: () => WorkspaceState) {
+  if (workspaceSyncBusBound) return;
+  workspaceSyncBusBound = true;
+  syncBus.on((event) => {
+    // Any mutation that adds/removes a file (content created, cluster
+    // renamed, etc.) must refresh the page tree so routing knows about the
+    // new slug. Cell-level field edits (keyword/intent) emit content:changed
+    // too — refreshing is idempotent, so it is safe to refresh on every
+    // event of interest.
+    if (event.type === 'content:changed' || event.type === 'cluster:changed' || event.type === 'clusters:changed') {
+      void get().refreshProjectTree();
+    }
+  });
+}
+
 export const useWorkspace = create<WorkspaceState>((set, get) => ({
   pages: [],
   sections: [],
@@ -678,16 +710,53 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       _hasHydrated: true,
     });
     if (built.firstPageId) void get().loadPage(built.firstPageId);
+    // Subscribe the workspace tree to cross-view mutations exactly once per
+    // session so newly created/renamed/deleted contents become routable
+    // without forcing every API caller to remember to refresh the tree.
+    ensureWorkspaceSyncBusSubscription(get);
   },
 
   refreshProjectTree: async () => {
     const token = get().token;
     if (!token) return;
     const built = await buildPagesAndSections(token);
+    const prevPages = get().pages;
+    const prevById = new Map(prevPages.map((p) => [p.id, p]));
     const prevActive = get().activePageId;
     const stillExists = prevActive ? built.pages.find((p) => p.id === prevActive) : null;
+    // Preserve loaded state, content, and local dirty flags from the previous
+    // entries so that an unrelated tree refresh (e.g. after a cluster patch)
+    // does not flicker the active editor back to a loading spinner or wipe
+    // unsaved local edits. Pages new to the tree start with whatever
+    // pageFromSummary initialized.
+    const mergedPages = built.pages.map((next) => {
+      const prev = prevById.get(next.id);
+      if (!prev || !prev.loaded) return next;
+      return {
+        ...next,
+        // Carry user-visible content/state forward.
+        title: prev.dirty ? prev.title : next.title || prev.title,
+        slug: prev.slug,
+        frontmatter: prev.frontmatter,
+        frontmatterText: prev.frontmatterText,
+        bodyMarkdown: prev.bodyMarkdown,
+        sourceBody: prev.sourceBody,
+        content: prev.content,
+        hash: prev.dirty ? prev.hash : next.hash || prev.hash,
+        icon: prev.uiDirty ? prev.icon : next.icon ?? prev.icon,
+        cover: prev.uiDirty ? prev.cover : next.cover ?? prev.cover,
+        loaded: true,
+        dirty: prev.dirty,
+        fileDirty: prev.fileDirty,
+        uiDirty: prev.uiDirty,
+        saving: prev.saving,
+        saveError: prev.saveError,
+        sourceMode: prev.sourceMode,
+        readOnly: next.readOnly,
+      };
+    });
     set({
-      pages: built.pages,
+      pages: mergedPages,
       sections: built.sections,
       hasFiles: built.hasFiles,
       hasBrain: built.hasBrain,

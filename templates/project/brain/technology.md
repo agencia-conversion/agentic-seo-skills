@@ -1,92 +1,92 @@
 ---
-title: "Technology"
+title: "Tecnologia"
 updated: "<YYYY-MM-DD>"
 ---
 
-# Technology
+# Tecnologia
 
 <!--
-PURPOSE: Observed stack and technical SEO map of the brand's site. This
-file is exclusively operational: what was observed on the site, what
-was decided, what remains to verify. DO NOT document editorial opinion
-about stack ("we prefer static sites", "we reject WordPress", "we
-believe in edge rendering"). Editorial thesis about technology lives in
-[[editorial]] or in published content under `content/`. Every factual
-line here has evidence of direct observation in ## Evidence at the
-bottom or an anchor to [[log]]. <!-- RULE: --> comments are binding and
-must be REMOVED when the file is filled.
+PROPOSITO: Stack observado e mapa de SEO técnico do site da marca. Este
+arquivo e exclusivamente operacional: o que foi observado no site, o que
+foi decidido, o que falta verificar. NÃO documenta opiniao editorial sobre stack
+("preferimos sites estaticos", "rejeitamos WordPress", "acreditamos em
+edge rendering"). Tese editorial sobre tecnologia vive em [[topic-clusters]]
+ou em conteudos publicados em `contents/`. Cada linha factual aqui tem
+evidência de observacao direta em ## Evidência no rodape ou ancora para
+[[log]]. Comentarios <!-- REGRA: --> sao vinculantes e devem ser
+REMOVIDOS quando o arquivo for preenchido.
 -->
 
-## Technical context
+## Contexto técnico
 
 <!--
-RULE: Each line = one direct observation with a source. Observed state:
-what you saw running, not what you assumed. When something has not
-been verified, leave "pending" and record the pending item in
-## Technical pending items. DO NOT write "thesis about stack" here.
+REGRA: Cada linha = uma observacao direta com fonte. Estado observado:
+o que voce viu rodando, não o que voce supos. Quando algo não foi
+verificado, deixa "pendente" e registra a pendencia em
+## Pendencias tecnicas. NÃO escrever "tese sobre stack" aqui.
 -->
 
-| Area | Observed state | Evidence |
+| Área | Estado observado | Evidência |
 | --- | --- | --- |
-| Domain/DNS | <observed \| unknown> | <link or note> |
-| Hosting/CDN | <observed \| unknown> | <link or note> |
-| Frontend/CMS | <observed \| unknown> | <link or note> |
-| Analytics | <observed \| unknown \| none> | <link or note> |
-| Crawling and rendering | <observed \| pending> | <link or note> |
-| Indexing | <observed \| pending> | <link or note> |
-| Structured data | <observed \| pending> | <link or note> |
+| Domínio/DNS | <observado \| desconhecido> | <link ou nota> |
+| Hosting/CDN | <observado \| desconhecido> | <link ou nota> |
+| Frontend/CMS | <observado \| desconhecido> | <link ou nota> |
+| Analytics | <observado \| desconhecido \| nenhum> | <link ou nota> |
+| Rastreamento e renderização | <observado \| pendente> | <link ou nota> |
+| Indexação | <observado \| pendente> | <link ou nota> |
+| Dados estruturados | <observado \| pendente> | <link ou nota> |
 
-## Recorded technical decisions
-
-<!--
-RULE: List of technical decisions made on the project, each with an
-anchor to the corresponding entry in [[log]] (type: decision). The
-decision itself lives in the log; here is just the navigable title. DO
-NOT write editorial justification here — that is in the log.
--->
-
-- <decision> — [[log#YYYY-MM-DD - title]]
-
-## Technical SEO map
+## Decisões técnicas registradas
 
 <!--
-RULE: Continuous verification map. "Last checked" requires a date;
-without a date, it stays "pending". "Evidence" requires a link to an
-audit in `project/audits/` or to a note in sources/. Status:
-- ok: verified and within expectation.
-- gap: verified and outside expectation, with a known issue.
-- pending: not verified yet.
+REGRA: Lista de decisoes tecnicas tomadas no projeto, cada uma com
+ancora para a entrada correspondente em [[log]] (tipo: decisao). A
+decisao em si vive no log; aqui fica apenas o titulo navegavel. NÃO
+escrever justificativa editorial aqui — ela esta no log.
 -->
 
-| Area | Status | Last checked | Evidence |
+- <decisão> — [[log#YYYY-MM-DD - título]]
+
+## Mapa de SEO técnico
+
+<!--
+REGRA: Mapa de verificacao continua. "Ultima verificacao" exige data;
+sem data, fica "pendente". "Evidência" exige link para um audit em
+`project/audits/` ou para uma nota em sources/. Status:
+- ok: verificado e dentro do esperado.
+- gap: verificado e fora do esperado, com problema conhecido.
+- pendente: ainda não verificado.
+-->
+
+| Área | Status | Última verificação | Evidência |
 | --- | --- | --- | --- |
-| Indexing | <ok \| gap \| pending> | <YYYY-MM-DD or absent> | <link> |
-| Metadata | <ok \| gap \| pending> | | |
-| Canonicals | <ok \| gap \| pending> | | |
-| Sitemap and robots | <ok \| gap \| pending> | | |
-| Structured data | <ok \| gap \| pending> | | |
-| Performance | <ok \| gap \| pending> | | |
-| Internal links | <ok \| gap \| pending> | | |
+| Indexação | <ok \| gap \| pendente> | <YYYY-MM-DD ou ausente> | <link> |
+| Metadados | <ok \| gap \| pendente> | | |
+| Canonicals | <ok \| gap \| pendente> | | |
+| Sitemap e robots | <ok \| gap \| pendente> | | |
+| Dados estruturados | <ok \| gap \| pendente> | | |
+| Performance | <ok \| gap \| pendente> | | |
+| Links internos | <ok \| gap \| pendente> | | |
 
-## Technical pending items
+## Pendências técnicas
 
 <!--
-RULE: Open items that require observation, audit or decision. Each
-item on a factual single line, without editorializing. When the item
-is resolved, it exits here and (if a decision) becomes an entry in
-[[log]] referenced above.
+REGRA: Itens em aberto que demandam observacao, audit ou decisao.
+Cada item em uma linha factual, sem editorializar. Quando o item for
+resolvido, ele sai daqui e (se for decisao) vira entrada em
+[[log]] referenciada acima.
 -->
 
 - <item>
 
-## Evidence
+## Evidência
 
 <!--
-RULE: Sources that support the "Technical context" and the "Technical
-SEO map". Markdown links to `../audits/`, `../sources/`, and external
-URLs (e.g., PageSpeed report, Wayback snapshot). Each bullet
-references 1 source and states, in one sentence, what it supports.
+REGRA: Fontes que sustentam o "Contexto técnico" e o "Mapa de SEO
+técnico". Markdown links para `../audits/`, `../sources/`, e URLs
+externas (ex.: relatorio do PageSpeed, snapshot do Wayback). Cada
+bullet referencia 1 fonte e diz, em uma frase, o que ela sustenta.
 -->
 
-- <evidence bullet 1>
-- <evidence bullet 2>
+- <bullet evidência 1>
+- <bullet evidência 2>

@@ -11,9 +11,9 @@
 
 By default the mirror lives under:
 
-```text
-~/Library/Application Support/Agentic SEO/projects/<remote-slug>/project
-```
+- macOS: `~/Library/Application Support/Agentic SEO/` → `projects` → `<remote-slug>` → `project/`
+
+The default root is the directory above; override it with `AGENTIC_SEO_PERSIST_ROOT` if you want a different base path. The runtime persistence mirror always ends in a `project/` directory matching the workspace layout.
 
 Override the root with `AGENTIC_SEO_PERSIST_ROOT`.
 

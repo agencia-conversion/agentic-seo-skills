@@ -6,7 +6,7 @@ The Web Companion stores everything as plain Markdown with YAML frontmatter. You
 
 1. Open Obsidian → **Open folder as vault**.
 2. Point it at the `project/` directory of your Agentic SEO project.
-3. The vault loads with `brain/`, `conteudos/`, `workbench/`, `relatorios/` as folders.
+3. The vault loads with `brain/`, `contents/`, `workbench/`, `relatorios/` as folders.
 
 Obsidian writes its own settings to `project/.obsidian/`. That directory is gitignored at the repo level. Do not commit it.
 
@@ -50,7 +50,7 @@ These are not yet rendered in the Companion (work fine in Obsidian, ignored by t
 
 ## Critical rules
 
-1. **`brain/log.md` is append-only.** The Companion blocks writes to it via API; Obsidian does NOT enforce this. If you edit `log.md` in Obsidian, do not rewrite earlier entries — only append new ones using `tipo: errata` to correct prior entries.
+1. **`brain/log.md` is append-only.** The Companion blocks writes to it via API; Obsidian does NOT enforce this. If you edit `log.md` in Obsidian, do not rewrite earlier entries — only append new ones using `type: correction` to correct prior entries.
 2. **Concurrency.** The Companion uses a SHA-256 hash on save. If you edit a file in Obsidian while the Companion has it open, the next save returns `file-modified` and the Companion offers to reload. Reload before editing.
 3. **Wikilink scope.** Companion convention: `[[name]]` inside `brain/` resolves against `brain/`. Outside the brain, prefer markdown links (`[label](path)`). Obsidian resolves wikilinks globally by basename; the Companion does the same as a fallback so both work.
 4. **Hidden Companion artifacts.** Files under `.agentic-seo/` (config), `.companion/handoffs/` (ephemeral handoffs), and `.tmp-fixture/` (Playwright) are gitignored and invisible to Obsidian.

@@ -7,27 +7,27 @@ import type {
   ClusterRecord,
   ClusterYaml,
   ContentRecord,
-  Papel,
+  Role,
   PlannedSatellite,
-  SateliteOverride,
+  SatelliteOverride,
 } from "./cluster-types";
 
 export interface RenderRow {
-  papel: string;
-  conteudo: string;
+  role: string;
+  content: string;
   keyword: string;
   intent: string;
   status: string;
-  acao: string;
+  action: string;
   updated: string;
-  tambem_em: string;
+  also_in: string;
 }
 
 export interface RenderInputs {
   cluster: ClusterRecord;
   labels: ClusterLabels;
   contentsByCluster: Map<string, ContentRecord[]>;
-  resolvedPilarSlug: string | null;
+  resolvedPillarSlug: string | null;
 }
 
 export interface IndexInputs {
@@ -77,24 +77,22 @@ function cleanVolume(value: unknown): number | undefined {
 function statusLabel(value: string | undefined, labels: ClusterLabels): string {
   switch (value) {
     case "published":
-    case "publicado":
-      return labels.publicado;
+      return labels.published;
     case "planned":
-    case "planejado":
-      return labels.planejado;
+      return labels.planned;
     default:
       return value || "—";
   }
 }
 
-function acaoLabel(value: string | undefined, labels: ClusterLabels): string {
+function actionLabel(value: string | undefined, labels: ClusterLabels): string {
   switch (value) {
-    case "manter":
-      return labels.manter;
-    case "criar":
-      return labels.criar;
-    case "revisar":
-      return labels.revisar;
+    case "keep":
+      return labels.keep;
+    case "create":
+      return labels.create;
+    case "review":
+      return labels.review;
     case "briefing":
       return labels.briefing;
     default:
@@ -103,14 +101,14 @@ function acaoLabel(value: string | undefined, labels: ClusterLabels): string {
 }
 
 function relPathToContent(content: ContentRecord): string {
-  return `../../content/${content.origem}/${content.slug}.md`;
+  return `../../contents/${content.origin}/${content.slug}.md`;
 }
 
-function papelLabel(value: Papel, labels: ClusterLabels): string {
-  return value === "pilar" ? labels.pilar : labels.satelite;
+function roleLabel(value: Role, labels: ClusterLabels): string {
+  return value === "pillar" ? labels.pillar : labels.satellite;
 }
 
-function tambemEmCol(
+function alsoInCol(
   content: ContentRecord,
   clusterSlug: string,
 ): string {
@@ -123,37 +121,37 @@ function publishedRow(
   content: ContentRecord,
   cluster: ClusterRecord,
   labels: ClusterLabels,
-  forcePilar: boolean,
-  override: SateliteOverride | undefined,
+  forcePillar: boolean,
+  override: SatelliteOverride | undefined,
 ): RenderRow {
-  const fmPapel = content.fm.papel?.[cluster.slug] || "satelite";
-  const papel: Papel = forcePilar ? "pilar" : fmPapel;
+  const fmRole = content.fm.role?.[cluster.slug] || "satellite";
+  const role: Role = forcePillar ? "pillar" : fmRole;
   const title = override?.display_title || shortenTitle(content.fm.title) || content.slug;
   const link = `[${title}](${relPathToContent(content)})`;
   const keyword =
     override?.keyword ??
     cleanString(content.fm.keyword) ??
-    (forcePilar ? cluster.yaml.pilar?.keyword : undefined) ??
+    (forcePillar ? cluster.yaml.pillar?.keyword : undefined) ??
     undefined;
   const volume =
     override?.volume ??
     cleanVolume(content.fm.volume) ??
-    (forcePilar ? cluster.yaml.pilar?.volume : undefined) ??
+    (forcePillar ? cluster.yaml.pillar?.volume : undefined) ??
     undefined;
   const intent =
     override?.intent ||
     cleanString(content.fm.intent) ||
-    (forcePilar ? cluster.yaml.pilar?.intent : undefined) ||
+    (forcePillar ? cluster.yaml.pillar?.intent : undefined) ||
     "—";
   return {
-    papel: papelLabel(papel, labels),
-    conteudo: link,
+    role: roleLabel(role, labels),
+    content: link,
     keyword: renderKeyword(keyword, volume),
     intent: String(intent),
-    status: labels.publicado,
-    acao: "—",
+    status: labels.published,
+    action: "—",
     updated: content.fm.published_at || "—",
-    tambem_em: tambemEmCol(content, cluster.slug),
+    also_in: alsoInCol(content, cluster.slug),
   };
 }
 
@@ -161,71 +159,71 @@ function plannedRow(
   planned: PlannedSatellite,
   labels: ClusterLabels,
 ): RenderRow {
-  const papel: Papel = planned.papel || "satelite";
+  const role: Role = planned.role || "satellite";
   return {
-    papel: papelLabel(papel, labels),
-    conteudo: `_${planned.slug}_`,
+    role: roleLabel(role, labels),
+    content: `_${planned.slug}_`,
     keyword: renderKeyword(planned.keyword, planned.volume),
     intent: String(planned.intent || "—"),
-    status: labels.planejado,
-    acao: labels.briefing,
+    status: labels.planned,
+    action: labels.briefing,
     updated: "—",
-    tambem_em: "—",
+    also_in: "—",
   };
 }
 
-function pilarPlannedRow(
+function pillarPlannedRow(
   cluster: ClusterYaml,
   labels: ClusterLabels,
 ): RenderRow {
-  const p = cluster.pilar;
+  const p = cluster.pillar;
   if (!p) {
     return {
-      papel: labels.pilar,
-      conteudo: "—",
+      role: labels.pillar,
+      content: "—",
       keyword: "—",
       intent: "—",
-      status: labels.planejado,
-      acao: labels.briefing,
+      status: labels.planned,
+      action: labels.briefing,
       updated: "—",
-      tambem_em: "—",
+      also_in: "—",
     };
   }
   return {
-    papel: labels.pilar,
-    conteudo: `_${p.slug}_`,
+    role: labels.pillar,
+    content: `_${p.slug}_`,
     keyword: renderKeyword(p.keyword, p.volume),
     intent: String(p.intent || "—"),
-    status: labels.planejado,
-    acao: labels.briefing,
+    status: labels.planned,
+    action: labels.briefing,
     updated: "—",
-    tambem_em: "—",
+    also_in: "—",
   };
 }
 
 export function buildContentRows(input: RenderInputs): RenderRow[] {
-  const { cluster, labels, contentsByCluster, resolvedPilarSlug } = input;
+  const { cluster, labels, contentsByCluster, resolvedPillarSlug } = input;
   const rows: RenderRow[] = [];
   const published = contentsByCluster.get(cluster.slug) || [];
-  const overrides = cluster.yaml.satelite_overrides || {};
+  const overrides = cluster.yaml.satellite_overrides || {};
 
-  const pilarContent = resolvedPilarSlug
-    ? published.find((c) => c.slug === resolvedPilarSlug)
+  const pillarContent = resolvedPillarSlug
+    ? published.find((c) => c.slug === resolvedPillarSlug)
     : null;
 
-  if (pilarContent) {
+  if (pillarContent) {
     rows.push(
-      publishedRow(pilarContent, cluster, labels, true, overrides[pilarContent.slug]),
+      publishedRow(pillarContent, cluster, labels, true, overrides[pillarContent.slug]),
     );
-  } else if (cluster.yaml.pilar?.slug && cluster.yaml.status === "active") {
-    rows.push(pilarPlannedRow(cluster.yaml, labels));
+  } else if (cluster.yaml.pillar?.slug && cluster.yaml.status === "active") {
+    rows.push(pillarPlannedRow(cluster.yaml, labels));
   }
 
   const sortedPublished = [...published].sort((a, b) =>
     (a.fm.title || a.slug).localeCompare(b.fm.title || b.slug),
   );
   for (const content of sortedPublished) {
-    if (pilarContent && content.slug === pilarContent.slug) continue;
+    if (pillarContent && content.slug === pillarContent.slug) continue;
     rows.push(publishedRow(content, cluster, labels, false, overrides[content.slug]));
   }
 
@@ -239,7 +237,7 @@ export function buildContentRows(input: RenderInputs): RenderRow[] {
 export function renderContentTable(input: RenderInputs): string {
   const { labels } = input;
   const rows = buildContentRows(input);
-  const header = `| ${labels.papel} | ${labels.conteudo} | ${labels.keyword} | ${labels.intent} | ${labels.status} | ${labels.acao} | ${labels.updated} | ${labels.tambem_em} |`;
+  const header = `| ${labels.role} | ${labels.content} | ${labels.keyword} | ${labels.intent} | ${labels.status} | ${labels.action} | ${labels.updated} | ${labels.also_in} |`;
   const divider = "| --- | --- | --- | --- | --- | --- | --- | --- |";
   if (rows.length === 0) {
     return `${header}\n${divider}\n| — | — | — | — | — | — | — | — |`;
@@ -247,7 +245,7 @@ export function renderContentTable(input: RenderInputs): string {
   const body = rows
     .map(
       (r) =>
-        `| ${r.papel} | ${r.conteudo} | ${r.keyword} | ${r.intent} | ${r.status} | ${r.acao} | ${r.updated} | ${r.tambem_em} |`,
+        `| ${r.role} | ${r.content} | ${r.keyword} | ${r.intent} | ${r.status} | ${r.action} | ${r.updated} | ${r.also_in} |`,
     )
     .join("\n");
   return `${header}\n${divider}\n${body}`;
@@ -257,7 +255,7 @@ export function renderContentBlock(input: RenderInputs): string {
   const table = renderContentTable(input);
   return [
     SENTINELS.contentBegin,
-    `## ${input.labels.conteudos_section}`,
+    `## ${input.labels.contents_section}`,
     "",
     table,
     "",
@@ -272,18 +270,18 @@ function indexClusterRow(
 ): string {
   const published = contentsByCluster.get(cluster.slug) || [];
   const planned = (cluster.yaml.planned_satellites || []).length;
-  const pilarContent = cluster.yaml.pilar?.slug
-    ? published.find((c) => c.slug === cluster.yaml.pilar?.slug)
+  const pillarContent = cluster.yaml.pillar?.slug
+    ? published.find((c) => c.slug === cluster.yaml.pillar?.slug)
     : null;
-  const pilarLink = pilarContent
-    ? `[${shortenTitle(pilarContent.fm.title) || pilarContent.slug}](../content/${pilarContent.origem}/${pilarContent.slug}.md)`
-    : cluster.yaml.pilar?.slug
-      ? `_${cluster.yaml.pilar.slug}_`
+  const pillarLink = pillarContent
+    ? `[${shortenTitle(pillarContent.fm.title) || pillarContent.slug}](../contents/${pillarContent.origin}/${pillarContent.slug}.md)`
+    : cluster.yaml.pillar?.slug
+      ? `_${cluster.yaml.pillar.slug}_`
       : "—";
   const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
-  const clusterLink = `[${icon}${cluster.yaml.nome}](topic-clusters/${cluster.slug}.md)`;
-  const area = cluster.yaml.area_nome || cluster.yaml.area || "—";
-  return `| ${clusterLink} | ${area} | ${pilarLink} | ${published.length} | ${planned} |`;
+  const clusterLink = `[${icon}${cluster.yaml.name}](topic-clusters/${cluster.slug}.md)`;
+  const area = cluster.yaml.area_name || cluster.yaml.area || "—";
+  return `| ${clusterLink} | ${area} | ${pillarLink} | ${published.length} | ${planned} |`;
 }
 
 export function renderIndexBlock(input: IndexInputs): string {
@@ -298,18 +296,18 @@ export function renderIndexBlock(input: IndexInputs): string {
   } = input;
   const activeClusters = clusters.filter((c) => c.yaml.status === "active");
   const panel = [
-    `## ${labels.painel}`,
+    `## ${labels.panel}`,
     "",
     `| Indicador | Valor |`,
     `| --- | --- |`,
-    `| ${labels.clusters_ativos} | ${activeClusters.length} |`,
-    `| ${labels.conteudos_publicados} | ${publishedCount} |`,
-    `| ${labels.satelites_planejados} | ${plannedCount} |`,
-    `| ${labels.orfaos} | ${orphanCount} |`,
-    `| ${labels.ultima_sync} | ${syncTimestamp} |`,
+    `| ${labels.active_clusters} | ${activeClusters.length} |`,
+    `| ${labels.published_contents} | ${publishedCount} |`,
+    `| ${labels.planned_satellites} | ${plannedCount} |`,
+    `| ${labels.orphans} | ${orphanCount} |`,
+    `| ${labels.last_sync} | ${syncTimestamp} |`,
   ].join("\n");
 
-  const header = `| ${labels.cluster_col} | ${labels.area_col} | ${labels.pilar_col} | ${labels.publicados_col} | ${labels.planejados_col} |`;
+  const header = `| ${labels.cluster_col} | ${labels.area_col} | ${labels.pillar_col} | ${labels.published_col} | ${labels.planned_col} |`;
   const divider = "| --- | --- | --- | --- | --- |";
   const rows =
     activeClusters.length === 0
@@ -319,8 +317,8 @@ export function renderIndexBlock(input: IndexInputs): string {
           .join("\n");
   const tableBlock =
     activeClusters.length === 0
-      ? `## ${labels.clusters_ativos}\n\n${rows}`
-      : `## ${labels.clusters_ativos}\n\n${header}\n${divider}\n${rows}`;
+      ? `## ${labels.active_clusters}\n\n${rows}`
+      : `## ${labels.active_clusters}\n\n${header}\n${divider}\n${rows}`;
 
   return [
     SENTINELS.indexBegin,

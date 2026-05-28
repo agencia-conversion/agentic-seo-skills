@@ -13,11 +13,11 @@ import type {
   ClusterYaml,
   ContentFrontmatter,
   ContentRecord,
-  Origem,
+  Origin,
 } from "./cluster-types";
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
-const ORIGEMS: Origem[] = ["blog", "linkedin", "podcast", "other"];
+const ORIGINS: Origin[] = ["blog", "linkedin", "podcast", "other"];
 
 export interface ParsedFrontmatter {
   data: ContentFrontmatter;
@@ -74,44 +74,31 @@ export function loadClusters(projectRoot: string): ClusterRecord[] {
   return out.sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
-// Bilingual content roots and origin aliases. EN canonical is content/ with
-// origin: other; pt-BR alias is conteudos/ with origin: outros.
-const CONTENT_ROOTS = ["content", "conteudos"] as const;
-const ORIGIN_ALIASES: Record<string, string> = { outros: "other", other: "outros" };
-
 export function loadContents(projectRoot: string): ContentRecord[] {
   const out: ContentRecord[] = [];
-  const seen = new Set<string>();
-  for (const root of CONTENT_ROOTS) {
-    for (const origem of ORIGEMS) {
-      const dirCandidates = [origem, ORIGIN_ALIASES[origem]].filter(Boolean) as string[];
-      for (const folderName of dirCandidates) {
-        const dir = join(projectRoot, root, folderName);
-        if (!existsSync(dir)) continue;
-        for (const name of readdirSync(dir)) {
-          if (!name.endsWith(".md")) continue;
-          if (name.startsWith("_")) continue;
-          const filePath = join(dir, name);
-          if (seen.has(filePath)) continue;
-          seen.add(filePath);
-          const stat = statSync(filePath);
-          let fm: ContentFrontmatter = {};
-          try {
-            fm = parseFrontmatter(readFileSync(filePath, "utf8")).data;
-          } catch {
-            fm = {};
-          }
-          const slug = (fm.slug as string) || name.replace(/\.md$/, "");
-          out.push({
-            slug,
-            origem,
-            filePath,
-            relPath: relative(projectRoot, filePath).replace(/\\/g, "/"),
-            fm,
-            mtimeMs: stat.mtimeMs,
-          });
-        }
+  for (const origin of ORIGINS) {
+    const dir = join(projectRoot, "contents", origin);
+    if (!existsSync(dir)) continue;
+    for (const name of readdirSync(dir)) {
+      if (!name.endsWith(".md")) continue;
+      if (name.startsWith("_")) continue;
+      const filePath = join(dir, name);
+      const stat = statSync(filePath);
+      let fm: ContentFrontmatter = {};
+      try {
+        fm = parseFrontmatter(readFileSync(filePath, "utf8")).data;
+      } catch {
+        fm = {};
       }
+      const slug = (fm.slug as string) || name.replace(/\.md$/, "");
+      out.push({
+        slug,
+        origin,
+        filePath,
+        relPath: relative(projectRoot, filePath).replace(/\\/g, "/"),
+        fm,
+        mtimeMs: stat.mtimeMs,
+      });
     }
   }
   return out.sort((a, b) => a.slug.localeCompare(b.slug));

@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     kind,
     title: body.title || 'Nova página',
     parentPath: body.parentPath ? String(body.parentPath) : undefined,
-    origem: body.origem ? String(body.origem) : undefined,
+    origin: body.origin ? String(body.origin) : undefined,
     clusters,
   });
   if (kind === 'content' && clusters && clusters.length > 0 && result && (result as { ok?: boolean }).ok) {

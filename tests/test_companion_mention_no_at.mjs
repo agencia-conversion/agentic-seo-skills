@@ -38,18 +38,18 @@ renameSync(jsFile, mjsFile);
 const { resolveMentionHydration } = await import(`../${mjsFile}`);
 
 const pages = [
-  { id: 'brain/voz.md', title: 'Tom de Voz', icon: '🎙️', slug: 'voz' },
+  { id: 'brain/voice.md', title: 'Tom de Voz', icon: '🎙️', slug: 'voice' },
 ];
 
-const ok = resolveMentionHydration('brain/voz.md', pages);
+const ok = resolveMentionHydration('brain/voice.md', pages);
 assert.equal(ok.text, '🎙️ Tom de Voz', 'mention should render icon + title without @');
 assert.ok(!ok.text.includes('@'));
 
-const alias = resolveMentionHydration('brain/voz.md', pages, 'tom editorial');
+const alias = resolveMentionHydration('brain/voice.md', pages, 'tom editorial');
 assert.equal(alias.text, '🎙️ tom editorial');
 assert.ok(!alias.text.includes('@'));
 
-const anchor = resolveMentionHydration('brain/voz.md', pages, null, 'Princípios');
+const anchor = resolveMentionHydration('brain/voice.md', pages, null, 'Princípios');
 assert.equal(anchor.text, '🎙️ Princípios');
 assert.ok(!anchor.text.includes('@'));
 

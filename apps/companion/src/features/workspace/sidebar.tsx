@@ -312,7 +312,7 @@ export function Sidebar() {
         {sections.map((section) => {
           const sectionPages = pagesBySection[section.id] || [];
           const sectionTitle =
-            section.id === 'conteudos' ? t('project.contents') : section.id === 'workbench' ? t('project.workbench') : section.title;
+            section.id === 'contents' ? t('project.contents') : section.id === 'workbench' ? t('project.workbench') : section.title;
           return (
             <div key={section.id} className="mb-4">
               {section.id !== 'brain' && (

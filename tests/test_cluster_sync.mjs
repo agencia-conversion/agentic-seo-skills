@@ -15,7 +15,7 @@ function fixture() {
     JSON.stringify({ schema_version: "2.0.0", name: "fixture", language: "pt-BR" }),
   );
   mkdirSync(join(root, "brain", "topic-clusters"), { recursive: true });
-  mkdirSync(join(root, "conteudos", "blog"), { recursive: true });
+  mkdirSync(join(root, "contents", "blog"), { recursive: true });
   return root;
 }
 
@@ -34,7 +34,7 @@ function writeContent(root, slug, fm, body = "Lorem ipsum.") {
     })
     .join("\n");
   writeFileSync(
-    join(root, "conteudos", "blog", `${slug}.md`),
+    join(root, "contents", "blog", `${slug}.md`),
     `---\n${yaml}\n---\n\n${body}`,
   );
 }
@@ -44,12 +44,12 @@ async function test_basic_sync_and_idempotence() {
   writeCluster(
     root,
     "alpha",
-    "contract_version: 1\nslug: alpha\nnome: Alpha\nstatus: active\npilar:\n  slug: pilar-a\n  keyword: keyword a\n",
+    "contract_version: 1\nslug: alpha\nname: Alpha\nstatus: active\npillar:\n  slug: pillar-a\n  keyword: keyword a\n",
   );
-  writeContent(root, "pilar-a", {
-    title: "Pilar A",
-    slug: "pilar-a",
-    origem: "blog",
+  writeContent(root, "pillar-a", {
+    title: "Pillar A",
+    slug: "pillar-a",
+    origin: "blog",
     clusters: ["alpha"],
     contract_version: 1,
   });
@@ -67,12 +67,12 @@ async function test_lint_cluster_missing() {
   writeCluster(
     root,
     "alpha",
-    "contract_version: 1\nslug: alpha\nnome: Alpha\nstatus: active\npilar:\n  slug: pilar-a\n",
+    "contract_version: 1\nslug: alpha\nname: Alpha\nstatus: active\npillar:\n  slug: pillar-a\n",
   );
   writeContent(root, "orphan", {
     title: "Orphan",
     slug: "orphan",
-    origem: "blog",
+    origin: "blog",
     clusters: ["does-not-exist"],
     contract_version: 1,
   });
@@ -91,25 +91,25 @@ async function test_content_frontmatter_keyword_volume_preferred() {
     [
       "contract_version: 1",
       "slug: alpha",
-      "nome: Alpha",
+      "name: Alpha",
       "status: active",
-      "pilar:",
-      "  slug: pilar-a",
+      "pillar:",
+      "  slug: pillar-a",
       "  keyword: legacy keyword",
       "  intent: informational",
       "  volume: 10",
       "",
     ].join("\n"),
   );
-  writeContent(root, "pilar-a", {
-    title: "Pilar A",
-    slug: "pilar-a",
-    origem: "blog",
+  writeContent(root, "pillar-a", {
+    title: "Pillar A",
+    slug: "pillar-a",
+    origin: "blog",
     keyword: "frontmatter keyword",
     intent: "comparative",
     volume: 320,
     clusters: ["alpha"],
-    papel: { alpha: "pilar" },
+    role: { alpha: "pillar" },
     contract_version: 1,
   });
   const r = await mod.clusterSync({ root });
@@ -121,37 +121,37 @@ async function test_content_frontmatter_keyword_volume_preferred() {
   rmSync(root, { recursive: true, force: true });
 }
 
-async function test_lint_unique_pilar() {
+async function test_lint_unique_pillar() {
   const root = fixture();
   writeCluster(
     root,
     "alpha",
-    "contract_version: 1\nslug: alpha\nnome: Alpha\nstatus: active\npilar:\n  slug: shared\n",
+    "contract_version: 1\nslug: alpha\nname: Alpha\nstatus: active\npillar:\n  slug: shared\n",
   );
   writeCluster(
     root,
     "beta",
-    "contract_version: 1\nslug: beta\nnome: Beta\nstatus: active\npilar:\n  slug: shared\n",
+    "contract_version: 1\nslug: beta\nname: Beta\nstatus: active\npillar:\n  slug: shared\n",
   );
   writeContent(root, "shared", {
     title: "Shared",
     slug: "shared",
-    origem: "blog",
+    origin: "blog",
     clusters: ["alpha", "beta"],
     contract_version: 1,
   });
   const r = await mod.clusterSync({ root, check: true });
   const codes = r.lints.map((l) => l.code);
-  assert.ok(codes.includes("cluster.unique-pilar"), "should detect unique-pilar violation");
+  assert.ok(codes.includes("cluster.unique-pillar"), "should detect unique-pillar violation");
   rmSync(root, { recursive: true, force: true });
 }
 
-async function test_lint_pilar_missing() {
+async function test_lint_pillar_missing() {
   const root = fixture();
-  writeCluster(root, "alpha", "contract_version: 1\nslug: alpha\nnome: Alpha\nstatus: active\n");
+  writeCluster(root, "alpha", "contract_version: 1\nslug: alpha\nname: Alpha\nstatus: active\n");
   const r = await mod.clusterSync({ root, check: true });
   const codes = r.lints.map((l) => l.code);
-  assert.ok(codes.includes("cluster.pilar.missing"), "should detect missing pilar in active cluster");
+  assert.ok(codes.includes("cluster.pillar.missing"), "should detect missing pillar in active cluster");
   rmSync(root, { recursive: true, force: true });
 }
 
@@ -160,18 +160,18 @@ async function test_sentinel_reconstruction() {
   writeCluster(
     root,
     "alpha",
-    "contract_version: 1\nslug: alpha\nnome: Alpha\nstatus: active\npilar:\n  slug: pilar-a\n",
+    "contract_version: 1\nslug: alpha\nname: Alpha\nstatus: active\npillar:\n  slug: pillar-a\n",
   );
-  writeContent(root, "pilar-a", {
-    title: "Pilar A",
-    slug: "pilar-a",
-    origem: "blog",
+  writeContent(root, "pillar-a", {
+    title: "Pillar A",
+    slug: "pillar-a",
+    origin: "blog",
     clusters: ["alpha"],
     contract_version: 1,
   });
   writeFileSync(
     join(root, "brain", "topic-clusters", "alpha.md"),
-    "---\ntitle: Alpha\n---\n\n# Alpha\n\n## Pilar\n\n## Conteúdos\n\n| velho |\n| --- |\n| dado |\n",
+    "---\ntitle: Alpha\n---\n\n# Alpha\n\n## Pillar\n\n## Contents\n\n| old |\n| --- |\n| data |\n",
   );
   const r = await mod.clusterSync({ root });
   const codes = r.lints.map((l) => l.code);
@@ -184,26 +184,26 @@ async function test_sentinel_reconstruction() {
   rmSync(root, { recursive: true, force: true });
 }
 
-async function test_pilar_divergence() {
+async function test_pillar_divergence() {
   const root = fixture();
   writeCluster(
     root,
     "alpha",
-    "contract_version: 1\nslug: alpha\nnome: Alpha\nstatus: active\npilar:\n  slug: pilar-a\n",
+    "contract_version: 1\nslug: alpha\nname: Alpha\nstatus: active\npillar:\n  slug: pillar-a\n",
   );
-  writeContent(root, "pilar-a", {
-    title: "Pilar A",
-    slug: "pilar-a",
-    origem: "blog",
+  writeContent(root, "pillar-a", {
+    title: "Pillar A",
+    slug: "pillar-a",
+    origin: "blog",
     clusters: ["alpha"],
-    papel: { alpha: "satelite" },
+    role: { alpha: "satellite" },
     contract_version: 1,
   });
   const r = await mod.clusterSync({ root });
   const codes = r.lints.map((l) => l.code);
   assert.ok(
-    codes.includes("cluster.pilar.divergence"),
-    "should detect divergence between YAML and frontmatter papel",
+    codes.includes("cluster.pillar.divergence"),
+    "should detect divergence between YAML and frontmatter role",
   );
   rmSync(root, { recursive: true, force: true });
 }
@@ -213,15 +213,15 @@ async function test_cluster_filter() {
   writeCluster(
     root,
     "alpha",
-    "contract_version: 1\nslug: alpha\nnome: Alpha\nstatus: active\npilar:\n  slug: pilar-a\n",
+    "contract_version: 1\nslug: alpha\nname: Alpha\nstatus: active\npillar:\n  slug: pillar-a\n",
   );
   writeCluster(
     root,
     "beta",
-    "contract_version: 1\nslug: beta\nnome: Beta\nstatus: active\npilar:\n  slug: pilar-b\n",
+    "contract_version: 1\nslug: beta\nname: Beta\nstatus: active\npillar:\n  slug: pillar-b\n",
   );
-  writeContent(root, "pilar-a", { title: "A", origem: "blog", clusters: ["alpha"], contract_version: 1 });
-  writeContent(root, "pilar-b", { title: "B", origem: "blog", clusters: ["beta"], contract_version: 1 });
+  writeContent(root, "pillar-a", { title: "A", origin: "blog", clusters: ["alpha"], contract_version: 1 });
+  writeContent(root, "pillar-b", { title: "B", origin: "blog", clusters: ["beta"], contract_version: 1 });
   await mod.clusterSync({ root });
   const r = await mod.clusterSync({ root, cluster: "alpha" });
   assert.equal(r.stats.clustersConsidered, 1);
@@ -232,10 +232,10 @@ async function main() {
   await test_basic_sync_and_idempotence();
   await test_content_frontmatter_keyword_volume_preferred();
   await test_lint_cluster_missing();
-  await test_lint_unique_pilar();
-  await test_lint_pilar_missing();
+  await test_lint_unique_pillar();
+  await test_lint_pillar_missing();
   await test_sentinel_reconstruction();
-  await test_pilar_divergence();
+  await test_pillar_divergence();
   await test_cluster_filter();
   console.log("All cluster-sync tests passed.");
 }

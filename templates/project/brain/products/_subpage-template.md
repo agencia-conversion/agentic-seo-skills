@@ -5,16 +5,17 @@ updated: "{{updated}}"
 
 # {{title}}
 
-<!-- Subpage of [[products]]. Use it to detail one product/service: value proposition, audience, pricing references, delivery details. -->
+<!-- Subpágina de [[products]]. Use para detalhar um produto/serviço específico além do resumo do índice. -->
 
-## Context
+## Descrição
 
-<!-- In one line, which product this subpage deepens. -->
+<!-- O que o produto faz, para quem, em uma frase. -->
 
-## Content
+## Diferenciais
 
-<!-- Free text. Keep references to [[products]] for the catalog overview. -->
+- <diferencial 1>
+- <diferencial 2>
 
-## Evidence
+## Links
 
-- <product/pricing page link>
+- <URL pública | landing | doc>

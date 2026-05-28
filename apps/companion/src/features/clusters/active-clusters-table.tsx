@@ -1,27 +1,35 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Archive, Pencil, Plus, Search, Sliders } from 'lucide-react';
+import { ArrowDown, ArrowUp, Plus, Search, Sliders } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { showToast } from '@/components/toast';
+import { ConfirmModal } from '@/components/confirm-modal';
+import { cn } from '@/lib/utils';
 import { getCompanionToken } from './cluster-row-api';
 import { EditableSelectCell } from './editable-select-cell';
+import { ClusterRowActionsMenu } from './cluster-row-actions-menu';
+import { ClusterAreaFilterMenu } from './cluster-area-filter-menu';
 import { TableSettingsMenu, type SortState, type TableColumnDef } from '@/features/contents/table-settings-menu';
+import { dataTableWidthClass } from '@/features/workspace/page-width';
 import { useWorkspace } from '@/features/workspace/store';
 import { CreateClusterModal } from './create-cluster-modal';
+import { formatRowError } from '@/lib/row-error-messages';
+import { syncBus } from '@/lib/sync-bus';
 
 interface ClusterSummary {
   slug: string;
-  nome: string;
+  name: string;
   icon: string | null;
   area: string | null;
-  tese: string | null;
+  area_name: string | null;
+  thesis: string | null;
   status: string;
-  pilar_slug: string | null;
-  pilar_title: string | null;
-  pilar_path: string | null;
-  publicados: number;
-  planejados: number;
+  pillar_slug: string | null;
+  pillar_title: string | null;
+  pillar_path: string | null;
+  published: number;
+  planned: number;
   updated: string | null;
 }
 
@@ -35,15 +43,17 @@ function SortableHeader({
   label,
   sort,
   onToggle,
+  width,
 }: {
   column: string;
   label: string;
   sort: SortState | null;
   onToggle: (column: string) => void;
+  width?: string;
 }) {
   const active = sort?.column === column;
   return (
-    <th className="px-2.5 py-1.5 font-medium">
+    <th className={`px-2.5 py-1.5 font-medium${width ? ` ${width}` : ''}`}>
       <button
         type="button"
         onClick={() => onToggle(column)}
@@ -120,13 +130,11 @@ function RenameClusterInput({
 function readValue(row: ClusterSummary, column: string): string {
   switch (column) {
     case 'cluster':
-      return row.nome;
-    case 'pilar':
-      return row.pilar_title || row.pilar_slug || '';
-    case 'publicados':
-      return String(row.publicados || 0);
-    case 'planejados':
-      return String(row.planejados || 0);
+      return row.name;
+    case 'pillar':
+      return row.pillar_title || row.pillar_slug || '';
+    case 'published':
+      return String(row.published || 0);
     case 'status':
       return row.status || '';
     case 'updated':
@@ -137,8 +145,9 @@ function readValue(row: ClusterSummary, column: string): string {
 }
 
 const EMPTY_HIDDEN_COLUMNS_BY_TABLE: Record<string, string[]> = {};
+const EMPTY_AREA_FILTERS_BY_TABLE: Record<string, string[]> = {};
 
-export function ActiveClustersTable() {
+export function ActiveClustersTable({ followPageWidth = true }: { followPageWidth?: boolean }) {
   const router = useRouter();
   const token = useWorkspace((s) => s.token);
   const refreshProjectTree = useWorkspace((s) => s.refreshProjectTree);
@@ -155,16 +164,25 @@ export function ActiveClustersTable() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [editingClusterSlug, setEditingClusterSlug] = useState<string | null>(null);
+  const [archivingCluster, setArchivingCluster] = useState<{ slug: string; name: string } | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const tableKey = 'active-clusters';
   const hiddenByTable = settings.hiddenColumnsByTable || EMPTY_HIDDEN_COLUMNS_BY_TABLE;
   const hiddenColumns = useMemo(() => new Set(hiddenByTable[tableKey] || []), [hiddenByTable]);
+  const areaFiltersByTable = settings.clusterAreaFiltersByTable || EMPTY_AREA_FILTERS_BY_TABLE;
+  const selectedAreas = useMemo(
+    () => new Set(areaFiltersByTable[tableKey] || []),
+    [areaFiltersByTable],
+  );
+  const locale: 'pt-BR' | 'en' = settings.language === 'en' ? 'en' : 'pt-BR';
 
-  const fetchClusters = useCallback(async () => {
+  const hasLoadedOnce = useRef(false);
+  const fetchClusters = useCallback(async (opts?: { silent?: boolean }) => {
     const companionToken = getCompanionToken();
     if (!companionToken) return;
-    setLoading(true);
+    const silent = opts?.silent ?? hasLoadedOnce.current;
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const res = await fetch(`/api/project/clusters?token=${encodeURIComponent(companionToken)}`, {
@@ -173,10 +191,11 @@ export function ActiveClustersTable() {
       const json = await res.json();
       if (!json.ok) throw new Error(json.reason || 'cluster-load-failed');
       setClusters(json.clusters || []);
+      hasLoadedOnce.current = true;
     } catch (err) {
       setError(String((err as Error).message || err));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -197,12 +216,43 @@ export function ActiveClustersTable() {
     void fetchContents();
   }, [fetchClusters, fetchContents]);
 
+  // Refetch when any view (drawer, contents list, cluster table) reports
+  // a cluster mutation. Cluster status, name, or pillar may have changed.
+  useEffect(() => {
+    return syncBus.on((event) => {
+      if (event.type === 'clusters:changed' || event.type === 'cluster:changed') {
+        void fetchClusters();
+      } else if (event.type === 'content:changed') {
+        void fetchClusters();
+        void fetchContents();
+      }
+    });
+  }, [fetchClusters, fetchContents]);
+
+  const activeClusters = useMemo(
+    () => clusters.filter((row) => row.status === 'active'),
+    [clusters],
+  );
+
+  const areaOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const row of activeClusters) {
+      if (row.area) map.set(row.area, row.area_name || row.area);
+    }
+    return Array.from(map.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+  }, [activeClusters]);
+
   const activeRows = useMemo(() => {
-    let rows = clusters.filter((row) => row.status === 'active');
+    let rows = activeClusters;
+    if (selectedAreas.size > 0) {
+      rows = rows.filter((row) => row.area && selectedAreas.has(row.area));
+    }
     const q = query.trim().toLowerCase();
     if (q) {
       rows = rows.filter((row) =>
-        [row.nome, row.slug, row.pilar_title, row.pilar_slug, row.status].some((value) =>
+        [row.name, row.slug, row.pillar_title, row.pillar_slug, row.status].some((value) =>
           String(value || '').toLowerCase().includes(q),
         ),
       );
@@ -220,13 +270,45 @@ export function ActiveClustersTable() {
       );
     }
     return rows;
-  }, [clusters, filters, query, sort]);
+  }, [activeClusters, filters, query, selectedAreas, sort]);
+
+  const totalActive = activeClusters.length;
+  const filteringActive = selectedAreas.size > 0;
+  const countLabel = filteringActive
+    ? `${activeRows.length} de ${totalActive} ativo${totalActive === 1 ? '' : 's'}`
+    : `${activeRows.length} ativo${activeRows.length === 1 ? '' : 's'}`;
+
+  const updateSelectedAreas = useCallback(
+    (next: Set<string>) => {
+      const nextByTable = { ...areaFiltersByTable };
+      if (next.size === 0) {
+        delete nextByTable[tableKey];
+      } else {
+        nextByTable[tableKey] = Array.from(next);
+      }
+      setSettings({ clusterAreaFiltersByTable: nextByTable });
+    },
+    [areaFiltersByTable, setSettings, tableKey],
+  );
+
+  const toggleAreaFilter = useCallback(
+    (value: string) => {
+      const next = new Set(selectedAreas);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      updateSelectedAreas(next);
+    },
+    [selectedAreas, updateSelectedAreas],
+  );
+
+  const clearAreaFilter = useCallback(() => {
+    updateSelectedAreas(new Set());
+  }, [updateSelectedAreas]);
 
   const columnDefs: TableColumnDef[] = [
     { id: 'cluster', label: 'Cluster', filterKind: 'text' },
-    { id: 'pilar', label: 'Pilar', filterKind: 'text' },
-    { id: 'publicados', label: 'Publicados', filterKind: 'text' },
-    { id: 'planejados', label: 'Planejados', filterKind: 'text' },
+    { id: 'pillar', label: 'Pilar', filterKind: 'text' },
+    { id: 'published', label: 'Publicados', filterKind: 'text' },
     { id: 'status', label: 'Status', filterKind: 'select', filterOptions: [
       { value: 'active', label: 'active' },
       { value: 'drafting', label: 'drafting' },
@@ -266,6 +348,8 @@ export function ActiveClustersTable() {
     });
     const json = await res.json().catch(() => ({ ok: false, reason: `http-${res.status}` }));
     if (json.ok) {
+      syncBus.emit({ type: 'clusters:changed' });
+      syncBus.emit({ type: 'cluster:changed', slug });
       await fetchClusters();
       await refreshProjectTree();
     }
@@ -278,7 +362,7 @@ export function ActiveClustersTable() {
     const lines = [
       ['Cluster', 'Pilar', 'Publicados', 'Planejados', 'Status', 'Atualizado'].join('\t'),
       ...picked.map((row) =>
-        [row.nome, row.pilar_title || row.pilar_slug || '', row.publicados, row.planejados, row.status, row.updated || ''].join('\t'),
+        [row.name, row.pillar_title || row.pillar_slug || '', row.published, row.planned, row.status, row.updated || ''].join('\t'),
       ),
     ];
     await navigator.clipboard.writeText(lines.join('\n'));
@@ -286,21 +370,29 @@ export function ActiveClustersTable() {
   };
 
   return (
-    <div data-active-clusters-table className="my-2 not-prose">
+    <div data-active-clusters-table className={cn('my-2 not-prose', dataTableWidthClass(followPageWidth))}>
       <div className="overflow-hidden rounded-md bg-background">
         <header className="flex items-center justify-between gap-2 px-2.5 py-1.5">
-          <label className="flex h-8 w-48 shrink-0 items-center gap-2 rounded-md border border-notion-border bg-background px-2 text-xs">
-            <Search className="h-3.5 w-3.5 text-notion-text-muted" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar clusters…"
-              className="w-full bg-transparent text-xs outline-none placeholder:text-notion-text-muted"
+          <div className="flex items-center gap-2">
+            <label className="flex h-8 w-48 shrink-0 items-center gap-2 rounded-md border border-notion-border bg-background px-2 text-xs">
+              <Search className="h-3.5 w-3.5 text-notion-text-muted" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Buscar clusters…"
+                className="w-full bg-transparent text-xs outline-none placeholder:text-notion-text-muted"
+              />
+            </label>
+            <ClusterAreaFilterMenu
+              options={areaOptions}
+              selected={selectedAreas}
+              onToggle={toggleAreaFilter}
+              onClear={clearAreaFilter}
             />
-          </label>
+          </div>
           <div className="flex-1" />
           <div className="flex items-center gap-3 text-xs text-notion-text-muted">
-            <span>{activeRows.length} ativo{activeRows.length === 1 ? '' : 's'}</span>
+            <span data-testid="cluster-area-filter-count">{countLabel}</span>
             {selected.size > 0 && (
               <button type="button" onClick={() => void copySelected()} className="rounded px-2 py-1 hover:bg-notion-hover cursor-pointer">
                 Copiar
@@ -325,9 +417,9 @@ export function ActiveClustersTable() {
           </div>
         </header>
         {error && <div className="px-4 py-3 text-xs text-red-600">Erro ao carregar: {error}</div>}
-        {loading && <div className="px-4 py-3 text-xs text-notion-text-muted">Carregando…</div>}
+        {loading && clusters.length === 0 && <div className="px-4 py-3 text-xs text-notion-text-muted">Carregando…</div>}
         {!loading && activeRows.length === 0 && <div className="px-4 py-3 text-xs text-notion-text-muted">Nenhum cluster ativo.</div>}
-        {!loading && activeRows.length > 0 && (
+        {activeRows.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -346,12 +438,11 @@ export function ActiveClustersTable() {
                     />
                   </th>
                   {isVisible('cluster') && <SortableHeader column="cluster" label="Cluster" sort={sort} onToggle={cycleSort} />}
-                  {isVisible('pilar') && <SortableHeader column="pilar" label="Pilar" sort={sort} onToggle={cycleSort} />}
-                  {isVisible('publicados') && <SortableHeader column="publicados" label="Publicados" sort={sort} onToggle={cycleSort} />}
-                  {isVisible('planejados') && <SortableHeader column="planejados" label="Planejados" sort={sort} onToggle={cycleSort} />}
+                  {isVisible('pillar') && <SortableHeader column="pillar" label="Pilar" sort={sort} onToggle={cycleSort} />}
+                  {isVisible('published') && <SortableHeader column="published" label="Publicados" sort={sort} onToggle={cycleSort} width="w-[90px]" />}
                   {isVisible('status') && <SortableHeader column="status" label="Status" sort={sort} onToggle={cycleSort} />}
                   {isVisible('updated') && <SortableHeader column="updated" label="Atualizado" sort={sort} onToggle={cycleSort} />}
-                  <th className="px-2.5 py-1.5 font-medium" />
+                  <th className="w-10 px-1 py-1.5 font-medium" />
                 </tr>
               </thead>
               <tbody>
@@ -373,16 +464,21 @@ export function ActiveClustersTable() {
                       />
                     </td>
                     {isVisible('cluster') && (
-                      <td className="px-2.5 py-1.5 align-top min-w-[220px]">
+                      <td className="px-2.5 py-1.5 align-top min-w-[320px]">
                         <div className="flex items-center gap-1.5">
                           {editingClusterSlug === row.slug ? (
                             <RenameClusterInput
-                              initial={row.nome}
+                              initial={row.name}
                               onCancel={() => setEditingClusterSlug(null)}
                               onCommit={async (value) => {
-                                const result = await patchCluster(row.slug, { nome: value });
+                                const previous = row.name;
+                                setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, name: value } : c)));
                                 setEditingClusterSlug(null);
-                                if (!result.ok) showToast('Falha ao salvar cluster', 'error');
+                                const result = await patchCluster(row.slug, { name: value });
+                                if (!result.ok) {
+                                  setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, name: previous } : c)));
+                                  showToast(formatRowError('cluster', result.reason, locale), 'error');
+                                }
                               }}
                             />
                           ) : (
@@ -395,42 +491,47 @@ export function ActiveClustersTable() {
                               }}
                               className="min-w-0 truncate text-sm font-medium text-notion-text underline-offset-2 hover:underline"
                             >
-                              {row.nome}
+                              {row.name}
                             </a>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => setEditingClusterSlug(row.slug)}
-                            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-notion-text-muted opacity-70 hover:bg-notion-hover hover:text-notion-text cursor-pointer"
-                            aria-label={`Renomear cluster ${row.nome}`}
-                            title="Renomear cluster"
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </button>
                         </div>
                       </td>
                     )}
-                    {isVisible('pilar') && (
-                      <td className="px-2.5 py-1.5 align-top max-w-[260px]">
-                        {row.pilar_path && token ? (
-                          <a
-                            href={`/project/${encodeURIComponent(token)}/${row.pilar_path.replace(/\.md$/, '').replace(/\//g, '-')}`}
-                            onClick={(event) => {
-                              if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                              event.preventDefault();
-                              router.push(`/project/${encodeURIComponent(token)}/${row.pilar_path!.replace(/\.md$/, '').replace(/\//g, '-')}`);
-                            }}
-                            className="text-sm text-notion-text underline-offset-2 hover:underline"
-                          >
-                            {row.pilar_title || row.pilar_slug}
-                          </a>
-                        ) : (
-                          <span className="text-xs text-notion-text-muted">{row.pilar_slug || '—'}</span>
-                        )}
+                    {isVisible('pillar') && (
+                      <td className="px-2.5 py-1.5 align-top">
+                        <div className="max-w-[260px] overflow-hidden">
+                          {row.pillar_path && token ? (
+                            <a
+                              href={`/project/${encodeURIComponent(token)}/${row.pillar_path.replace(/\.md$/, '').replace(/\//g, '-')}`}
+                              onClick={(event) => {
+                                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                                event.preventDefault();
+                                router.push(`/project/${encodeURIComponent(token)}/${row.pillar_path!.replace(/\.md$/, '').replace(/\//g, '-')}`);
+                              }}
+                              className="block truncate text-sm text-notion-text underline-offset-2 hover:underline"
+                              title={row.pillar_title || row.pillar_slug || ''}
+                            >
+                              {row.pillar_title || row.pillar_slug}
+                            </a>
+                          ) : (
+                            <span
+                              className="block truncate text-xs text-notion-text-muted"
+                              title={row.pillar_slug || '—'}
+                            >
+                              {row.pillar_slug || '—'}
+                            </span>
+                          )}
+                        </div>
                       </td>
                     )}
-                    {isVisible('publicados') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.publicados}</td>}
-                    {isVisible('planejados') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.planejados}</td>}
+                    {isVisible('published') && (
+                      <td
+                        className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted tabular-nums w-[90px]"
+                        title={`${row.published} publicado(s) / ${row.published + row.planned} total (publicados + planejados)`}
+                      >
+                        {row.published}/{row.published + row.planned}
+                      </td>
+                    )}
                     {isVisible('status') && (
                       <td className="px-2.5 py-1.5 align-top min-w-[120px]">
                         <EditableSelectCell
@@ -441,25 +542,41 @@ export function ActiveClustersTable() {
                             { value: 'proposed', label: 'proposed' },
                           ]}
                           onCommit={async (value) => {
+                            const previous = row.status;
+                            setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, status: value } : c)));
                             const result = await patchCluster(row.slug, { status: value });
-                            if (!result.ok) showToast('Falha ao salvar status', 'error');
+                            if (!result.ok) {
+                              setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, status: previous } : c)));
+                              showToast(formatRowError('status', result.reason, locale), 'error');
+                            }
                           }}
                         />
                       </td>
                     )}
                     {isVisible('updated') && <td className="px-2.5 py-1.5 align-top text-xs text-notion-text-muted">{row.updated || '—'}</td>}
-                    <td className="px-2.5 py-1.5 align-top text-right">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const result = await patchCluster(row.slug, { status: 'archived' });
-                          showToast(result.ok ? 'Cluster arquivado' : 'Falha ao arquivar cluster', result.ok ? 'success' : 'error');
+                    <td className="w-10 px-1 py-1.5 align-top text-right">
+                      <ClusterRowActionsMenu
+                        slug={row.slug}
+                        name={row.name}
+                        status={row.status}
+                        onOpen={() => {
+                          if (!token) return;
+                          router.push(`/project/${encodeURIComponent(token)}/brain-topic-clusters-${row.slug}`);
                         }}
-                        className="inline-flex h-7 w-7 items-center justify-center rounded hover:bg-notion-hover cursor-pointer text-notion-text-muted hover:text-notion-text"
-                        title="Arquivar cluster"
-                      >
-                        <Archive className="h-3.5 w-3.5" />
-                      </button>
+                        onRename={() => setEditingClusterSlug(row.slug)}
+                        onStatusChange={async (next) => {
+                          const previous = row.status;
+                          setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, status: next } : c)));
+                          const result = await patchCluster(row.slug, { status: next });
+                          if (!result.ok) {
+                            setClusters((prev) => prev.map((c) => (c.slug === row.slug ? { ...c, status: previous } : c)));
+                            showToast(formatRowError('status', result.reason, locale), 'error');
+                          } else {
+                            showToast(`Status atualizado: ${next}`, 'success');
+                          }
+                        }}
+                        onArchive={() => setArchivingCluster({ slug: row.slug, name: row.name })}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -497,6 +614,25 @@ export function ActiveClustersTable() {
           delete next[tableKey];
           setSettings({ hiddenColumnsByTable: next });
         }}
+      />
+      <ConfirmModal
+        isOpen={!!archivingCluster}
+        title="Arquivar cluster"
+        description={`Tem certeza que deseja arquivar "${archivingCluster?.name || ''}"? O cluster sairá da lista de ativos.`}
+        confirmLabel="Arquivar"
+        cancelLabel="Cancelar"
+        destructive
+        onConfirm={async () => {
+          const target = archivingCluster;
+          if (!target) return;
+          setArchivingCluster(null);
+          const result = await patchCluster(target.slug, { status: 'archived' });
+          showToast(
+            result.ok ? 'Cluster arquivado' : 'Falha ao arquivar cluster',
+            result.ok ? 'success' : 'error',
+          );
+        }}
+        onClose={() => setArchivingCluster(null)}
       />
     </div>
   );

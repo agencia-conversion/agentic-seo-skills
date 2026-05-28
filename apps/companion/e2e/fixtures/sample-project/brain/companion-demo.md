@@ -9,7 +9,7 @@ Página de fixture para validar extensões visuais do Companion sem transformar 
 
 ## Embed
 
-![[voz]]
+![[voice]]
 
 ## Consulta
 

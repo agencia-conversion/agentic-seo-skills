@@ -5,8 +5,8 @@ const TOKEN = TEST_TOKEN;
 
 async function openEditablePage(page: any) {
   // workbench/companion/* is writeable; create-or-open the brain index instead since it's predictable.
-  // We use brain/voz which we know is non-readonly in fixtures.
-  await page.goto(`/project/${TOKEN}/brain-voz`);
+  // We use brain/voice which we know is non-readonly in fixtures.
+  await page.goto(`/project/${TOKEN}/brain-voice`);
   await page.waitForSelector('.ProseMirror', { timeout: 20_000 });
   // Wait one tick for editor to accept input.
   await page.locator('.ProseMirror').click();

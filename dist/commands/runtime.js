@@ -65,16 +65,11 @@ const PROJECT_DIR = resolveProjectDir();
 const TEMPLATES_DIR = path.join(ROOT, "templates", "project");
 const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
 const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
-// EN canonical names. Brain lint requires these — files written via
-// project-init use EN filenames regardless of project language; the content
-// of each file is picked from the `.pt-BR.md` template variant when
-// project.json.language is pt-BR. See docs/specs/en-rename-map.md.
 const REQUIRED_BRAIN_PAGES = [
     "index.md",
     "identity.md",
     "voice.md",
     "technology.md",
-    "editorial.md",
     "topic-clusters.md",
     "review.md",
     "log.md",
@@ -84,25 +79,22 @@ const AUTHORIAL_BRAIN_PAGES = new Set([
     "identity.md",
     "voice.md",
     "technology.md",
-    "editorial.md",
     "topic-clusters.md",
+    "products.md",
     "review.md",
-    "identidade.md",
-    "voz.md",
-    "tecnologia.md",
-    "revisao.md",
 ]);
-const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "other", "outros"]);
-// Picks the first existing path for a logical brain page across EN canonical
-// and pt-BR alias filenames. Used during the bilingual transition.
-function brainPagePath(projectDir, ...candidates) {
-    for (const candidate of candidates) {
-        const full = path.join(projectDir, "brain", candidate);
-        if (fs.existsSync(full))
-            return full;
-    }
-    return path.join(projectDir, "brain", candidates[0]);
+// Brain is extensible: any other brain/<name>.md page is authorial when
+// registered as `type: decision` in brain/log.md (contract: extensible brain).
+// The canonical set above is the required minimum; new top-level subpages
+// (e.g., `products.md`, `partnerships.md`, `metrics.md`) join via decision log.
+function isAuthorialBrainName(name) {
+    if (typeof name !== "string")
+        return false;
+    if (AUTHORIAL_BRAIN_PAGES.has(name))
+        return true;
+    return /^[A-Za-z0-9._-]+\.md$/.test(name) && name !== "log.md";
 }
+const PUBLIC_CONTENT_ORIGINS = new Set(["blog", "linkedin", "podcast", "other"]);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sharedReportModules = require("../../shared/report-modules.js");
 const REPORT_MODULE_IDS = sharedReportModules.REPORT_MODULE_IDS;
@@ -404,6 +396,8 @@ function copyDir(src, dest) {
         return;
     mkdirp(dest);
     for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+        if (entry.isFile() && /\.pt-BR\.(md|template)$/i.test(entry.name))
+            continue;
         const from = path.join(src, entry.name);
         const to = path.join(dest, entry.name);
         if (entry.isDirectory())
@@ -428,9 +422,7 @@ function isBrainPageFilled(body) {
         return false;
     return stripped.trim().length > 100;
 }
-// Maps internal event labels to canonical EN log type values
-// (contract_version 2). Accepts pt-BR aliases on input for backward compat.
-function mapEventTypeToTipo(eventType) {
+function mapEventTypeToType(eventType) {
     const lower = eventType.toLowerCase();
     if (lower.includes("approv") || lower.includes("aprovac"))
         return "approval";
@@ -441,19 +433,16 @@ function mapEventTypeToTipo(eventType) {
     if (lower.includes("publica"))
         return "publication";
     if (lower.includes("errat"))
-        return "erratum";
-    if (lower.includes("prova") || lower.includes("proof"))
-        return "proof";
+        return "correction";
+    if (lower.includes("prova") || lower.includes("proof") || lower.includes("evidence"))
+        return "evidence";
     return "decision";
 }
-// EN canonical log entry. The schema migration to contract_version 2 renames
-// pt-BR keys (tipo/escopo/decisao/evidencia/aprovador/aprovado_em) to EN
-// (type/scope/decision/evidence/approver/approved_at).
 function appendLog(eventType, title, files, summary, approval) {
     const brainLog = path.join(PROJECT_DIR, "brain", "log.md");
     mkdirp(path.dirname(brainLog));
     const links = formatLogFileRefs(files);
-    const type = mapEventTypeToTipo(eventType);
+    const type = mapEventTypeToType(eventType);
     const approver = approval && approval !== "not-required" && approval !== "pending" ? approval : "agent";
     const lines = [
         "",
@@ -466,7 +455,7 @@ function appendLog(eventType, title, files, summary, approval) {
         `- evidence: ${links}`,
         `- approver: ${approver}`,
     ];
-    if (eventType === "aprovacao" || eventType === "approval")
+    if (eventType === "approval")
         lines.push(`- approved_at: ${today()}`);
     fs.appendFileSync(brainLog, lines.join("\n") + "\n", "utf8");
 }
@@ -474,7 +463,7 @@ function appendOperationalLog(eventType, title, files, decision, summary, notes)
     const brainLog = path.join(PROJECT_DIR, "brain", "log.md");
     mkdirp(path.dirname(brainLog));
     const links = formatLogFileRefs(files);
-    const type = mapEventTypeToTipo(eventType);
+    const type = mapEventTypeToType(eventType);
     const lines = [
         "",
         "",
@@ -495,7 +484,7 @@ function appendDataforseoBypassLog(title, approvals, files) {
     for (const approval of list) {
         if (approval?.required_provider !== "dataforseo" || approval.approval_mode === "companion")
             continue;
-        appendOperationalLog("dataforseo-bypass", title, files, `${approval.workflow} sem DataForSEO em ${approval.step}: ${approval.consequence}`, "decision-recorded", `Registrado por ${approval.aprovador || "agent"}; motivo: ${approval.reason}; timestamp: ${approval.confirmado_em}.`);
+        appendOperationalLog("dataforseo-bypass", title, files, `${approval.workflow} sem DataForSEO em ${approval.step}: ${approval.consequence}`, "decision-recorded", `Registrado por ${approval.approver || "agent"}; motivo: ${approval.reason}; timestamp: ${approval.confirmado_em}.`);
     }
 }
 function parseFrontmatter(text) {
@@ -655,7 +644,7 @@ function normalizeDataforseoBypassApproval(args, context, mode) {
         confirmed: boolArg(args.dataforseo_bypass_confirmed ?? context.confirmed, true),
         reason,
         consequence: context.consequence,
-        aprovador: approvedBy,
+        approver: approvedBy,
         confirmation_text: confirmationText,
         confirmado_em: confirmedAt,
         approval_mode: mode,
@@ -702,7 +691,7 @@ function requireDataforseoBypassApproval(args, context) {
         args.dataforseo_bypass_handoff = false;
         args.dataforseo_bypass_confirmed = true;
         args.dataforseo_bypass_reason = approval.reason;
-        args.dataforseo_bypass_approved_by = approval.aprovador;
+        args.dataforseo_bypass_approved_by = approval.approver;
         args.dataforseo_bypass_confirmation_text = approval.confirmation_text;
         args.dataforseo_bypass_confirmed_at = approval.confirmado_em;
         args.dataforseo_bypass_approval_mode = "companion";
@@ -2417,85 +2406,26 @@ async function commandProjectBrowser(args) {
         throw new CliError(`Project browser failed with exit ${result.status ?? result.signal}`);
     }
 }
-// EN canonical brain filenames. Content varies by `project.json.language`;
-// templates with the `.pt-BR.md` suffix carry the pt-BR variant content.
-const BRAIN_SCAFFOLD_FILES = [
-    "index.md",
-    "identity.md",
-    "voice.md",
-    "technology.md",
-    "editorial.md",
-    "topic-clusters.md",
-    "products.md",
-    "review.md",
-    "log.md",
-];
-// EN canonical content origin folders. `outros` (pt-BR) maps to `other` (EN).
-const CONTENT_ORIGIN_FOLDERS = ["blog", "linkedin", "podcast", "other"];
-function pickTemplateForLanguage(dir, baseName, language) {
-    if (language === "pt-BR") {
-        const localized = path.join(dir, baseName.replace(/\.md$/, ".pt-BR.md"));
-        if (fs.existsSync(localized))
-            return localized;
-    }
-    return path.join(dir, baseName);
-}
 async function commandProjectInit(args) {
     const name = args._[0] || "Agentic SEO Project";
     const p = PROJECT_DIR;
-    const language = args.language || "en";
-    // pt-PT is treated as pt-BR for template scaffolding (Portuguese variant).
-    const scaffoldLang = language === "pt-PT" || language === "pt-BR" ? "pt-BR" : "en";
-    const market = args.market || (language.startsWith("pt") ? "Brasil" : "Global");
+    const language = args.language || "pt-BR";
+    const market = args.market || "Brasil";
     const country = args.country || market;
-    for (const dir of ["brain", "content", "web", "sources", "workbench", "artifacts", "audits", "keywords", "clusters", "eeat", REPORT_DIR_NAME, ".agentic-seo"])
+    for (const dir of ["brain", "contents", "web", "sources", "workbench", "artifacts", "audits", "keywords", "clusters", "eeat", REPORT_DIR_NAME, ".agentic-seo"])
         mkdirp(path.join(p, dir));
-    for (const origin of CONTENT_ORIGIN_FOLDERS)
-        mkdirp(path.join(p, "content", origin));
+    for (const origin of PUBLIC_CONTENT_ORIGINS)
+        mkdirp(path.join(p, "contents", origin));
     for (const moduleId of REPORT_MODULE_IDS)
         mkdirp(path.join(p, REPORT_DIR_NAME, moduleId));
-    // Scaffold brain pages by language: EN canonical filename, content from the
-    // matching `.pt-BR.md` variant when language is pt-BR.
-    const brainTemplateDir = path.join(TEMPLATES_DIR, "brain");
-    for (const fileName of BRAIN_SCAFFOLD_FILES) {
-        const source = pickTemplateForLanguage(brainTemplateDir, fileName, scaffoldLang);
-        if (!fs.existsSync(source))
-            continue;
-        const dest = path.join(p, "brain", fileName);
-        fs.writeFileSync(dest, fs.readFileSync(source, "utf8"));
-    }
-    // Brain subpage scaffolds (one folder per parent with _subpage-template.md).
-    for (const parent of ["identity", "voice", "technology", "products", "editorial", "topic-clusters"]) {
-        const subDir = path.join(brainTemplateDir, parent);
-        if (!fs.existsSync(subDir))
-            continue;
-        mkdirp(path.join(p, "brain", parent));
-        const subSource = pickTemplateForLanguage(subDir, "_subpage-template.md", scaffoldLang);
-        if (fs.existsSync(subSource)) {
-            fs.writeFileSync(path.join(p, "brain", parent, "_subpage-template.md"), fs.readFileSync(subSource, "utf8"));
-        }
-    }
-    // Content origin templates.
-    const contentTemplateDir = path.join(TEMPLATES_DIR, "content");
-    for (const origin of CONTENT_ORIGIN_FOLDERS) {
-        const originDir = path.join(contentTemplateDir, origin);
-        if (!fs.existsSync(originDir))
-            continue;
-        const source = pickTemplateForLanguage(originDir, "_template.md", scaffoldLang);
-        if (fs.existsSync(source)) {
-            fs.writeFileSync(path.join(p, "content", origin, "_template.md"), fs.readFileSync(source, "utf8"));
-        }
-    }
-    writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "3.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
+    copyDir(path.join(TEMPLATES_DIR, "brain"), path.join(p, "brain"));
+    copyDir(path.join(TEMPLATES_DIR, "contents"), path.join(p, "contents"));
+    writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
     const brainIndex = path.join(p, "brain", "index.md");
     if (fs.existsSync(brainIndex)) {
         setFrontmatterValue(brainIndex, { title: JSON.stringify(name), updated: JSON.stringify(today()) });
     }
-    const initTitle = scaffoldLang === "pt-BR" ? "Projeto criado" : "Project initialized";
-    const initSummary = scaffoldLang === "pt-BR"
-        ? `Projeto ${name} inicializado em ${country}/${language}.`
-        : `Project ${name} initialized in ${country}/${language}.`;
-    appendLog("init", initTitle, ["index"], initSummary, "agent");
+    appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado em ${country}/${language}.`, "agent");
     printJson({ ok: true, project_dir: p });
 }
 async function commandBrainLint(args) {
@@ -2534,14 +2464,14 @@ async function commandBrainLint(args) {
 }
 function lintContentPublication(projectDir) {
     const findings = [];
-    const conteudosRoot = path.join(projectDir, "conteudos");
-    if (!fs.existsSync(conteudosRoot))
+    const contentsRoot = path.join(projectDir, "contents");
+    if (!fs.existsSync(contentsRoot))
         return findings;
-    for (const origem of fs.readdirSync(conteudosRoot)) {
-        const origemDir = path.join(conteudosRoot, origem);
-        if (!fs.statSync(origemDir).isDirectory())
+    for (const origin of fs.readdirSync(contentsRoot)) {
+        const originDir = path.join(contentsRoot, origin);
+        if (!fs.statSync(originDir).isDirectory())
             continue;
-        for (const name of fs.readdirSync(origemDir)) {
+        for (const name of fs.readdirSync(originDir)) {
             if (!name.endsWith(".md") || name.startsWith("_"))
                 continue;
             const brief = contentBriefFile(projectDir, path.basename(name, ".md"));
@@ -2552,13 +2482,13 @@ function lintContentPublication(projectDir) {
                 data = readContentBrief(brief);
             }
             catch {
-                findings.push({ severity: "warning", file: `conteudos/${origem}/${name}`, message: `brief is not valid YAML/JSON: ${path.relative(projectDir, brief)}` });
+                findings.push({ severity: "warning", file: `contents/${origin}/${name}`, message: `brief is not valid YAML/JSON: ${path.relative(projectDir, brief)}` });
                 continue;
             }
-            const text = fs.readFileSync(path.join(origemDir, name), "utf8");
+            const text = fs.readFileSync(path.join(originDir, name), "utf8");
             const issues = validatePublicContentDraft(text, data);
             for (const issue of issues)
-                findings.push({ severity: "error", file: `conteudos/${origem}/${name}`, message: issue });
+                findings.push({ severity: "error", file: `contents/${origin}/${name}`, message: issue });
         }
     }
     return findings;
@@ -2676,7 +2606,7 @@ function validatePublicContentDraft(text, brief) {
         /\bbrain\b/i,
         /\blog\b/i,
         ...(allowAgentTerm ? [] : [/\bagente?s?\b/i]),
-        /project\/(?:workbench|brain|sources|artifacts|conteudos)\//i,
+        /project\/(?:workbench|brain|sources|artifacts|contents)\//i,
         /\.\.\/(?:\.\.\/)?sources\//i,
         /\.brief\.(?:ya?ml|json)\b/i,
     ];
@@ -2711,14 +2641,14 @@ function validatePublicContentDraft(text, brief) {
 async function commandBrainApprove(args) {
     const rel = required(args, "page").replace(/^\/+/, "");
     const by = String(args.by || "agent").trim() || "agent";
-    if (!AUTHORIAL_BRAIN_PAGES.has(rel)) {
-        throw new CliError(`brain-approve only accepts authorial brain pages (${[...AUTHORIAL_BRAIN_PAGES].join(", ")}). Got: ${rel}`);
+    if (!isAuthorialBrainName(rel)) {
+        throw new CliError(`brain-approve only accepts top-level brain pages (canonical set: ${[...AUTHORIAL_BRAIN_PAGES].join(", ")}; or any other brain/<name>.md registered via type: decision in log). Got: ${rel}`);
     }
     const file = path.join(ensureProject(), "brain", rel);
     if (!fs.existsSync(file))
         throw new CliError(`Brain page not found: ${file}`);
     setFrontmatterValue(file, { updated: JSON.stringify(today()) });
-    appendLog("decisao", `Decisão ${rel}`, [rel.replace(/\.md$/, "")], `Página ${rel} registrada como decisão por ${by}.`, by);
+    appendLog("decision", `Decisão ${rel}`, [rel.replace(/\.md$/, "")], `Página ${rel} registrada como decisão por ${by}.`, by);
     printJson({ ok: true, decided: rel, by });
 }
 async function commandBrainIngest(args) {
@@ -3330,7 +3260,7 @@ async function commandTopicCluster(args) {
         keyword_pool: pool,
         completeness_gaps: existingCluster?.completeness_gaps ?? [],
         open_questions: existingCluster?.open_questions ?? [],
-        approval: existingCluster?.approval ?? { aprovador: "agent", aprovado_em: null, status: "not_required" },
+        approval: existingCluster?.approval ?? { approver: "agent", approved_at: null, status: "not_required" },
     };
     writeJson(clusterFile, cluster);
     const canonicalClusterFile = path.join(p, "clusters", seedSlug, "cluster.json");
@@ -3633,7 +3563,7 @@ function readBrainEvidencePage(projectDir, rel) {
             filled: false,
             content_hash_sha256: null,
             excerpts_used: [],
-            authorial: AUTHORIAL_BRAIN_PAGES.has(rel),
+            authorial: isAuthorialBrainName(rel),
         };
     }
     const text = fs.readFileSync(file, "utf8");
@@ -3650,18 +3580,10 @@ function readBrainEvidencePage(projectDir, rel) {
     };
 }
 function buildContentContextEvidence(projectDir, topicSlug) {
-    const pageRels = [
-        fs.existsSync(path.join(projectDir, "brain", "identity.md")) ? "identity.md" : "identidade.md",
-        fs.existsSync(path.join(projectDir, "brain", "voice.md")) ? "voice.md" : "voz.md",
-        fs.existsSync(path.join(projectDir, "brain", "technology.md")) ? "technology.md" : "tecnologia.md",
-        fs.existsSync(path.join(projectDir, "brain", "review.md")) ? "review.md" : "revisao.md",
-        "index.md",
-        "editorial.md",
-    ];
+    const pageRels = ["index.md", "identity.md", "voice.md", "technology.md", "topic-clusters.md", "review.md"];
     const brainPages = pageRels.map((rel) => readBrainEvidencePage(projectDir, rel));
-    const voicePage = brainPages.find((page) => page.path === "brain/voice.md" || page.path === "brain/voz.md")
-        || readBrainEvidencePage(projectDir, "voice.md");
-    const voiceFile = brainPagePath(projectDir, "voice.md", "voz.md");
+    const voicePage = brainPages.find((page) => page.path === "brain/voice.md") || readBrainEvidencePage(projectDir, "voice.md");
+    const voiceFile = path.join(projectDir, "brain", "voice.md");
     let voiceBody = "";
     if (fs.existsSync(voiceFile))
         voiceBody = parseFrontmatter(fs.readFileSync(voiceFile, "utf8"))[1];
@@ -3917,7 +3839,7 @@ async function buildContentResearchPacket(topic, keyword, topicSlug, keywordSlug
     };
 }
 function contentVoiceContext(projectDir) {
-    const voicePath = brainPagePath(projectDir, "voice.md", "voz.md");
+    const voicePath = path.join(projectDir, "brain", "voice.md");
     const [voiceFm, voiceBody] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
     const filled = voiceBody.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]+>/g, "").trim().length > 50;
     return {
@@ -3963,8 +3885,8 @@ function buildContentBrief(research, projectDir, approvalMode, contextEvidence) 
             phase: "briefing",
             mode: approvalMode,
             status: "not_required",
-            aprovador: "agent",
-            aprovado_em: null,
+            approver: "agent",
+            approved_at: null,
             decided_at: nowIso(),
             visible_missing_analysis: bypasses.map((item) => item.consequence).filter(Boolean),
             notes: null,
@@ -4042,7 +3964,7 @@ ${forbidden.length ? forbidden.map((item) => `- Não mencionar em prosa pública
 
 ## Próximo passo recomendado
 
-Revise este briefing pelo Web Companion no navegador quando quiser ajustar a decisão editorial. A fase write gera o rascunho em artifacts, mas não publica o conteúdo em project/conteudos/.`;
+Revise este briefing pelo Web Companion no navegador quando quiser ajustar a decisão editorial. A fase write gera o rascunho em artifacts, mas não publica o conteúdo em project/contents/.`;
 }
 function resolveContentPaths(projectDir, args) {
     const topic = required(args, "topic");
@@ -4126,11 +4048,11 @@ function renderContentDraft(brief) {
     const evidenceSources = asStringList(brief.evidence_sources);
     const contextEvidencePath = String(brief.context_evidence?.path || `workbench/content/${slug}/context-evidence.yaml`);
     const sections = sectionItems.map((item) => `## ${String(item.title || "Seção")}\n\n${String(item.purpose || "Desenvolver esta seção com orientação pública, evidência proporcional e próximos passos claros.")}`).join("\n\n");
-    const origem = String(brief.origem || "blog");
+    const origin = String(brief.origin || "blog");
     const publishedAt = String(brief.published_at || today());
     const sourceUrl = String(brief.source_url || "");
     const area = String(brief.area || "");
-    return `---\ntitle: ${yamlString(topic)}\nslug: ${yamlString(slug)}\npublished_at: ${yamlString(publishedAt)}\nsource_url: ${yamlString(sourceUrl)}\norigem: ${yamlString(origem)}\narea: ${yamlString(area)}\npublic_content: true\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nvoice_filled: ${voiceFilled}\ntarget_words: ${targetWords}\nsource_policy: frontmatter-consulted-sources\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\n---\n\n# ${topic}\n\n${topic} é uma busca que precisa entregar uma resposta clara, útil e proporcional ao que já pode ser comprovado. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar como aplicar a ideia e deixar explícitos os limites da orientação.\n\n${sections}\n`;
+    return `---\ntitle: ${yamlString(topic)}\nslug: ${yamlString(slug)}\npublished_at: ${yamlString(publishedAt)}\nsource_url: ${yamlString(sourceUrl)}\norigin: ${yamlString(origin)}\narea: ${yamlString(area)}\npublic_content: true\nprimary_keyword: ${yamlString(keyword)}\nbrief_path: ${yamlString(`workbench/content/${slug}/brief.yaml`)}\ncontext_evidence_path: ${yamlString(contextEvidencePath)}\nvoice_filled: ${voiceFilled}\ntarget_words: ${targetWords}\nsource_policy: frontmatter-consulted-sources\nsources:\n${evidenceSources.map((source) => `  - ${yamlString(source)}`).join("\n") || "  - \"not-serp-backed\""}\n---\n\n# ${topic}\n\n${topic} é uma busca que precisa entregar uma resposta clara, útil e proporcional ao que já pode ser comprovado. Para quem pesquisa por ${keyword}, o conteúdo deve explicar o conceito, mostrar como aplicar a ideia e deixar explícitos os limites da orientação.\n\n${sections}\n`;
 }
 function markdownH2Count(text) {
     const [, body] = parseFrontmatter(text);
@@ -4189,7 +4111,7 @@ function writeApprovedContentDraft(brief, projectDir, paths, briefPath, actor, t
     brief.draft_path = path.relative(projectDir, paths.draftPath);
     brief.updated_at = nowIso();
     writeContentBrief(briefPath, brief);
-    appendOperationalLog("content-draft", paths.topic, [path.relative(projectDir, paths.draftPath), path.relative(projectDir, briefPath)], "draft", `Rascunho público de SEO escrito em artifacts por ${trigger}; ainda não publicado em project/conteudos.`, actor ? `Actor: ${actor}` : undefined);
+    appendOperationalLog("content-draft", paths.topic, [path.relative(projectDir, paths.draftPath), path.relative(projectDir, briefPath)], "draft", `Rascunho público de SEO escrito em artifacts por ${trigger}; ainda não publicado em project/contents.`, actor ? `Actor: ${actor}` : undefined);
     return { draft_path: paths.draftPath, brief_path: briefPath, draft_status: brief.draft_status };
 }
 async function commandContentSeo(args) {
@@ -4277,8 +4199,8 @@ async function commandContentSeo(args) {
             phase: "briefing",
             mode: brief.approval?.mode || "chat",
             status: readyDecision ? "ready" : decision,
-            aprovador: approvedBy || "agent",
-            aprovado_em: null,
+            approver: approvedBy || "agent",
+            approved_at: null,
             decided_at: nowIso(),
             notes: notes || null,
             visible_missing_analysis: brief.approval?.visible_missing_analysis || [],
@@ -4299,7 +4221,7 @@ async function commandContentSeo(args) {
     if (phase === "write") {
         assertBriefReadyForWriting(brief, p);
         validateContextEvidenceForApproval(brief, p, String(brief.approval?.notes || ""));
-        const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, String(brief.approval?.aprovador || "agent"), "write phase");
+        const draftResult = writeApprovedContentDraft(brief, p, paths, briefPath, String(brief.approval?.approver || "agent"), "write phase");
         printJson({ ok: true, phase, draft_path: draftResult.draft_path, brief_path: briefPath });
         return;
     }
@@ -4321,17 +4243,17 @@ async function commandContentSeo(args) {
         throw new CliError("Last publication checks did not pass.");
     if (fs.existsSync(paths.wordCountPath) && !readYaml(paths.wordCountPath).ok)
         throw new CliError("Word-count gate did not pass.");
-    const origem = String(brief.origem || "blog");
-    if (!PUBLIC_CONTENT_ORIGENS.has(origem))
-        throw new CliError(`Invalid origem: ${origem}. Use blog, linkedin, podcast, or outros.`);
-    const target = path.join(p, "conteudos", origem, `${paths.topicSlug}.md`);
+    const origin = String(brief.origin || "blog");
+    if (!PUBLIC_CONTENT_ORIGINS.has(origin))
+        throw new CliError(`Invalid origin: ${origin}. Use blog, linkedin, podcast, or other.`);
+    const target = path.join(p, "contents", origin, `${paths.topicSlug}.md`);
     writeText(target, fs.readFileSync(paths.draftPath, "utf8"));
-    setFrontmatterValue(target, { published_at: yamlString(today()), origem: yamlString(origem) });
+    setFrontmatterValue(target, { published_at: yamlString(today()), origin: yamlString(origin) });
     brief.draft_status = "published";
-    brief.publication = { path: path.relative(p, target), aprovador: approvedBy, aprovado_em: nowIso(), origem };
+    brief.publication = { path: path.relative(p, target), approver: approvedBy, approved_at: nowIso(), origin };
     writeContentBrief(briefPath, brief);
-    appendLog("publicacao", `${paths.topic}`, [path.relative(p, target), path.relative(p, briefPath), path.relative(p, paths.checkPath)], `Conteúdo público publicado por ${approvedBy} em ${origem}.`, approvedBy);
-    printJson({ ok: true, phase, promoted_path: target, aprovador: approvedBy });
+    appendLog("publication", `${paths.topic}`, [path.relative(p, target), path.relative(p, briefPath), path.relative(p, paths.checkPath)], `Conteúdo público publicado por ${approvedBy} em ${origin}.`, approvedBy);
+    printJson({ ok: true, phase, promoted_path: target, approver: approvedBy });
 }
 async function commandTechnicalSeo(args) {
     let html;

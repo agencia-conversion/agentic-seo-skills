@@ -3,8 +3,6 @@ import { dirname, join } from "node:path";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
 import { parseFrontmatter, appendLogEntry } from "./brain-page.mjs";
 import { loadBrainSubpageTemplate } from "./brain-templates.mjs";
-import { normalizeClusterYaml } from "./cluster-yaml.mjs";
-export { normalizeClusterYaml };
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -24,7 +22,7 @@ export function writeClusterYaml(root, entry) {
   let existing = {};
   if (existsSync(filePath)) {
     try {
-      existing = normalizeClusterYaml(yamlParse(readFileSync(filePath, "utf8")) || {});
+      existing = yamlParse(readFileSync(filePath, "utf8")) || {};
     } catch {}
   }
   const yaml = {
@@ -104,58 +102,58 @@ function buildContentsTableLines(entry, publishedByCluster) {
   const yaml = entry.yaml;
   const slug = entry.slug;
   const published = publishedByCluster.get(slug) || [];
-  const satelitesByKey = new Map();
-  for (const sat of yaml.satelites || []) {
-    if (sat?.slug) satelitesByKey.set(sat.slug, sat);
+  const satellitesByKey = new Map();
+  for (const sat of yaml.satellites || []) {
+    if (sat?.slug) satellitesByKey.set(sat.slug, sat);
   }
   const rows = [];
-  const pilarContent = published.find((c) => c.papel === "pilar");
-  if (pilarContent) {
-    const pilarShort = yaml.pilar?.display_title || shortenTitle(pilarContent.title);
-    const link = `[${pilarShort}](../../content/${pilarContent.origin}/${pilarContent.slug}.md)`;
+  const pillarContent = published.find((c) => c.role === "pillar");
+  if (pillarContent) {
+    const pillarShort = yaml.pillar?.display_title || shortenTitle(pillarContent.title);
+    const link = `[${pillarShort}](../../contents/${pillarContent.origin}/${pillarContent.slug}.md)`;
     rows.push({
-      papel: "Pilar",
-      conteudo: link,
-      keyword: renderKeyword(yaml.pilar?.keyword, yaml.pilar?.volume),
-      intent: pilarContent.intent || yaml.pilar?.intent || "—",
+      role: "Pilar",
+      content: link,
+      keyword: renderKeyword(yaml.pillar?.keyword, yaml.pillar?.volume),
+      intent: pillarContent.intent || yaml.pillar?.intent || "—",
       status: "publicado",
-      acao: "manter",
-      atualizado: pilarContent.published_at || "—",
+      action: "manter",
+      atualizado: pillarContent.published_at || "—",
     });
-  } else if (yaml.pilar?.slug) {
+  } else if (yaml.pillar?.slug) {
     rows.push({
-      papel: "Pilar",
-      conteudo: `_${yaml.pilar.slug}_`,
-      keyword: renderKeyword(yaml.pilar?.keyword, yaml.pilar?.volume),
-      intent: yaml.pilar?.intent || "—",
+      role: "Pilar",
+      content: `_${yaml.pillar.slug}_`,
+      keyword: renderKeyword(yaml.pillar?.keyword, yaml.pillar?.volume),
+      intent: yaml.pillar?.intent || "—",
       status: "planejado",
-      acao: "criar",
+      action: "criar",
       atualizado: "—",
     });
   }
   for (const content of published) {
-    if (content.papel === "pilar") continue;
-    const sat = satelitesByKey.get(content.slug) || {};
+    if (content.role === "pillar") continue;
+    const sat = satellitesByKey.get(content.slug) || {};
     const titleShort = sat.display_title || shortenTitle(content.title);
     rows.push({
-      papel: "Satélite",
-      conteudo: `[${titleShort}](../../content/${content.origin}/${content.slug}.md)`,
+      role: "Satélite",
+      content: `[${titleShort}](../../contents/${content.origin}/${content.slug}.md)`,
       keyword: renderKeyword(sat.keyword, sat.volume),
       intent: sat.intent || content.intent || "—",
       status: "publicado",
-      acao: sat.acao || "manter",
+      action: sat.action || "manter",
       atualizado: content.published_at || "—",
     });
   }
-  for (const sat of yaml.satelites || []) {
+  for (const sat of yaml.satellites || []) {
     if (sat.status === "published") continue;
     rows.push({
-      papel: sat.papel === "pilar" ? "Pilar" : "Satélite",
-      conteudo: `_${sat.slug}_`,
+      role: sat.role === "pillar" ? "Pilar" : "Satélite",
+      content: `_${sat.slug}_`,
       keyword: renderKeyword(sat.keyword, sat.volume),
       intent: sat.intent || "—",
       status: sat.status || "planejado",
-      acao: sat.acao || "criar",
+      action: sat.action || "criar",
       atualizado: "—",
     });
   }
@@ -165,7 +163,7 @@ function buildContentsTableLines(entry, publishedByCluster) {
   ];
   for (const row of rows) {
     tableLines.push(
-      `| ${row.papel} | ${row.conteudo} | ${row.keyword} | ${row.intent} | ${row.status} | ${row.acao} | ${row.atualizado} |`,
+      `| ${row.role} | ${row.content} | ${row.keyword} | ${row.intent} | ${row.status} | ${row.action} | ${row.atualizado} |`,
     );
   }
   if (rows.length === 0) {
@@ -179,13 +177,13 @@ function pluginRootFromHere() {
   return join(dirname(new URL(import.meta.url).pathname), "..", "..");
 }
 
-function buildPilarLine(yaml, publishedPilar) {
-  if (publishedPilar) {
-    const pilarShort = yaml.pilar?.display_title || shortenTitle(publishedPilar.title);
-    return `[${pilarShort}](../../content/${publishedPilar.origin}/${publishedPilar.slug}.md)`;
+function buildPillarLine(yaml, publishedPillar) {
+  if (publishedPillar) {
+    const pillarShort = yaml.pillar?.display_title || shortenTitle(publishedPillar.title);
+    return `[${pillarShort}](../../contents/${publishedPillar.origin}/${publishedPillar.slug}.md)`;
   }
-  if (yaml.pilar?.slug) {
-    return `_${yaml.pilar.slug}_ — pilar planejado, conteúdo a criar.`;
+  if (yaml.pillar?.slug) {
+    return `_${yaml.pillar.slug}_ — pilar planejado, conteúdo a criar.`;
   }
   return "_pilar a definir_";
 }
@@ -196,8 +194,8 @@ function buildNextActionsBlock(plannedSatellites) {
   }
   return plannedSatellites
     .map((sat) => {
-      const verbo = sat.acao === "revisar" ? "Revisar" : "Criar";
-      return `- ${verbo} \`${sat.slug}\`${sat.note ? ` — ${sat.note}` : ""}.`;
+      const verb = sat.action === "review" ? "Revisar" : "Criar";
+      return `- ${verb} \`${sat.slug}\`${sat.note ? ` — ${sat.note}` : ""}.`;
     })
     .join("\n");
 }
@@ -211,21 +209,21 @@ function buildClusterSubpage(entry, publishedByCluster) {
   const yaml = entry.yaml;
   const icon = typeof yaml.icon === "string" && yaml.icon.trim() ? yaml.icon.trim() : null;
   const published = publishedByCluster.get(entry.slug) || [];
-  const plannedSatellites = (yaml.satelites || []).filter((s) => s.status === "planned");
-  const heading = icon ? `${icon} ${yaml.nome}` : yaml.nome;
-  const pilarContent = published.find((c) => c.papel === "pilar");
+  const plannedSatellites = (yaml.satellites || []).filter((s) => s.status === "planned");
+  const heading = icon ? `${icon} ${yaml.name}` : yaml.name;
+  const pillarContent = published.find((c) => c.role === "pillar");
   const contentsTable = buildContentsTableLines(entry, publishedByCluster).join("\n");
   const nextActions = buildNextActionsBlock(plannedSatellites);
   const evidenceExtra = buildEvidenceBlock(yaml);
   const rendered = loadBrainSubpageTemplate(pluginRootFromHere(), "topic-clusters", {
-    title: yaml.nome,
+    title: yaml.name,
     updated: todayIso(),
     parent_slug: "topic-clusters",
     parent_label: "Topic Clusters",
     heading,
-    resumo: yaml.context || `Cluster ${yaml.nome}.`,
+    resumo: yaml.context || `Cluster ${yaml.name}.`,
     area: yaml.area || "",
-    pilar_line: buildPilarLine(yaml, pilarContent),
+    pillar_line: buildPillarLine(yaml, pillarContent),
     contents_table: contentsTable,
     next_actions: nextActions,
     provenance: yaml.provenance?.source || "site-crawl",
@@ -252,11 +250,11 @@ export function updateContentsSection(filePath, entry, publishedByCluster) {
     writeFileSync(filePath, next, "utf8");
     return { mode: "patched" };
   }
-  const pilarRegex = /^(## Pilar[\s\S]*?)(?=^## )/m;
-  if (pilarRegex.test(current)) {
-    const next = current.replace(pilarRegex, (block) => `${block}${contentsBlock}\n\n`);
+  const pillarRegex = /^(## Pilar[\s\S]*?)(?=^## )/m;
+  if (pillarRegex.test(current)) {
+    const next = current.replace(pillarRegex, (block) => `${block}${contentsBlock}\n\n`);
     writeFileSync(filePath, next, "utf8");
-    return { mode: "inserted-after-pilar" };
+    return { mode: "inserted-after-pillar" };
   }
   const next = current.replace(/\s*$/, "\n\n") + contentsBlock + "\n";
   writeFileSync(filePath, next, "utf8");
@@ -275,8 +273,8 @@ export function writeBrainSubpages(root, plan, publishedByCluster) {
 }
 
 function humanArea(entry) {
-  if (typeof entry.yaml.area_nome === "string" && entry.yaml.area_nome.trim()) {
-    return entry.yaml.area_nome.trim();
+  if (typeof entry.yaml.area_name === "string" && entry.yaml.area_name.trim()) {
+    return entry.yaml.area_name.trim();
   }
   const slug = entry.yaml.area || "";
   return slug
@@ -289,7 +287,7 @@ function humanArea(entry) {
 function buildBrainIndex(plan, publishedByCluster) {
   const total = plan.summary.contents_to_update;
   const planned = plan.clusters_to_create.reduce(
-    (acc, entry) => acc + (entry.yaml.stats?.planejados || 0),
+    (acc, entry) => acc + (entry.yaml.stats?.planned || 0),
     0,
   );
   const lines = [
@@ -317,22 +315,22 @@ function buildBrainIndex(plan, publishedByCluster) {
   ];
   for (const entry of plan.clusters_to_create) {
     const published = publishedByCluster.get(entry.slug) || [];
-    const pilar = published.find((c) => c.papel === "pilar");
-    const pilarShort = pilar ? entry.yaml.pilar?.display_title || shortenTitle(pilar.title) : "";
-    const pilarLink = pilar
-      ? `[${pilarShort}](../content/${pilar.origin}/${pilar.slug}.md)`
-      : entry.yaml.pilar?.slug
-        ? `_${entry.yaml.pilar.slug}_`
+    const pillar = published.find((c) => c.role === "pillar");
+    const pillarShort = pillar ? entry.yaml.pillar?.display_title || shortenTitle(pillar.title) : "";
+    const pillarLink = pillar
+      ? `[${pillarShort}](../contents/${pillar.origin}/${pillar.slug}.md)`
+      : entry.yaml.pillar?.slug
+        ? `_${entry.yaml.pillar.slug}_`
         : "—";
-    const planejados = entry.yaml.stats?.planejados || 0;
+    const planned = entry.yaml.stats?.planned || 0;
     const cover =
-      planejados > 0
-        ? `${entry.yaml.stats.publicados || 0} publicados, ${planejados} planejado${planejados > 1 ? "s" : ""}`
-        : `${entry.yaml.stats?.publicados || 0} publicados`;
+      planned > 0
+        ? `${entry.yaml.stats.published || 0} publicados, ${planned} planejado${planned > 1 ? "s" : ""}`
+        : `${entry.yaml.stats?.published || 0} publicados`;
     const icon = typeof entry.yaml.icon === "string" && entry.yaml.icon.trim() ? entry.yaml.icon.trim() : null;
-    const clusterLabel = icon ? `${icon} ${entry.yaml.nome}` : entry.yaml.nome;
+    const clusterLabel = icon ? `${icon} ${entry.yaml.name}` : entry.yaml.name;
     lines.push(
-      `| [${clusterLabel}](topic-clusters/${entry.slug}.md) | ${humanArea(entry)} | ${pilarLink} | ${cover} |`,
+      `| [${clusterLabel}](topic-clusters/${entry.slug}.md) | ${humanArea(entry)} | ${pillarLink} | ${cover} |`,
     );
   }
   lines.push("");
@@ -346,43 +344,16 @@ export function writeBrainIndex(root, plan, publishedByCluster) {
   return "project/brain/topic-clusters.md";
 }
 
-export function simplifyEditorial(root) {
-  const filePath = join(root, "project", "brain", "editorial.md");
-  if (!existsSync(filePath)) return null;
-  const text = readFileSync(filePath, "utf8");
-  const lines = text.split(/\r?\n/);
-  const out = [];
-  let dropping = false;
-  for (const line of lines) {
-    if (/^###\s+Conteúdos publicados/.test(line)) {
-      dropping = true;
-      continue;
-    }
-    if (dropping) {
-      if (/^##\s/.test(line) || /^###\s/.test(line)) {
-        dropping = false;
-        out.push(line);
-        continue;
-      }
-      continue;
-    }
-    out.push(line);
-  }
-  let cleaned = out.join("\n").replace(/\n{3,}/g, "\n\n");
-  writeFileSync(filePath, cleaned, "utf8");
-  return "project/brain/editorial.md";
-}
-
 export function logMigrationEntry(root, touched) {
   appendLogEntry(join(root, "project", "brain", "log.md"), {
     date: todayIso(),
-    tipo: "decisao",
-    titulo: "Refator clusters-as-spine — cutover de dados aplicado (Fase 4)",
-    escopo: "project/brain/topic-clusters.md, project/brain/topic-clusters/, project/brain/editorial.md, project/content/blog/, project/clusters/",
-    decisao:
+    type: "decision",
+    title: "Refator clusters-as-spine — cutover de dados aplicado (Fase 4)",
+    scope: "project/brain/topic-clusters.md, project/brain/topic-clusters/, project/brain/editorial.md, project/contents/blog/, project/clusters/",
+    decision:
       `Migração clusters-spine aplicada. ${touched.clusters.length} clusters criados (${touched.clusters.join(", ")}), ${touched.contents.length} conteúdos com frontmatter atualizado (area: → clusters:[]), ${touched.subpages.length} subpáginas brain criadas, índice brain/topic-clusters.md reescrito, brain/editorial.md simplificado (remove '### Conteúdos publicados' por área). Tag git pre-cluster-migration criada antes do apply.`,
-    evidencia: "project/workbench/migrations/clusters-spine/plan.yaml, .context/backups/project-pre-cluster-migration-*.tar.gz, tag git pre-cluster-migration",
-    aprovador: "Diego Ivo",
-    notas: "Fase 4 de 6 do refator clusters-as-spine. Próxima fase (5): brain-keeper + content-seo + agentic-seo + project-init atualizados.",
+    evidence: "project/workbench/migrations/clusters-spine/plan.yaml, .context/backups/project-pre-cluster-migration-*.tar.gz, tag git pre-cluster-migration",
+    approver: "Diego Ivo",
+    notes: "Fase 4 de 6 do refator clusters-as-spine. Próxima fase (5): brain-keeper + content-seo + agentic-seo + project-init atualizados.",
   });
 }

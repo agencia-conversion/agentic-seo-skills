@@ -5,11 +5,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, X } from 'lucide-react';
 import { getCompanionToken } from '@/features/clusters/cluster-row-api';
 
-const ORIGEMS = ['blog', 'linkedin', 'podcast', 'outros'] as const;
+const ORIGINS = ['blog', 'linkedin', 'podcast', 'other'] as const;
 
 interface ClusterOption {
   slug: string;
-  nome: string;
+  name: string;
   icon?: string;
 }
 
@@ -27,7 +27,7 @@ export function CreateContentModal({
   onCreated,
 }: CreateContentModalProps) {
   const [title, setTitle] = useState('');
-  const [origem, setOrigem] = useState<(typeof ORIGEMS)[number]>('outros');
+  const [origin, setOrigin] = useState<(typeof ORIGINS)[number]>('other');
   const [selectedClusters, setSelectedClusters] = useState<string[]>(
     defaultClusterSlug ? [defaultClusterSlug] : [],
   );
@@ -38,7 +38,7 @@ export function CreateContentModal({
   useEffect(() => {
     if (!open) return;
     setTitle('');
-    setOrigem('outros');
+    setOrigin('other');
     setSelectedClusters(defaultClusterSlug ? [defaultClusterSlug] : []);
     setError(null);
   }, [open, defaultClusterSlug]);
@@ -97,7 +97,7 @@ export function CreateContentModal({
         body: JSON.stringify({
           kind: 'content',
           title: cleanTitle,
-          origem,
+          origin,
           clusters: selectedClusters,
           syncWait: true,
         }),
@@ -114,7 +114,7 @@ export function CreateContentModal({
     } finally {
       setSubmitting(false);
     }
-  }, [title, origem, selectedClusters, onClose, onCreated]);
+  }, [title, origin, selectedClusters, onClose, onCreated]);
 
   return (
     <AnimatePresence>
@@ -162,11 +162,11 @@ export function CreateContentModal({
               <label className="block space-y-1.5">
                 <span className="text-xs font-medium text-notion-text-muted">Origem</span>
                 <select
-                  value={origem}
-                  onChange={(e) => setOrigem(e.target.value as (typeof ORIGEMS)[number])}
+                  value={origin}
+                  onChange={(e) => setOrigin(e.target.value as (typeof ORIGINS)[number])}
                   className="w-full rounded-md border border-notion-border bg-background px-3 py-2 text-sm text-notion-text outline-none focus:ring-2 focus:ring-notion-text/10"
                 >
-                  {ORIGEMS.map((o) => (
+                  {ORIGINS.map((o) => (
                     <option key={o} value={o}>
                       {o}
                     </option>
@@ -186,7 +186,7 @@ export function CreateContentModal({
                         className="inline-flex items-center gap-1 rounded-md border border-notion-border bg-notion-active/40 px-2 py-0.5 text-xs text-notion-text"
                       >
                         {opt?.icon ? <span>{opt.icon}</span> : null}
-                        <span>{opt?.nome || slug}</span>
+                        <span>{opt?.name || slug}</span>
                         <button
                           type="button"
                           onClick={() => toggleCluster(slug)}
@@ -212,7 +212,7 @@ export function CreateContentModal({
                             className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-notion-hover cursor-pointer flex items-center gap-2"
                           >
                             {opt.icon ? <span>{opt.icon}</span> : null}
-                            <span>{opt.nome}</span>
+                            <span>{opt.name}</span>
                             <span className="text-notion-text-muted">{opt.slug}</span>
                           </button>
                         ))}

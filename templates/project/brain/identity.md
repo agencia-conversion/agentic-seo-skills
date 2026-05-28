@@ -1,215 +1,217 @@
 ---
-title: "Identity"
+title: "Identidade"
 updated: "<YYYY-MM-DD>"
 ---
 
-# Identity
+# Identidade
 
 <!--
-PURPOSE: Narrative brandbook of the project. Every Agentic SEO skill reads
-this file as initial context: who the brand is, who it speaks to, how to
-reference it inline and in a paragraph, where it lives. Technical identity
-stays observable here; editorial thesis about stack lives in [[editorial]].
-Every factual statement here has a source in ## Evidence at the bottom.
-Comments <!-- RULE: --> are binding instructions for the filling agent and
-must be REMOVED when the file is filled.
+PROPOSITO: Brandbook narrativo do projeto. Cada skill da Agentic SEO le
+este arquivo como contexto inicial: quem e a marca, com qual publico fala,
+como referencia-la em aposto e em paragrafo, onde ela vive. Identidade
+técnica fica restrita ao observavel; tese editorial sobre stack vive em
+[[topic-clusters]]. Toda afirmacao factual aqui tem fonte em ## Evidência no
+rodape. Comentarios <!-- REGRA: --> sao instrucoes vinculantes para o
+agente preenchedor e devem ser REMOVIDOS quando o arquivo for preenchido.
 -->
 
-## One-liner
+## Em uma linha
 
 <!--
-RULE: Maximum 15 words. Subject + function + main scope. No enumerative
-list (no commas enumerating domains). No evaluative adjective ("leading",
-"reference", "consolidated", "robust"). Think photo caption: identify,
-do not sell. Tone detail in [[voice#lead-and-introduction]].
+REGRA: Maximo 15 palavras. Sujeito + funcao + escopo principal. Sem lista
+enumerativa (sem virgulas que enumeram dominios). Sem adjetivo avaliativo
+("lider", "referencia", "consagrado", "robusto"). Pense em legenda de
+foto: identifica, não vende. Detalhe de tom em [[voice#lead-e-apresentacao]].
 
-Good: "Organizational culture consulting for Brazilian mid-sized companies."
-Bad: "Leading platform in management, culture, leadership and tools for
-modern teams in digital transformation."
+Bom: "Consultoria de cultura organizacional para empresas brasileiras de
+medio porte."
+Ruim: "Plataforma lider em gestao, cultura, lideranca e ferramentas para
+times modernos em transformacao digital."
 -->
 
-<single line for the project>
+<linha unica do projeto>
 
-## The brand
+## A marca
 
-### Appositive (inline use)
+### Aposto (uso em texto corrido)
 
 <!--
-RULE: Appositive = reduced clause that follows the proper name on first
-mention. 3 to 12 words. Identifies, does not qualify. No evaluative
-adjective. No enumerative list. Competitor test: would a direct
-competitor sign this without complaining? If not, you are selling.
+REGRA: Aposto = oracao reduzida que segue o nome proprio na primeira
+mencao. 3 a 12 palavras. Identifica, não qualifica. Sem adjetivo
+avaliativo. Sem lista enumerativa. Teste do concorrente: um concorrente
+direto assinaria embaixo sem reclamar? Se não, esta vendendo.
 
-Good: "Acme, HR consulting for tech companies"
-Bad: "Acme, consolidated reference and leader in management, people,
-culture and tools for modern teams"
+Bom: "Acme, consultoria de RH para empresas de tecnologia"
+Ruim: "Acme, referencia consagrada e lider em gestao, pessoas, cultura e
+ferramentas para times modernos"
 
-Full detail in [[voice#lead-and-introduction]].
+Detalhe completo em [[voice#lead-e-apresentacao]].
 -->
 
-<appositive ready to paste after the proper name>
+<aposto pronto para colar apos o nome proprio>
 
-### Introduction paragraph
+### Parágrafo de apresentação
 
 <!--
-RULE: 60 to 100 words. Direct statement about the brand, in third
-person, present tense. NEVER describes where the information was read.
-Forbidden (lint blocks): "the home states", "the site positions",
-"article X argues", "according to the site", "per the blog", "the
-author says that", "the about page says", "the brand presents X as".
+REGRA: 60 a 100 palavras. Afirmacao direta sobre a marca, em terceira
+pessoa, no tempo presente. NUNCA descreve onde a informacao foi lida.
+Proibido (lint bloqueia): "a home afirma", "o site posiciona", "o
+artigo X defende", "segundo o site", "conforme o blog", "o autor diz
+que", "a página sobre nos diz", "a marca apresenta X como".
 
-The paragraph asserts what the brand is and does. The source that
-supports each claim goes in ## Evidence at the bottom, with a link.
-If evidence is missing or weak, the claim does not enter.
+O paragrafo afirma o que a marca e e faz. A fonte que sustenta cada
+afirmacao vai em ## Evidência no rodape, com link. Se a evidência não
+existe ou e fraca, a afirmacao não entra.
 
-Suggested structure:
-1. Identification (who, where, scope).
-2. Core activity (what it does, for whom).
-3. Positioning (the angle that differentiates).
-4. Promise or brand line (optional, if it carries meaning).
+Estrutura sugerida:
+1. Identificacao (quem, onde, escopo).
+2. Atividade central (o que faz, para quem).
+3. Posicionamento (o angulo que diferencia).
+4. Promessa ou frase-marca (opcional, se carrega significado).
 
-Lead in the first sentence. Subject + verb + object. Short sentences.
+Lead na primeira frase. Sujeito + verbo + objeto. Frases curtas.
 
-Good: "Acme provides organizational culture consulting for Brazilian
-mid-sized companies. It combines quantitative diagnosis, leadership
-intervention and climate-survey software applied monthly by clients.
-It defends culture as a measurable competitive advantage and turns
-down projects that treat climate as an isolated event."
+Bom: "A Acme presta consultoria de cultura organizacional para empresas
+brasileiras de medio porte. Combina diagnostico quantitativo, intervencao
+com liderancas e software de pesquisa de clima aplicado mensalmente pelos
+clientes. Defende cultura como vantagem competitiva mensuravel e recusa
+projetos que tratam clima como evento isolado."
 
-Bad: "Acme's home states that the company transforms people management.
-The site says it combines consulting, courses and software. The about
-page argues that culture is a competitive advantage."
+Ruim: "A home da Acme afirma que a empresa transforma a gestao de pessoas.
+O site diz que combina consultoria, cursos e software. A página
+institucional defende que cultura e vantagem competitiva."
 -->
 
-<paragraph of 60-100 words>
+<paragrafo de 60-100 palavras>
 
-### Brand line
+### Frase-marca
 
 <!--
-RULE: A single line that works as a signature. May be a slogan, short
-manifesto, or positioning statement. Here (and only here) a declarative
-brand tone is allowed. Maximum 12 words.
+REGRA: Uma linha que funciona como assinatura. Pode ser slogan, manifesto
+curto, ou afirmacao de posicionamento. Aqui (e so aqui) e permitido tom
+declarativo de marca. Maximo 12 palavras.
 -->
 
-<short anchor line>
+<frase ancora curta>
 
-### Core promise
+### Promessa central
 
 <!--
-RULE: What the brand delivers to its audience, in one line, from the
-audience's point of view (not the product's). No promotional adjective.
-Verifiable: the audience can say "I received this" or "I did not".
+REGRA: O que a marca entrega ao publico, em uma linha, do ponto de vista
+do publico (não do produto). Sem adjetivo promocional. Verificavel: o
+publico pode dizer "recebi isso" ou "não recebi isso".
 -->
 
-<promise in one line>
+<promessa em uma linha>
 
-### Anti-positioning
+### Anti-posicionamento
 
 <!--
-RULE: 2 to 4 items the brand refuses to be. Each item on a single line,
-factual, without irony. It protects against editorial dispersion and
-lets other agents know what NOT to write in the brand's name.
+REGRA: 2 a 4 itens do que a marca recusa ser. Cada item em uma linha,
+factual, sem ironia. Serve para proteger contra dispersao editorial e
+para que outros agentes saibam o que NÃO escrever em nome da marca.
 -->
 
-- <refused item 1>
-- <refused item 2>
+- <item recusado 1>
+- <item recusado 2>
 
-## Audience
+## Público
 
-### Who it speaks to
+### Para quem fala
 
 <!--
-RULE: Primary audience in 2-3 lines. Role + context + what they seek.
-No fictional persona ("John, 32, likes coffee"). Describe the real role
-(position, market, career moment) and the question that brings that
-person to the brand.
+REGRA: Publico primario em 2-3 linhas. Papel + contexto + o que procura.
+Sem persona ficticia ("Joao, 32 anos, gosta de cafe"). Descreva o papel
+real (cargo, mercado, momento de carreira) e a duvida que leva essa
+pessoa a procurar a marca.
 -->
 
-<primary audience>
+<publico primario>
 
-### Who it does not speak to
+### Para quem não fala
 
 <!--
-RULE: The audience the brand explicitly does not serve. Protects against
-editorial drift and against readers who will be frustrated. If you do
-not have clarity here, look for evidence on service pages, in published
-content, or ask the human. Without this field, it is easy to write for
-"everyone" and the brain loses focus.
+REGRA: Publico que a marca explicitamente não atende. Protege contra
+deriva editorial e contra leitores que vao se frustrar. Se voce não tem
+clareza disso, busque evidência em páginas de servicos, em conteúdos
+publicados, ou pergunte ao humano. Sem este campo, fica facil escrever
+para "todo mundo" e o brain perde foco.
 -->
 
-<audience not served>
+<publico não atendido>
 
-## Technical identity
+## Identidade técnica
 
 <!--
-RULE: Only what is observable without editorial inference: domain,
-language, market, identified frontend, presence of analytics. DO NOT
-state editorial thesis about stack ("we believe in static", "we reject
-WordPress", "we prefer edge rendering"). Editorial thesis lives in
-[[editorial]] or in published content. Operational detail lives in
+REGRA: Apenas o que e observavel sem inferencia editorial: dominio,
+idioma, mercado, frontend identificado, presenca de analytics. NÃO citar
+tese editorial sobre stack ("acreditamos em estatico", "rejeitamos
+WordPress", "preferimos edge rendering"). Tese editorial vive em
+[[topic-clusters]] ou em conteúdos publicados. Detalhe operacional vive em
 [[technology]].
 -->
 
-- Primary domain: <url>
-- Secondary domains: <list or `none`>
-- Language: <pt-BR | en | ...>
-- Country/market: <Brazil | global | ...>
-- Observed stack (one line): <identified frontend or CMS; detail in [[technology]]>
+- Domínio principal: <url>
+- Domínios secundários: <lista ou `nenhum`>
+- Idioma: <pt-BR | en | ...>
+- País/mercado: <Brasil | global | ...>
+- Stack observado (uma linha): <frontend ou CMS identificado; detalhe em [[technology]]>
 
-## Channels
+## Canais
 
 <!--
-RULE: Each line references a real, active channel. Editorial role = what
-that channel does in the operation (primary publishing, distribution,
-relationship, capture, etc.). Inactive channels or channels without a
-real URL do not enter. If a channel does not yet exist but is planned,
-record it as a decision in [[log]] instead of listing it here.
+REGRA: Cada linha referencia um canal real e ativo. Papel editorial = o
+que esse canal faz na operacao (publicacao primaria, distribuicao,
+relacionamento, captura, etc). Canais inativos ou sem URL real não
+entram. Se um canal ainda não existe mas e planejado, registra como
+decisao em [[log]] em vez de listar aqui.
 -->
 
-| Channel | URL/handle | Editorial role |
+| Canal | URL/handle | Papel editorial |
 | --- | --- | --- |
-| Own site | <url> | <role> |
-| LinkedIn | <handle/url> | <role> |
+| Site próprio | <url> | <papel> |
+| LinkedIn | <handle/url> | <papel> |
 
-## Editorial areas
-
-<!--
-RULE: Short summary of areas. The detail (thesis, differentiation,
-examples) lives in [[editorial]]. Keep 1 line per area here. Use
-wikilinks with an anchor to the section in [[editorial]]. If an area
-does not yet have a section in [[editorial]], create the section first
-(with a decision in [[log]]).
--->
-
-- [[editorial#<Area 1>]] — <summary line>
-- [[editorial#<Area 2>]] — <summary line>
-
-## Main topic clusters
+## Áreas editoriais
 
 <!--
-RULE: Wikilinks with anchor to the section in [[topic-clusters]]. Only
-clusters that already exist as a section in that file. Single-line
-summary per cluster.
+REGRA: Resumo curto das áreas. O detalhe (tese, diferenciação, exemplos,
+provas com fontes) vive em [[topic-clusters]] como seção H2 por área.
+Mantenha 1 linha por área aqui. Use wikilinks com âncora para a seção em
+[[topic-clusters]]. Se uma área ainda não tem seção em [[topic-clusters]],
+crie a seção primeiro (com decisão em [[log]]).
 -->
 
-- [[topic-clusters#<Cluster>]] — <summary line>
+- [[topic-clusters#<Área 1>]] — <linha resumo>
+- [[topic-clusters#<Área 2>]] — <linha resumo>
 
-## Evidence
+## Topic clusters principais
 
 <!--
-RULE: Sources that support the claims above. Use normal Markdown links
-for `../sources/`, `../content/`, and external URLs. Wikilinks `[[...]]`
-only for files inside `brain/`. Each bullet references 1 source and
-states, in one sentence, what that source supports. If a claim above
-has no source here, either the claim exits or the source is added.
-
-Example:
-- [Home acme.com](https://acme.com/) — supports "organizational culture
-  consulting for Brazilian mid-sized companies" in the one-liner and
-  the introduction paragraph.
-- [About — acme.com](https://acme.com/about/) — supports the
-  introduction paragraph and the Audience section.
+REGRA: Wikilinks com ancora para a secao em [[topic-clusters]]. Apenas
+clusters que ja existem como secao naquele arquivo. Resumo de 1 linha
+por cluster.
 -->
 
-- <evidence bullet 1>
-- <evidence bullet 2>
+- [[topic-clusters#<Cluster>]] — <linha resumo>
+
+## Evidência
+
+<!--
+REGRA: Aqui ficam as fontes que sustentam as afirmacoes acima. Use
+Markdown links normais para `../sources/`, `../contents/`, e URLs
+externas. Wikilinks `[[...]]` so para arquivos dentro de `brain/`.
+Cada bullet referencia 1 fonte e diz, em uma frase, o que essa fonte
+sustenta. Se uma afirmacao acima não tem fonte aqui, ou a afirmacao
+sai, ou a fonte e adicionada.
+
+Exemplo:
+- [Home acme.com.br](https://acme.com.br/) — sustenta "consultoria de
+  cultura organizacional para empresas brasileiras de medio porte" na
+  linha unica e no paragrafo de apresentacao.
+- [Sobre — acme.com.br](https://acme.com.br/sobre/) — sustenta o
+  paragrafo de apresentacao e a secao Publico.
+-->
+
+- <bullet evidência 1>
+- <bullet evidência 2>

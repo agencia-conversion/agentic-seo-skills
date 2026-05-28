@@ -28,7 +28,7 @@ Do not use this skill for ongoing SEO work after the project already has a defin
 
 ### 1. Detect Project State
 
-Check whether `project/` already exists and whether it contains `.agentic-seo/project.json`, `brain/`, `sources/`, `workbench/`, `artifacts/`, or `content/`.
+Check whether `project/` already exists and whether it contains `.agentic-seo/project.json`, `brain/`, `sources/`, `workbench/`, `artifacts/`, or `contents/`.
 
 If no project exists, the next meaningful step is `project-init`.
 
@@ -53,7 +53,6 @@ First-run setup may create blank brain templates and operational log entries, bu
 - `project/brain/identity.md`
 - `project/brain/voice.md`
 - `project/brain/technology.md`
-- `project/brain/editorial.md`
 - `project/brain/topic-clusters.md`
 - `project/brain/review.md`
 

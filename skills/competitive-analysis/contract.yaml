@@ -19,8 +19,5 @@ required_tables:
     min_rows: 2
     columns:
       - key: player
-        aliases: ["participante"]
       - key: role
-        aliases: ["papel"]
       - key: type
-        aliases: ["tipo"]

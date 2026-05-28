@@ -28,36 +28,36 @@ const { resolveMentionHydration } = await import(`../.context/mention-hydration-
 
 const pages = [
   {
-    id: 'brain/voz.md',
+    id: 'brain/voice.md',
     title: 'Tom de Voz',
     icon: '🧠',
-    slug: 'brain-voz',
+    slug: 'brain-voice',
   },
   {
-    id: 'brain/editorial.md',
-    title: 'Editorial',
+    id: 'brain/topic-clusters.md',
+    title: 'Topic Clusters',
     icon: '🗂️',
-    slug: 'brain-editorial',
+    slug: 'brain-topic-clusters',
   },
 ];
 
-const resolved = resolveMentionHydration('brain/voz.md', pages);
+const resolved = resolveMentionHydration('brain/voice.md', pages);
 assert.equal(resolved.text, '🧠 Tom de Voz');
 assert.equal(resolved.broken, false);
-assert.equal(resolved.slug, 'brain-voz');
+assert.equal(resolved.slug, 'brain-voice');
 assert.equal(resolved.hash, '');
 
-const aliased = resolveMentionHydration('brain/voz.md', pages, 'tom editorial');
+const aliased = resolveMentionHydration('brain/voice.md', pages, 'tom editorial');
 assert.equal(aliased.text, '🧠 tom editorial');
 assert.equal(aliased.broken, false);
 
-const section = resolveMentionHydration('brain/editorial.md', pages, null, 'SEO estratégico');
+const section = resolveMentionHydration('brain/topic-clusters.md', pages, null, 'SEO estratégico');
 assert.equal(section.text, '🗂️ SEO estratégico');
 assert.equal(section.broken, false);
-assert.equal(section.slug, 'brain-editorial');
+assert.equal(section.slug, 'brain-topic-clusters');
 assert.equal(section.hash, '#SEO%20estrat%C3%A9gico');
 
-const sectionAlias = resolveMentionHydration('brain/editorial.md', pages, 'área estratégica', 'SEO estratégico');
+const sectionAlias = resolveMentionHydration('brain/topic-clusters.md', pages, 'área estratégica', 'SEO estratégico');
 assert.equal(sectionAlias.text, '🗂️ área estratégica');
 assert.equal(sectionAlias.hash, '#SEO%20estrat%C3%A9gico');
 

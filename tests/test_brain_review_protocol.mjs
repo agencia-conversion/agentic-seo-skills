@@ -14,7 +14,7 @@ for (const required of [
   "approved_at",
   "project/brain/log.md",
   "project/workbench/brain-keeper/",
-  "project/content/",
+  "project/contents/",
   "Wikilinks",
   "Markdown links",
 ]) {
@@ -27,12 +27,12 @@ for (const field of ["type:", "scope:", "decision:", "evidence:", "approver:", "
 }
 
 // All seven log entry types
-for (const type of ["approval", "decision", "erratum", "lint", "ingestion", "publication", "proof"]) {
+for (const type of ["approval", "decision", "correction", "lint", "ingestion", "publication", "evidence"]) {
   assert.ok(skill.includes(type), `log type enum missing: ${type}`);
 }
 
-// Eight canonical brain pages (seven authorial + log)
-for (const page of ["index", "identity", "voice", "technology", "editorial", "topic-clusters", "review", "log"]) {
+// Seven canonical brain pages (six authorial + log; editorial consolidated into topic-clusters in 2026-05-26)
+for (const page of ["index", "identity", "voice", "technology", "topic-clusters", "review", "log"]) {
   assert.ok(skill.includes(`\`${page}\``), `brain page enum missing: ${page}`);
 }
 

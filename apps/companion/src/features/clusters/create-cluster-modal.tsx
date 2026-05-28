@@ -22,23 +22,23 @@ export function CreateClusterModal({
   onClose: () => void;
   onCreated: () => void | Promise<void>;
 }) {
-  const [nome, setNome] = useState('');
+  const [name, setName] = useState('');
   const [icon, setIcon] = useState('');
   const [area, setArea] = useState('');
   const [mode, setMode] = useState<'existing' | 'new'>('existing');
-  const [pilarSlug, setPilarSlug] = useState('');
-  const [pilarTitle, setPilarTitle] = useState('');
+  const [pillarSlug, setPillarSlug] = useState('');
+  const [pillarTitle, setPillarTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
-      setNome('');
+      setName('');
       setIcon('');
       setArea('');
       setMode('existing');
-      setPilarSlug('');
-      setPilarTitle('');
+      setPillarSlug('');
+      setPillarTitle('');
       setSubmitting(false);
       setError(null);
     }
@@ -52,8 +52,8 @@ export function CreateClusterModal({
     setSubmitting(true);
     setError(null);
     const payload = mode === 'existing'
-      ? { nome, icon, area, pilar_slug: pilarSlug }
-      : { nome, icon, area, pilar_title: pilarTitle || nome };
+      ? { name, icon, area, pillar_slug: pillarSlug }
+      : { name, icon, area, pillar_title: pillarTitle || name };
     try {
       const res = await fetch(`/api/project/clusters?token=${encodeURIComponent(companionToken)}`, {
         method: 'POST',
@@ -82,7 +82,7 @@ export function CreateClusterModal({
         <div className="space-y-3">
           <label className="block space-y-1.5">
             <span className="text-xs font-medium text-notion-text-muted">Nome</span>
-            <input value={nome} onChange={(event) => setNome(event.target.value)} className="w-full rounded-md border border-notion-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-notion-text/10" />
+            <input value={name} onChange={(event) => setName(event.target.value)} className="w-full rounded-md border border-notion-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-notion-text/10" />
           </label>
           <div className="grid grid-cols-[96px_1fr] gap-2">
             <label className="block space-y-1.5">
@@ -99,23 +99,23 @@ export function CreateClusterModal({
               Página existente
             </button>
             <button type="button" onClick={() => setMode('new')} className={cn('flex-1 rounded px-2 py-1.5', mode === 'new' ? 'bg-background text-notion-text shadow-sm' : 'text-notion-text-muted')}>
-              Criar pilar
+              Criar pillar
             </button>
           </div>
           {mode === 'existing' ? (
             <Select
-              value={pilarSlug}
-              onChange={setPilarSlug}
+              value={pillarSlug}
+              onChange={setPillarSlug}
               options={[
-                { value: '', label: 'Selecionar pilar…' },
+                { value: '', label: 'Selecionar pillar…' },
                 ...contents.map((content) => ({ value: content.slug, label: content.title })),
               ]}
               triggerClassName="w-full justify-between rounded-md border border-notion-border bg-background px-3 py-2"
             />
           ) : (
             <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-notion-text-muted">Título da nova página pilar</span>
-              <input value={pilarTitle} onChange={(event) => setPilarTitle(event.target.value)} placeholder={nome || 'Título'} className="w-full rounded-md border border-notion-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-notion-text/10" />
+              <span className="text-xs font-medium text-notion-text-muted">Título da nova página pillar</span>
+              <input value={pillarTitle} onChange={(event) => setPillarTitle(event.target.value)} placeholder={name || 'Título'} className="w-full rounded-md border border-notion-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-notion-text/10" />
             </label>
           )}
           {error && <div className="text-xs text-red-600">Erro: {error}</div>}
@@ -126,7 +126,7 @@ export function CreateClusterModal({
           </button>
           <button
             type="button"
-            disabled={submitting || !nome.trim() || (mode === 'existing' && !pilarSlug)}
+            disabled={submitting || !name.trim() || (mode === 'existing' && !pillarSlug)}
             onClick={() => void submit()}
             className="rounded-md bg-notion-text px-3 py-1.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50 cursor-pointer"
           >

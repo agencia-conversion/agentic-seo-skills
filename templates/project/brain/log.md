@@ -6,31 +6,31 @@ updated: "<YYYY-MM-DD>"
 # Log
 
 <!--
-Append-only. Never rewrite previous entries; correct with a new entry
-`type: erratum` referencing the previous entry by date and title.
+Append-only. Nunca reescreva entradas anteriores; corrija com nova entrada
+`type: correction` referenciando a entrada anterior por data e título.
 
-Entry format (contract_version 2; see docs/specs/en-rename-map.md):
+Formato de cada entrada:
 
-## YYYY-MM-DD - <short title>
+`## YYYY-MM-DD - <título curto>`
 
-- type: approval | decision | erratum | lint | ingestion | publication | proof
-- scope: <affected file(s) | editorial area | cluster | source>
-- decision: <what changed or was decided>
-- evidence: <wikilinks, ../sources/..., urls>
-- approver: <human name | agent>
-- approved_at: <YYYY-MM-DD optional, for legacy approval entries>
-- notes: <optional>
+- `type`: `approval` | `decision` | `correction` | `lint` | `ingestion` | `publication` | `evidence`
+- `scope`: `<arquivo(s) afetado(s) | área editorial | cluster | fonte>`
+- `decision`: <o que mudou ou foi decidido>
+- `evidence`: <wikilinks, `../sources/...`, urls>
+- `approver`: <nome humano | `agent`>
+- `approved_at`: <`YYYY-MM-DD` opcional para entradas legadas de aprovação>
+- `notes`: <opcional>
 
-Types:
-- approval: legacy value for old approvals; new authorial changes
-  should use `type: decision` with recorded evidence and actor.
-- decision: operational change recorded (stack choice, configuration,
-  process, non-strategic route change).
-- erratum: correction of a previous entry. References the original entry.
-- lint: result of automatic check (broken links, contradictions, missing
-  sources).
-- ingestion: cataloging of a new source in ../sources/.
-- publication: registration of content published in ../content/.
-- proof: E-E-A-T evidence (case, credential, citation, data) that
-  reinforces an editorial area or specific claim.
+Tipos:
+- `approval`: valor legado para aprovações antigas; novas mudanças autorais
+  devem usar `type: decision` com evidência e ator registrados.
+- `decision`: mudança operacional registrada (escolha de stack, configuração,
+  processo, mudança de rota não-estratégica).
+- `correction`: correção de uma entrada anterior. Referencia entrada original.
+- `lint`: resultado de verificação automática (links quebrados, contradições,
+  fontes ausentes).
+- `ingestion`: catalogação de fonte nova em `../sources/`.
+- `publication`: registro de conteúdo publicado em `../contents/`.
+- `evidence`: evidência de E-E-A-T (caso, credencial, citação, dado) que reforça
+  uma área editorial ou claim específico.
 -->

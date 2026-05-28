@@ -3,24 +3,30 @@ title: "{{title}}"
 updated: "{{updated}}"
 ---
 
-# {{title}}
+# {{heading}}
+
+## Resumo
 
 {{resumo}}
 
-## Pillar
+## Tese editorial
 
-{{pilar_line}}
+<!-- Espaço para o autor expandir em prosa: tese central do cluster, diferenciação editorial, audiência principal, conexão com outras áreas. Texto livre. -->
 
-## Content
+Pertence à área [[topic-clusters]] (`{{area}}`).
 
-<!-- BEGIN cluster-content-table:auto:v1:do-not-edit -->
+## Pilar
+
+{{pillar_line}}
+
+## Conteúdos
+
 {{contents_table}}
-<!-- END cluster-content-table:auto -->
 
-## Next actions
+## Próximas ações
 
 {{next_actions}}
 
-## Evidence
+## Evidência
 
-{{provenance}}
+- Cluster derivado de `{{provenance}}`.

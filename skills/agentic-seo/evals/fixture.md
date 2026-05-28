@@ -7,8 +7,8 @@ The user says:
 Project state:
 
 - No DataForSEO credentials.
-- `brain/identidade.md` has logged content (matching `tipo: decisao` entry in `brain/log.md`).
-- `brain/voz.md` is empty (placeholders untouched).
+- `brain/identity.md` has logged content (matching `type: decision` entry in `brain/log.md`).
+- `brain/voice.md` is empty (placeholders untouched).
 
 Expected output:
 

@@ -28,7 +28,7 @@ export function AddPlannedModal({
   const [keyword, setKeyword] = useState('');
   const [volume, setVolume] = useState('');
   const [intent, setIntent] = useState('informational');
-  const [papel, setPapel] = useState<'satelite' | 'pilar'>('satelite');
+  const [role, setRole] = useState<'satellite' | 'pillar'>('satellite');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -51,7 +51,7 @@ export function AddPlannedModal({
           display_title: displayTitle.trim() || undefined,
           volume: volumeNum && !Number.isNaN(volumeNum) ? volumeNum : undefined,
           intent,
-          papel,
+          role,
           note: note.trim() || undefined,
         }),
       });
@@ -164,12 +164,12 @@ export function AddPlannedModal({
             <label className="block text-sm">
               <span className="block text-notion-text-muted mb-1">Papel</span>
               <select
-                value={papel}
-                onChange={(e) => setPapel(e.target.value as 'satelite' | 'pilar')}
+                value={role}
+                onChange={(e) => setRole(e.target.value as 'satellite' | 'pillar')}
                 className="w-full rounded-md border border-notion-border bg-transparent px-3 py-2 text-notion-text outline-none"
               >
-                <option value="satelite">Satélite</option>
-                <option value="pilar">Pilar</option>
+                <option value="satellite">Satélite</option>
+                <option value="pillar">Pilar</option>
               </select>
             </label>
           </div>

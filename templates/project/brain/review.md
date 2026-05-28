@@ -1,61 +1,80 @@
 ---
-title: "Review"
+title: "Revisão"
 updated: "<YYYY-MM-DD>"
 ---
 
-# Review
+# Revisão
 
 <!--
-PURPOSE: Canonical seat of editorial review rules for this project. The
-universal review checklist (lead in the first sentence, visible
-attribution, anti-AI-slop, anti-Conversion-explainer, pt-BR accent
-preservation, no em-dash in pt-BR prose) applies to every project and
-is enforced by `brain-keeper`. This file carries the particularities of
-this project that grow over time. <!-- RULE: --> comments are binding
-and must be REMOVED when the file is filled.
+Sede canônica de revisão deste projeto. Carrega a regra editorial universal
+(jornalística imparcial, anti-IA-slop, anti-Conversion-explainer) que se
+aplica a tudo em brain/ e contents/, mais particularidades deste projeto
+que crescem com o aprendizado de revisões. Tom de voz fica em [[voice]];
+schema de frontmatter e schema do log ficam na skill brain-keeper.
+
+Como evoluir esta página:
+- Estilística menor (novo termo IA-slop, novo verbo Conversion-explainer,
+  typo recorrente): agente edita direto e registra `type: decision` em
+  [[log]] com `approver: agent`.
+- Mudança de checklist (princípio novo, item em "Erros comuns" que muda o
+  comportamento do reviewer para drafts futuros do projeto): agente
+  registra `type: lint` em [[log]] e aguarda decisão humana antes de
+  alterar esta página.
 -->
 
-## Universal rules (read-only summary)
+## Regra editorial universal
 
-<!--
-RULE: Quick read of the global checklist enforced by `brain-keeper`.
-DO NOT edit it here; if a global rule needs to change, change it in
-the brain-keeper skill and log the change.
--->
+### Voz e estrutura
 
-- Lead in the first sentence: subject + verb + object.
-- Visible attribution: every factual claim cites a source.
-- No opinion in disguise: editorial choices are explicit.
-- No AI-slop: avoid the vocabulary listed in `lint-lexicon.<lang>.json`.
-- No Conversion-explainer voice: no "let us understand", "in this article",
-  "as we saw", "the secret is in".
-- pt-BR accent preservation: "página", not "pagina".
-- No em-dash (—) in pt-BR prose.
+- Lead na primeira frase: o que é, para quem, por quê.
+- Atribuição visível: "segundo X", "documento Y diz", "conforme [[log#YYYY-MM-DD ...]]".
+- Sujeito + verbo + objeto. Frases curtas.
+- Sem opinião dissimulada como fato. Opinião editorial vai em [[topic-clusters]] ou em conteúdos publicados.
 
-## Project particularities
+### Evitar
 
-<!--
-RULE: Project-specific items the team has learned from past reviews.
-Each item on one line. When a new pattern emerges from a `tipo: lint`
-log entry, add it here.
--->
+- IA-slop: "crucial", "robust", "comprehensive", "nuanced", "fundamental", "significant".
+- Voz Conversion-explainer: "vamos entender", "neste artigo", "como você pode ver".
+- Adjetivos promocionais sem prova: "líder", "referência", "consagrado".
+- Em dashes em prosa pt-BR.
 
-- <project-specific item 1>
+### Sempre
 
-## Common observed errors
+- Citar fonte ou marcar `gap` explicitamente.
+- Preservar acentuação pt-BR: `página`, `conteúdo`, `análise`, `aprovação`, `não`.
+- Wikilinks `[[...]]` apenas para arquivos reais em `brain/`. Markdown links para `../sources/`, `../contents/`, URLs externas.
 
-<!--
-RULE: Specific recurring errors caught in reviews of this project,
-described in one line each. Used to seed targeted reviewer attention.
--->
+### Bom
 
-- <observed error 1>
+> "Diego Ivo é fundador e CEO da Conversion. Em diegoivo.com escreve sobre SEO Agêntico, GEO e estratégia de longo prazo. Posição editorial registrada em [[log#2026-05-07 - Brain diegoivo.com registrado]]."
 
-## Decision log references
+### Ruim
 
-<!--
-RULE: Wikilinks to relevant `tipo: lint` or `tipo: decisao` entries in
-[[log]] that justify items above. Keeps the rule traceable.
--->
+> "Diego Ivo é uma referência consagrada e líder reconhecido em SEO. Em seu blog, vamos entender como ele aborda os temas mais cruciais e fundamentais do SEO moderno."
 
-- [[log#YYYY-MM-DD - title]]
+## Princípios de revisão deste projeto
+
+<!-- 3-7 princípios curtos. Crescem com aprendizado das revisões. Imperativos. -->
+
+- <princípio 1>
+
+## Checklist estilística do projeto
+
+<!-- Itens específicos que o reviewer verifica neste projeto. -->
+
+- [ ] <item>
+
+## Erros comuns observados
+
+<!-- Cada linha é um padrão observado em ≥2 drafts. Origem aponta para a entrada de log que documentou o achado. -->
+
+| Erro | Como evitar | Origem |
+| --- | --- | --- |
+| <erro> | <correção> | [[log#YYYY-MM-DD - título]] |
+
+## O que NÃO está aqui
+
+- Tom de voz e registro: ver [[voice]].
+- Schema de frontmatter público e schema do log: skill `brain-keeper`.
+- Brandbook narrativo (aposto, público, canais): ver [[identity]].
+- Áreas editoriais e teses: ver [[topic-clusters]].

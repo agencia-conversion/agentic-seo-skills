@@ -16,8 +16,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     display_title: body.display_title ? String(body.display_title).trim() : undefined,
     volume: typeof body.volume === 'number' ? body.volume : undefined,
     intent: body.intent ? String(body.intent) : undefined,
-    papel: body.papel === 'pilar' ? 'pilar' : 'satelite',
-    acao: body.acao ? String(body.acao) : undefined,
+    role: body.role === 'pillar' ? 'pillar' : 'satellite',
+    action: body.action ? String(body.action) : undefined,
     note: body.note ? String(body.note) : undefined,
   });
   if (result.ok) {

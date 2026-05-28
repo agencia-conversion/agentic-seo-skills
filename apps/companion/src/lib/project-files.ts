@@ -3,60 +3,31 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { REPORT_DIR_NAME, REPORT_MODULE_IDS } from '../../../../shared/report-modules';
-import { loadBrainSubpageTemplate, brainTopLevelTemplatePath } from './brain-templates';
+import { loadBrainSubpageTemplate } from './brain-templates';
+import { ensureWatcherStarted, silenceWrite } from './auto-block-watcher';
 
-// EN canonical names + pt-BR aliases for compat with existing pt-BR projects.
-// New projects scaffold from BRAIN_PAGE_SCAFFOLD_ORDER (EN canonical only).
-// See docs/specs/en-rename-map.md.
 export const AUTHORIAL_BRAIN_PAGES = new Set([
   'brain/index.md',
   'brain/identity.md',
   'brain/voice.md',
   'brain/technology.md',
-  'brain/editorial.md',
   'brain/topic-clusters.md',
   'brain/products.md',
   'brain/review.md',
-  'brain/identidade.md',
-  'brain/voz.md',
-  'brain/tecnologia.md',
-  'brain/produtos.md',
-  'brain/revisao.md',
 ]);
 
 const BRAIN_PAGE_ORDER = [
   'brain/index.md',
   'brain/identity.md',
-  'brain/identidade.md',
-  'brain/voice.md',
-  'brain/voz.md',
-  'brain/technology.md',
-  'brain/tecnologia.md',
-  'brain/editorial.md',
-  'brain/topic-clusters.md',
-  'brain/products.md',
-  'brain/produtos.md',
-  'brain/review.md',
-  'brain/revisao.md',
-  'brain/log.md',
-];
-
-// EN canonical scaffold order — used when creating a new brain. The language
-// of the file content comes from project.json.language; the loader picks the
-// `.pt-BR.md` template variant when language is pt-BR.
-const BRAIN_PAGE_SCAFFOLD_ORDER = [
-  'brain/index.md',
-  'brain/identity.md',
   'brain/voice.md',
   'brain/technology.md',
-  'brain/editorial.md',
   'brain/topic-clusters.md',
   'brain/products.md',
   'brain/review.md',
   'brain/log.md',
 ];
 
-const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'other', 'outros']);
+const CONTENT_ORIGINS = new Set(['blog', 'linkedin', 'podcast', 'other']);
 const REPORT_MODULES = new Set<string>(REPORT_MODULE_IDS);
 const SUPPORTED_PROJECT_LANGUAGES = new Set(['pt-BR', 'en']);
 const ROOT = process.env.AGENTIC_SEO_PLUGIN_ROOT || process.env.SEO_BRAIN_PLUGIN_ROOT || join(/*turbopackIgnore: true*/ process.cwd(), '..', '..');
@@ -93,7 +64,47 @@ function nowIso() {
 }
 
 function normalizeProjectRoot(projectRoot?: string | null) {
-  return resolve(/*turbopackIgnore: true*/ projectRoot || process.env.AGENTIC_SEO_PROJECT_ROOT || 'project');
+  const root = resolve(/*turbopackIgnore: true*/ projectRoot || process.env.AGENTIC_SEO_PROJECT_ROOT || 'project');
+  // Auto-fix legacy project/content/ → project/contents/ before any read so
+  // the watcher and downstream APIs see the canonical layout. Safe to call
+  // repeatedly (no-op when already canonical).
+  applyLegacyContentRename(root);
+  // Lazily start the external-edit watcher on the first API call that
+  // resolves a project root. Idempotent.
+  ensureWatcherStarted(root);
+  return root;
+}
+
+// Tracks one-time auto-renames per project root so we log only once.
+const AUTO_RENAMED_ROOTS = new Set<string>();
+
+export function applyLegacyContentRename(root: string) {
+  const legacy = join(root, 'content');
+  const canonical = join(root, 'contents');
+  let legacyExists = false;
+  let canonicalExists = false;
+  try {
+    legacyExists = existsSync(legacy) && statSync(legacy).isDirectory();
+  } catch {
+    legacyExists = false;
+  }
+  try {
+    canonicalExists = existsSync(canonical) && statSync(canonical).isDirectory();
+  } catch {
+    canonicalExists = false;
+  }
+  if (!legacyExists || canonicalExists) return false;
+  try {
+    renameSync(legacy, canonical);
+  } catch {
+    return false;
+  }
+  if (!AUTO_RENAMED_ROOTS.has(root)) {
+    AUTO_RENAMED_ROOTS.add(root);
+    // eslint-disable-next-line no-console
+    console.warn(`[agentic-seo] auto-renamed ${legacy} → ${canonical}`);
+  }
+  return true;
 }
 
 function yamlString(value: unknown) {
@@ -137,7 +148,7 @@ export function validateProjectFileRel(rawPath: unknown, { write = false } = {})
   const allowed =
     /^brain\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^brain\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
-    /^(content|conteudos)\/(blog|linkedin|podcast|other|outros)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
+    /^contents\/(blog|linkedin|podcast|other)\/[A-Za-z0-9._-]+\.md$/.test(rel) ||
     /^workbench\/[A-Za-z0-9._/-]+\.md$/.test(rel) ||
     new RegExp(`^${REPORT_DIR_NAME}\\/[A-Za-z0-9._-]+\\/[A-Za-z0-9._/-]+\\/report\\.md$`).test(rel);
   if (!allowed) return { ok: false as const, reason: 'path-not-allowed' };
@@ -151,7 +162,7 @@ export function validateProjectFileRel(rawPath: unknown, { write = false } = {})
 function resolveAllowedFile(projectRoot: string | undefined, rel: string) {
   const root = normalizeProjectRoot(projectRoot);
   const filePath = resolve(root, rel);
-  const allowedRoots = ['brain', 'content', 'conteudos', 'workbench', REPORT_DIR_NAME].map((dir) => resolve(root, dir));
+  const allowedRoots = ['brain', 'contents', 'workbench', REPORT_DIR_NAME].map((dir) => resolve(root, dir));
   if (!allowedRoots.some((allowed) => filePath === allowed || filePath.startsWith(`${allowed}${sep}`))) {
     throw new Error('path escaped project root');
   }
@@ -294,7 +305,7 @@ function cleanFrontmatterRaw(raw: unknown) {
 }
 
 function frontmatterFieldsForPath(rel: string, incoming: Record<string, any>, existing: Record<string, any>, title?: string) {
-  if (rel.startsWith('conteudos/') || rel.startsWith('content/')) {
+  if (rel.startsWith('contents/')) {
     return {
       ...existing,
       ...incoming,
@@ -321,16 +332,16 @@ function appendLogEntry(logFile: string, entry: Record<string, string | null | u
   const lines = [
     '',
     '',
-    `## ${entry.date} - ${entry.titulo}`,
+    `## ${entry.date} - ${entry.title}`,
     '',
-    `- tipo: ${entry.tipo}`,
-    `- escopo: ${entry.escopo || 'n/a'}`,
-    `- decisao: ${entry.decisao}`,
+    `- type: ${entry.type}`,
+    `- scope: ${entry.scope || 'n/a'}`,
+    `- decision: ${entry.decision}`,
   ];
-  if (entry.evidencia) lines.push(`- evidencia: ${entry.evidencia}`);
-  lines.push(`- aprovador: ${entry.aprovador || 'agent'}`);
-  if (entry.aprovado_em) lines.push(`- aprovado_em: ${entry.aprovado_em}`);
-  if (entry.notas) lines.push(`- notas: ${entry.notas}`);
+  if (entry.evidence) lines.push(`- evidence: ${entry.evidence}`);
+  lines.push(`- approver: ${entry.approver || 'agent'}`);
+  if (entry.approved_at) lines.push(`- approved_at: ${entry.approved_at}`);
+  if (entry.notes) lines.push(`- notes: ${entry.notes}`);
   appendFileSync(logFile, lines.join('\n') + '\n', 'utf8');
 }
 
@@ -409,12 +420,12 @@ export function updateProjectSettings({ projectRoot, language }: { projectRoot?:
   if (existsSync(join(root, 'brain', 'log.md'))) {
     appendLogEntry(join(root, 'brain', 'log.md'), {
       date: todayIso(),
-      tipo: 'decisao',
-      titulo: 'Idioma do projeto atualizado',
-      escopo: '.agentic-seo/project.json',
-      decisao: `Idioma canônico do projeto definido como ${nextLanguage}.`,
-      evidencia: '.agentic-seo/project.json',
-      aprovador: 'agent',
+      type: 'decision',
+      title: 'Idioma do projeto atualizado',
+      scope: '.agentic-seo/project.json',
+      decision: `Idioma canônico do projeto definido como ${nextLanguage}.`,
+      evidence: '.agentic-seo/project.json',
+      approver: 'agent',
     });
   }
   return readProjectSettings({ projectRoot: root });
@@ -490,6 +501,52 @@ function canonicalBrainExists(root: string) {
   return BRAIN_PAGE_ORDER.some((rel) => existsSync(join(root, rel)));
 }
 
+export interface ProjectWarning {
+  code: 'legacy-content-dir' | 'content-and-contents-coexist';
+  message: string;
+  details?: Record<string, string>;
+}
+
+// Tracks one-time console warnings per project root so we don't spam logs.
+const WARNED_ROOTS = new Set<string>();
+
+export function detectProjectWarnings(root: string): ProjectWarning[] {
+  const warnings: ProjectWarning[] = [];
+  const legacy = join(root, 'content');
+  const canonical = join(root, 'contents');
+  const legacyExists = existsSync(legacy) && statSync(legacy).isDirectory();
+  const canonicalExists = existsSync(canonical) && statSync(canonical).isDirectory();
+  if (legacyExists && !canonicalExists) {
+    // Should be rare since normalizeProjectRoot() auto-renames. Only seen
+    // when the rename failed (permissions, locked files). Keep the warning
+    // as a fallback so the user notices.
+    warnings.push({
+      code: 'legacy-content-dir',
+      message:
+        'project/content/ existe (legado) e o auto-rename para project/contents/ falhou. Rode `mv project/content project/contents` manualmente.',
+      details: { legacy, canonical },
+    });
+  } else if (legacyExists && canonicalExists) {
+    warnings.push({
+      code: 'content-and-contents-coexist',
+      message:
+        'project/content/ e project/contents/ existem. Apenas project/contents/ é lido — mova/mescle os arquivos manualmente e remova project/content/.',
+      details: { legacy, canonical },
+    });
+  }
+  return warnings;
+}
+
+function emitProjectWarningsOnce(root: string, warnings: ProjectWarning[]) {
+  if (warnings.length === 0) return;
+  if (WARNED_ROOTS.has(root)) return;
+  WARNED_ROOTS.add(root);
+  for (const w of warnings) {
+    // eslint-disable-next-line no-console
+    console.warn(`[agentic-seo] ${w.code}: ${w.message}`);
+  }
+}
+
 export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
   const root = normalizeProjectRoot(projectRoot);
   const projectName = projectDisplayName(root);
@@ -519,9 +576,9 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
   const clusterIcons = readClusterIcons(root);
 
   const contentItems: ProjectTreeItem[] = [];
-  for (const origem of CONTENT_ORIGINS) {
-    const dir = join(root, 'conteudos', origem);
-    for (const rel of walkMarkdown(dir).map((child) => `conteudos/${origem}/${child}`)) {
+  for (const origin of CONTENT_ORIGINS) {
+    const dir = join(root, 'contents', origin);
+    for (const rel of walkMarkdown(dir).map((child) => `contents/${origin}/${child}`)) {
       const item = readSummary(root, rel, ui);
       if (item) contentItems.push(item);
     }
@@ -540,8 +597,11 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
       items: brainItems,
     },
   ];
-  sections.push({ id: 'conteudos', title: 'Content', items: contentItems });
+  sections.push({ id: 'contents', title: 'Content', items: contentItems });
   sections.push({ id: 'workbench', title: 'Workbench', items: workbenchItems });
+
+  const warnings = detectProjectWarnings(root);
+  emitProjectWarningsOnce(root, warnings);
 
   return {
     ok: true,
@@ -550,6 +610,7 @@ export function buildProjectTree({ projectRoot }: { projectRoot?: string }) {
     canBootstrapBrain: !hasBrain,
     project: { root, name: projectName, icon: projectIcon },
     sections,
+    warnings,
   };
 }
 
@@ -557,7 +618,6 @@ function renderBrainTemplate(rel: string, text: string, projectName: string) {
   const today = todayIso();
   let out = text.replaceAll('<YYYY-MM-DD>', today);
   if (rel === 'brain/index.md') {
-    out = out.replaceAll('<Project name>', projectName || 'Agentic SEO');
     out = out.replaceAll('<Nome do projeto>', projectName || 'Agentic SEO');
   }
   return out;
@@ -567,26 +627,26 @@ export function bootstrapBrainFiles({ projectRoot }: { projectRoot?: string }) {
   const root = normalizeProjectRoot(projectRoot);
   if (canonicalBrainExists(root)) return { ok: false, reason: 'brain-already-exists' };
   const projectName = projectDisplayName(root);
-  const language = normalizeProjectLanguage(readProjectConfig(root)?.language);
   const created: string[] = [];
-  for (const rel of BRAIN_PAGE_SCAFFOLD_ORDER) {
-    const source = brainTopLevelTemplatePath(ROOT, basename(rel), language);
+  for (const rel of BRAIN_PAGE_ORDER) {
+    const source = join(/*turbopackIgnore: true*/ BRAIN_TEMPLATE_DIR, basename(rel));
     if (!existsSync(source)) return { ok: false, reason: 'template-not-found', path: rel };
     const validation = validateProjectFileRel(rel, { write: rel !== 'brain/log.md' });
     if (!validation.ok && rel !== 'brain/log.md') return { ok: false, reason: validation.reason, path: rel };
     const { filePath } = resolveAllowedFile(root, rel);
     mkdirSync(dirname(filePath), { recursive: true });
+    silenceWrite(filePath);
     writeFileSync(filePath, renderBrainTemplate(rel, readFileSync(source, 'utf8'), projectName), 'utf8');
     created.push(rel);
   }
   appendLogEntry(join(root, 'brain', 'log.md'), {
     date: todayIso(),
-    tipo: 'decisao',
-    titulo: 'Brain created via Companion',
-    escopo: created.join(', '),
-    decisao: 'Canonical Brain files created via the Web Companion.',
-    evidencia: created.join(', '),
-    aprovador: 'agent',
+    type: 'decision',
+    title: 'Brain created via Companion',
+    scope: created.join(', '),
+    decision: 'Canonical Brain files created via Companion Web.',
+    evidence: created.join(', '),
+    approver: 'agent',
   });
   return { ok: true, created, tree: buildProjectTree({ projectRoot: root }) };
 }
@@ -673,7 +733,7 @@ export function saveProjectFile({
     incomingFrontmatter.title || title || existingFrontmatter.title || titleFromFile(validation.rel, existingFrontmatter)
   ).trim();
   let rawFrontmatter: string;
-  const rawCandidate = validation.rel.startsWith('conteudos/') ? cleanFrontmatterRaw(frontmatterRaw) : null;
+  const rawCandidate = validation.rel.startsWith('contents/') ? cleanFrontmatterRaw(frontmatterRaw) : null;
   if (rawCandidate !== null) {
     rawFrontmatter = rawCandidate;
   } else {
@@ -682,6 +742,7 @@ export function saveProjectFile({
     rawFrontmatter = parseFrontmatter(textWithFrontmatter).raw;
   }
   const finalText = `---\n${rawFrontmatter}\n---\n\n${body.replace(/^\n+/, '').replace(/\s*$/, '\n')}`;
+  silenceWrite(filePath);
   writeFileSync(filePath, finalText, 'utf8');
   const uiSaved = hasUiChange ? savePageUi(root, validation.rel, ui || {}) : false;
 
@@ -690,14 +751,14 @@ export function saveProjectFile({
     const isReport = validation.rel.startsWith(`${REPORT_DIR_NAME}/`);
     appendLogEntry(join(root, 'brain', 'log.md'), {
       date: today,
-      tipo: 'decisao',
-      titulo: isReport ? 'Análise editada no Companion' : `${basename(validation.rel, '.md')} editado no Companion`,
-      escopo: validation.rel,
-      decisao: `${isReport ? 'Análise' : validation.rel} editado${isReport ? 'a' : ''} no Companion Web${approverClean ? ` por ${approverClean}` : ''}.`,
-      evidencia: validation.rel,
-      aprovador: approverClean || 'agent',
-      aprovado_em: null,
-      notas: notes ? String(notes).trim() : null,
+      type: 'decision',
+      title: isReport ? 'Análise editada no Companion' : `${basename(validation.rel, '.md')} editado no Companion`,
+      scope: validation.rel,
+      decision: `${isReport ? 'Análise' : validation.rel} editado${isReport ? 'a' : ''} no Companion Web${approverClean ? ` por ${approverClean}` : ''}.`,
+      evidence: validation.rel,
+      approver: approverClean || 'agent',
+      approved_at: null,
+      notes: notes ? String(notes).trim() : null,
     });
   }
 
@@ -741,24 +802,24 @@ export function createProjectFile({
   kind = 'workbench',
   title = 'New page',
   parentPath,
-  origem,
+  origin,
   clusters,
 }: {
   projectRoot?: string;
   kind?: 'workbench' | 'content' | 'brain-subpage';
   title?: string;
   parentPath?: string;
-  origem?: string;
+  origin?: string;
   clusters?: string[];
 }) {
   const root = normalizeProjectRoot(projectRoot);
   const slug = slugFromTitle(title);
-  const safeOrigem = ['blog', 'linkedin', 'podcast', 'outros'].includes(String(origem))
-    ? String(origem)
-    : 'outros';
+  const safeOrigin = ['blog', 'linkedin', 'podcast', 'other'].includes(String(origin))
+    ? String(origin)
+    : 'other';
   let rel: string;
   if (kind === 'content') {
-    rel = uniqueRel(root, `conteudos/${safeOrigem}/${slug}.md`);
+    rel = uniqueRel(root, `contents/${safeOrigin}/${slug}.md`);
   } else if (kind === 'brain-subpage') {
     if (!parentPath || typeof parentPath !== 'string') return { ok: false, reason: 'parent-path-required' };
     const match = parentPath.match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
@@ -779,7 +840,7 @@ export function createProjectFile({
       ? clusterList.map((c) => `  - ${yamlString(c)}`).join('\n')
       : '';
     const clustersBlock = clustersYaml ? `clusters:\n${clustersYaml}\n` : 'clusters: []\n';
-    text = `---\ncontract_version: 1\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigem: ${yamlString(safeOrigem)}\n${clustersBlock}---\n\n`;
+    text = `---\ncontract_version: 1\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigin: ${yamlString(safeOrigin)}\n${clustersBlock}---\n\n`;
   } else if (kind === 'brain-subpage' && parentPath) {
     const parentMatch = parentPath.match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
     const parentSlug = parentMatch ? parentMatch[1] : '';
@@ -792,7 +853,7 @@ export function createProjectFile({
           heading: title,
           resumo: '',
           area: '',
-          pilar_line: '_pilar a definir_',
+          pillar_line: '_pilar a definir_',
           contents_table: '<!-- Tabela regenerada pela skill `topic-cluster` ao promover um cluster. -->',
           next_actions: '- <próxima ação>',
           provenance: 'criação manual',
@@ -802,6 +863,7 @@ export function createProjectFile({
   } else {
     text = `---\ntitle: ${yamlString(title)}\nupdated: ${yamlString(today)}\n---\n\n`;
   }
+  silenceWrite(filePath);
   writeFileSync(filePath, text, 'utf8');
   const file = readProjectFile({ projectRoot: root, fileRel: rel });
   return { ...file, created: true };
@@ -844,18 +906,19 @@ export function deleteProjectFile({
   const trashPath = uniqueTrashPath(root, validation.rel);
   const absoluteTrash = join(root, trashPath);
   mkdirSync(dirname(absoluteTrash), { recursive: true });
+  silenceWrite(filePath);
   renameSync(filePath, absoluteTrash);
   deletePageUi(root, validation.rel);
 
   if (validation.rel.startsWith('brain/')) {
     appendLogEntry(join(root, 'brain', 'log.md'), {
       date: todayIso(),
-      tipo: 'decisao',
-      titulo: `${basename(validation.rel, '.md')} movido para lixeira`,
-      escopo: validation.rel,
-      decisao: `${validation.rel} movido para a lixeira do Companion Web.`,
-      evidencia: trashPath,
-      aprovador: 'agent',
+      type: 'decision',
+      title: `${basename(validation.rel, '.md')} movido para lixeira`,
+      scope: validation.rel,
+      decision: `${validation.rel} movido para a lixeira do Companion Web.`,
+      evidence: trashPath,
+      approver: 'agent',
     });
   }
 
@@ -870,12 +933,12 @@ export function readProjectLog({ projectRoot }: { projectRoot?: string }) {
   for (const block of blocks) {
     const heading = block.split(/\r?\n/, 1)[0].trim();
     if (!heading) continue;
-    const tipo = block.match(/^- tipo:\s*(.+)$/m)?.[1]?.trim() || '';
-    const escopo = block.match(/^- escopo:\s*(.+)$/m)?.[1]?.trim() || '';
-    const decisao = block.match(/^- decisao:\s*(.+)$/m)?.[1]?.trim() || '';
-    const aprovador = block.match(/^- aprovador:\s*(.+)$/m)?.[1]?.trim() || '';
-    const aprovadoEm = block.match(/^- aprovado_em:\s*(.+)$/m)?.[1]?.trim() || '';
-    entries.push({ heading, tipo, escopo, decisao, aprovador, aprovadoEm });
+    const type = block.match(/^- type:\s*(.+)$/m)?.[1]?.trim() || '';
+    const scope = block.match(/^- scope:\s*(.+)$/m)?.[1]?.trim() || '';
+    const decision = block.match(/^- decision:\s*(.+)$/m)?.[1]?.trim() || '';
+    const approver = block.match(/^- approver:\s*(.+)$/m)?.[1]?.trim() || '';
+    const approvedAt = block.match(/^- approved_at:\s*(.+)$/m)?.[1]?.trim() || '';
+    entries.push({ heading, type, scope, decision, approver, approvedAt });
   }
   return { ...file, entries };
 }

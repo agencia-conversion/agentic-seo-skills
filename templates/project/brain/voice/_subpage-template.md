@@ -5,16 +5,20 @@ updated: "{{updated}}"
 
 # {{title}}
 
-<!-- Subpage of [[voice]]. Use it to detail a specific aspect of editorial tone: lead variants, attribution policies, banned vocabulary lists. -->
+<!-- Subpágina de [[voice]]. Use para detalhar um pilar de tom, um registro específico, um vocabulário controlado ou exemplos comentados. -->
 
-## Context
+## Pilar de tom
 
-<!-- In one line, which aspect of tone of voice this subpage deepens. -->
+<!-- Que aspecto da voz esta subpágina aprofunda. Conecte com [[voice]] quando útil. -->
 
-## Content
+## Exemplos bons
 
-<!-- Free text. Keep references to [[voice]] for the high-level rules. -->
+- <exemplo curto + por que está alinhado>
 
-## Evidence
+## Exemplos ruins
 
-- <source or proof>
+- <exemplo curto + por que destoa>
+
+## Evidência
+
+- <referência editorial ou interna>

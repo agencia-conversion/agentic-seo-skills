@@ -1,44 +1,60 @@
 ---
-title: "<Project name>"
+title: "<Nome do projeto>"
 updated: "<YYYY-MM-DD>"
 ---
 
-# <Project name>
+# <Nome do projeto>
 
-<Project name> is the entry page of the brand's brain. It summarizes the editorial, technical and strategic context that guides SEO, content and analysis decisions.
+<!--
+REGRA: A página index serve como landing do brain. Escreva 2-3 parágrafos de
+introdução que respondam:
+1. O que é a marca (em 1-2 frases factuais, sem AI-slop), incluindo a frase-marca
+   canônica entre aspas quando existir.
+2. Para que serve este brain e como agentes interagem com ele.
+3. Como navegar (resumo: cada bloco abaixo é uma sub-página com escopo próprio).
 
-The brand uses this brain to turn accumulated knowledge into publishable, traceable, useful decisions. Each page concentrates a piece of context that other agents need to read before writing, reviewing or analyzing.
+Detalhe completo da marca vive em [[identity]]; aqui só uma introdução de
+1-2 frases para dar contexto antes dos links abaixo.
+-->
 
-The brand line, the appositive and positioning points live in [[identity]]. Tone, editorial direction and decisions live in the pages below so that the index stays short and navigable.
+<introdução em 2-3 parágrafos sobre a marca, o brain, e como navegar>
 
-Use this page as the starting point before editing content, evaluating opportunities or recording decisions. The links below lead to the authorial areas that sustain the work.
+<!--
+REGRA: Cada sub-página do brain ganha um H2 com 2-4 frases de resumo do que
+ela contém. Não escreva 1-line de navegação — escreva o suficiente para o
+leitor decidir se precisa abrir a página ou não. Mantenha os wikilinks
+[[...]] como o cabeçalho do H2 para tornar o link explícito.
+-->
 
-## Brain pillars
+## [[identity|Identidade]]
 
-### [[identity|Identity]]
+<resumo: brandbook narrativo. O que tem dentro: linha única, aposto, parágrafo
+de apresentação, frase-marca, promessa, anti-posicionamento, público, identidade
+técnica, canais, áreas editoriais, evidências externas>
 
-The identity page gathers the appositive, the introduction, the core promise, the audience and the positioning boundaries of the brand.
+## [[voice|Tom de Voz]]
 
-### [[voice|Tone of Voice]]
+<resumo: princípios editoriais específicos deste projeto, lead, atribuição,
+vocabulário a evitar, vocabulário preferido por área, acentuação e idioma,
+política de errata, exemplos de referência>
 
-The tone-of-voice page defines the editorial register, preferred terms, forbidden terms, and the language criteria that keep content consistent.
+## [[topic-clusters|Topic Clusters]]
 
-### [[editorial|Editorial]]
+<resumo: espinha dorsal. Áreas editoriais macro com tese, diferenciação,
+audiência, subtemas e provas; tabela auto-gerada de clusters ativos; subpáginas
+por cluster com tabela de conteúdos materializada por cluster-sync>
 
-The editorial page organizes the macro areas, content theses, dos and don'ts of editorial direction and the logic that connects content, search and topical authority.
+## [[technology|Tecnologia]]
 
-### [[topic-clusters|Topic Clusters]]
+<resumo: contexto técnico observado do site, mapa de SEO técnico com status
+por área, decisões técnicas registradas, pendências, evidências>
 
-The Topic Clusters page lists the active semantic clusters, their pillars, published satellites and planned opportunities.
+## [[review|Revisão]]
 
-### [[technology|Technology]]
+<resumo: regra editorial universal + princípios específicos do projeto,
+checklist estilística, erros comuns observados>
 
-The technology page records the observed technical context of the brand's site, technical SEO risks, and operational decisions that affect crawling, performance and publishing.
+## [[log|Log]]
 
-### [[review|Review]]
-
-The review page concentrates the editorial rules used before publishing, including universal criteria and project-specific learnings.
-
-### [[log|Log]]
-
-The log preserves decisions, approvals, evidence and relevant changes in chronological order.
+<resumo: registro append-only de decisões, aprovações, erratas, lints,
+ingestões, publicações e provas; schema fixo>

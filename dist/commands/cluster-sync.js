@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CLUSTER_LABELS = void 0;
+exports.applyHeaderSync = applyHeaderSync;
 exports.clusterSync = clusterSync;
 exports.parseArgs = parseArgs;
 exports.runCli = runCli;
@@ -13,6 +14,9 @@ const cluster_io_1 = require("../lib/cluster-io");
 const cluster_render_1 = require("../lib/cluster-render");
 const cluster_labels_1 = require("../lib/cluster-labels");
 Object.defineProperty(exports, "CLUSTER_LABELS", { enumerable: true, get: function () { return cluster_labels_1.CLUSTER_LABELS; } });
+const auto_block_scanner_1 = require("../lib/auto-block-scanner");
+const auto_blocks_1 = require("../lib/auto-blocks");
+(0, auto_blocks_1.registerBuiltinAutoBlocks)();
 function defaultNow() {
     return new Date().toISOString().slice(0, 10);
 }
@@ -115,65 +119,65 @@ function detectLints(inputs, filterCluster) {
                 });
             }
         }
-        if (content.fm.papel) {
-            for (const key of Object.keys(content.fm.papel)) {
+        if (content.fm.role) {
+            for (const key of Object.keys(content.fm.role)) {
                 if (!clusters.includes(key)) {
                     lints.push({
-                        code: "content.papel-orphan",
+                        code: "content.role-orphan",
                         severity: "warn",
-                        message: `${content.slug} declara papel para "${key}" mas não está em clusters:[]`,
-                        context: { content: content.relPath, papel_cluster: key },
+                        message: `${content.slug} declara role para "${key}" mas não está em clusters:[]`,
+                        context: { content: content.relPath, role_cluster: key },
                     });
                 }
             }
         }
     }
-    const pilarOwners = new Map();
+    const pillarOwners = new Map();
     for (const cluster of inputs.clusters) {
         if (filterCluster && cluster.slug !== filterCluster)
             continue;
-        if (cluster.yaml.status === "active" && !cluster.yaml.pilar?.slug) {
+        if (cluster.yaml.status === "active" && !cluster.yaml.pillar?.slug) {
             lints.push({
-                code: "cluster.pilar.missing",
+                code: "cluster.pillar.missing",
                 severity: "block",
-                message: `cluster "${cluster.slug}" ativo sem pilar`,
+                message: `cluster "${cluster.slug}" ativo sem pillar`,
                 context: { cluster: cluster.slug },
             });
         }
-        const pilarSlug = cluster.yaml.pilar?.slug;
-        if (pilarSlug) {
-            if (!pilarOwners.has(pilarSlug))
-                pilarOwners.set(pilarSlug, []);
-            pilarOwners.get(pilarSlug).push(cluster.slug);
-            const pilarContent = inputs.contents.find((c) => c.slug === pilarSlug);
-            if (pilarContent) {
-                const declared = pilarContent.fm.papel?.[cluster.slug];
-                if (declared && declared !== "pilar") {
+        const pillarSlug = cluster.yaml.pillar?.slug;
+        if (pillarSlug) {
+            if (!pillarOwners.has(pillarSlug))
+                pillarOwners.set(pillarSlug, []);
+            pillarOwners.get(pillarSlug).push(cluster.slug);
+            const pillarContent = inputs.contents.find((c) => c.slug === pillarSlug);
+            if (pillarContent) {
+                const declared = pillarContent.fm.role?.[cluster.slug];
+                if (declared && declared !== "pillar") {
                     lints.push({
-                        code: "cluster.pilar.divergence",
+                        code: "cluster.pillar.divergence",
                         severity: "warn",
-                        message: `pilar do cluster "${cluster.slug}" diverge: frontmatter de ${pilarSlug} diz "${declared}"`,
-                        context: { cluster: cluster.slug, content: pilarSlug, declared },
+                        message: `pillar do cluster "${cluster.slug}" diverge: frontmatter de ${pillarSlug} diz "${declared}"`,
+                        context: { cluster: cluster.slug, content: pillarSlug, declared },
                     });
                 }
-                if (!(pilarContent.fm.clusters || []).includes(cluster.slug)) {
+                if (!(pillarContent.fm.clusters || []).includes(cluster.slug)) {
                     lints.push({
-                        code: "cluster.pilar.divergence",
+                        code: "cluster.pillar.divergence",
                         severity: "warn",
-                        message: `pilar "${pilarSlug}" não declara cluster "${cluster.slug}" em clusters:[]`,
-                        context: { cluster: cluster.slug, content: pilarSlug },
+                        message: `pillar "${pillarSlug}" não declara cluster "${cluster.slug}" em clusters:[]`,
+                        context: { cluster: cluster.slug, content: pillarSlug },
                     });
                 }
             }
         }
-        const overrideSlugs = Object.keys(cluster.yaml.satelite_overrides || {});
+        const overrideSlugs = Object.keys(cluster.yaml.satellite_overrides || {});
         for (const slug of overrideSlugs) {
             const c = inputs.contents.find((x) => x.slug === slug);
             if (!c || !(c.fm.clusters || []).includes(cluster.slug)) {
                 lints.push({
                     code: "cluster.override.orphan",
                     severity: "warn",
-                    message: `satelite_overrides em "${cluster.slug}" referencia "${slug}" sem conteúdo publicado vinculado`,
+                    message: `satellite_overrides em "${cluster.slug}" referencia "${slug}" sem conteúdo publicado vinculado`,
                     context: { cluster: cluster.slug, content_slug: slug },
                 });
             }
@@ -190,24 +194,42 @@ function detectLints(inputs, filterCluster) {
             }
         }
     }
-    for (const [slug, owners] of pilarOwners.entries()) {
+    for (const [slug, owners] of pillarOwners.entries()) {
         if (owners.length > 1) {
             lints.push({
-                code: "cluster.unique-pilar",
+                code: "cluster.unique-pillar",
                 severity: "block",
-                message: `conteúdo "${slug}" é pilar de múltiplos clusters: ${owners.join(", ")}`,
+                message: `conteúdo "${slug}" é pillar de múltiplos clusters: ${owners.join(", ")}`,
                 context: { content: slug, clusters: owners },
             });
         }
     }
     return lints;
 }
-function resolvePilarSlug(cluster, inputs) {
-    const declared = cluster.yaml.pilar?.slug;
+function resolvePillarSlug(cluster, inputs) {
+    const declared = cluster.yaml.pillar?.slug;
     if (!declared)
         return null;
     const published = inputs.contentsByCluster.get(cluster.slug) || [];
     return published.find((c) => c.slug === declared)?.slug || null;
+}
+// Keep the brain subpage frontmatter `title:` in sync with cluster.yaml.name
+// (the canonical source of truth). Runs on every cluster-sync pass for any
+// existing subpage so renames — whether triggered by the Companion API or by
+// external edits to cluster.yaml — propagate to the sidebar (which reads
+// frontmatter.title) and to the editor surface (which reflects the title in
+// the page header). The body H1 stays untouched: it is authored markdown.
+function applyHeaderSync(current, expectedTitle) {
+    if (!current.startsWith("---")) {
+        // No frontmatter: leave the file as-is. The subpage was authored without
+        // an FM block; cluster-sync should not invent one here.
+        return current;
+    }
+    const { data, body } = (0, cluster_io_1.parseFrontmatter)(current);
+    if (data.title === expectedTitle)
+        return current;
+    const nextData = { ...data, title: expectedTitle };
+    return (0, cluster_io_1.serializeFrontmatter)(nextData, body);
 }
 function applyContentBlock(current, block, labels) {
     const beginIdx = current.indexOf(cluster_types_1.SENTINELS.contentBegin);
@@ -226,36 +248,36 @@ function applyContentBlock(current, block, labels) {
     };
 }
 function rebuildContentSubpage(current, block, labels) {
-    const pilarRe = new RegExp(`^## ${escapeRegex(labels.pilar_section)}.*?(?=^## |\\Z)`, "ms");
-    if (pilarRe.test(current)) {
-        return current.replace(pilarRe, (m) => `${m.trimEnd()}\n\n${block}\n\n`).replace(/\n{3,}/g, "\n\n");
+    const pillarRe = new RegExp(`^## ${escapeRegex(labels.pillar_section)}.*?(?=^## |\\Z)`, "ms");
+    if (pillarRe.test(current)) {
+        return current.replace(pillarRe, (m) => `${m.trimEnd()}\n\n${block}\n\n`).replace(/\n{3,}/g, "\n\n");
     }
     return `${current.trimEnd()}\n\n${block}\n`;
 }
 function escapeRegex(input) {
     return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
-function renderSubpageFromTemplate(cluster, block, labels, pluginRoot, now, pilarContent) {
+function renderSubpageFromTemplate(cluster, block, labels, pluginRoot, now, pillarContent) {
     const template = (0, cluster_io_1.loadTemplate)(pluginRoot, "project/brain/topic-clusters/_cluster-subpage.md.template");
     if (!template)
         return null;
     const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
-    const heading = `${icon}${cluster.yaml.nome}`;
-    const resumo = cluster.yaml.tese || cluster.yaml.context || `Cluster ${cluster.yaml.nome}.`;
-    const pilarLine = pilarContent
-        ? `[${pilarContent.fm.title || pilarContent.slug}](../../conteudos/${pilarContent.origem}/${pilarContent.slug}.md)${cluster.yaml.pilar?.keyword ? ` — ${cluster.yaml.pilar.keyword}` : ""}`
-        : cluster.yaml.pilar?.slug
-            ? `_${cluster.yaml.pilar.slug}_${cluster.yaml.pilar.keyword ? ` — ${cluster.yaml.pilar.keyword}` : ""} (planejado)`
+    const heading = `${icon}${cluster.yaml.name}`;
+    const summary = cluster.yaml.thesis || cluster.yaml.context || `Cluster ${cluster.yaml.name}.`;
+    const pillarLine = pillarContent
+        ? `[${pillarContent.fm.title || pillarContent.slug}](../../contents/${pillarContent.origin}/${pillarContent.slug}.md)${cluster.yaml.pillar?.keyword ? ` — ${cluster.yaml.pillar.keyword}` : ""}`
+        : cluster.yaml.pillar?.slug
+            ? `_${cluster.yaml.pillar.slug}_${cluster.yaml.pillar.keyword ? ` — ${cluster.yaml.pillar.keyword}` : ""} (planejado)`
             : "_pilar a definir_";
     const plannedActions = (cluster.yaml.planned_satellites || [])
-        .map((p) => `- ${labels.criar} \`${p.slug}\`${p.note ? ` — ${p.note}` : ""}.`)
+        .map((p) => `- ${labels.create} \`${p.slug}\`${p.note ? ` — ${p.note}` : ""}.`)
         .join("\n") || "- —";
     return template
-        .replace(/<Nome do Cluster>/g, cluster.yaml.nome)
+        .replace(/<Nome do Cluster>/g, cluster.yaml.name)
         .replace(/<YYYY-MM-DD>/g, now)
         .replace(/<heading>/g, heading)
-        .replace(/<resumo>/g, resumo)
-        .replace(/<pilar_line>/g, pilarLine)
+        .replace(/<resumo>/g, summary)
+        .replace(/<pillar_line>/g, pillarLine)
         .replace(/<content_block>/g, block)
         .replace(/<next_actions>/g, plannedActions)
         .replace(/<evidence_block>/g, "—");
@@ -267,8 +289,8 @@ function updateClusterStats(cluster, inputs) {
         ...cluster.yaml,
         contract_version: cluster_types_1.CONTRACT_VERSION,
         stats: {
-            publicados: published,
-            planejados: planned,
+            published,
+            planned,
             updated: inputs.now,
         },
     };
@@ -276,38 +298,45 @@ function updateClusterStats(cluster, inputs) {
 function syncCluster(cluster, inputs, options) {
     const lints = [];
     const labels = inputs.labels;
-    const resolvedPilarSlug = resolvePilarSlug(cluster, inputs);
+    const resolvedPillarSlug = resolvePillarSlug(cluster, inputs);
     const rows = (0, cluster_render_1.buildContentRows)({
         cluster,
         labels,
         contentsByCluster: inputs.contentsByCluster,
-        resolvedPilarSlug,
+        resolvedPillarSlug,
     });
     const block = (0, cluster_render_1.renderContentBlock)({
         cluster,
         labels,
         contentsByCluster: inputs.contentsByCluster,
-        resolvedPilarSlug,
+        resolvedPillarSlug,
     });
     const fingerprint = fingerprintOf(`${cluster.slug}:${rows.length}:${block}`);
     const previous = cluster_io_1.fingerprintIO.read(inputs.projectRoot, cluster.slug);
     const targetPath = (0, cluster_io_1.subpagePath)(inputs.projectRoot, cluster.slug);
-    if (previous === fingerprint && (0, node_fs_1.existsSync)(targetPath)) {
+    const existing = (0, node_fs_1.existsSync)(targetPath) ? (0, cluster_io_1.loadSubpage)(inputs.projectRoot, cluster.slug) : null;
+    // Skip work only when both the content fingerprint matches AND the brain
+    // subpage frontmatter `title:` is already aligned with cluster.yaml.name.
+    // A rename mutates cluster.yaml without touching the rendered content
+    // rows, so fingerprint match alone is not enough.
+    if (previous === fingerprint &&
+        existing &&
+        applyHeaderSync(existing, cluster.yaml.name) === existing) {
         return { changed: [], noop: true, lints };
     }
-    const existing = (0, cluster_io_1.loadSubpage)(inputs.projectRoot, cluster.slug);
-    const pilarContent = resolvedPilarSlug
-        ? (inputs.contentsByCluster.get(cluster.slug) || []).find((c) => c.slug === resolvedPilarSlug) || null
+    const pillarContent = resolvedPillarSlug
+        ? (inputs.contentsByCluster.get(cluster.slug) || []).find((c) => c.slug === resolvedPillarSlug) || null
         : null;
     let nextContent;
     let detectedLint = null;
     if (!existing) {
         nextContent =
-            renderSubpageFromTemplate(cluster, block, labels, inputs.pluginRoot, inputs.now, pilarContent) ||
+            renderSubpageFromTemplate(cluster, block, labels, inputs.pluginRoot, inputs.now, pillarContent) ||
                 buildFallbackSubpage(cluster, block, labels, inputs.now);
     }
     else {
-        const result = applyContentBlock(existing, block, labels);
+        const withHeader = applyHeaderSync(existing, cluster.yaml.name);
+        const result = applyContentBlock(withHeader, block, labels);
         nextContent = result.next;
         detectedLint = result.lint;
     }
@@ -337,8 +366,8 @@ function syncCluster(cluster, inputs, options) {
 }
 function buildFallbackSubpage(cluster, block, labels, now) {
     const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
-    const fm = `---\ntitle: "${cluster.yaml.nome}"\ncontract_version: ${cluster_types_1.CONTRACT_VERSION}\nupdated: "${now}"\n---\n\n`;
-    return `${fm}# ${icon}${cluster.yaml.nome}\n\n## ${labels.resumo_section}\n\n${cluster.yaml.context || cluster.yaml.tese || ""}\n\n## ${labels.tese_section}\n\n—\n\n## ${labels.pilar_section}\n\n${cluster.yaml.pilar?.slug ? `_${cluster.yaml.pilar.slug}_` : "_pilar a definir_"}\n\n${block}\n\n## ${labels.proximas_acoes}\n\n—\n\n## ${labels.evidencia_section}\n\n—\n`;
+    const fm = `---\ntitle: "${cluster.yaml.name}"\ncontract_version: ${cluster_types_1.CONTRACT_VERSION}\nupdated: "${now}"\n---\n\n`;
+    return `${fm}# ${icon}${cluster.yaml.name}\n\n## ${labels.summary_section}\n\n${cluster.yaml.context || cluster.yaml.thesis || ""}\n\n## ${labels.thesis_section}\n\n—\n\n## ${labels.pillar_section}\n\n${cluster.yaml.pillar?.slug ? `_${cluster.yaml.pillar.slug}_` : "_pilar a definir_"}\n\n${block}\n\n## ${labels.next_actions}\n\n—\n\n## ${labels.evidence_section}\n\n—\n`;
 }
 function syncIndex(inputs, options) {
     const labels = inputs.labels;
@@ -377,7 +406,7 @@ function syncIndex(inputs, options) {
             if (titleMatch) {
                 const stripped = current
                     .replace(/^## (Painel|Panel)[\s\S]*?(?=^## |\Z)/m, "")
-                    .replace(new RegExp(`^## (${escapeRegex(inputs.labels.clusters_ativos)}|Clusters ativos|Active clusters)[\\s\\S]*?(?=^## |\\Z)`, "m"), "")
+                    .replace(new RegExp(`^## (${escapeRegex(inputs.labels.active_clusters)}|Clusters ativos|Active clusters)[\\s\\S]*?(?=^## |\\Z)`, "m"), "")
                     .replace(/\n{3,}/g, "\n\n");
                 next = stripped.replace(/^(#\s.*)$/m, (m) => `${m.trim()}\n\n${block}\n`);
             }
@@ -415,6 +444,15 @@ async function clusterSync(options) {
     if (!indexRes.noop)
         allNoop = false;
     allLints.push(...indexRes.lints);
+    const autoBlockRes = (0, auto_block_scanner_1.scanAndSyncAutoBlocks)(inputs, {
+        dryRun: options.dryRun,
+        check: options.check,
+    });
+    if (autoBlockRes.changedFiles.length > 0) {
+        changedFiles.push(...autoBlockRes.changedFiles);
+        allNoop = false;
+    }
+    allLints.push(...autoBlockRes.lints);
     const hasBlock = allLints.some((l) => l.severity === "block");
     const exitCode = options.check
         ? hasBlock || !allNoop

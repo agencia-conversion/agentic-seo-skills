@@ -1,8 +1,16 @@
-import { test, expect } from '@playwright/test';
-import { TEST_TOKEN } from './test-constants';
+import { test, expect, type Page } from '@playwright/test';
+import { existsSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { TEST_TOKEN, PROJECT_ROOT } from './test-constants';
 
-const PATH_TO_CONTENT = 'conteudos/blog/sample-satellite.md';
+const PATH_TO_CONTENT = 'contents/blog/sample-satellite.md';
 const SECOND_CLUSTER = 'second-cluster';
+
+async function chooseGlobalWidth(page: Page, menuTestId: string, width: 'sm' | 'md' | 'lg' | 'full') {
+  await page.locator(`[data-testid="${menuTestId}"]`).click();
+  await page.locator('[data-testid="layout-width-menu"]').click();
+  await page.locator(`[data-testid="layout-width-option-${width}"]`).click();
+}
 
 test.describe('cluster-sync end-to-end', () => {
   test('short companion token works in routes and APIs', async ({ page, request }) => {
@@ -35,6 +43,23 @@ test.describe('cluster-sync end-to-end', () => {
   });
 
   test('POST /api/project/file triggers cluster-sync hook', async ({ request }) => {
+    // Reset clusters[] to [] first so the subsequent POST genuinely adds
+    // sample-cluster and forces the sync hook to regenerate downstream files.
+    const initial = await request.get(
+      `/api/project/file?path=${encodeURIComponent(PATH_TO_CONTENT)}&token=${TEST_TOKEN}`,
+    );
+    const initialData = await initial.json();
+    await request.post(`/api/project/file?token=${TEST_TOKEN}`, {
+      data: {
+        path: PATH_TO_CONTENT,
+        hash: initialData.hash,
+        title: initialData.title,
+        body: initialData.body,
+        frontmatter: { ...initialData.frontmatter, title: initialData.title, clusters: [] },
+        syncWait: true,
+      },
+    });
+
     const get = await request.get(
       `/api/project/file?path=${encodeURIComponent(PATH_TO_CONTENT)}&token=${TEST_TOKEN}`,
     );
@@ -106,8 +131,6 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(editor).toContainText('Identidade');
     await expect(editor).toContainText('Tom de Voz');
     await expect(editor).toContainText('Aposto: Sample Project, marca de exemplo para testes do Companion.');
-    await expect(editor).toContainText("Do's");
-    await expect(editor).toContainText("Don'ts");
     await expect(editor).toContainText('Sample Cluster');
     await expect(editor).toContainText('Sample Pilar');
     await expect(editor).toContainText('Tecnologia');
@@ -116,7 +139,6 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(editor).not.toContainText('Companion local');
     await expect(editor).not.toContainText('rotas tokenizadas');
     await expect(editor).not.toContainText('cluster-sync');
-    await expect(editor).toContainText('Editorial');
     await expect(editor).toContainText('Topic Clusters');
     await expect(editor).toContainText('Revisão');
     await expect(editor).toContainText('Log');
@@ -142,6 +164,53 @@ test.describe('cluster-sync end-to-end', () => {
     await page.waitForURL(/brain-topic-clusters-sample-cluster/, { timeout: 5_000 });
   });
 
+  test('brain index and topic clusters use the same global width default', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-index`);
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[960px\]/);
+
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-active-clusters-table]').waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[960px\]/);
+  });
+
+  test('changing global width in the editor header affects another brain page', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/brain-index`);
+    await page.waitForLoadState('domcontentloaded');
+    await chooseGlobalWidth(page, 'editor-layout-menu', 'lg');
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[1200px\]/);
+
+    await page.goto(`/project/${TEST_TOKEN}/brain-voice`);
+    await page.waitForLoadState('domcontentloaded');
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[1200px\]/);
+  });
+
+  test('table width toggle widens data table without changing prose frame', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    const frame = page.locator('[data-testid="page-width-frame"]');
+    const table = page.locator('[data-cluster-table="sample-cluster"]');
+    await table.waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(frame).toHaveClass(/max-w-\[960px\]/);
+
+    const frameBefore = await frame.boundingBox();
+    const tableBefore = await table.boundingBox();
+    expect(frameBefore).toBeTruthy();
+    expect(tableBefore).toBeTruthy();
+    expect(tableBefore!.width).toBeLessThanOrEqual(frameBefore!.width + 4);
+
+    await page.locator('[data-testid="editor-layout-menu"]').click();
+    await page.locator('[data-testid="layout-table-follow-toggle"]').click();
+    await expect(frame).toHaveClass(/max-w-\[960px\]/);
+    await expect(table).toHaveClass(/-mx-20/);
+
+    const tableAfter = await table.boundingBox();
+    expect(tableAfter).toBeTruthy();
+    expect(tableAfter!.width).toBeGreaterThan(frameBefore!.width + 120);
+  });
+
   test('companion home renders without server error', async ({ page }) => {
     const response = await page.goto(`/?token=${TEST_TOKEN}`);
     expect(response?.status()).toBeLessThan(500);
@@ -157,9 +226,9 @@ test.describe('cluster-sync end-to-end', () => {
     expect(body.cluster.slug).toBe('sample-cluster');
     expect(Array.isArray(body.rows)).toBe(true);
     expect(body.rows.length).toBeGreaterThanOrEqual(2);
-    const pilar = body.rows.find((r: { papel: string }) => r.papel === 'pilar');
-    expect(pilar).toBeTruthy();
-    expect(pilar.conteudo.kind).toBe('published');
+    const pillar = body.rows.find((r: { role: string }) => r.role === 'pillar');
+    expect(pillar).toBeTruthy();
+    expect(pillar.content.kind).toBe('published');
   });
 
   test('cluster page renders ClusterTableView with rich UI', async ({ page }) => {
@@ -178,9 +247,9 @@ test.describe('cluster-sync end-to-end', () => {
     await page.waitForLoadState('domcontentloaded');
     const node = page.locator('[data-cluster-table="sample-cluster"]');
     await node.waitFor({ state: 'visible', timeout: 10_000 });
-    const pilarRow = node.locator('[data-cluster-row="sample-pilar"]');
-    await pilarRow.waitFor({ state: 'visible' });
-    const intentTrigger = pilarRow.locator('button').filter({ hasText: 'Informacional' }).first();
+    const pillarRow = node.locator('[data-cluster-row="sample-pilar"]');
+    await pillarRow.waitFor({ state: 'visible' });
+    const intentTrigger = pillarRow.locator('button').filter({ hasText: 'Informacional' }).first();
     await intentTrigger.click();
     await page.waitForTimeout(300);
     await page.getByRole('button', { name: 'Comparativo', exact: true }).first().click();
@@ -190,7 +259,7 @@ test.describe('cluster-sync end-to-end', () => {
     const row = body.rows.find((r: { slug: string }) => r.slug === 'sample-pilar');
     expect(row.intent).toBe('comparative');
     const fileRes = await request.get(
-      `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-pilar.md')}&token=${TEST_TOKEN}`,
+      `/api/project/file?path=${encodeURIComponent('contents/blog/sample-pilar.md')}&token=${TEST_TOKEN}`,
     );
     const fileBody = await fileRes.json();
     expect(fileBody.frontmatter.intent).toBe('comparative');
@@ -232,28 +301,30 @@ test.describe('cluster-sync end-to-end', () => {
     const row = body.rows.find((r: { slug: string }) => r.slug === 'sample-satellite');
     expect(row.keyword).toContain('keyword editada');
     const fileRes = await request.get(
-      `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+      `/api/project/file?path=${encodeURIComponent('contents/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
     );
     const fileBody = await fileRes.json();
     expect(fileBody.frontmatter.keyword).toBe('keyword editada');
   });
 
-  test('papel toggle promotes satellite to pilar via PATCH', async ({ page, request }) => {
+  test('role toggle promotes satellite to pillar via PATCH', async ({ page, request }) => {
     await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
     await page.waitForLoadState('domcontentloaded');
     const node = page.locator('[data-cluster-table="sample-cluster"]');
     await node.waitFor({ state: 'visible', timeout: 10_000 });
     const satelliteRow = node.locator('[data-cluster-row="sample-satellite"]');
     await satelliteRow.waitFor({ state: 'visible' });
-    const papelBtn = satelliteRow.locator('button:has-text("Satélite")').first();
-    await papelBtn.click();
+    const roleBtn = satelliteRow.locator('button:has-text("Satélite")').first();
+    await roleBtn.click();
     await page.waitForTimeout(1500);
     const res = await request.get(`/api/project/cluster/sample-cluster?token=${TEST_TOKEN}`);
     const body = await res.json();
-    expect(body.cluster.pilar_slug).toBe('sample-satellite');
+    expect(body.cluster.pillar_slug).toBe('sample-satellite');
   });
 
-  test('adding a planned satellite via inline row appears after refetch', async ({ page }) => {
+  test('adding a published content via inline row appears after refetch', async ({ page }) => {
+    // Inline CTA semantic v2: creates a published content with title
+    // preserved verbatim. The row shows the typed title (not the slug).
     await page.goto(`/project/${TEST_TOKEN}/brain-topic-clusters-sample-cluster`);
     await page.waitForLoadState('domcontentloaded');
     const node = page.locator('[data-cluster-table="sample-cluster"]');
@@ -267,7 +338,15 @@ test.describe('cluster-sync end-to-end', () => {
     await page.waitForTimeout(1_500);
     const finalRows = await node.locator('[data-cluster-row]').count();
     expect(finalRows).toBeGreaterThan(initialRows);
-    await expect(node).toContainText('teste-de-adicao-inline');
+    await expect(node).toContainText('Teste de adição inline');
+    // The new row exists in the DOM with the slug as data-cluster-row.
+    await expect(node.locator('[data-cluster-row="teste-de-adicao-inline"]')).toBeVisible();
+
+    // Cleanup: this spec runs serially without a per-test fixture reset.
+    // Remove the file so downstream tests (sort assertion at line 395+)
+    // see only the canonical Sample Pilar / Sample Satellite pair.
+    const createdPath = join(PROJECT_ROOT, 'contents', 'blog', 'teste-de-adicao-inline.md');
+    if (existsSync(createdPath)) rmSync(createdPath);
   });
 
   test('selecting rows + Copy button writes TSV to clipboard', async ({ page, context, browserName }) => {
@@ -304,6 +383,21 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(table.locator('[data-testid="cluster-filter-select"]')).toBeVisible();
     await expect(table.locator('thead')).toContainText('Cluster(s)');
     await expect(table).not.toContainText('Pesquisar volume');
+  });
+
+  test('/contents and /contents-sample-cluster use the global width control', async ({ page }) => {
+    await page.goto(`/project/${TEST_TOKEN}/contents`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-cluster-table="all"]').waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[960px\]/);
+
+    await chooseGlobalWidth(page, 'workspace-layout-menu', 'sm');
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[640px\]/);
+
+    await page.goto(`/project/${TEST_TOKEN}/contents-sample-cluster`);
+    await page.waitForLoadState('domcontentloaded');
+    await page.locator('[data-cluster-table="sample-cluster"]').waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(page.locator('[data-testid="page-width-frame"]')).toHaveClass(/max-w-\[640px\]/);
   });
 
   test('GET /api/project/contents sorts server-side before pagination', async ({ request }) => {
@@ -376,7 +470,7 @@ test.describe('cluster-sync end-to-end', () => {
     const node = page.locator('[data-cluster-table="sample-cluster"]');
     await node.waitFor({ state: 'visible', timeout: 10_000 });
     await node.getByRole('link', { name: 'Sample Pilar', exact: true }).click();
-    await page.waitForURL(/conteudos-blog-sample-pilar/, { timeout: 5_000 });
+    await page.waitForURL(/contents-blog-sample-pilar/, { timeout: 5_000 });
   });
 
   test('Cmd+click on row title opens new tab', async ({ page, context }) => {
@@ -388,7 +482,7 @@ test.describe('cluster-sync end-to-end', () => {
       context.waitForEvent('page'),
       node.getByRole('link', { name: 'Sample Pilar', exact: true }).click({ modifiers: ['Meta'] }),
     ]);
-    await expect(popup).toHaveURL(/conteudos-blog-sample-pilar/);
+    await expect(popup).toHaveURL(/contents-blog-sample-pilar/);
     await popup.close();
   });
 
@@ -402,7 +496,7 @@ test.describe('cluster-sync end-to-end', () => {
   });
 
   test('content page H1 hides content emoji', async ({ page }) => {
-    await page.goto(`/project/${TEST_TOKEN}/conteudos-blog-sample-pilar`);
+    await page.goto(`/project/${TEST_TOKEN}/contents-blog-sample-pilar`);
     await page.waitForLoadState('domcontentloaded');
     const h1 = page.locator('h1.title-editor');
     await expect(h1).toBeVisible();
@@ -422,8 +516,8 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(firstRow).toContainText('Sample Pilar');
   });
 
-  test('content metadata drawer persists title date intent clusters and papel', async ({ page, request }) => {
-    await page.goto(`/project/${TEST_TOKEN}/conteudos-blog-sample-satellite`);
+  test('content metadata drawer persists title date intent clusters and role', async ({ page, request }) => {
+    await page.goto(`/project/${TEST_TOKEN}/contents-blog-sample-satellite`);
     await page.waitForLoadState('domcontentloaded');
     const h1 = page.locator('h1.title-editor');
     await expect(h1).toBeVisible();
@@ -437,7 +531,7 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(h1).toContainText(nextTitle);
     await expect.poll(async () => {
       const fileRes = await request.get(
-        `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+        `/api/project/file?path=${encodeURIComponent('contents/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
       );
       const fileBody = await fileRes.json();
       return fileBody.frontmatter.title;
@@ -449,7 +543,7 @@ test.describe('cluster-sync end-to-end', () => {
     await dateInput.fill(nextDate);
     await expect.poll(async () => {
       const fileRes = await request.get(
-        `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+        `/api/project/file?path=${encodeURIComponent('contents/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
       );
       const fileBody = await fileRes.json();
       return fileBody.frontmatter.published_at;
@@ -459,7 +553,7 @@ test.describe('cluster-sync end-to-end', () => {
     await page.getByRole('button', { name: 'Comparativo', exact: true }).first().click();
     await expect.poll(async () => {
       const fileRes = await request.get(
-        `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+        `/api/project/file?path=${encodeURIComponent('contents/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
       );
       const fileBody = await fileRes.json();
       return fileBody.frontmatter.intent;
@@ -514,20 +608,20 @@ test.describe('cluster-sync end-to-end', () => {
     await expect(clusterPicker.locator('[data-testid="create-cluster-from-search"]')).toContainText(`Criar cluster "${clusterName}"`);
     await clusterPicker.locator('[data-testid="create-cluster-from-search"]').click();
     await drawer.locator(`[data-testid="cluster-chip-${createdSlug}"]`).waitFor({ state: 'visible', timeout: 12_000 });
-    await expect(drawer.locator(`[data-testid="papel-field-${createdSlug}"] button`)).toContainText('pilar');
+    await expect(drawer.locator(`[data-testid="role-field-${createdSlug}"] button`)).toContainText('pillar');
 
     const fileRes = await request.get(
-      `/api/project/file?path=${encodeURIComponent('conteudos/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
+      `/api/project/file?path=${encodeURIComponent('contents/blog/sample-satellite.md')}&token=${TEST_TOKEN}`,
     );
     const fileBody = await fileRes.json();
     expect(fileBody.frontmatter.clusters).toContain(createdSlug);
-    expect(fileBody.frontmatter.papel[createdSlug]).toBe('pilar');
+    expect(fileBody.frontmatter.role[createdSlug]).toBe('pillar');
 
     const clustersRes = await request.get(`/api/project/clusters?token=${TEST_TOKEN}`);
     const clustersBody = await clustersRes.json();
     const created = clustersBody.clusters.find((cluster: { slug: string }) => cluster.slug === createdSlug);
     expect(created).toBeTruthy();
-    expect(created.pilar_slug).toBe('sample-satellite');
+    expect(created.pillar_slug).toBe('sample-satellite');
 
     await drawer.locator('[data-testid="add-cluster-button"]').click();
     const reopenedPicker = page.locator('[data-testid="cluster-picker"]');

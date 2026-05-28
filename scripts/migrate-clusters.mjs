@@ -13,14 +13,13 @@ import {
   applyContentFrontmatter,
   writeBrainSubpages,
   writeBrainIndex,
-  simplifyEditorial,
   logMigrationEntry,
 } from "./lib/clusters-apply.mjs";
 
 const ROOT = resolve(fileURLToPath(import.meta.url), "..", "..");
 const PROJECT = join(ROOT, "project");
 const SEED_CLUSTER = join(PROJECT, "clusters", "site-derived-agentic-seo", "cluster.json");
-const BLOG_DIR = join(PROJECT, "conteudos", "blog");
+const BLOG_DIR = join(PROJECT, "contents", "blog");
 const OUT_DIR = join(PROJECT, "workbench", "migrations", "clusters-spine");
 const OUT_FILE = join(OUT_DIR, "plan.yaml");
 const TAG = "pre-cluster-migration";
@@ -40,7 +39,7 @@ function ensureTag() {
         throw new Error("not-found");
       })();
   } catch {
-    console.error(`Git tag \`${TAG}\` does not exist. Create it with \`git tag ${TAG}\` before running --apply.`);
+    console.error(`Tag git \`${TAG}\` não existe. Crie com \`git tag ${TAG}\` antes de rodar --apply.`);
     process.exit(2);
   }
 }
@@ -56,7 +55,7 @@ function buildPublishedByCluster(plan) {
     const titleMatch = text.match(/^title:\s*"?([^"\n]+)"?/m);
     const publishedMatch = text.match(/^published_at:\s*"?([^"\n]*)"?/m);
     const segments = update.path.split("/");
-    const origin = segments.includes("conteudos") ? segments[segments.indexOf("conteudos") + 1] || "blog" : "blog";
+    const origin = segments.includes("contents") ? segments[segments.indexOf("contents") + 1] || "blog" : "blog";
     for (const slug of update.add_clusters) {
       const arr = map.get(slug) || [];
       arr.push({
@@ -65,7 +64,7 @@ function buildPublishedByCluster(plan) {
         origin,
         published_at: publishedMatch ? publishedMatch[1].trim().replace(/^"|"$/g, "") : "",
         intent: "informational",
-        papel: update.papel?.[slug] || "satelite",
+        role: update.role?.[slug] || "satellite",
       });
       map.set(slug, arr);
     }
@@ -82,17 +81,17 @@ function writePlan(plan) {
 function runDryRun() {
   const plan = buildPlan({ mode: "dry-run", seedPath: SEED_CLUSTER, blogDir: BLOG_DIR });
   const out = writePlan(plan);
-  console.log(`Plan written to ${out}`);
-  console.log(`Clusters to create: ${plan.summary.clusters_to_create}`);
-  console.log(`Content files to update: ${plan.summary.contents_to_update}`);
-  console.log(`Brain subpages to create: ${plan.summary.brain_subpages_to_create}`);
-  console.log(`Brain pages to rewrite: ${plan.summary.brain_pages_to_rewrite}`);
+  console.log(`Plano gravado em ${out}`);
+  console.log(`Clusters a criar: ${plan.summary.clusters_to_create}`);
+  console.log(`Conteúdos a atualizar: ${plan.summary.contents_to_update}`);
+  console.log(`Subpáginas brain a criar: ${plan.summary.brain_subpages_to_create}`);
+  console.log(`Páginas brain a reescrever: ${plan.summary.brain_pages_to_rewrite}`);
   if (plan.summary.blockers > 0) {
     console.log(`\nBLOCKERS (${plan.summary.blockers}):`);
     plan.blockers.forEach((b) => console.log(`  - ${b}`));
     process.exit(1);
   }
-  console.log(`\nNo blockers. Review ${out} before proceeding to Phase 4.`);
+  console.log(`\nSem blockers. Revise ${out} antes de prosseguir para a Fase 4.`);
 }
 
 function runApply() {
@@ -114,14 +113,13 @@ function runApply() {
   const publishedByCluster = buildPublishedByCluster(plan);
   touched.subpages = writeBrainSubpages(ROOT, plan, publishedByCluster);
   writeBrainIndex(ROOT, plan, publishedByCluster);
-  simplifyEditorial(ROOT);
   logMigrationEntry(ROOT, touched);
   console.log(`Cutover aplicado.`);
   console.log(`Clusters: ${touched.clusters.length}`);
-  console.log(`Content files: ${touched.contents.length}`);
-  console.log(`Brain subpages: ${touched.subpages.length}`);
-  console.log(`brain/topic-clusters.md index rewritten.`);
-  console.log(`brain/editorial.md simplificado.`);
+  console.log(`Conteúdos: ${touched.contents.length}`);
+  console.log(`Subpáginas brain: ${touched.subpages.length}`);
+  console.log(`Índice brain/topic-clusters.md reescrito.`);
+  console.log(`Nota: brain/editorial.md foi consolidado em brain/topic-clusters.md no refactor 2 (2026-05-26); a função simplifyEditorial não é mais necessária.`);
   console.log(`Log mestra gravada. Tag git: ${TAG}.`);
 }
 

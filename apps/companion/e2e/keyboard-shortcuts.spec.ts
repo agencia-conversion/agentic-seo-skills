@@ -30,7 +30,7 @@ test.describe('Keyboard shortcuts — Tools navigation', () => {
 
   test('Shortcuts ignored inside contentEditable', async ({ page }) => {
     // When focus is in editor, ⌘⇧G/T/B should NOT navigate away
-    await page.goto(`/project/${TOKEN}/brain-voz`);
+    await page.goto(`/project/${TOKEN}/brain-voice`);
     await page.waitForSelector('.ProseMirror', { timeout: 20_000 });
     await page.locator('.ProseMirror').click();
     await page.waitForTimeout(150);

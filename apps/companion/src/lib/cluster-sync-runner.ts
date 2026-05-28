@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { silenceWrite, beginCompanionSync, endCompanionSync } from './write-silencer';
 
 function findPluginRoot(): string | null {
   const candidates = [
@@ -22,7 +23,7 @@ function inferAffectedClusterSlug(fileRel: string): string | undefined {
 }
 
 function shouldRunFor(fileRel: string): boolean {
-  if (fileRel.startsWith('conteudos/')) return fileRel.endsWith('.md');
+  if (fileRel.startsWith('contents/')) return fileRel.endsWith('.md');
   if (fileRel.startsWith('clusters/') && fileRel.endsWith('/cluster.yaml')) return true;
   if (fileRel === 'brain/topic-clusters.md') return true;
   if (fileRel.startsWith('brain/topic-clusters/') && fileRel.endsWith('.md')) return true;
@@ -39,6 +40,29 @@ export interface ClusterSyncHookResult {
   reason?: string;
 }
 
+function silenceExpectedClusterSyncOutputs(absProjectRoot: string, cluster?: string) {
+  // cluster-sync writes brain/topic-clusters/<slug>.md, brain/topic-clusters.md,
+  // and clusters/<slug>/cluster.yaml. Pre-silence these so the chokidar watcher
+  // does not bounce back through cluster-sync again on its own output.
+  silenceWrite(join(absProjectRoot, 'brain', 'topic-clusters.md'));
+  const targetSlugs: string[] = [];
+  if (cluster) {
+    targetSlugs.push(cluster);
+  } else {
+    const clustersDir = join(absProjectRoot, 'clusters');
+    if (existsSync(clustersDir)) {
+      for (const name of readdirSync(clustersDir)) {
+        if (name.startsWith('.') || name.startsWith('_')) continue;
+        if (existsSync(join(clustersDir, name, 'cluster.yaml'))) targetSlugs.push(name);
+      }
+    }
+  }
+  for (const slug of targetSlugs) {
+    silenceWrite(join(absProjectRoot, 'brain', 'topic-clusters', `${slug}.md`));
+    silenceWrite(join(absProjectRoot, 'clusters', slug, 'cluster.yaml'));
+  }
+}
+
 export async function runClusterSyncHook(
   projectRoot: string,
   fileRel: string,
@@ -53,9 +77,11 @@ export async function runClusterSyncHook(
   const scriptPath = join(pluginRoot, 'scripts', 'cluster-sync.mjs');
   const absProjectRoot = resolve(projectRoot);
   const cluster = inferAffectedClusterSlug(fileRel);
+  silenceExpectedClusterSyncOutputs(absProjectRoot, cluster);
   const args = [scriptPath, `--root=${absProjectRoot}`];
   if (cluster) args.push(`--cluster=${cluster}`);
 
+  beginCompanionSync();
   return new Promise((resolveFn) => {
     const child = spawn(process.execPath, args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
@@ -67,9 +93,14 @@ export async function runClusterSyncHook(
       stderr += chunk.toString();
     });
     child.on('error', (err) => {
+      endCompanionSync();
       resolveFn({ ran: false, reason: `spawn-error:${err.message}` });
     });
     child.on('close', () => {
+      // Re-silence the expected outputs because cluster-sync may have written
+      // them just before close and chokidar reports the event after that.
+      silenceExpectedClusterSyncOutputs(absProjectRoot, cluster);
+      endCompanionSync();
       try {
         const data = JSON.parse(stdout);
         resolveFn({
