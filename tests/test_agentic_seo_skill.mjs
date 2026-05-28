@@ -6,6 +6,7 @@ const root = resolve(import.meta.dirname, "..");
 const skill = readFileSync(resolve(root, "skills", "agentic-seo", "SKILL.md"), "utf8");
 const agents = readFileSync(resolve(root, "AGENTS.md"), "utf8");
 const claude = readFileSync(resolve(root, "CLAUDE.md"), "utf8");
+const contributing = readFileSync(resolve(root, "docs", "contributing.md"), "utf8");
 
 assert.ok(skill.startsWith("---\n"));
 assert.match(skill, /^name:\s*agentic-seo$/m);
@@ -78,7 +79,9 @@ for (const forbidden of ["next-website-creator", "payload-cms", "Next.js"]) {
   assert.ok(!skill.includes(forbidden), `removed website/CMS route still present: ${forbidden}`);
 }
 
-for (const text of [agents, claude]) {
+assert.equal(claude.trim(), "@AGENTS.md", "CLAUDE.md must be a pure @AGENTS.md stub");
+
+for (const text of [agents, contributing]) {
   assert.ok(text.includes("60-120 lines"), "missing skill size guideline");
   assert.ok(text.includes(">250 lines means review structure"), "missing 250-line structural trigger");
   assert.ok(!/Skill body[^\n]*hard ceiling/i.test(text), "skill bodies must not use hard ceiling language");

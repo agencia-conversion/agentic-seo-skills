@@ -24,7 +24,7 @@ try {
   const parsed = JSON.parse(output);
   const specific = parsed.hookSpecificOutput;
   assert.equal(specific.hookEventName, "SessionStart");
-  assert.match(specific.additionalContext, /Agentic SEO carregado/);
+  assert.match(specific.additionalContext, /Agentic SEO loaded/);
   assert.match(specific.additionalContext, /\/agentic-seo:agentic-seo/);
   assert.match(specific.additionalContext, /AGENTS\.md/);
   assert.match(specific.additionalContext, /report_md/);

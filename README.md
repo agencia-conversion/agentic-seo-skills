@@ -1,10 +1,8 @@
 # Agentic SEO Skills
 
-Agentic SEO Skills is officially available as a Claude Code plugin.
+Agentic SEO is officially available as a Claude Code plugin. It is a framework for executing SEO with human judgment and agent scale: agents do the research, analysis, content drafting, technical checks, and brain maintenance while logging decisions, evidence, and limitations. The Web Companion is where you read and approve every deliverable.
 
-It is an Agentic SEO framework for building strategy with human judgment and agent scale. Agents execute research, analysis, content workflows, technical checks, and brain maintenance while recording decisions, evidence, and limitations.
-
-## Install in Claude Code
+## Install
 
 Run these commands in a terminal where Claude Code is available as `claude`:
 
@@ -13,19 +11,15 @@ claude plugin marketplace add agencia-conversion/agentic-seo-skills
 claude plugin install agentic-seo@agentic-seo-skills-marketplace
 ```
 
-Then restart Claude Code or run:
+Then restart Claude Code or run `/reload-plugins` inside an active session.
 
-```text
-/reload-plugins
-```
-
-Start Agentic SEO with:
+## Start
 
 ```text
 /agentic-seo:start
 ```
 
-If you installed an older private beta from another GitHub repository, remove that marketplace first and then run the install commands above.
+The agent orients the session, runs `project-init` when needed, and routes every substantive deliverable through the Web Companion. For a five-minute walkthrough, see [`docs/getting-started.md`](docs/getting-started.md).
 
 ## Update
 
@@ -36,102 +30,68 @@ claude plugin update agentic-seo@agentic-seo-skills-marketplace
 
 Then restart Claude Code or run `/reload-plugins`.
 
-## Test Locally Without Installing
+## How it works
+
+- Humans own strategy, judgment, and positioning.
+- Agents execute repeatable intelligence with explicit criteria.
+- The Web Companion is the delivery surface — chat is for short conversation; deliverables are read in the Companion.
+- Project knowledge compounds in an Obsidian-compatible brain at `project/brain/`.
+- Raw sources, working analysis, deliverables, public content, and authorial knowledge stay in distinct folders.
+
+Six pillars: Strategy · Brain · Technology · Technical SEO · Content · Data and Analysis.
+
+Agentic SEO is English-first and officially supports Brazilian Portuguese. Generated prose preserves spelling, accents, and diacritics in the requested language.
+
+## Documentation
+
+| For | Start here |
+|---|---|
+| Users | [`docs/getting-started.md`](docs/getting-started.md), [`docs/web-companion.md`](docs/web-companion.md), [`docs/brain.md`](docs/brain.md), [`docs/clusters.md`](docs/clusters.md) |
+| Contributors | [`docs/architecture.md`](docs/architecture.md), [`docs/contributing.md`](docs/contributing.md), [`docs/refactor-status.md`](docs/refactor-status.md) |
+| Specifications | [`docs/specs/`](docs/specs/) |
+
+The full index is at [`docs/README.md`](docs/README.md).
+
+## Local development
 
 To load the plugin from a local checkout without installing it:
 
 ```bash
 git clone https://github.com/agencia-conversion/agentic-seo-skills.git
 cd agentic-seo-skills
+npm install
+npm run build
 claude --plugin-dir .
 ```
 
-Running plain `claude` from this repository opens the folder as a normal project. Plugin skills are available only after loading with `--plugin-dir` or installing Agentic SEO through the Claude Code plugin marketplace.
+Running plain `claude` from this repository opens the folder as a normal project; plugin skills are only available after loading with `--plugin-dir` or installing through the Claude Code plugin marketplace.
 
-For local development, validate the plugin and marketplace manifests:
+Validate the manifests and run the tests:
 
 ```bash
-npm install
-npm run build
 claude plugin validate .claude-plugin/plugin.json
 claude plugin validate .claude-plugin/marketplace.json
 npm test
+node scripts/validate_skills.mjs
 ```
+
+For the full development workflow, see [`docs/contributing.md`](docs/contributing.md).
 
 ## Other IDEs and Agents
 
-Agentic SEO Skills is officially supported only as a Claude Code plugin in the current release.
+Agentic SEO is officially supported only as a Claude Code plugin in the current release.
 
 Other IDEs and agents can test the portable parts of the framework, but not the complete plugin experience. What can be tested:
 
-- reading `AGENTS.md` for cross-agent operating rules;
+- reading `AGENTS.md` for the cross-agent runtime contract;
 - reading `skills/<skill-name>/SKILL.md` files as portable skill instructions;
 - running the local CLI commands after cloning the repository;
 - using `templates/` and `docs/` as reference material;
-- validating source separation, Brain layout, and decision-aware workflows manually.
+- validating source separation, brain layout, and decision-aware workflows manually.
 
-What is Claude Code-specific and should not be expected to work in other IDEs:
+What is Claude Code-specific and should not be expected to work in other IDEs: `/agentic-seo:*` plugin slash commands, plugin installation through `.claude-plugin/plugin.json`, `SessionStart` hooks and runtime context injection, Claude Code `userConfig` for sensitive settings, plugin-scoped browser handoff behaviour, and marketplace install/update semantics.
 
-- `/agentic-seo:*` plugin slash commands;
-- Claude Code plugin installation through `.claude-plugin/plugin.json`;
-- `SessionStart` hooks and plugin runtime context injection;
-- Claude Code `userConfig` for sensitive settings;
-- plugin-scoped browser handoff behavior;
-- marketplace install/update semantics.
-
-Codex compatibility is best-effort through `AGENTS.md`, `.codex-plugin/plugin.json`, and standard `skills/<skill-name>/SKILL.md` directories. Cursor, Windsurf, Copilot, and similar tools may be able to use the Markdown instructions after opening or copying the repository, but this is not the official distribution path.
-
-## How Agentic SEO Works
-
-Agentic SEO Skills organizes Agentic SEO around six pillars:
-
-1. Strategy
-2. Brain
-3. Technology
-4. Technical SEO
-5. Content
-6. Data and Analysis
-
-The operating model is simple:
-
-- humans own strategy, judgment, and positioning;
-- agents execute repeatable intelligence with explicit criteria;
-- project knowledge compounds in an Obsidian-compatible brain;
-- raw sources stay separate from synthesized knowledge;
-- strategic pages require logged evidence and decisions before they become durable context.
-
-Agentic SEO is English-first and officially supports Brazilian Portuguese. Generated prose preserves spelling, accents, and diacritics in the requested language.
-
-## Main Workflows
-
-Once installed, skills are namespaced under `/agentic-seo`.
-
-```text
-/agentic-seo:start
-/agentic-seo:agentic-seo
-/agentic-seo:project-init
-/agentic-seo:seo-analysis
-/agentic-seo:technical-seo
-/agentic-seo:content-seo
-/agentic-seo:keyword-research
-/agentic-seo:topic-cluster
-/agentic-seo:eeat
-```
-
-The local CLI also exposes deterministic commands used by the skills and tests:
-
-```bash
-bin/agentic-seo project-init "My project"
-bin/agentic-seo data-setup
-bin/agentic-seo keyword-research --keyword "agentic seo"
-bin/agentic-seo serp-extract --keyword "agentic seo"
-bin/agentic-seo seo-analysis --keyword "agentic seo"
-bin/agentic-seo topic-cluster --seed "agentic seo"
-bin/agentic-seo content-seo --topic "What is agentic SEO"
-bin/agentic-seo technical-seo --html-file tests/fixtures/technical-seo-home.html --page-type inicial
-```
-
-Provider calls can consume credits unless an offline mode or provider sandbox is used. DataForSEO defaults to `standard` mode for SERP and keyword data.
+Codex compatibility is best-effort through `AGENTS.md`, `.codex-plugin/plugin.json`, and standard `skills/<skill-name>/SKILL.md` directories.
 
 ## Release
 
