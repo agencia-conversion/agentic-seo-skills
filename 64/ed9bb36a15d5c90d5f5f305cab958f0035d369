@@ -1,0 +1,20 @@
+apps/companion/e2e/bulk-ops-and-trash.spec.ts
+  s_add44d6c3a39cb::t_5a76e86d82d9ea 121-123,131-133,135-137
+  s_add44d6c3a39cb::t_51da78f117cf8a 1-120,124-130,134,138-194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "64ed9bb36a15d5c90d5f5f305cab958f0035d369",
+  "prompts": {},
+  "sessions": {
+    "s_add44d6c3a39cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b19af6f0-83b0-45a4-abed-8f8e9a95afe3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
