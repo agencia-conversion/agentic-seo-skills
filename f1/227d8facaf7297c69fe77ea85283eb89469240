@@ -1,0 +1,34 @@
+docs/output-and-tone.md
+  s_3b4e80af86082f::t_21eecadf370d10 1-77
+scripts/lib/project-browser-server.mjs
+  s_3b4e80af86082f::t_190db94be92876 234-237
+skills/agentic-seo/SKILL.md
+  s_3b4e80af86082f::t_c9f02cae142716 23-24
+  s_3b4e80af86082f::t_2205e813773452 154
+skills/project-init/SKILL.md
+  s_3b4e80af86082f::t_a2e610a17c84e6 11
+  s_3b4e80af86082f::t_caed918f4c837b 29
+  s_3b4e80af86082f::t_bd2a0c729514ae 50-64
+skills/start/SKILL.md
+  s_3b4e80af86082f::t_9d3a0471b9aeb2 27
+skills/project-init/references/seed-from-site.md
+  s_3b4e80af86082f::t_ef1602055a3c68 1-129
+AGENTS.md
+  s_3b4e80af86082f::t_1ba79e8be97689 57-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f1227d8facaf7297c69fe77ea85283eb89469240",
+  "prompts": {},
+  "sessions": {
+    "s_3b4e80af86082f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "85335c10-2556-4fd6-9cfe-546f46d45fed",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
