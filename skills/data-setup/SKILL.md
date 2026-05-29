@@ -22,6 +22,7 @@ Do not use this skill to perform keyword research, create a SERP analysis, write
 - Never fabricate credentials, balances, quotas, keyword volume, rankings, backlinks, awards, clients, or proof.
 - Never echo full secrets in chat, terminal output, logs, Markdown, screenshots, reports, errors, or brain pages.
 - For nontechnical users and all sensitive input, browser handoff is the primary UX. Ask whether you may open a local browser window, then run the handoff yourself after consent.
+- A pergunta de credenciais é SEMPRE primeiro Web Companion (AskUserQuestion Sim/Não, prompt `Posso abrir o Web Companion para você inserir as credenciais com segurança?`), nunca um menu que ofereça arquivo local como opção co-igual; o arquivo local só aparece depois de um "Não" explícito, com aviso de risco. Alinha com `agentic-seo` § 5 "Use Browser Handoff For Decisions".
 - Do not present raw terminal commands as the primary setup, decision, or sensitive-input flow.
 - Do not write secrets to the repository root `.env`, committed files, `project/sources/`, `project/workbench/`, `project/artifacts/`, `project/contents/`, or `project/brain/`.
 - In Claude Code plugin mode, store secrets in sensitive `userConfig` fields when available.
@@ -72,7 +73,20 @@ Do not create or update root `.env`. Do not copy secrets into `.env.example`; pl
 
 **Weak:** "Paste your DataForSEO login and password here so I can test them."
 
-The browser handoff must bind locally, use a one-time token, avoid printing secrets to stdout, and shut down after submit, cancel, or expiry. If the browser handoff cannot run, stop at the gate and provide a friendly explanation of what is blocked. Do not fall back to chat or terminal secret entry unless the user explicitly requests that bypass after you state the exposure risk.
+**A pergunta de credenciais é PRESCRITA — não improvise um menu.** A PRIMEIRA pergunta sobre credenciais DEVE ser feita pela ferramenta nativa de múltipla escolha (AskUserQuestion), com o prompt EXATO `Posso abrir o Web Companion para você inserir as credenciais com segurança?` e exatamente DUAS opções reais, a recomendada primeiro:
+
+- `Sim (abrir no navegador) (recomendado)` — opção recomendada/default (cabeçalho "Recomendado"). Este é o método seguro: o Web Companion (handoff `collect-env`) coleta login e senha sem expô-los.
+- `Não (prefiro outro jeito)`.
+
+NÃO ofereça um menu do tipo "Como prefere inserir as credenciais?" em que "gravar no arquivo local" apareça como opção co-igual ao Companion — isso enterra o caminho seguro. O arquivo local só aparece DEPOIS de um "Não" explícito.
+
+No `Sim`: abra o handoff `collect-env` **em silêncio**, com UM comando único correto mirando o projeto do usuário, pedindo permissão como já é o padrão — sem expor comando, token ou URL de debug. O Companion bind local, usa token único, não imprime segredos e fecha sozinho ao submeter/cancelar/expirar.
+
+No `Não`: SÓ então ofereça a gravação no arquivo local (`project/.env.local` em standalone, ou `userConfig` conforme o runtime), com aviso explícito de risco de exposição do segredo, e registre o bypass (`browser_handoff.bypass_recorded: true`). Não force outras coisas; respeite a escolha.
+
+Se a ferramenta AskUserQuestion não existir no harness, use o mesmo fluxo como sim/não em prosa curta, mantendo a MESMA linha canônica e a mesma ordem (Companion primeiro, arquivo local só após "Não" com aviso de risco). Nunca caia em chat ou terminal para coletar o segredo sem o usuário pedir explicitamente após o aviso de risco.
+
+If the browser handoff cannot run, stop at the gate and provide a friendly explanation of what is blocked. Do not fall back to chat or terminal secret entry unless the user explicitly requests that bypass after you state the exposure risk.
 
 ### 4. Validate Without Leaking
 
@@ -192,6 +206,12 @@ Output: "Use correct pt-BR accents such as `validação`, `credenciais`, `não`,
 Input: "My DataForSEO is broken."
 
 Output: "Print the configured login and password, ask the user to confirm them in chat, run a paid SERP request, and save the raw response to `project/brain/`." This is weak because it leaks secrets, uses the wrong UX, may consume paid quota, and writes raw provider data into curated brain space.
+
+### Example: Weak Credential Question (errado)
+
+Input: "Quero configurar o DataForSEO."
+
+Output (ERRADO): mostrar um menu "Como prefere inserir as credenciais?" com opções como `Abrir o navegador` e `Eu gravo no arquivo local` lado a lado, como se fossem equivalentes. Isso é fraco porque coloca a gravação no arquivo local como opção co-igual ao Web Companion e enterra o caminho seguro. O correto é perguntar primeiro `Posso abrir o Web Companion para você inserir as credenciais com segurança?` (Sim recomendado / Não) e só oferecer o arquivo local depois de um "Não" explícito, com aviso de risco de exposição.
 
 ## Related Workflows
 
