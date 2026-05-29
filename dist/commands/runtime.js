@@ -1420,9 +1420,13 @@ async function commandProjectInit(args) {
     copyDir(path.join(TEMPLATES_DIR, "brain"), path.join(p, "brain"));
     copyDir(path.join(TEMPLATES_DIR, "contents"), path.join(p, "contents"));
     writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
-    const brainIndex = path.join(p, "brain", "index.md");
-    if (fs.existsSync(brainIndex)) {
-        setFrontmatterValue(brainIndex, { title: JSON.stringify(name), updated: JSON.stringify(today()) });
+    // Stamp the current date on every brain page. Do NOT touch `title`: the
+    // templates carry type-only titles in pt-BR (Identidade, Voz, "Índice do
+    // Cérebro"…) and the brand name must never appear in a brain page title.
+    for (const rel of REQUIRED_BRAIN_PAGES) {
+        const page = path.join(p, "brain", rel);
+        if (fs.existsSync(page))
+            setFrontmatterValue(page, { updated: JSON.stringify(today()) });
     }
     appendLog("init", "Projeto criado", ["index"], `Projeto ${name} inicializado em ${country}/${language}.`, "agent");
     printJson({ ok: true, project_dir: p });
