@@ -224,11 +224,17 @@ export async function startProjectBrowser({ projectRoot = "project", open = true
 export async function runProjectBrowser(argv = []) {
   const args = parseArgs(argv);
   if (args.project) throw new Error("--project is no longer supported; Agentic SEO uses the single project at project/.");
+  // Last-resort default targets the USER's working-directory project, never a
+  // bare relative "project" that would resolve against whatever cwd the process
+  // happens to run in (e.g. the plugin folder's in-repo example project after a
+  // stray `cd`). INIT_CWD is the user's original launch cwd (set by npm/Claude
+  // Code); fall back to process.cwd() when it is absent. The canonical CLI path
+  // always passes --project-root, so this branch is only reached on raw launches.
   const projectRoot =
     args["project-root"] ??
     process.env.CLAUDE_PLUGIN_OPTION_project_dir ??
     process.env.AGENTIC_SEO_PROJECT_DIR ??
-    "project";
+    join(process.env.INIT_CWD || process.cwd(), "project");
   const open = !args["no-open"];
   const openPath = args["open-path"] || args["target-path"] || "";
   // Detached by default: the Companion must survive the process that launched it

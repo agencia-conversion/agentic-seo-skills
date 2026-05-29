@@ -27,7 +27,8 @@ Do not use this skill to write strategic content, draft brand identity, run SEO 
 - For pt-BR projects, preserve accents in any prose generated (placeholders, log notes).
 - Do not fabricate brand facts, market data, or technical decisions.
 - Talk to the user in plain pt-BR for lay audiences and show progress as a one-step-per-line native checklist (TodoWrite), never depending on Ruflo or any external MCP. See `docs/output-and-tone.md` for tone, the lay glossary, and progress.
-- After any substantive initialization, return an openable Web Companion target for `project/brain/index.md` (or `project/.agentic-seo/project.json` if initialization is blocked before brain files exist) with `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "<project-relative path>", open_with: "project-browser" }`. Ask before opening the browser.
+- Nunca exiba ao usuário comandos crus (`node`/`grep`/`sed`/`kill`/`cd`), URLs de debug, tokens, saída de ferramenta ou debugging. Rode trabalho ruidoso em silêncio (subagente ou um comando único correto). O checklist (TodoWrite) é a status line.
+- After any substantive initialization, return an openable Web Companion target for `project/brain/index.md` (or `project/.agentic-seo/project.json` if initialization is blocked before brain files exist) with `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "<project-relative path>", open_with: "project-browser" }`. Ask before opening the browser. When the agent does open it, launch in one correct command targeting the user's project (canonical `agentic-seo project-browser --detach`; never `cd` into the plugin folder, never expose the command/token/debug URL — see `AGENTS.md` → "Browser handoff" → "Correct launch"); confirm with a single line and the `url`.
 
 ## Optional: Seed-From-Doc
 
@@ -42,25 +43,32 @@ Collect or infer only what is needed for stable metadata:
 - `market`: required unless existing metadata already defines it.
 - `country`: optional; default to `market` when unknown.
 - `language`: required unless existing metadata already defines it. Use `pt-BR` or `en` when the project needs fully translated UI/report copy in v1.
+- `prefill_choice`: `blank | from_site` — the user's pre-fill decision, collected by the main agent (caller). Required for any seed path.
+- `additional_info`: optional free text from the user (key pages, positioning, differentiators, audience, competitors, data) to steer the draft. Collected by the main agent.
+- `site_extractions`: the content already extracted from the up to 10 site URLs, read by the main agent (this subagent has no web fetch). Required when `prefill_choice = from_site`.
 
 If these are missing and cannot be safely inferred from `project/.agentic-seo/project.json`, ask before writing.
 
 ## Framework
 
-### 0. Ask How To Start The Brain
+### 0. Decisão de Pré-preenchimento (vem do agente principal)
 
-Antes de criar arquivos, pergunte ao usuário como ele prefere começar o Cérebro do projeto (brain). Use linguagem simples, sem jargão:
+A escolha de como começar o Cérebro do projeto (brain) é a **pergunta de pré-preenchimento**:
 
-> Como você prefere começar o Cérebro do projeto?
-> (a) Configurar manualmente — eu crio os arquivos do Cérebro em branco e você preenche.
-> (b) Criar um rascunho automático (recomendado) — eu analiso até 10 páginas do seu site principal e proponho um rascunho do Cérebro para você revisar e aprovar.
+> Quer que eu já pré-preencha o Cérebro do projeto pesquisando seu site? (recomendado) ou prefere deixar em branco para preencher manualmente?
+
+Junto com ela, o agente coleta as **informações adicionais** do usuário:
+
+> Tem informações adicionais para guiar o rascunho? (ex.: páginas-chave, posicionamento, diferenciais, público, concorrentes, dados)
 
 Regras:
 
-- Recomendado/default: opção (b).
-- Se não houver `site_url` (é `null` e o usuário não informa uma URL), a opção (b) não é possível: peça a URL do site principal ou siga com a opção (a).
-- A opção (a) é o setup básico: só cria a estrutura e os arquivos em branco (passos 1-6, depois a revisão no passo 7). Não importa nem analisa nada.
-- A opção (b) faz o setup básico primeiro (passos 1-6) e, em seguida, executa o rascunho automático descrito em [`references/seed-from-site.md`](references/seed-from-site.md). O rascunho fica em `project/workbench/`, é registrado como `type: ingestion` e exige aprovação humana (handoff `project-browser`) antes de virar contexto do Cérebro.
+- **Default/recomendado:** pré-preencher (`prefill_choice: from_site`). A alternativa explícita é deixar em branco (`prefill_choice: blank`, setup manual).
+- **Esta pergunta + a coleta da info adicional + a leitura das URLs NÃO acontecem aqui quando `project-init` roda como subagente** (via `agents/project-init.md`): o subagente não tem canal com o usuário nem ferramentas de web fetch. O **agente principal** (`start` / `agentic-seo`) faz tudo isso ANTES de delegar e entrega como INPUT: `prefill_choice`, `site_url`, `site_extractions` e `additional_info`.
+- Se `project-init` rodar como subagente e `prefill_choice` não tiver sido passado, **não assuma silenciosamente um default**: retorne `status: blocked` (needs-input) para o caller perguntar ao usuário.
+- Se não houver `site_url` (é `null` e nenhuma URL foi informada), `from_site` não é possível: peça a URL ou siga com `blank`. Mesmo sem site, `additional_info` ainda pode semear o Cérebro (caminho `seed-from-doc`).
+- `blank` é o setup básico: só cria a estrutura e os arquivos em branco (passos 1-6, depois a revisão no passo 7). Não importa nem analisa nada.
+- `from_site` faz o setup básico primeiro (passos 1-6) e, em seguida, compõe o rascunho descrito em [`references/seed-from-site.md`](references/seed-from-site.md), **usando as `site_extractions` E a `additional_info`** (mapeie cada conteúdo às páginas do Cérebro reaproveitando a tabela de distribuição de [`references/seed-from-doc.md`](references/seed-from-doc.md)). O rascunho fica em `project/workbench/`, é registrado como `type: ingestion` e exige aprovação humana (handoff `project-browser`) antes de virar contexto do Cérebro. A `additional_info` deve SER USADA na composição, nunca apenas coletada.
 
 ### 1. Inspect Existing Project State
 

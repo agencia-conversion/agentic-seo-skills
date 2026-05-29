@@ -25,6 +25,7 @@ Do not use this skill for ongoing SEO work after the project already has a defin
 - Keep raw sources, drafts, artifacts, public content, and authorial brain state separate once a project exists.
 - Preserve the user's language and diacritics. In pt-BR, write accents correctly: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 - Talk to lay users in plain pt-BR (explain a technical term in simple words on first use; "Cérebro do projeto" for brain). Show progress as a one-step-per-line native checklist (TodoWrite), with minimal prose, never depending on Ruflo or any external MCP. See `docs/output-and-tone.md` for tone, the lay glossary, and progress.
+- Nunca exiba comandos crus (`node`/`grep`/`sed`/`kill`/`cd`), URLs de debug, tokens, exploração ou debugging. Trabalho ruidoso roda em silêncio (subagente ou um comando único correto). O checklist (TodoWrite) é a única visão de progresso do usuário.
 
 ## Framework
 
@@ -43,7 +44,10 @@ For a new project, collect only the context needed to initialize safely:
 - Website or brand name.
 - Primary market or country.
 - Preferred language.
-- Whether the user wants to provide existing sources now.
+- **Pergunta de pré-preenchimento (feita ao usuário, default = pesquisar o site):** "Quer que eu já pré-preencha o Cérebro do projeto pesquisando seu site? (recomendado) ou prefere deixar em branco para preencher manualmente?"
+- **Informações adicionais (opcional):** "Tem alguma informação adicional que eu deva considerar no rascunho? (ex.: páginas-chave, posicionamento, diferenciais, público, concorrentes, dados)". Peça em linguagem leiga; aceite texto colado.
+
+**Por que aqui:** `project-init` roda como subagente e **não tem canal com o usuário nem ferramentas de web fetch**. Portanto o agente principal (esta skill) faz a pergunta de pré-preenchimento + coleta as informações adicionais + lê as até 10 URLs do site ANTES de delegar, e passa ao `project-init`: a decisão (`prefill_choice: blank | from_site`), o `site_url`, as extrações das URLs já lidas e o texto das informações adicionais. Se essas perguntas não forem feitas aqui, elas se perdem.
 
 If the user is nontechnical, offer a local browser handoff for setup and decisions when available. Do not make terminal commands the main handoff.
 
@@ -62,7 +66,7 @@ First-run setup may create blank brain templates and operational log entries, bu
 
 Return one clear routing decision:
 
-- `project-init` when no Agentic SEO project exists.
+- `project-init` when no Agentic SEO project exists. When delegating, pass the pre-fill decision (`prefill_choice`), `site_url`, the `site_extractions` already read, and the `additional_info` text — the subagent cannot ask the user.
 - `agentic-seo` when the project exists but the user's goal is broad or unclear.
 - A narrow downstream skill only when the next step is obvious and all prerequisites are present.
 

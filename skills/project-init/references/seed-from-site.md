@@ -7,30 +7,39 @@ NUNCA escreve direto nos arquivos autorais do Cérebro (`brain/`) sem aprovaçã
 > Tom e progresso para leigos: ver `docs/output-and-tone.md`. Explique o termo
 > técnico em linguagem simples na primeira menção (ex.: "Cérebro do projeto",
 > "importar fontes").
+>
+> Trabalho silencioso: a seleção/leitura das URLs e a coleta da info adicional
+> acontecem no agente principal (que tem web fetch e canal com o usuário); o
+> subagente recebe esses dados prontos. O usuário vê só o checklist nativo e o
+> rascunho para revisar — nunca comandos crus, URLs de debug nem exploração.
 
 ## Quando este passo se aplica
 
-- O usuário escolheu a opção (b) "rascunho automático (recomendado)".
+- O usuário escolheu pré-preencher o Cérebro (`prefill_choice: from_site`).
 - Existe um `site_url` válido em `project/.agentic-seo/project.json` (ou o usuário
   informou a URL do site principal).
 - A estrutura básica do projeto já foi criada (diretórios + arquivos do Cérebro
   em branco a partir dos templates). O rascunho automático acontece DEPOIS do
   setup básico, nunca no lugar dele.
 
-Se não houver `site_url`, este passo não roda: peça a URL ou volte para o setup
-manual (opção a).
+Se não houver `site_url`, este passo não roda: peça a URL ou siga com o Cérebro
+em branco (`prefill_choice: blank`).
 
 ## O que este passo faz (e o que NÃO faz)
 
 Faz:
 
-1. Seleciona até 10 URLs representativas do domínio principal.
-2. Extrai o conteúdo dessas páginas (texto visível, títulos, descrições).
-3. Compõe um RASCUNHO das páginas do Cérebro (`identity`, `voice`, `technology`,
-   `review`, `topic-clusters`, `index`) com base apenas no que foi lido.
-4. Marca o rascunho como pendente de aprovação e registra a coleta no diário
+1. Combina DUAS fontes de insumo: (a) as extrações das até 10 URLs do site
+   (`site_extractions`) e (b) as **informações adicionais** que o usuário
+   forneceu (`additional_info`: páginas-chave, posicionamento, diferenciais,
+   público, concorrentes, dados). Ambas são entregues prontas pelo agente
+   principal.
+2. Compõe um RASCUNHO das páginas do Cérebro (`identity`, `voice`, `technology`,
+   `review`, `topic-clusters`, `index`) combinando o que foi lido do site com a
+   info adicional do usuário.
+3. Marca o rascunho como pendente de aprovação e registra a coleta no diário
    (`brain/log.md`) com `type: ingestion`.
-5. Apresenta o rascunho para o usuário revisar, editar e aprovar.
+4. Apresenta o rascunho para o usuário revisar, editar e aprovar.
 
 NÃO faz:
 
@@ -70,9 +79,29 @@ Para cada URL, capture o que ajuda a montar o Cérebro:
 
 Guarde as URLs efetivamente lidas; elas viram a evidência da ingestão.
 
+## Informações adicionais do usuário (`additional_info`)
+
+O seed combina o site com o texto/posicionamento/dados que o usuário forneceu.
+Quando `additional_info` estiver presente, ela é **insumo obrigatório** da
+composição — nunca apenas coletada e ignorada.
+
+- **Seleção/leitura das URLs:** quando o usuário citar páginas-chave ou URLs
+  específicas, priorize-as na seleção das até 10 (mantendo o teto de 10).
+- **Distribuição por página do Cérebro:** mapeie cada tipo de conteúdo da
+  `additional_info` para a página-alvo reaproveitando a tabela de distribuição de
+  [`seed-from-doc.md`](seed-from-doc.md) — posicionamento/diferenciais/público →
+  `identity`; tom desejado → `voice`; stack/plataforma → `technology`; temas e
+  subtemas → `topic-clusters`; ofertas → `products` (opcional); regras editoriais
+  → `review`.
+- **Precedência em caso de conflito:** a informação fornecida pelo usuário é
+  autoral e **tem prioridade** sobre a observação do site (o site é evidência
+  observada). Mas dados/métricas sem comprovação continuam indo para o `log` como
+  pendência, não para a prosa do Cérebro (ver "Regras duras de composição").
+
 ## Composição do rascunho (pendente)
 
-Componha um rascunho para cada página do Cérebro a partir do que foi lido:
+Componha um rascunho para cada página do Cérebro combinando o que foi lido do site
+com a `additional_info` do usuário (insumo obrigatório quando presente):
 
 - `index` — status atual e mapa (estrutura já existe; só preencher o que for
   observável).
@@ -103,8 +132,8 @@ inglês (ver formato em `AGENTS.md`):
 
 - type: ingestion
 - scope: project/workbench/ (rascunho do brain)
-- decision: Coletadas N páginas do domínio principal para compor rascunho do Cérebro.
-- evidence: <lista das URLs lidas>
+- decision: Coletadas N páginas do domínio principal (+ informações adicionais do usuário, quando fornecidas) para compor rascunho do Cérebro.
+- evidence: <lista das URLs lidas> + <"informações adicionais fornecidas pelo usuário" quando houver>
 - approver: pending
 - notes: Rascunho pendente de revisão e aprovação humana. Não é contexto aprovado.
 ```
@@ -115,13 +144,13 @@ O rascunho não vira contexto estratégico aprovado até o usuário aprová-lo
 explicitamente. Conforme `AGENTS.md` e a skill `brain-keeper`:
 
 - Apresente o rascunho para o usuário revisar e editar. O caminho recomendado é
-  abrir uma tela no navegador (handoff `project-browser`, ver `AGENTS.md` →
-  "Browser Handoff"): ela mostra as páginas do Cérebro, coleta o aprovador e, no
-  envio, grava a entrada `type: approval` no `brain/log.md` automaticamente.
-  Lance o handoff no modo persistente/detached — nunca preso a um Bash com timeout.
-- Só ao receber aprovação explícita o conteúdo aprovado é movido para os
-  arquivos de `project/brain/` e registrado com uma nova entrada `type: approval`
-  (com `approver` = nome humano e `approved_at` preenchidos).
+  abrir o Cérebro numa tela no navegador (handoff `project-browser`, ver
+  `AGENTS.md` → "Browser handoff"), no modo persistente/detached e mirando o
+  projeto do usuário — nunca preso a um Bash com timeout.
+- Só ao receber aprovação explícita, mova o conteúdo aprovado do `workbench/`
+  para os arquivos de `project/brain/` e registre UMA entrada `type: approval`
+  no `brain/log.md` (com `approver` = nome humano e `approved_at` preenchidos).
+  Esse é o único registro de aprovação do rascunho.
 - Sem essa aprovação, o rascunho permanece em `workbench/` e não é tratado como
   evidência por nenhuma outra skill.
 
