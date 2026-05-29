@@ -18,7 +18,7 @@ explícitos viram pendências para a skill `topic-cluster` ou `content-seo`.
 
 | Subtópico | Intent | Status | Conteúdo relacionado | Gap |
 | --- | --- | --- | --- | --- |
-| <subtópico> | informational \| navigational \| transactional \| commercial | gap \| draft \| published | [[../conteudos/blog/<slug>]] | <lacuna> |
+| <subtópico> | informational \| navigational \| transactional \| commercial | gap \| draft \| published | [[../contents/blog/<slug>]] | <lacuna> |
 | <subtópico> | informational | gap | | <lacuna> |
 
 ## <Cluster Secundário> (<slug>)

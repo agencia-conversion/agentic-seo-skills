@@ -6,7 +6,7 @@ The user asks:
 
 Known state:
 
-- The project has no approved authorial brain pages (no `tipo: aprovacao` entries in `project/brain/log.md`).
+- The project has no approved authorial brain pages (no `tipo: approval` entries in `project/brain/log.md`).
 - No DataForSEO credentials are configured.
 - The website output depends on content that does not exist.
 

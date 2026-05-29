@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-SEO Brain includes or may include third-party code, documentation, or interface patterns. This file records attribution for copied or adapted materials.
+Agentic SEO includes or may include third-party code, documentation, or interface patterns. This file records attribution for copied or adapted materials.
 
 Phase 2 absorbed and adapted DataForSEO tool materials from `coreyhaines31/marketingskills`.
 

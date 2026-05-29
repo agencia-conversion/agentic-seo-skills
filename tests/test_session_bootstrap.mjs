@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-bootstrap-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-bootstrap-"));
 const env = { ...process.env, CLAUDE_PLUGIN_DATA: tmp };
 const input = {
   session_id: "sess-123",
@@ -24,8 +24,8 @@ try {
   const parsed = JSON.parse(output);
   const specific = parsed.hookSpecificOutput;
   assert.equal(specific.hookEventName, "SessionStart");
-  assert.match(specific.additionalContext, /SEO Brain carregado/);
-  assert.match(specific.additionalContext, /\/seo-brain:seo-brain/);
+  assert.match(specific.additionalContext, /Agentic SEO carregado/);
+  assert.match(specific.additionalContext, /\/agentic-seo:agentic-seo/);
   assert.match(specific.additionalContext, /AGENTS\.md/);
   assert.doesNotMatch(specific.additionalContext, /secret-value/);
 

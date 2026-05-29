@@ -144,7 +144,7 @@ export async function handleSubmit(body, ctx) {
 
   appendLogEntry(join(ctx.projectRoot, "brain", "log.md"), {
     date: today,
-    tipo: writeBrain ? "aprovacao" : "decisao",
+    tipo: writeBrain ? "approval" : "decision",
     titulo: `Cluster ${ctx.proposal.seed} · ${status}`,
     escopo: writeBrain ? "topic-clusters" : ctx.proposal.seed,
     decisao: `${kept.length}/${ctx.proposal.supporting.length} suportes mantidos · modo ${ctx.proposal.mode}`,
@@ -168,8 +168,8 @@ export async function handleSubmit(body, ctx) {
 
 export async function runPickCluster(argv = []) {
   const args = parseArgs(argv);
-  if (args.project) throw new Error("--project is no longer supported; SEO Brain uses the single project at project/.");
-  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.SEO_BRAIN_PROJECT_DIR ?? "project";
+  if (args.project) throw new Error("--project is no longer supported; Agentic SEO uses the single project at project/.");
+  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.AGENTIC_SEO_PROJECT_DIR ?? "project";
   if (!args.proposal) throw new Error("missing --proposal");
   const projectRoot = resolve(projectRootArg);
   const proposalPath = resolve(args.proposal);

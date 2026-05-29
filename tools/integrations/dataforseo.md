@@ -1,6 +1,6 @@
 # DataForSEO
 
-DataForSEO is SEO Brain's first deterministic provider for SERP evidence, keyword metrics, backlink data, and selected on-page/labs endpoints.
+DataForSEO is Agentic SEO's first deterministic provider for SERP evidence, keyword metrics, backlink data, and selected on-page/labs endpoints.
 
 This guide is adapted from `coreyhaines31/marketingskills` at commit `906c2fb28e471c5b1d149d4159ec5ddb40b7c364`.
 
@@ -8,7 +8,7 @@ This guide is adapted from `coreyhaines31/marketingskills` at commit `906c2fb28e
 
 - Type: Basic Auth
 - Environment variables: `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`
-- Standalone credential file: `~/.seo-brain/credentials.json`
+- Standalone credential file: `~/.agentic-seo/credentials.json`
 - Expected JSON keys: `dataforseo_login`, `dataforseo_password`
 
 The API password is generated in the DataForSEO API Access screen and is not the normal account password.
@@ -23,7 +23,7 @@ node tools/clis/dataforseo.js keywords volume --keywords "seo agêntico,seo com 
 node tools/clis/dataforseo.js backlinks summary --target example.com --dry-run
 ```
 
-## SEO Brain Rules
+## Agentic SEO Rules
 
 - `status`, `help`, `--offline`, and `--dry-run` must never require credentials or consume credits.
 - Live calls must return provider responses as JSON without storing raw client data in the repository.

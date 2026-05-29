@@ -67,22 +67,22 @@ const DATAFORSEO_MODES = new Set(["offline", "live", "standard", "async"]);
 const BACKLINK_STATUS_TYPES = new Set(["all", "live", "lost"]);
 const REQUIRED_BRAIN_PAGES = [
     "index.md",
-    "identidade.md",
-    "voz.md",
-    "tecnologia.md",
+    "identity.md",
+    "voice.md",
+    "technology.md",
     "editorial.md",
     "topic-clusters.md",
     "log.md",
 ];
 const AUTHORIAL_BRAIN_PAGES = new Set([
     "index.md",
-    "identidade.md",
-    "voz.md",
-    "tecnologia.md",
+    "identity.md",
+    "voice.md",
+    "technology.md",
     "editorial.md",
     "topic-clusters.md",
 ]);
-const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "outros"]);
+const PUBLIC_CONTENT_ORIGENS = new Set(["blog", "linkedin", "podcast", "other"]);
 function nowIso() {
     return new Date().toISOString().replace(/\.\d{3}Z$/, "+00:00");
 }
@@ -109,14 +109,14 @@ function slugify(value) {
     return slug;
 }
 function resolveProjectDir() {
-    const configured = process.env.CLAUDE_PLUGIN_OPTION_project_dir || process.env.SEO_BRAIN_PROJECT_DIR;
+    const configured = process.env.CLAUDE_PLUGIN_OPTION_project_dir || process.env.AGENTIC_SEO_PROJECT_DIR;
     if (!configured)
         return path.join(ROOT, "project");
     return path.isAbsolute(configured) ? configured : path.resolve(ROOT, configured);
 }
 function ensureProject() {
     if (!fs.existsSync(PROJECT_DIR))
-        throw new CliError(`Project not found: ${PROJECT_DIR}. Initialize the SEO Brain project first.`);
+        throw new CliError(`Project not found: ${PROJECT_DIR}. Initialize the Agentic SEO project first.`);
     return PROJECT_DIR;
 }
 function mkdirp(p) {
@@ -166,7 +166,7 @@ function writeContentBrief(file, data) {
         writeYaml(file, data);
 }
 const WORD_COUNT_METHOD = {
-    name: "seo-brain-visible-unicode-words",
+    name: "agentic-seo-visible-unicode-words",
     version: "1.0.0",
     excludes: ["frontmatter", "code fences", "inline code", "script/style blocks", "HTML tags"],
 };
@@ -281,18 +281,18 @@ function isBrainPageFilled(body) {
 function mapEventTypeToTipo(eventType) {
     const lower = eventType.toLowerCase();
     if (lower.includes("approv") || lower.includes("aprovac"))
-        return "aprovacao";
+        return "approval";
     if (lower.includes("ingest"))
-        return "ingestao";
+        return "ingestion";
     if (lower.includes("lint"))
         return "lint";
     if (lower.includes("publica"))
-        return "publicacao";
+        return "publication";
     if (lower.includes("errat"))
-        return "errata";
+        return "erratum";
     if (lower.includes("prova") || lower.includes("proof"))
-        return "prova";
-    return "decisao";
+        return "proof";
+    return "decision";
 }
 function appendLog(eventType, title, files, summary, approval) {
     const brainLog = path.join(PROJECT_DIR, "brain", "log.md");
@@ -408,7 +408,7 @@ function readEnvFile(file = path.join(ROOT, ".env")) {
     return values;
 }
 function readHomeCredentials() {
-    const file = path.join((0, node_os_1.homedir)(), ".seo-brain", "credentials.json");
+    const file = path.join((0, node_os_1.homedir)(), ".agentic-seo", "credentials.json");
     if (!fs.existsSync(file))
         return {};
     try {
@@ -421,7 +421,7 @@ function readHomeCredentials() {
 const HOME_CREDENTIAL_KEYS = {
     DATAFORSEO_LOGIN: "dataforseo_login",
     DATAFORSEO_PASSWORD: "dataforseo_password",
-    SEO_BRAIN_DATAFORSEO_MODE: "dataforseo_mode",
+    AGENTIC_SEO_DATAFORSEO_MODE: "dataforseo_mode",
 };
 function getSecret(name) {
     const home = readHomeCredentials();
@@ -583,14 +583,14 @@ function resolveSeoProvider(args = {}) {
     }
     if (choice === "dataforseo") {
         if (!hasCreds)
-            throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+            throw new CliError("DataForSEO credentials missing. Run: bin/agentic-seo data-setup --handoff");
         return { provider: "dataforseo", reason: "Forced by --provider dataforseo." };
     }
     if (choice !== "auto")
         throw new CliError(`Unsupported provider preference: ${choice}. Use dataforseo, websearch, or auto.`);
     if (hasCreds)
         return { provider: "dataforseo", reason: "DataForSEO credentials present in environment." };
-    throw new CliError("DataForSEO credentials missing. SEO analysis no longer falls back to WebSearch automatically. Run: bin/seo-brain data-setup --handoff");
+    throw new CliError("DataForSEO credentials missing. SEO analysis no longer falls back to WebSearch automatically. Run: bin/agentic-seo data-setup --handoff");
 }
 async function dataforseoRequest(method, endpoint, payload, sandbox = false) {
     const login = process.env.CLAUDE_PLUGIN_OPTION_dataforseo_login || getSecret("DATAFORSEO_LOGIN");
@@ -616,9 +616,9 @@ function resolveDataforseoMode(args) {
         return "offline";
     const configured = args.mode ||
         process.env.CLAUDE_PLUGIN_OPTION_dataforseo_mode ||
-        process.env.SEO_BRAIN_DATAFORSEO_MODE ||
-        readEnvFile().SEO_BRAIN_DATAFORSEO_MODE ||
-        getSecret("SEO_BRAIN_DATAFORSEO_MODE") ||
+        process.env.AGENTIC_SEO_DATAFORSEO_MODE ||
+        readEnvFile().AGENTIC_SEO_DATAFORSEO_MODE ||
+        getSecret("AGENTIC_SEO_DATAFORSEO_MODE") ||
         "standard";
     const mode = String(configured).trim().toLowerCase();
     if (!DATAFORSEO_MODES.has(mode))
@@ -1346,7 +1346,7 @@ function loadKeywordMetrics(projectDir, keyword) {
     return { search_volume: primary.search_volume, competition: primary.competition, cpc: primary.cpc, source_path: path.relative(projectDir, file) };
 }
 function projectSettings(projectDir) {
-    const config = path.join(projectDir, ".seo-brain", "project.json");
+    const config = path.join(projectDir, ".agentic-seo", "project.json");
     const brainIndex = path.join(projectDir, "brain", "index.md");
     let data = {};
     if (fs.existsSync(config)) {
@@ -1378,14 +1378,14 @@ function projectSettings(projectDir) {
     };
 }
 function projectDisplayName(projectDir) {
-    const config = path.join(projectDir, ".seo-brain", "project.json");
+    const config = path.join(projectDir, ".agentic-seo", "project.json");
     if (!fs.existsSync(config))
-        return "SEO Brain";
+        return "Agentic SEO";
     try {
-        return String(readJson(config).name || "SEO Brain");
+        return String(readJson(config).name || "Agentic SEO");
     }
     catch {
-        return "SEO Brain";
+        return "Agentic SEO";
     }
 }
 function shouldAutoOpenDataSetup(args) {
@@ -1408,18 +1408,18 @@ function runDataSetupHandoff() {
     return { ok: true };
 }
 async function commandProjectInit(args) {
-    const name = args._[0] || "SEO Brain Project";
+    const name = args._[0] || "Agentic SEO Project";
     const p = PROJECT_DIR;
     const language = args.language || "pt-BR";
     const market = args.market || "Brasil";
     const country = args.country || market;
-    for (const dir of ["brain", "conteudos", "web", "sources", "workbench", "artifacts", ".seo-brain"])
+    for (const dir of ["brain", "contents", "web", "sources", "workbench", "artifacts", ".agentic-seo"])
         mkdirp(path.join(p, dir));
     for (const origem of PUBLIC_CONTENT_ORIGENS)
-        mkdirp(path.join(p, "conteudos", origem));
+        mkdirp(path.join(p, "contents", origem));
     copyDir(path.join(TEMPLATES_DIR, "brain"), path.join(p, "brain"));
-    copyDir(path.join(TEMPLATES_DIR, "conteudos"), path.join(p, "conteudos"));
-    writeJson(path.join(p, ".seo-brain", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
+    copyDir(path.join(TEMPLATES_DIR, "contents"), path.join(p, "contents"));
+    writeJson(path.join(p, ".agentic-seo", "project.json"), { schema_version: "2.0.0", name, created_at: nowIso(), language, market, country, single_project_root: "project" });
     const brainIndex = path.join(p, "brain", "index.md");
     if (fs.existsSync(brainIndex)) {
         setFrontmatterValue(brainIndex, { title: JSON.stringify(name), updated: JSON.stringify(today()) });
@@ -1463,11 +1463,11 @@ async function commandBrainLint(args) {
 }
 function lintContentPublication(projectDir) {
     const findings = [];
-    const conteudosRoot = path.join(projectDir, "conteudos");
-    if (!fs.existsSync(conteudosRoot))
+    const contentsRoot = path.join(projectDir, "contents");
+    if (!fs.existsSync(contentsRoot))
         return findings;
-    for (const origem of fs.readdirSync(conteudosRoot)) {
-        const origemDir = path.join(conteudosRoot, origem);
+    for (const origem of fs.readdirSync(contentsRoot)) {
+        const origemDir = path.join(contentsRoot, origem);
         if (!fs.statSync(origemDir).isDirectory())
             continue;
         for (const name of fs.readdirSync(origemDir)) {
@@ -1481,13 +1481,13 @@ function lintContentPublication(projectDir) {
                 data = readContentBrief(brief);
             }
             catch {
-                findings.push({ severity: "warning", file: `conteudos/${origem}/${name}`, message: `brief is not valid YAML/JSON: ${path.relative(projectDir, brief)}` });
+                findings.push({ severity: "warning", file: `contents/${origem}/${name}`, message: `brief is not valid YAML/JSON: ${path.relative(projectDir, brief)}` });
                 continue;
             }
             const text = fs.readFileSync(path.join(origemDir, name), "utf8");
             const issues = validatePublicContentDraft(text, data);
             for (const issue of issues)
-                findings.push({ severity: "error", file: `conteudos/${origem}/${name}`, message: issue });
+                findings.push({ severity: "error", file: `contents/${origem}/${name}`, message: issue });
         }
     }
     return findings;
@@ -1605,7 +1605,7 @@ function validatePublicContentDraft(text, brief) {
         /\bbrain\b/i,
         /\blog\b/i,
         ...(allowAgentTerm ? [] : [/\bagente?s?\b/i]),
-        /project\/(?:workbench|brain|sources|artifacts|conteudos)\//i,
+        /project\/(?:workbench|brain|sources|artifacts|contents)\//i,
         /\.\.\/(?:\.\.\/)?sources\//i,
         /\.brief\.(?:ya?ml|json)\b/i,
     ];
@@ -1687,7 +1687,7 @@ async function commandDataSetup(args) {
         provider_default_reason: decision.reason,
         modes: {
             live: "ultrarrápido: usa endpoints /live; retorna em segundos e costuma custar mais.",
-            standard: "médio: usa task_post + polling task_get; padrão do SEO Brain.",
+            standard: "médio: usa task_post + polling task_get; padrão do Agentic SEO.",
             async: "assíncrono: usa task_post com pingback_url/postback_url quando informado.",
             offline: "teste local: não chama a DataForSEO.",
         },
@@ -1725,7 +1725,7 @@ async function commandSerpExtract(args) {
                 throw new CliError(`DataForSEO web setup failed: ${handoff.reason}`);
         }
         if (!dataforseoCredentialsPresent())
-            throw new CliError("DataForSEO credentials missing. Run: bin/seo-brain data-setup --handoff");
+            throw new CliError("DataForSEO credentials missing. Run: bin/agentic-seo data-setup --handoff");
     }
     const location = args.location || settings.dataforseo_location;
     const language = args.language || settings.dataforseo_language;
@@ -1897,7 +1897,7 @@ async function commandSeoAnalysis(args) {
     const serpSourceFile = decision.provider === "dataforseo" ? dataforseoSerpFile(p, keyword, args.serp_file) : websearchSourceFile(p, keyword, args.websearch_file);
     const organic = decision.provider === "dataforseo" ? loadDataforseoSerpResults(p, keyword, args.serp_file) : loadWebsearchResults(p, keyword, args.websearch_file);
     if (decision.provider === "dataforseo" && !organic.length)
-        throw new CliError(`Missing DataForSEO SERP for "${keyword}". Run: bin/seo-brain serp-extract --keyword "${keyword}"`);
+        throw new CliError(`Missing DataForSEO SERP for "${keyword}". Run: bin/agentic-seo serp-extract --keyword "${keyword}"`);
     const keywordMetrics = decision.provider === "dataforseo" ? loadKeywordMetrics(p, keyword) : null;
     const topResults = organic.map((item, idx) => ({ position: item.rank_absolute || item.rank_group || item.position || idx + 1, title: item.title || "", url: item.url || "", snippet: item.snippet || item.description || "", domain: item.domain || "" }));
     const competitors = [];
@@ -2067,7 +2067,7 @@ async function commandTopicCluster(args) {
         if (!existingCluster)
             throw new CliError(`No cluster JSON found for seed "${seed}". Run topic-cluster first.`);
         renderTopicClustersBrain(p);
-        appendLog("topic-cluster", seed, ["conteudos/topic-clusters"], "Wiki rerenderizada a partir dos JSONs.", "not-required");
+        appendLog("topic-cluster", seed, ["contents/topic-clusters"], "Wiki rerenderizada a partir dos JSONs.", "not-required");
         printJson({ ok: true, rendered: true, file: clusterFile });
         return;
     }
@@ -2203,7 +2203,7 @@ function renderTopicClustersMarkdown(clusters) {
     lines.push("");
     lines.push("# Topic clusters");
     lines.push("");
-    lines.push("Auto-gerado a partir de `workbench/topic-cluster/*.json`. Os campos de julgamento (title, entity, keywords_secondary, funnel_stage, serp_intent, judgment) são editados nos JSONs; rode `bin/seo-brain topic-cluster --seed <seed> --render-only` para regenerar esta página.");
+    lines.push("Auto-gerado a partir de `workbench/topic-cluster/*.json`. Os campos de julgamento (title, entity, keywords_secondary, funnel_stage, serp_intent, judgment) são editados nos JSONs; rode `bin/agentic-seo topic-cluster --seed <seed> --render-only` para regenerar esta página.");
     lines.push("");
     if (!clusters.length) {
         lines.push("Nenhum cluster registrado.");
@@ -2285,7 +2285,7 @@ function escapeCell(value) {
     return value.replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 async function commandEeat(_args) {
-    const message = "The eeat command is now driven by the /seo-brain:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. See skills/eeat/SKILL.md for the contract.";
+    const message = "The eeat command is now driven by the /agentic-seo:eeat skill, which dispatches 3 parallel rater sub-agents against a fixed E-E-A-T checklist and writes a consensus report. See skills/eeat/SKILL.md for the contract.";
     printJson({ ok: false, error: message });
     throw new CliError(message);
 }
@@ -2482,10 +2482,10 @@ function readBrainEvidencePage(projectDir, rel) {
     };
 }
 function buildContentContextEvidence(projectDir, topicSlug) {
-    const pageRels = ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md"];
+    const pageRels = ["index.md", "identity.md", "voice.md", "technology.md", "editorial.md"];
     const brainPages = pageRels.map((rel) => readBrainEvidencePage(projectDir, rel));
-    const voicePage = brainPages.find((page) => page.path === "brain/voz.md") || readBrainEvidencePage(projectDir, "voz.md");
-    const voiceFile = path.join(projectDir, "brain", "voz.md");
+    const voicePage = brainPages.find((page) => page.path === "brain/voice.md") || readBrainEvidencePage(projectDir, "voice.md");
+    const voiceFile = path.join(projectDir, "brain", "voice.md");
     let voiceBody = "";
     if (fs.existsSync(voiceFile))
         voiceBody = parseFrontmatter(fs.readFileSync(voiceFile, "utf8"))[1];
@@ -2743,7 +2743,7 @@ async function buildContentResearchPacket(topic, keyword, topicSlug, keywordSlug
     };
 }
 function contentVoiceContext(projectDir) {
-    const voicePath = path.join(projectDir, "brain", "voz.md");
+    const voicePath = path.join(projectDir, "brain", "voice.md");
     const [voiceFm, voiceBody] = fs.existsSync(voicePath) ? parseFrontmatter(fs.readFileSync(voicePath, "utf8")) : [{}, ""];
     const filled = voiceBody.replace(/<!--[\s\S]*?-->/g, "").replace(/<[^>]+>/g, "").trim().length > 50;
     return {
@@ -3157,8 +3157,8 @@ async function commandContentSeo(args) {
         throw new CliError("Word-count gate did not pass.");
     const origem = String(brief.origem || "blog");
     if (!PUBLIC_CONTENT_ORIGENS.has(origem))
-        throw new CliError(`Invalid origem: ${origem}. Use blog, linkedin, podcast, or outros.`);
-    const target = path.join(p, "conteudos", origem, `${paths.topicSlug}.md`);
+        throw new CliError(`Invalid origem: ${origem}. Use blog, linkedin, podcast, or other.`);
+    const target = path.join(p, "contents", origem, `${paths.topicSlug}.md`);
     writeText(target, fs.readFileSync(paths.draftPath, "utf8"));
     setFrontmatterValue(target, { published_at: yamlString(today()), origem: yamlString(origem) });
     brief.draft_status = "published";
@@ -3207,7 +3207,7 @@ async function commandNextWebsiteCreator(args) {
     mkdirp(path.join(web, "app", "servicos"));
     writeJson(path.join(web, "package.json"), { scripts: { dev: "next dev", build: "next build", start: "next start" }, dependencies: { next: "latest", react: "latest", "react-dom": "latest" }, devDependencies: { typescript: "latest", "@types/react": "latest", "@types/node": "latest" } });
     writeText(path.join(web, "app", "layout.tsx"), 'export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang="pt-BR"><body>{children}</body></html>; }\n');
-    writeText(path.join(web, "app", "page.tsx"), `export default function Page() { return <main><h1>${projectName}</h1><p>Site SEO Brain em rascunho.</p></main>; }\n`);
+    writeText(path.join(web, "app", "page.tsx"), `export default function Page() { return <main><h1>${projectName}</h1><p>Site Agentic SEO em rascunho.</p></main>; }\n`);
     writeText(path.join(web, "app", "servicos", "page.tsx"), "export default function Page() { return <main><h1>Serviços</h1></main>; }\n");
     writeText(path.join(web, "app", "contato", "page.tsx"), "export default function Page() { return <main><h1>Contato</h1></main>; }\n");
     writeText(path.join(web, "app", "blog", "page.tsx"), "export default function Page() { return <main><h1>Blog</h1></main>; }\n");
@@ -3315,7 +3315,7 @@ async function runCli(argv = process.argv.slice(2)) {
     try {
         const { command, args } = parseArgs(argv);
         if ("project" in args)
-            throw new CliError("--project is no longer supported; SEO Brain uses the single project at project/.");
+            throw new CliError("--project is no longer supported; Agentic SEO uses the single project at project/.");
         await COMMANDS[command](args);
         return 0;
     }

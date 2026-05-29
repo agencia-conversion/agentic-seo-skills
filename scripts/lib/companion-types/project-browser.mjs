@@ -9,12 +9,13 @@ import { appendLogEntry } from "../brain-page.mjs";
 // the launching Bash call, so a short TTL is no longer required.
 const DEFAULT_PROJECT_BROWSER_TTL_MS = 600_000;
 
-// Brain files use Portuguese names (templates/project/brain/*.md). These are
-// the dense onboarding context the user reviews in the Companion.
+// Brain files use English file names (templates/project/brain/*.md) with
+// Portuguese display labels. These are the dense onboarding context the user
+// reviews in the Companion.
 const BRAIN_PAGES = [
-  { key: "identidade", file: "identidade.md", label: "Identidade" },
-  { key: "voz", file: "voz.md", label: "Voz" },
-  { key: "tecnologia", file: "tecnologia.md", label: "Tecnologia" },
+  { key: "identity", file: "identity.md", label: "Identidade" },
+  { key: "voice", file: "voice.md", label: "Voz" },
+  { key: "technology", file: "technology.md", label: "Tecnologia" },
   { key: "editorial", file: "editorial.md", label: "Editorial" },
   { key: "topic_clusters", file: "topic-clusters.md", label: "Topic clusters" },
   { key: "index", file: "index.md", label: "Visão geral" },
@@ -91,7 +92,7 @@ export async function handleSubmit(body, ctx, projectRoot) {
   if (hasProjectLog) {
     appendLogEntry(logFile, {
       date: todayIso(),
-      tipo: "aprovacao",
+      tipo: "approval",
       titulo: "Brain do projeto revisado e aprovado",
       escopo: "brain",
       decisao: "Usuário revisou as páginas do Cérebro (identidade, voz, tecnologia, editorial, topic clusters e índice) no Companion e aprovou o brain.",
@@ -109,19 +110,19 @@ export async function runProjectBrowser(argv = []) {
   const args = parseArgs(argv);
   if (args.project) {
     throw new Error(
-      "--project is no longer supported; SEO Brain uses the single project at project/.",
+      "--project is no longer supported; Agentic SEO uses the single project at project/.",
     );
   }
   const projectRootArg =
     args["project-root"] ??
     process.env.CLAUDE_PLUGIN_OPTION_project_dir ??
-    process.env.SEO_BRAIN_PROJECT_DIR ??
+    process.env.AGENTIC_SEO_PROJECT_DIR ??
     "project";
   const projectRoot = resolve(projectRootArg);
   const ctx = buildContext(projectRoot);
   const id = newHandoffId();
   // emitStatus is intentionally NOT forced here: the detached parent enables
-  // it via SEO_BRAIN_HANDOFF_EMIT_STATUS for the --serve child. In --foreground
+  // it via AGENTIC_SEO_HANDOFF_EMIT_STATUS for the --serve child. In --foreground
   // mode the final result is printed by the CLI instead of a status line.
   return runHandoff({
     id,

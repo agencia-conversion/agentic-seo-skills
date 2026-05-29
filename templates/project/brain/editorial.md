@@ -21,11 +21,11 @@ publicados. Conteúdos referenciam a área via campo `area:` no frontmatter
 
 ### Conteúdos publicados
 
-- [[../conteudos/blog/<slug>]] — <linha resumo>
+- [[../contents/blog/<slug>]] — <linha resumo>
 
 ### Provas
 
-<!-- Casos, dados, credenciais, citações que reforçam a autoridade desta área. Cada prova relevante vai como entrada `tipo: prova` em [[log]]. -->
+<!-- Casos, dados, credenciais, citações que reforçam a autoridade desta área. Cada prova relevante vai como entrada `tipo: proof` em [[log]]. -->
 
 - <prova> — [[log#YYYY-MM-DD - título]]
 
@@ -38,7 +38,7 @@ publicados. Conteúdos referenciam a área via campo `area:` no frontmatter
 
 ### Conteúdos publicados
 
-- [[../conteudos/<origem>/<slug>]] — <linha resumo>
+- [[../contents/<origem>/<slug>]] — <linha resumo>
 
 ### Provas
 

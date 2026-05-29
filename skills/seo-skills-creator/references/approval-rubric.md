@@ -49,7 +49,7 @@ Maximum iterations: 5 before escalation.
 ## Automatic Blockers
 
 - Fabricates keyword volume, backlinks, credentials, awards, clients, or proof.
-- Allows an authorial brain page to change without an approved `tipo: aprovacao` entry in `project/brain/log.md`.
+- Allows an authorial brain page to change without an approved `tipo: approval` entry in `project/brain/log.md`.
 - Stores drafts or hypotheses in `project/brain/`.
 - Tells a nontechnical user to run terminal commands as the primary approval or sensitive-input flow.
 - Strips accents from pt-BR human-facing prose.

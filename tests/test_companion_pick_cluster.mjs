@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import YAML from "yaml";
 
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-uc3-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-uc3-"));
 process.env.HOME = tmp;
 const projectRoot = join(tmp, "project");
 mkdirSync(join(projectRoot, "brain"), { recursive: true });
@@ -78,7 +78,7 @@ const supportingInput = (proposal, decisions) =>
   assert.ok(existsSync(result.report));
   assert.equal(existsSync(join(projectRoot, "brain", "topic-clusters.md")), false);
   const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
-  assert.match(log, /tipo: decisao/);
+  assert.match(log, /tipo: decision/);
   assert.match(log, /hypothesis/);
 }
 

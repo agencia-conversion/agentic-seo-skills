@@ -3,7 +3,7 @@ title: "<título>"
 slug: "<slug-kebab-case>"
 published_at: "<YYYY-MM-DD>"
 source_url: "<url>"
-origem: "outros"
+origem: "other"
 area: "<slug da área editorial>"
 ---
 

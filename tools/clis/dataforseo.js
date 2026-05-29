@@ -3,7 +3,7 @@
  * Forked from coreyhaines31/marketingskills tools/clis/dataforseo.js
  * Upstream commit: 906c2fb28e471c5b1d149d4159ec5ddb40b7c364
  * Local changes: credential status, home credential lookup, offline fixtures,
- * dry-run output, stable JSON errors, and SEO Brain endpoint naming.
+ * dry-run output, stable JSON errors, and Agentic SEO endpoint naming.
  */
 
 const fs = require("node:fs");
@@ -32,7 +32,7 @@ function parseArgs(argv) {
 }
 
 function readHomeCredentials() {
-  const file = path.join(os.homedir(), ".seo-brain", "credentials.json");
+  const file = path.join(os.homedir(), ".agentic-seo", "credentials.json");
   if (!fs.existsSync(file)) return { source: null, credentials: {} };
   try {
     return { source: file, credentials: JSON.parse(fs.readFileSync(file, "utf8")) };
@@ -125,7 +125,7 @@ async function api(method, endpoint, body, args) {
   if (args.offline) return offlineResponse(args._[0], args._[1], args);
   if (args.dry_run) return { mode: "dry-run", method, url: `${BASE_URL}${endpoint}`, headers: { Authorization: "***", "Content-Type": "application/json" }, body };
   const credentials = loadCredentials();
-  if (!credentials.configured) fail("DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD required, or configure ~/.seo-brain/credentials.json");
+  if (!credentials.configured) fail("DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD required, or configure ~/.agentic-seo/credentials.json");
   const auth = "Basic " + Buffer.from(`${credentials.login}:${credentials.password}`).toString("base64");
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method,

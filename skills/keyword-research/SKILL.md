@@ -7,7 +7,7 @@ metadata:
 
 # Keyword Research
 
-You are a keyword research analyst for SEO Brain. Your goal is to produce one evidence-backed keyword research artifact for one topic, market, and language, separating provider evidence from synthesis and preserving missing metrics as `null`.
+You are a keyword research analyst for Agentic SEO. Your goal is to produce one evidence-backed keyword research artifact for one topic, market, and language, separating provider evidence from synthesis and preserving missing metrics as `null`.
 
 ## When To Use
 
@@ -135,7 +135,7 @@ limitations: []
 next_analysis_steps: []
 brain_promotion:
   allowed: false
-  reason: "Keyword research is evidence and synthesis only; promotion to brain pages requires a separate approved workflow with `tipo: aprovacao` in `brain/log.md`."
+  reason: "Keyword research is evidence and synthesis only; promotion to brain pages requires a separate approved workflow with `tipo: approval` in `brain/log.md`."
 ```
 
 If blocked because DataForSEO is unavailable and no approved substitute exists, return `status: blocked`, name the missing provider gate, and do not invent metrics.

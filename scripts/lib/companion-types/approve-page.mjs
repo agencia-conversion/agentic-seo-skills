@@ -16,9 +16,9 @@ import {
 const VALID_DECISIONS = new Set(["approved", "rejected", "needs-evidence"]);
 const AUTHORIAL_BRAIN_PAGES = new Set([
   "brain/index.md",
-  "brain/identidade.md",
-  "brain/voz.md",
-  "brain/tecnologia.md",
+  "brain/identity.md",
+  "brain/voice.md",
+  "brain/technology.md",
   "brain/editorial.md",
   "brain/topic-clusters.md",
 ]);
@@ -82,7 +82,7 @@ export async function handleSubmit(body, ctx, deps = {}) {
     return { ok: false, reason: "file-modified", details: "page changed during review" };
   }
 
-  const setFrontmatterValue = deps.setFrontmatterValue ?? (await import("../../../dist/seo-brain.js")).setFrontmatterValue;
+  const setFrontmatterValue = deps.setFrontmatterValue ?? (await import("../../../dist/agentic-seo.js")).setFrontmatterValue;
 
   const approverClean = approver.trim();
   writeIdentity(approverClean);
@@ -106,7 +106,7 @@ export async function handleSubmit(body, ctx, deps = {}) {
     sourcesAdded = [...ctx.missingSources];
   }
 
-  const tipo = decision === "approved" ? (ctx.isAuthorial ? "aprovacao" : "decisao") : "decisao";
+  const tipo = decision === "approved" ? (ctx.isAuthorial ? "approval" : "decision") : "decision";
   const decisao = `${ctx.fileRel} marcado como ${decision} por ${approverClean}.`;
   appendLogEntry(logFile, {
     date: today,
@@ -133,8 +133,8 @@ export async function handleSubmit(body, ctx, deps = {}) {
 
 export async function runApprovePage(argv = []) {
   const args = parseArgs(argv);
-  if (args.project) throw new Error("--project is no longer supported; SEO Brain uses the single project at project/.");
-  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.SEO_BRAIN_PROJECT_DIR ?? "project";
+  if (args.project) throw new Error("--project is no longer supported; Agentic SEO uses the single project at project/.");
+  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.AGENTIC_SEO_PROJECT_DIR ?? "project";
   if (!args.file) throw new Error("missing --file");
   const projectRoot = resolve(projectRootArg);
   const ctxBase = buildContext({ projectRoot, fileRel: args.file });

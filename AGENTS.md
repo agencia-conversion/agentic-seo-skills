@@ -1,10 +1,10 @@
-# SEO Brain Agent Instructions
+# Agentic SEO Agent Instructions
 
-SEO Brain is a Claude Code-first plugin that should remain portable to Codex, Antigravity, and other agents that read `AGENTS.md`.
+Agentic SEO is a Claude Code-first plugin that should remain portable to Codex, Antigravity, and other agents that read `AGENTS.md`.
 
 ## Product Direction
 
-SEO Brain implements Agentic SEO through six pillars:
+Agentic SEO implements Agentic SEO through six pillars:
 
 1. Strategy
 2. Brain
@@ -13,7 +13,7 @@ SEO Brain implements Agentic SEO through six pillars:
 5. Content
 6. Data and Analysis
 
-Humans own judgment. Agents execute intelligence. A draft created by an agent is not approved strategic context until the user explicitly approves it through a `tipo: aprovacao` entry in `project/brain/log.md`.
+Humans own judgment. Agents execute intelligence. A draft created by an agent is not approved strategic context until the user explicitly approves it through a `tipo: approval` entry in `project/brain/log.md`.
 
 ## Repository Shape
 
@@ -32,7 +32,7 @@ This repository root is the plugin root.
 
 - Keep skill bodies in standard `SKILL.md` directories so Claude Code and Codex can discover them.
 - Keep cross-tool behavior in `AGENTS.md`, not only in Claude-specific files.
-- Keep user-facing runtime behavior in the canonical `seo-brain` skill; `AGENTS.md` and `CLAUDE.md` are development guidance.
+- Keep user-facing runtime behavior in the canonical `agentic-seo` skill; `AGENTS.md` and `CLAUDE.md` are development guidance.
 - Do not rely on terminal output as the primary UX for nontechnical users.
 - Prefer local web UI artifacts for previews, approvals, and reports.
 - Do not commit secrets, raw user project data, generated runs, or provider responses from real clients.
@@ -43,13 +43,13 @@ The default is to follow the full documented process. Do not skip analysis, appr
 
 - A process step may be skipped only when the current user explicitly asks to skip that specific step or confirms the bypass after the agent names the missing step and consequence.
 - Existing drafts, previous briefings, homepage-only context, or agent confidence do not waive preconditions.
-- When a bypass is explicit, record it in the artifact and append a `tipo: decisao` entry to `project/brain/log.md` before presenting the result. State clearly that the artifact is not data-backed for the skipped dimension.
+- When a bypass is explicit, record it in the artifact and append a `tipo: decision` entry to `project/brain/log.md` before presenting the result. State clearly that the artifact is not data-backed for the skipped dimension.
 - Approval of an artifact is not approval of an undisclosed bypass. Approval requests must show missing analysis, missing sources, and skipped checks before the user decides.
 - If a required process cannot run, stop at the gate, run the local browser handoff as the agent when possible, and present only a friendly user instruction. Do not hand bash commands to the user as the UX for approvals or gates.
 
 ## Language Fidelity
 
-SEO Brain is English-first and supports Brazilian Portuguese as an official second language, but generated natural-language output should work in any requested language.
+Agentic SEO is English-first and supports Brazilian Portuguese as an official second language, but generated natural-language output should work in any requested language.
 
 - Preserve the spelling, accents, and diacritics of the output language in all human-facing prose, headings, UI text, Markdown, logs, reports, prompts, and review notes.
 - For pt-BR, write correct Portuguese with accents: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
@@ -58,7 +58,7 @@ SEO Brain is English-first and supports Brazilian Portuguese as an official seco
 
 ## Brain Rules
 
-Every SEO Brain project keeps authorial knowledge in one place: `project/brain/`. Open it as the Obsidian vault. Public content, evidence, and intermediate artifacts live outside `brain/` so the brain stays small and editable.
+Every Agentic SEO project keeps authorial knowledge in one place: `project/brain/`. Open it as the Obsidian vault. Public content, evidence, and intermediate artifacts live outside `brain/` so the brain stays small and editable.
 
 ### Layout
 
@@ -66,18 +66,18 @@ Every SEO Brain project keeps authorial knowledge in one place: `project/brain/`
 project/
   brain/
     index.md          # mapa + dashboard curto
-    identidade.md     # brandbook narrativo (aposto, parágrafo, frase-marca, público, canais)
-    voz.md            # princípios editoriais
-    tecnologia.md     # stack + SEO técnico
+    identity.md     # brandbook narrativo (aposto, parágrafo, frase-marca, público, canais)
+    voice.md            # princípios editoriais
+    technology.md     # stack + SEO técnico
     editorial.md      # áreas de conteúdo
     topic-clusters.md # clusters semânticos
     log.md            # append-only, autoral
   sources/            # raw, imutável
-  conteudos/          # produto público
+  contents/          # produto público
     blog/<slug>.md
     linkedin/<slug>.md
     podcast/<slug>.md
-    outros/<slug>.md
+    other/<slug>.md
   artifacts/          # entregáveis intermediários e drafts
   workbench/          # rascunhos antes de virar entrada no brain
 ```
@@ -86,29 +86,29 @@ project/
 
 Brain pages: `title`, `updated`. No `status`, `judgment_level`, `pillar`, `owner`, `approved_by`, `approved_at`. Confiança vem do log.
 
-Public content (`conteudos/<origem>/<slug>.md`): `title`, `slug`, `published_at`, `source_url`, `origem` (`blog | linkedin | podcast | outros`), `area` (slug que existe como seção em `brain/editorial.md`).
+Public content (`contents/<origem>/<slug>.md`): `title`, `slug`, `published_at`, `source_url`, `origem` (`blog | linkedin | podcast | other`), `area` (slug que existe como seção em `brain/editorial.md`).
 
 ### Brain-first protocol
 
-- Mudança em arquivo autoral do brain (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) requer entrada `tipo: aprovacao` em `brain/log.md` com `aprovador: <nome humano>` e `aprovado_em: <YYYY-MM-DD>`. Sem aprovação, mudança fica em `workbench/`.
+- Mudança em arquivo autoral do brain (`identity`, `voice`, `technology`, `editorial`, `topic-clusters`, `index`) requer entrada `tipo: approval` em `brain/log.md` com `aprovador: <nome humano>` e `aprovado_em: <YYYY-MM-DD>`. Sem aprovação, mudança fica em `workbench/`.
 - Mudança operacional (catalogar fonte, registrar lint, registrar publicação, anotar errata) vai direto pro `log.md` com `aprovador: agent` ou nome humano.
 - O log é append-only. Erratas são novas entradas referenciando a entrada anterior, não reescrita.
 
 ### Tipos de log
 
-`aprovacao`, `decisao`, `errata`, `lint`, `ingestao`, `publicacao`, `prova`. Schema completo na skill `brain-keeper`.
+`approval`, `decision`, `erratum`, `lint`, `ingestion`, `publication`, `proof`. Schema completo na skill `brain-keeper`.
 
 ### Wikilinks
 
-Use Obsidian wikilinks `[[...]]` apenas para arquivos reais dentro de `brain/`. Use Markdown links normais para `../sources/`, `../conteudos/`, e URLs externas.
+Use Obsidian wikilinks `[[...]]` apenas para arquivos reais dentro de `brain/`. Use Markdown links normais para `../sources/`, `../contents/`, e URLs externas.
 
 ### Regra editorial
 
-A skill `brain-keeper` carrega a regra dura de escrita jornalística imparcial (lead na primeira frase, atribuição visível, sem opinião dissimulada, anti-IA-slop, anti-Conversion-explainer, preservação de acentos pt-BR). Particularidades do projeto vão em `brain/voz.md`.
+A skill `brain-keeper` carrega a regra dura de escrita jornalística imparcial (lead na primeira frase, atribuição visível, sem opinião dissimulada, anti-IA-slop, anti-Conversion-explainer, preservação de acentos pt-BR). Particularidades do projeto vão em `brain/voice.md`.
 
 ### Public content
 
-Public content lives in `project/conteudos/<origem>/<slug>.md`. Drafts and reviews stay in `project/workbench/content/<slug>/` and `project/artifacts/contents/<slug>/`. The `area:` field in the frontmatter must match a section slug in `brain/editorial.md`.
+Public content lives in `project/contents/<origem>/<slug>.md`. Drafts and reviews stay in `project/workbench/content/<slug>/` and `project/artifacts/contents/<slug>/`. The `area:` field in the frontmatter must match a section slug in `brain/editorial.md`.
 
 ### Project Subfolders
 
@@ -121,9 +121,9 @@ Skill artifacts live under one folder per dimension per slug, separate from the 
 | Audits (technical-seo, seo-analysis, internal-links, backlink-analysis, serp-extract) | `project/audits/<slug>/` | `sources/`, `report.yaml`, optional `report.md` |
 | Topic cluster | `project/clusters/<seed-slug>/` | `sources/`, `cluster.json`, optional projection |
 | EEAT | `project/eeat/<entity-or-run-slug>/` | `sources/`, `report.md` |
-| Brain (authorial) | `project/brain/` | only via brain-first protocol with `tipo: aprovacao` in `brain/log.md` |
+| Brain (authorial) | `project/brain/` | only via brain-first protocol with `tipo: approval` in `brain/log.md` |
 
-Skills read the brain for context (identidade, voz, tecnologia, editorial) but write only to their own dimension folder unless an approved `tipo: aprovacao` log entry permits a brain edit.
+Skills read the brain for context (identidade, voz, tecnologia, editorial) but write only to their own dimension folder unless an approved `tipo: approval` log entry permits a brain edit.
 
 ## Browser Handoff
 
@@ -142,7 +142,7 @@ O handoff `project-browser` do onboarding já sobe em modo persistente/detached 
 
 - **Como funciona:** nesse modo, o comando faz `spawn` desacoplado do servidor (`detached: true` + `unref()`), imprime UMA linha JSON de status em stdout assim que o servidor confirma o `listen` — `{ "ok": true, "detached": true, "url": "http://127.0.0.1:<port>/handoff/<token>", "port": <port>, "token": "<hex>", "pid": <pid>, "id": "<id>" }` — e sai imediatamente (`exit 0`). O servidor continua vivo até submit, cancel ou TTL.
 - **Nunca prenda o servidor a um Bash com timeout.** O agente deve capturar a primeira linha de status e usar o campo `url` para combinar a abertura da tela com a pessoa. Não fique bloqueando o Bash à espera da interação humana.
-- **TTL maior:** como o servidor já não depende do Bash, o `project-browser` usa um TTL coerente com ritmo humano (padrão `SEO_BRAIN_HANDOFF_TTL_MS` ~600000ms / 10min). O servidor se encerra sozinho ao expirar, mesmo sem `--stop`.
+- **TTL maior:** como o servidor já não depende do Bash, o `project-browser` usa um TTL coerente com ritmo humano (padrão `AGENTIC_SEO_HANDOFF_TTL_MS` ~600000ms / 10min). O servidor se encerra sozinho ao expirar, mesmo sem `--stop`.
 - **PID file:** o servidor grava `pid`, `port`, `token`, `id` e `started_at` em `.companion/handoffs/<id>.pid.json` (mesma pasta gitignored dos handoffs). O token agora também vive nesse arquivo — mantenha a pasta gitignored e o arquivo com permissão restrita.
 - **Parar depois:** encerre o servidor com `project-browser --stop <id>` (ou `--stop-all`), que lê o PID file, envia `SIGTERM` e remove o arquivo. Sempre pare o servidor quando o fluxo terminar para não deixar processo órfão.
 - **Opt-out:** use `--foreground` apenas em depuração local, quando você precisar segurar o servidor no mesmo processo.
@@ -152,7 +152,7 @@ O handoff `project-browser` do onboarding já sobe em modo persistente/detached 
 O onboarding atende milhares de pessoas, muitas sem perfil técnico. Antes de abrir o Companion:
 
 - **Peça permissão em linguagem simples.** Diga o que vai abrir e por quê, sem jargão. Bom: "Posso abrir uma tela no seu navegador para você revisar e aprovar o cérebro do projeto?" Evite: "Vou subir um handoff detached em 127.0.0.1 com token e PID file."
-- **Só abra depois do "sim".** Respeite `SEO_BRAIN_NO_BROWSER=1`: nesse caso, não tente abrir nada — apenas compartilhe a `url` do JSON de status para a pessoa abrir manualmente.
+- **Só abra depois do "sim".** Respeite `AGENTIC_SEO_NO_BROWSER=1`: nesse caso, não tente abrir nada — apenas compartilhe a `url` do JSON de status para a pessoa abrir manualmente.
 - **Garanta que a tela sobreviva à sessão.** O modo persistente é o padrão no onboarding (não passe flag) e nunca use `--foreground` aqui, de modo que a tela continue de pé mesmo que a sua etapa termine ou o Bash expire. Depois de abrir, repasse o link a partir do campo `url` do status e diga, em uma frase, que a pessoa pode revisar com calma — o servidor espera por ela.
 - **Feche com clareza.** Quando a pessoa aprovar (ou desistir), pare o servidor com `--stop <id>` e siga para o próximo passo.
 
@@ -194,4 +194,4 @@ Skill bodies should still use progressive discovery. The point of the 250-line t
 
 ### Known debt
 
-- `src/seo-brain.ts` is a slim dispatcher; behavior is split into `src/commands/`.
+- `src/agentic-seo.ts` is a slim dispatcher; behavior is split into `src/commands/`.

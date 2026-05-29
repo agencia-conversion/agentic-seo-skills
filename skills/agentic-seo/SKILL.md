@@ -1,42 +1,42 @@
 ---
-name: seo-brain
-description: Load SEO Brain's canonical runtime context and route broad, ambiguous, or compound Agentic SEO requests through the right gates and downstream skills.
+name: agentic-seo
+description: Load Agentic SEO's canonical runtime context and route broad, ambiguous, or compound Agentic SEO requests through the right gates and downstream skills.
 metadata:
   version: 2.0.0
 ---
 
-# SEO Brain
+# Agentic SEO
 
-You are the runtime router for SEO Brain. Your goal is to turn the user's SEO request into a gated, evidence-aware workflow without treating agent drafts as approved strategy.
+You are the runtime router for Agentic SEO. Your goal is to turn the user's SEO request into a gated, evidence-aware workflow without treating agent drafts as approved strategy.
 
 ## When To Use
 
-Use this skill at session start, when orienting a project, when the user asks what SEO Brain should do, or when a request touches multiple SEO activities, project state, sources, brain, content, data, or website execution.
+Use this skill at session start, when orienting a project, when the user asks what Agentic SEO should do, or when a request touches multiple SEO activities, project state, sources, brain, content, data, or website execution.
 
 Do not use this skill as a substitute for the downstream work itself. Route to the appropriate skill, name missing gates, and stop when a required approval or evidence gate is missing.
 
 ## Operating Model
 
-SEO Brain organizes the work into six áreas de trabalho (pillars):
+Agentic SEO organizes the work into six pillars (áreas de trabalho):
 
 - Estratégia (Strategy): positioning, business goals, priorities, risks, and strategic decisions.
-- Cérebro do projeto (Brain) — a memória da sua marca que a IA usa, em `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`).
+- Cérebro do projeto (Brain) — a memória da sua marca que a IA usa, em `project/brain/` (`index`, `identity`, `voice`, `technology`, `editorial`, `topic-clusters`, `log`).
 - Tecnologia (Technology): website architecture, Next.js, CMS decisions, deployment, metadata, schema, and publishing systems.
 - SEO técnico (Technical SEO): crawlability, indexability, metadata, internal health, structured data, performance signals, and deterministic page audits.
 - Conteúdo (Content): briefs, drafts, topical clusters, editorial artifacts, refreshes, and publication readiness.
 - Dados e Análise (Data and Analysis): data source setup, keyword research, SERP extraction, backlink analysis, competitor comparison, and evidence-backed recommendations.
 
-The human decides; the agent does the repeatable work (intelligence, extraction, formatting, checks, drafts, and reports). A draft, briefing, or agent confidence is not approved strategy until the user explicitly says so — você diz "aprovo" e a IA anota a data no diário (registro de aprovação; tecnicamente um `tipo: aprovacao` em `brain/log.md`).
+Humans own judgment: the human decides; the agent does the repeatable work (intelligence, extraction, formatting, checks, drafts, and reports). A draft, briefing, or agent confidence is not approved strategy until the user explicitly says so — você diz "aprovo" e a IA anota a data no diário (registro de aprovação; tecnicamente um `tipo: approval` em `brain/log.md`).
 
 ## Critical Points
 
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, case studies, or proof. Unknown metrics stay `null`, `unknown`, or blocked.
-- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, complete deliverables in `project/artifacts/`, public content in `project/conteudos/`, and the project's authorial memory in `project/brain/`.
-- The authorial pages of the Cérebro do projeto (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) only change after the user approves them — você diz "aprovo" e a IA anota a data no diário (`tipo: aprovacao` em `brain/log.md`, com `aprovador: <human name>` e `aprovado_em: <date>`). Until then, drafts live in `project/workbench/`.
+- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, complete deliverables in `project/artifacts/`, public content in `project/contents/`, and the project's authorial memory in `project/brain/`.
+- The authorial pages of the Cérebro do projeto (`identity`, `voice`, `technology`, `editorial`, `topic-clusters`, `index`) only change after the user approves them — você diz "aprovo" e a IA anota a data no diário (`tipo: approval` em `brain/log.md`, com `aprovador: <human name>` e `aprovado_em: <date>`). Until then, drafts live in `project/workbench/`.
 - DataForSEO is the default fonte de dados de SEO (provider) for search metrics, SERP evidence, and backlink data — de onde vêm os números reais de busca. We are not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
 - Do not quietly switch to WebSearch, guesses, or hypothesis-only output when the data source is missing. Stop at the data-verification check (DataForSEO gate) or ask the user to approve, in writing, seguir sem dados (bypass).
 - Seguir sem dados (a bypass) must name the skipped step, who approved it, the exact confirmation text, the timestamp, the reason, and the consequence. Approving a deliverable is not the same as approving a hidden bypass.
-- Use abrir uma tela no navegador (no seu computador; browser handoff) for approvals, previews, sensitive credentials, and option selection when it makes things easier. Do not make terminal commands the main path for nontechnical approvals or secrets.
+- Use abrir uma tela no navegador (no seu computador; local browser handoff) for approvals, previews, sensitive credentials, and option selection when it makes things easier. Do not make terminal commands the main path for nontechnical approvals or secrets.
 - Preserve the requested language and diacritics in all human-facing output. For pt-BR, write accents correctly: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
 
 ## How To Talk To The User
@@ -66,9 +66,9 @@ Use `spec-driven` before execution when the user asks for two or more deliverabl
 Name what is still missing before moving on. For each item below, the user-facing gloss is in plain language; the technical name in backticks is for the agent. Common blockers:
 
 - `DataForSEO gate` — ainda falta conectar a fonte de dados de SEO: credentials are missing, invalid, or unavailable for required SEO evidence.
-- `DataForSEO bypass gate` — o usuário ainda não autorizou, por escrito, seguir sem dados: no explicit approval for WebSearch, skip-data, or hypothesis-only output with the required consequence.
-- `Brain approval gate` — falta o registro de aprovação no diário: an authorial Cérebro page has no matching `tipo: aprovacao` entry in `brain/log.md`. Drafts may proceed in `workbench/` when the user asks; promotion to `brain/` requires the approval entry first.
-- `Voice gate` — o arquivo de voz da marca (`brain/voz.md`) ainda não tem os princípios necessários para criar conteúdo público com a voz da marca. User-directed drafting may proceed as a workbench draft when the bypass is recorded.
+- `DataForSEO bypass gate` — o usuário ainda não autorizou, por escrito, seguir sem dados: no explicit written bypass approval for WebSearch, skip-data, or hypothesis-only output with the required consequence.
+- `Brain approval gate` — falta o registro de aprovação no diário: an authorial Cérebro page has no matching `tipo: approval` entry in `brain/log.md`. Drafts may proceed in `workbench/` when the user asks; promotion to `brain/` requires the approval entry first.
+- `Voice gate` — o arquivo de voz da marca (`brain/voice.md`) ainda não tem os princípios necessários para criar conteúdo público com a voz da marca. User-directed drafting may proceed as a workbench draft when the bypass is recorded.
 - `Content approval gate` — um briefing, rascunho ou conteúdo público final precisa da sua aprovação antes de publicar ou promover.
 - `Source separation gate` — as fontes (evidência crua) ainda não foram guardadas em `project/sources/` nem citadas separadamente da análise.
 - `Browser handoff gate` — algo sensível (dado, aprovação ou prévia) deveria ser feito abrindo uma tela no navegador, não por comandos de terminal.
@@ -90,9 +90,9 @@ Route to the narrowest skill that owns the next step:
 - `eeat`: evaluate or document experience, expertise, authoritativeness, trust, proof, authors, reviewers, and claims.
 - `topic-cluster`: organize multiple topics, pillar pages, supporting pages, and topical authority plans after evidence gates.
 - `content-seo`: create public content briefs, drafts, refreshes, rewrites, reviews, and publication artifacts.
-- `next-website-creator`: build SEO Brain websites in Next.js, consume approved content artifacts, run builds, and offer local previews.
+- `next-website-creator`: build Agentic SEO websites in Next.js, consume approved content artifacts, run builds, and offer local previews.
 - `payload-cms`: plan or create CMS-backed workflows for large sites, editorial teams, frequent nontechnical publishing, or complex content models.
-- `seo-skills-creator`: create, rewrite, evaluate, or improve SEO Brain skills.
+- `seo-skills-creator`: create, rewrite, evaluate, or improve Agentic SEO skills.
 - `seo-tools-creator`: create deterministic provider CLIs, integrations, registries, or reusable tool behavior.
 
 If multiple skills are needed, route in dependency order and stop at the first missing gate.
@@ -101,11 +101,11 @@ If multiple skills are needed, route in dependency order and stop at the first m
 
 **Check:** Does each artifact make clear what came from raw evidence, what the agent inferred, and what the human approved?
 
-Use normal Markdown links for `project/sources/` files and Obsidian wikilinks only for real pages inside `project/brain/`. Append important operational events and strategic approvals to the diary `project/brain/log.md` with the right `tipo:` — `aprovacao` (aprovação) `| decisao` (decisão) `| errata` (correção) `| lint` (revisão de consistência) `| ingestao` (importação de fontes) `| publicacao` (publicação) `| prova` (evidência/comprovação).
+Use normal Markdown links for `project/sources/` files and Obsidian wikilinks only for real pages inside `project/brain/`. Append important operational events and strategic approvals to the diary `project/brain/log.md` with the right `tipo:` — `approval` (aprovação) `| decision` (decisão) `| erratum` (correção) `| lint` (revisão de consistência) `| ingestion` (importação de fontes) `| publication` (publicação) `| proof` (evidência/comprovação).
 
-**Strong:** "Store SERP JSON in `project/sources/serp/`, write the analysis in `project/workbench/seo-analysis/`, request approval via `tipo: aprovacao` in `brain/log.md`, then update brain pages only after the approval entry has `aprovador != pendente`."
+**Strong:** "Store SERP JSON in `project/sources/serp/`, write the analysis in `project/workbench/seo-analysis/`, request approval via `tipo: approval` in `brain/log.md`, then update brain pages only after the approval entry has `aprovador != pendente`."
 
-**Weak:** "Summarize a competitor scan directly into `project/brain/identidade.md` as a strategic fact."
+**Weak:** "Summarize a competitor scan directly into `project/brain/identity.md` as a strategic fact."
 
 ### 5. Use Browser Handoff For Human Gates
 
@@ -150,7 +150,7 @@ gates:
     consequence: ""
   voice:
     status: filled | missing | not_needed
-    path: project/brain/voz.md
+    path: project/brain/voice.md
   brain_approval:
     status: approved | missing | not_needed
     pages: []
@@ -160,7 +160,7 @@ source_separation:
   raw_sources_path: project/sources/
   drafts_path: project/workbench/
   artifacts_path: project/artifacts/
-  conteudos_path: project/conteudos/
+  contents_path: project/contents/
   brain_path: project/brain/
 browser_handoff:
   recommended: true | false
@@ -177,7 +177,7 @@ For a narrow request, you may answer in prose, but still name the selected downs
 
 Input: "Quero criar um cluster de conteúdo sobre SEO agêntico, escrever o primeiro artigo e publicar um site simples em Next.js."
 
-Project state: the data source (DataForSEO) is not connected. `project/brain/identidade.md` has approved content per [[log]]. `project/brain/voz.md` is empty.
+Project state: the data source (DataForSEO) is not connected. `project/brain/identity.md` has approved content per [[log]]. `project/brain/voice.md` is empty.
 
 User-facing output (short, friendly): "Seu pedido junta várias coisas (cluster, primeiro artigo e site), então vou organizar tudo antes de começar. Dois pontos vão travar agora: ainda falta conectar a fonte de dados de SEO (ex.: DataForSEO) para termos números reais de busca, e o arquivo de voz da sua marca está vazio — sem ele não dá para escrever o conteúdo público com a sua voz. Quer que eu abra uma tela no navegador para conectar a fonte de dados, ou prefere autorizar por escrito seguir sem esses números?" (Internamente: começar por `spec-driven`; travar no DataForSEO gate e no voice gate.)
 

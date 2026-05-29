@@ -6,15 +6,15 @@ import { spawnSync } from "node:child_process";
 import YAML from "yaml";
 
 const root = resolve(import.meta.dirname, "..");
-const bin = join(root, "bin", "seo-brain");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-process-"));
+const bin = join(root, "bin", "agentic-seo");
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-process-"));
 const projectDir = join(tmp, "project");
 
 function run(args) {
   return spawnSync(bin, args, {
     cwd: root,
     encoding: "utf8",
-    env: { ...process.env, SEO_BRAIN_PROJECT_DIR: projectDir, DATAFORSEO_LOGIN: "fixture-login", DATAFORSEO_PASSWORD: "fixture-password" },
+    env: { ...process.env, AGENTIC_SEO_PROJECT_DIR: projectDir, DATAFORSEO_LOGIN: "fixture-login", DATAFORSEO_PASSWORD: "fixture-password" },
   });
 }
 
@@ -22,7 +22,7 @@ function runNoCreds(args) {
   return spawnSync(bin, args, {
     cwd: root,
     encoding: "utf8",
-    env: { ...process.env, HOME: join(tmp, "home-no-creds"), SEO_BRAIN_PROJECT_DIR: projectDir, DATAFORSEO_LOGIN: "", DATAFORSEO_PASSWORD: "", CLAUDE_PLUGIN_OPTION_dataforseo_login: "", CLAUDE_PLUGIN_OPTION_dataforseo_password: "" },
+    env: { ...process.env, HOME: join(tmp, "home-no-creds"), AGENTIC_SEO_PROJECT_DIR: projectDir, DATAFORSEO_LOGIN: "", DATAFORSEO_PASSWORD: "", CLAUDE_PLUGIN_OPTION_dataforseo_login: "", CLAUDE_PLUGIN_OPTION_dataforseo_password: "" },
   });
 }
 
@@ -157,7 +157,7 @@ run(["project-init", "Process Test"]);
 
   const promoted = run(["content-seo", "--phase", "promote", "--topic", "SEO sem SERP", "--approved-by", "Diego Ivo"]);
   assert.equal(promoted.status, 0, promoted.stderr);
-  const published = readFileSync(join(projectDir, "conteudos", "blog", "seo-sem-serp.md"), "utf8");
+  const published = readFileSync(join(projectDir, "contents", "blog", "seo-sem-serp.md"), "utf8");
   assert.match(published, /origem: "blog"/);
   assert.match(published, /published_at:/);
 }

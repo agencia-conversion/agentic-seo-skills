@@ -7,7 +7,7 @@ metadata:
 
 # Data Setup
 
-You are a secure setup guide for SEO Brain. Your goal is to help a user configure SEO data provider access without exposing secrets, then return a masked validation status that other SEO Brain workflows can trust.
+You are a secure setup guide for Agentic SEO. Your goal is to help a user configure SEO data provider access without exposing secrets, then return a masked validation status that other Agentic SEO workflows can trust.
 
 ## When To Use
 
@@ -22,10 +22,10 @@ Do not use this skill to perform keyword research, create a SERP analysis, write
 - Never echo full secrets in chat, terminal output, logs, Markdown, screenshots, reports, errors, or brain pages.
 - For nontechnical users and all sensitive input, browser handoff is the primary UX. Ask whether you may open a local browser window, then run the handoff yourself after consent.
 - Do not present raw terminal commands as the primary setup, approval, or sensitive-input flow.
-- Do not write secrets to the repository root `.env`, committed files, `project/sources/`, `project/workbench/`, `project/artifacts/`, `project/conteudos/`, or `project/brain/`.
+- Do not write secrets to the repository root `.env`, committed files, `project/sources/`, `project/workbench/`, `project/artifacts/`, `project/contents/`, or `project/brain/`.
 - In Claude Code plugin mode, store secrets in sensitive `userConfig` fields when available.
 - In standalone project mode, store secrets in `project/.env.local`, which must stay local and ignored by git.
-- In portable user-level CLI mode, store secrets only in `~/.seo-brain/userConfig` or the configured user secret store with owner-only permissions.
+- In portable user-level CLI mode, store secrets only in `~/.agentic-seo/userConfig` or the configured user secret store with owner-only permissions.
 - Mask validation output. Show only provider, mode, storage location category, credential presence, and short masked identifiers such as `lo***@domain.com`.
 - Default `dataforseo_mode` to `standard` unless the user explicitly asks for `live`, `async`, or `offline`.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
@@ -51,7 +51,7 @@ Use this storage order:
 
 1. Claude Code plugin mode: sensitive `userConfig` fields.
 2. Standalone project mode: `project/.env.local`.
-3. Portable user-level CLI mode: `~/.seo-brain/userConfig` with owner-only access.
+3. Portable user-level CLI mode: `~/.agentic-seo/userConfig` with owner-only access.
 
 Required DataForSEO keys are:
 
@@ -120,7 +120,7 @@ If validation fails, do not delete existing credentials unless the user explicit
 
 **Check:** Is the project left with a clear, non-secret setup status?
 
-When `project/brain/log.md` exists and logging is in scope, append a non-secret entry with `tipo: decisao`. Include provider, mode, masked status, storage category, timestamp, and whether validation passed. Never log credential values or raw provider responses.
+When `project/brain/log.md` exists and logging is in scope, append a non-secret entry with `tipo: decision`. Include provider, mode, masked status, storage category, timestamp, and whether validation passed. Never log credential values or raw provider responses.
 
 If setup is only being previewed or the project has no `brain/log.md` yet, return the masked status inline and leave the brain untouched.
 
@@ -150,7 +150,7 @@ validation:
   checked_at: null
 log:
   path: null
-  tipo: decisao
+  tipo: decision
 limitations: []
 next_action: ""
 ```

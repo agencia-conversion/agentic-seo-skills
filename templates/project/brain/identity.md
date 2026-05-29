@@ -54,7 +54,7 @@ aplica ao projeto, escreva "não se aplica" em vez de deixar o placeholder.
 - Domínios secundários: <lista ou `nenhum`>
 - Idioma: <pt-BR | en | ...>
 - País/mercado: <Brasil | global | ...>
-- Stack resumido: <uma linha; detalhe em [[tecnologia]]>
+- Stack resumido: <uma linha; detalhe em [[technology]]>
 
 ## Canais
 

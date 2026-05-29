@@ -13,7 +13,7 @@ import {
 } from "./companion-state.mjs";
 
 const DEFAULT_TTL_MS = 120_000;
-const ENV_TTL_MS = Number(process.env.SEO_BRAIN_HANDOFF_TTL_MS) || 0;
+const ENV_TTL_MS = Number(process.env.AGENTIC_SEO_HANDOFF_TTL_MS) || 0;
 const MAX_BODY = 1024 * 1024;
 
 const HEADERS = {
@@ -46,7 +46,7 @@ function readBody(req) {
 }
 
 function openBrowser(url) {
-  if (process.env.SEO_BRAIN_NO_BROWSER === "1") return;
+  if (process.env.AGENTIC_SEO_NO_BROWSER === "1") return;
   const cmd =
     process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   spawn(cmd, [url], { stdio: "ignore", detached: true }).unref();
@@ -73,9 +73,9 @@ export function runHandoff({
     // TTL precedence: env override (operator escape hatch) > per-handoff opt > default.
     const effectiveTtl = ENV_TTL_MS || Number(ttlMs) || DEFAULT_TTL_MS;
     // Status emission is for the detached child only: the parent sets
-    // SEO_BRAIN_HANDOFF_EMIT_STATUS=1 when it spawns the --serve child. A
+    // AGENTIC_SEO_HANDOFF_EMIT_STATUS=1 when it spawns the --serve child. A
     // caller may also force it via opts.emitStatus.
-    const detachedMode = process.env.SEO_BRAIN_HANDOFF_EMIT_STATUS === "1";
+    const detachedMode = process.env.AGENTIC_SEO_HANDOFF_EMIT_STATUS === "1";
     const shouldEmitStatus = emitStatus || detachedMode;
     let port = 0;
     let resolved = false;
@@ -140,7 +140,7 @@ export function runHandoff({
       port = server.address().port;
       writeSessionPort(port);
       const base = `http://127.0.0.1:${port}${tokenPath}`;
-      if (process.env.SEO_BRAIN_PRINT_HANDOFF_URL === "1") {
+      if (process.env.AGENTIC_SEO_PRINT_HANDOFF_URL === "1") {
         process.stderr.write(`[companion] ${base}\n`);
         for (const tab of extraTabs) {
           process.stderr.write(`[companion-tab] ${base}${tab.path}\n`);

@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-bypass-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-bypass-"));
 const projectRoot = join(tmp, "project");
 mkdirSync(join(projectRoot, "brain"), { recursive: true });
 writeFileSync(join(projectRoot, "brain", "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n");
@@ -38,7 +38,7 @@ assert.match(ok.approval.confirmation_text, /sem DataForSEO/);
 assert.ok(ok.approval.confirmado_em);
 
 const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
-assert.match(log, /tipo: decisao/);
+assert.match(log, /tipo: decision/);
 assert.match(log, /DataForSEO bypass · seo técnico/);
 assert.match(log, /Briefing usa provedor secundário/);
 

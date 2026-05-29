@@ -1,17 +1,17 @@
 ---
 name: spec-driven
-description: MUST USE PROACTIVELY before executing a user request with two or more distinct deliverables, downstream skills, SEO Brain pillars, dependencies, or approval gates. Use for compound requests such as research plus brain updates, brain plus website, technical audit plus content plan, content plus site, or any bulleted/numbered request with separate outcomes. Do not use for a single clear task.
+description: MUST USE PROACTIVELY before executing a user request with two or more distinct deliverables, downstream skills, Agentic SEO pillars, dependencies, or approval gates. Use for compound requests such as research plus brain updates, brain plus website, technical audit plus content plan, content plus site, or any bulleted/numbered request with separate outcomes. Do not use for a single clear task.
 metadata:
   version: 1.0.0
 ---
 
 # Spec Driven
 
-You are a workflow designer for SEO Brain. Your goal is to turn one compound user request into a simple approved design, then durable spec, plan, and result-check files under `project/workbench/specs/<slug>/` before downstream skills execute.
+You are a workflow designer for Agentic SEO. Your goal is to turn one compound user request into a simple approved design, then durable spec, plan, and result-check files under `project/workbench/specs/<slug>/` before downstream skills execute.
 
 ## When To Use
 
-Use this skill when the user asks for two or more distinct outcomes in one message, especially when those outcomes depend on each other or cross SEO Brain pillars.
+Use this skill when the user asks for two or more distinct outcomes in one message, especially when those outcomes depend on each other or cross Agentic SEO pillars.
 
 Use it for requests that combine work such as:
 
@@ -30,7 +30,7 @@ Do not use this skill for a single clear task. If the user asks only for one key
 - Always present a simple design and get human approval before writing `spec.md`, `plan.md`, or `result-check.md`.
 - Write the control files only under `project/workbench/specs/<slug>/`. Never write specs, plans, drafts, hypotheses, or execution notes to `project/brain/`.
 - Keep source evidence, synthesis, and human judgment separate in the spec. Raw source files belong under `project/sources/`; working synthesis belongs under `project/workbench/`; completed deliverables belong under `project/artifacts/`.
-- Authorial brain pages require explicit human approval via `tipo: aprovacao` in `project/brain/log.md` before promotion. Agent output is not approved strategic context.
+- Authorial brain pages require explicit human approval via `tipo: approval` in `project/brain/log.md` before promotion. Agent output is not approved strategic context.
 - Do not bypass strategic approval, DataForSEO requirements, content briefing approval, content draft approval, source review, lint, or publication gates. Name missing gates as blockers or approval requirements.
 - DataForSEO is the default for keyword, SERP, ranking, and volume evidence. Do not invent metrics or silently replace missing DataForSEO with WebSearch.
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, rankings, traffic, or proof. Unknown values stay unknown.
@@ -64,7 +64,7 @@ List:
 - deterministic checks;
 - blocked items and why they are blocked.
 
-Be explicit about gates. A website that depends on content cannot be treated as ready if the content brief or draft is not approved. An authorial brain page cannot be written as approved context without an approved `tipo: aprovacao` entry in `brain/log.md`. SERP or keyword metrics cannot be asserted without approved evidence.
+Be explicit about gates. A website that depends on content cannot be treated as ready if the content brief or draft is not approved. An authorial brain page cannot be written as approved context without an approved `tipo: approval` entry in `brain/log.md`. SERP or keyword metrics cannot be asserted without approved evidence.
 
 ### 3. Present A Simple Design
 

@@ -202,7 +202,7 @@ export async function handleSubmit(body, ctx) {
 
   appendLogEntry(join(ctx.projectRoot, "brain", "log.md"), {
     date: today,
-    tipo: "decisao",
+    tipo: "decision",
     titulo: `${brief.topic} · ${status}`,
     escopo: [ctx.briefRel, ...(draftPath ? [relative(ctx.projectRoot, draftPath)] : [])],
     decisao: status === "approved" ? `Briefing ${ctx.briefRel} aprovado e draft gerado em artifacts.` : `Briefing ${ctx.briefRel} marcado como ${status}.`,
@@ -215,8 +215,8 @@ export async function handleSubmit(body, ctx) {
 }
 export async function runApproveBriefing(argv = []) {
   const args = parseArgs(argv);
-  if (args.project) throw new Error("--project is no longer supported; SEO Brain uses the single project at project/.");
-  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.SEO_BRAIN_PROJECT_DIR ?? "project";
+  if (args.project) throw new Error("--project is no longer supported; Agentic SEO uses the single project at project/.");
+  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.AGENTIC_SEO_PROJECT_DIR ?? "project";
   if (!args.brief) throw new Error("missing --brief");
   const projectRoot = resolve(projectRootArg);
   const briefPath = resolveBriefPath(projectRoot, args.brief);

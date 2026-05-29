@@ -3,12 +3,12 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const skill = readFileSync(resolve(root, "skills", "seo-brain", "SKILL.md"), "utf8");
+const skill = readFileSync(resolve(root, "skills", "agentic-seo", "SKILL.md"), "utf8");
 const agents = readFileSync(resolve(root, "AGENTS.md"), "utf8");
 const claude = readFileSync(resolve(root, "CLAUDE.md"), "utf8");
 
 assert.ok(skill.startsWith("---\n"));
-assert.match(skill, /^name:\s*seo-brain$/m);
+assert.match(skill, /^name:\s*agentic-seo$/m);
 assert.match(skill, /^description:\s*.+/m);
 
 for (const section of ["## When To Use", "## Operating Model", "## Critical Points", "## Routing Framework", "## Output Format", "## Examples"]) {
@@ -22,7 +22,7 @@ for (const required of [
   "project/workbench/",
   "project/artifacts/",
   "project/brain/",
-  "project/conteudos/",
+  "project/contents/",
   "browser handoff",
   "página",
   "conteúdo",
@@ -65,4 +65,4 @@ for (const text of [agents, claude]) {
   assert.ok(!/Skill body[^\n]*\|\s*100\s*\|/i.test(text), "skill bodies must not keep old 100-line max");
 }
 
-console.log("seo-brain skill ok");
+console.log("agentic-seo skill ok");

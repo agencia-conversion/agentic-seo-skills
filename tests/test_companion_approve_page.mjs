@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-uc2-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-uc2-"));
 process.env.HOME = tmp;
 const projectRoot = join(tmp, "project");
 
@@ -12,7 +12,7 @@ mkdirSync(brain, { recursive: true });
 mkdirSync(join(projectRoot, "sources", "manual"), { recursive: true });
 
 writeFileSync(
-  join(brain, "identidade.md"),
+  join(brain, "identity.md"),
   `---
 title: "Identidade"
 updated: "2026-05-07"
@@ -25,13 +25,13 @@ Estudo registrado em [credenciais](../sources/manual/credentials.md) e [briefing
 Ver também [[index]] e [[pagina-inexistente]].
 `,
 );
-writeFileSync(join(brain, "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n\n## 2026-05-06 - Ingestao credentials\n\n- tipo: ingestao\n- escopo: ../sources/manual/credentials.md\n- decisao: Catalogada manualmente.\n- evidencia: ../sources/manual/credentials.md\n- aprovador: agent\n");
+writeFileSync(join(brain, "log.md"), "---\ntitle: \"Log\"\nupdated: \"2026-05-07\"\n---\n\n# Log\n\n## 2026-05-06 - Ingestao credentials\n\n- tipo: ingestion\n- escopo: ../sources/manual/credentials.md\n- decisao: Catalogada manualmente.\n- evidencia: ../sources/manual/credentials.md\n- aprovador: agent\n");
 writeFileSync(join(brain, "index.md"), "---\ntitle: \"Index\"\nupdated: \"2026-05-07\"\n---\n\n# Index\n");
 
 const _brainPage = await import("../scripts/lib/brain-page.mjs");
 const { buildContext, handleSubmit } = await import("../scripts/lib/companion-types/approve-page.mjs");
 
-const ctx = { ...buildContext({ projectRoot, fileRel: "brain/identidade.md" }), projectRoot };
+const ctx = { ...buildContext({ projectRoot, fileRel: "brain/identity.md" }), projectRoot };
 assert.equal(ctx.frontmatter.title, "Identidade");
 assert.equal(ctx.isAuthorial, true);
 assert.equal(ctx.sources.length, 2, "two sources cited");
@@ -68,13 +68,13 @@ assert.deepEqual(ok.sources_registered, ["../sources/manual/briefing.md"]);
 assert.ok(existsSync(ok.snapshot), "snapshot must exist");
 
 const log = readFileSync(join(brain, "log.md"), "utf8");
-assert.match(log, /## \d{4}-\d{2}-\d{2} - identidade approved/);
-assert.match(log, /- tipo: aprovacao/);
+assert.match(log, /## \d{4}-\d{2}-\d{2} - identity approved/);
+assert.match(log, /- tipo: approval/);
 assert.match(log, /- aprovador: Diego Ivo/);
 assert.match(log, /- aprovado_em: \d{4}-\d{2}-\d{2}/);
-assert.match(log, /- decisao: brain\/identidade\.md marcado como approved por Diego Ivo\./);
+assert.match(log, /- decisao: brain\/identity\.md marcado como approved por Diego Ivo\./);
 assert.match(log, /- notas: evidências consolidadas/);
-assert.match(log, /## \d{4}-\d{2}-\d{2} - Ingestao de fonte: briefing\.md/, "missing source registered as tipo: ingestao");
+assert.match(log, /## \d{4}-\d{2}-\d{2} - Ingestao de fonte: briefing\.md/, "missing source registered as tipo: ingestion");
 
 writeFileSync(ctx.filePath, readFileSync(ctx.filePath, "utf8") + "\n<!-- modified -->\n");
 const stale = await handleSubmit(

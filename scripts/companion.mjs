@@ -95,7 +95,7 @@ function launchDetached(type, rest) {
   const child = spawn(process.execPath, [SELF, type, "--serve", ...rest], {
     detached: true,
     stdio: ["ignore", "pipe", "ignore"],
-    env: { ...process.env, SEO_BRAIN_HANDOFF_EMIT_STATUS: "1" },
+    env: { ...process.env, AGENTIC_SEO_HANDOFF_EMIT_STATUS: "1" },
   });
 
   let buffer = "";

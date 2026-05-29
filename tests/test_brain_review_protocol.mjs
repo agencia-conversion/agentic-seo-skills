@@ -8,12 +8,12 @@ const skill = readFileSync(resolve(root, "skills", "brain-keeper", "SKILL.md"), 
 // Brain-first protocol rules
 for (const required of [
   "Authorial brain pages",
-  "tipo: aprovacao",
+  "tipo: approval",
   "aprovador: pendente",
   "aprovado_em",
   "project/brain/log.md",
   "project/workbench/brain-keeper/",
-  "project/conteudos/",
+  "project/contents/",
   "Wikilinks",
   "Markdown links",
 ]) {
@@ -26,12 +26,12 @@ for (const field of ["tipo:", "escopo:", "decisao:", "evidencia:", "aprovador:",
 }
 
 // All seven log entry types
-for (const tipo of ["aprovacao", "decisao", "errata", "lint", "ingestao", "publicacao", "prova"]) {
+for (const tipo of ["approval", "decision", "erratum", "lint", "ingestion", "publication", "proof"]) {
   assert.ok(skill.includes(tipo), `log tipo enum missing: ${tipo}`);
 }
 
 // Seven authorial brain pages
-for (const page of ["index", "identidade", "voz", "tecnologia", "editorial", "topic-clusters", "log"]) {
+for (const page of ["index", "identity", "voice", "technology", "editorial", "topic-clusters", "log"]) {
   assert.ok(skill.includes(`\`${page}\``), `brain page enum missing: ${page}`);
 }
 

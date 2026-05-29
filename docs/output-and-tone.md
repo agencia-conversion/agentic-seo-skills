@@ -1,6 +1,6 @@
 # Output e Tom (guia compartilhado)
 
-Guia de comunicação para todas as skills de onboarding e de uso direto pelo usuário (por exemplo `start`, `seo-brain`, `project-init`). O onboarding precisa funcionar para milhares de pessoas diferentes, muitas leigas em SEO (founders, marketing, estrategistas). A regra geral é simples: **fale como você falaria com um cliente esperto que não é técnico.**
+Guia de comunicação para todas as skills de onboarding e de uso direto pelo usuário (por exemplo `start`, `agentic-seo`, `project-init`). O onboarding precisa funcionar para milhares de pessoas diferentes, muitas leigas em SEO (founders, marketing, estrategistas). A regra geral é simples: **fale como você falaria com um cliente esperto que não é técnico.**
 
 As regras de idioma e acentuação continuam em `AGENTS.md` (seção "Language Fidelity"). Este guia trata só de **tom** e **como mostrar progresso**. Em caso de conflito sobre idioma/acentos, `AGENTS.md` vence.
 
@@ -22,9 +22,9 @@ Use a coluna "Como dizer ao usuário" no texto. A coluna técnica é só para a 
 | fonte de dados de SEO (ex.: DataForSEO) — de onde vêm os números reais de busca | provider / DataForSEO |
 | verificação de dados — antes de seguir, confirmamos que existe dado real | evidence gate / DataForSEO gate |
 | seguir sem dados, com seu OK por escrito | bypass |
-| registro de aprovação no diário — você diz "aprovo" e a IA anota a data | `tipo: aprovacao` em `brain/log.md` |
+| registro de aprovação no diário — você diz "aprovo" e a IA anota a data | `tipo: approval` em `brain/log.md` |
 | abrir uma tela no navegador (no seu computador) | browser handoff |
-| importar/trazer fontes | ingest sources / ingestao |
+| importar/trazer fontes | ingest sources / ingestion |
 | próximo passo | downstream skill |
 | pedido com várias coisas juntas | compound request |
 | pode rodar de novo sem apagar o que você já preencheu | idempotent |
@@ -37,7 +37,7 @@ Observação sobre o DataForSEO: deixe claro, quando o assunto surgir, que **nã
 
 Quando precisar mostrar ou citar um registro do diário, traduza o tipo:
 
-`aprovacao` = aprovação · `decisao` = decisão · `errata` = correção · `lint` = revisão de consistência · `ingestao` = importação de fontes · `publicacao` = publicação · `prova` = evidência/comprovação.
+`approval` = aprovação · `decision` = decisão · `erratum` = correção · `lint` = revisão de consistência · `ingestion` = importação de fontes · `publication` = publicação · `proof` = evidência/comprovação.
 
 ## 2. Feedback simples
 
@@ -48,7 +48,7 @@ Quando precisar mostrar ou citar um registro do diário, traduza o tipo:
 ### Exemplos
 
 Ruim (jargão e despejo de processo):
-> Routing request to canonical seo-brain. Initialized blank brain templates and scaffolded project structure. DataForSEO gate is pending — awaiting credentials. Output: `status: needs_input, gates.dataforseo: blocked`.
+> Routing request to canonical agentic-seo. Initialized blank brain templates and scaffolded project structure. DataForSEO gate is pending — awaiting credentials. Output: `status: needs_input, gates.dataforseo: blocked`.
 
 Bom (curto e claro):
 > Criei a estrutura do seu projeto e os arquivos do Cérebro do projeto (a memória da sua marca) em branco, prontos para você preencher. Próximo passo: me diga o nome do site e o mercado dele.

@@ -1,6 +1,6 @@
-# SEO Brain Autoresearch Program
+# Agentic SEO Autoresearch Program
 
-This file defines the autonomous development loop for SEO Brain. It adapts Karpathy's Autoresearch pattern to plugin, skill, and SEO workflow development.
+This file defines the autonomous development loop for Agentic SEO. It adapts Karpathy's Autoresearch pattern to plugin, skill, and SEO workflow development.
 
 References:
 
@@ -10,7 +10,7 @@ References:
 
 ## Mission
 
-Improve SEO Brain by iterating on one measurable skill or subsystem at a time. Every iteration must make the plugin more reliable, more useful for nontechnical SEO users, or more aligned with Agentic SEO.
+Improve Agentic SEO by iterating on one measurable skill or subsystem at a time. Every iteration must make the plugin more reliable, more useful for nontechnical SEO users, or more aligned with Agentic SEO.
 
 ## Operating Principle
 

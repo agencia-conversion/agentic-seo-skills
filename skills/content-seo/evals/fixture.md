@@ -8,7 +8,7 @@ Available context:
 - Keyword: `seo agêntico`.
 - SERP data is unavailable.
 - The user explicitly confirms a DataForSEO bypass with the reason: `teste editorial sem DataForSEO`.
-- `project/brain/voz.md` is empty (no voice principles defined yet).
+- `project/brain/voice.md` is empty (no voice principles defined yet).
 
 Expected output:
 
@@ -20,7 +20,7 @@ Expected output:
 
 Constraints:
 
-- Do not publish into `project/conteudos/`.
+- Do not publish into `project/contents/`.
 - Do not claim data-backed search volume or top-3 findings.
 - Do not auto-approve the briefing.
 - The DataForSEO bypass forces `evidence_gates.dataforseo: bypassed` and prevents claiming a measured Skyscraper target; record `target_words_basis` as the bypass-aware fallback, never as a fabricated number.

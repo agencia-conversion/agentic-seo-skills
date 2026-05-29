@@ -1,10 +1,10 @@
-# SEO Brain - Refactor Status
+# Agentic SEO - Refactor Status
 
 ## Current state
 
-Brain-only model is fully shipped. The skill layer, runtime CLI, helper scripts, companion server, agents, templates, and tests no longer reference the legacy wiki model. `project/brain/` (7 short authorial files) is the only authorial knowledge layer; EEAT proofs live as `tipo: prova` entries in `brain/log.md` and references inside `brain/editorial.md`.
+Brain-only model is fully shipped. The skill layer, runtime CLI, helper scripts, companion server, agents, templates, and tests no longer reference the legacy wiki model. `project/brain/` (7 short authorial files) is the only authorial knowledge layer; EEAT proofs live as `tipo: proof` entries in `brain/log.md` and references inside `brain/editorial.md`.
 
-Public content lives in `project/conteudos/<origem>/<slug>.md`. Raw evidence stays in `project/sources/`. Drafts and analysis stay in `project/workbench/`. Complete deliverables stay in `project/artifacts/`.
+Public content lives in `project/contents/<origem>/<slug>.md`. Raw evidence stays in `project/sources/`. Drafts and analysis stay in `project/workbench/`. Complete deliverables stay in `project/artifacts/`.
 
 ## Layout
 
@@ -12,25 +12,25 @@ Public content lives in `project/conteudos/<origem>/<slug>.md`. Raw evidence sta
 project/
   brain/
     index.md
-    identidade.md
-    voz.md
-    tecnologia.md
+    identity.md
+    voice.md
+    technology.md
     editorial.md
     topic-clusters.md
     log.md
   sources/
-  conteudos/
+  contents/
     blog/<slug>.md
     linkedin/<slug>.md
     podcast/<slug>.md
-    outros/<slug>.md
+    other/<slug>.md
   artifacts/
   workbench/
 ```
 
 ## CLI commands
 
-`bin/seo-brain` exposes:
+`bin/agentic-seo` exposes:
 
 - `project-init` (creates the brain structure and seeds blank templates)
 - `brain-lint`, `brain-approve`, `brain-ingest` (replaced the former `wiki-*` commands)
@@ -43,7 +43,7 @@ project/
 ```markdown
 ## YYYY-MM-DD - <título>
 
-- tipo: aprovacao | decisao | errata | lint | ingestao | publicacao | prova
+- tipo: approval | decision | erratum | lint | ingestion | publication | proof
 - escopo: <arquivo(s) | área | cluster | fonte>
 - decisao: <o que mudou>
 - evidencia: <wikilinks, ../sources/..., urls>
@@ -57,8 +57,8 @@ project/
 The browser-based approval/preview flow runs on the brain model:
 
 - Helper module: `scripts/lib/brain-page.mjs` (renamed from `wiki-page.mjs`).
-- Approval target paths are `brain/<page>.md`; the only authorial pages are `index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`.
-- Missing sources detected during page review are registered as `tipo: ingestao` entries in `brain/log.md` (no separate sources catalog).
+- Approval target paths are `brain/<page>.md`; the only authorial pages are `index`, `identity`, `voice`, `technology`, `editorial`, `topic-clusters`.
+- Missing sources detected during page review are registered as `tipo: ingestion` entries in `brain/log.md` (no separate sources catalog).
 - `eeat` engine accepts `--mode brain` or `--mode url`.
 
 ## Tools

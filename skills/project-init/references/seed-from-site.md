@@ -11,7 +11,7 @@ NUNCA escreve direto nos arquivos autorais do Cérebro (brain/) sem aprovação.
 ## Quando este passo se aplica
 
 - O usuário escolheu a opção (b) "rascunho automático (recomendado)".
-- Existe um `site_url` válido em `project/.seo-brain/project.json` (ou o usuário
+- Existe um `site_url` válido em `project/.agentic-seo/project.json` (ou o usuário
   informou a URL do site principal).
 - A estrutura básica do projeto já foi criada (diretórios + arquivos do Cérebro
   em branco a partir dos templates). O rascunho automático acontece DEPOIS do
@@ -26,10 +26,10 @@ Faz:
 
 1. Seleciona até 10 URLs representativas do domínio principal.
 2. Extrai o conteúdo dessas páginas (texto visível, títulos, descrições).
-3. Compõe um RASCUNHO das páginas do Cérebro (identidade, voz, tecnologia,
+3. Compõe um RASCUNHO das páginas do Cérebro (identity, voice, technology,
    editorial, topic-clusters, index) com base apenas no que foi lido.
 4. Marca o rascunho como pendente de aprovação e registra a coleta no diário
-   (brain/log.md) com `tipo: ingestao`.
+   (brain/log.md) com `tipo: ingestion`.
 5. Apresenta o rascunho para o usuário revisar, editar e aprovar.
 
 NÃO faz:
@@ -76,10 +76,10 @@ Componha um rascunho para cada página do Cérebro a partir do que foi lido:
 
 - `index` — status atual e mapa (estrutura já existe; só preencher o que for
   observável).
-- `identidade` — aposto, parágrafo de apresentação, promessa, público,
+- `identity` — aposto, parágrafo de apresentação, promessa, público,
   identidade técnica e canais.
-- `voz` — princípios e registro inferidos do tom dos textos.
-- `tecnologia` — stack/CMS aparente; o resto fica como pendência.
+- `voice` — princípios e registro inferidos do tom dos textos.
+- `technology` — stack/CMS aparente; o resto fica como pendência.
 - `editorial` — áreas editoriais inferidas dos temas recorrentes.
 - `topic-clusters` — clusters semânticos inferidos.
 
@@ -95,13 +95,12 @@ Regras duras de composição:
 ## Registro no diário (log)
 
 Anexe ao `brain/log.md` exatamente uma entrada de ingestão por execução do
-rascunho automático. Use o token PT do enum: `ingestao` (sem "n" final; não
-use "ingestion"):
+rascunho automático. Use o token do enum: `ingestion`:
 
 ```markdown
 ## YYYY-MM-DD - Coleta para rascunho automático do Cérebro
 
-- tipo: ingestao
+- tipo: ingestion
 - escopo: project/workbench/ (rascunho do brain)
 - decisao: Coletadas N páginas do domínio principal para compor rascunho do Cérebro.
 - evidencia: <lista das URLs lidas>
@@ -118,10 +117,10 @@ explicitamente. Conforme AGENTS.md (linha 16) e a skill brain-keeper:
 - Apresente o rascunho para o usuário revisar e editar. O caminho recomendado é
   abrir uma tela no navegador (handoff `project-browser`, ver AGENTS.md →
   "Browser Handoff"): ela mostra as páginas do Cérebro, coleta o aprovador e, no
-  envio, grava a entrada `tipo: aprovacao` no `brain/log.md` automaticamente.
+  envio, grava a entrada `tipo: approval` no `brain/log.md` automaticamente.
   Lance o handoff no modo persistente/detached — nunca preso a um Bash com timeout.
 - Só ao receber aprovação explícita o conteúdo aprovado é movido para os
-  arquivos de `project/brain/` e registrado com uma nova entrada `tipo: aprovacao`
+  arquivos de `project/brain/` e registrado com uma nova entrada `tipo: approval`
   (com `aprovador` = nome humano e `aprovado_em` preenchidos).
 - Sem essa aprovação, o rascunho permanece em `workbench/` e não é tratado como
   evidência por nenhuma outra skill.

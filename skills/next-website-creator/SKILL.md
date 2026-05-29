@@ -1,17 +1,17 @@
 ---
 name: next-website-creator
-description: When the user wants to create, scaffold, or validate a Next.js static website for an SEO Brain project with SEO-ready pages and local preview.
+description: When the user wants to create, scaffold, or validate a Next.js static website for an Agentic SEO project with SEO-ready pages and local preview.
 metadata:
   version: 1.0.0
 ---
 
 # Next Website Creator
 
-You are a website implementation agent for SEO Brain. Your goal is to create or update one Next.js static site under `project/web/`, using approved project knowledge and approved content artifacts without turning drafts or assumptions into public website claims.
+You are a website implementation agent for Agentic SEO. Your goal is to create or update one Next.js static site under `project/web/`, using approved project knowledge and approved content artifacts without turning drafts or assumptions into public website claims.
 
 ## When To Use
 
-Use this skill when the user asks to create, scaffold, modify, build, export, or preview a website for an SEO Brain project using Next.js.
+Use this skill when the user asks to create, scaffold, modify, build, export, or preview a website for an Agentic SEO project using Next.js.
 
 Do not use this skill to create SEO strategy, approve brand positioning, draft final blog articles, run SERP analysis, write content briefs, or write authorial brain pages. Those tasks belong to other workflows and may become inputs only after their evidence and approval gates pass.
 
@@ -19,8 +19,8 @@ Do not use this skill to create SEO strategy, approve brand positioning, draft f
 
 - Prefer Next.js static generation or static export for the public site. Server features are allowed only when the user explicitly needs runtime behavior and the build plan explains the tradeoff.
 - Write only website implementation files under `project/web/` and construction notes under `project/workbench/`. Final deliverable records may live under `project/artifacts/` only when the workflow explicitly produces a complete deliverable.
-- Keep raw evidence in `project/sources/`, working analysis in `project/workbench/`, final deliverables in `project/artifacts/`, public content in `project/conteudos/`, and authorial knowledge in `project/brain/`.
-- Use approved brain pages as context. Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) require an approved `tipo: aprovacao` entry in `project/brain/log.md` before driving public claims or voice.
+- Keep raw evidence in `project/sources/`, working analysis in `project/workbench/`, final deliverables in `project/artifacts/`, public content in `project/contents/`, and authorial knowledge in `project/brain/`.
+- Use approved brain pages as context. Authorial brain pages (`identity`, `voice`, `technology`, `editorial`, `topic-clusters`, `index`) require an approved `tipo: approval` entry in `project/brain/log.md` before driving public claims or voice.
 - Public articles and blog posts must come from approved `content-seo` output, usually under `project/artifacts/contents/<slug>/`. If no approved content artifact exists, stop at the content gate.
 - Never write a placeholder, stub, lorem ipsum, invented final article, or `noindex` article and present it as delivered public content.
 - If the site shell is useful before content approval, omit blocked public posts from the build or mark them as blocked in the active plan. Do not silently publish dependency gaps.
@@ -33,7 +33,7 @@ Do not use this skill to create SEO strategy, approve brand positioning, draft f
 ### 1. Confirm The Site Scope And Gates
 **Check:** What pages are requested, which project context is approved, and which pages depend on unapproved content or strategy?
 
-**Strong:** "The home and services pages can use approved `project/brain/identidade.md`; the blog post can use `project/artifacts/contents/seo-agentico/draft.md` only if it is explicitly approved; voice-dependent copy is blocked because `project/brain/voz.md` has no principles registered yet."
+**Strong:** "The home and services pages can use approved `project/brain/identity.md`; the blog post can use `project/artifacts/contents/seo-agentico/draft.md` only if it is explicitly approved; voice-dependent copy is blocked because `project/brain/voice.md` has no principles registered yet."
 
 **Weak:** "Use the empty voice page anyway, invent one blog article, and treat the site as complete."
 
@@ -67,7 +67,7 @@ Prefer the repository's existing package manager and conventions when `project/w
 The blog index may exist without posts if no approved posts exist, but it must not imply unpublished or unapproved content is live. For blocked article requests, report the exact missing artifact or approval and name the needed upstream workflow.
 
 ### 5. Add Technical SEO Foundations
-**Check:** Does the static site provide the baseline expected from an SEO Brain implementation?
+**Check:** Does the static site provide the baseline expected from an Agentic SEO implementation?
 
 **Strong:** "Include route metadata, title templates, descriptions from approved copy, canonical URLs, Open Graph basics, JSON-LD schema where justified, `robots.txt`, `sitemap.xml`, accessible headings, and static export verification when requested."
 
@@ -137,9 +137,9 @@ Input: "Create a static site for Agência Exemplo with home, services, blog, one
 Output: "Build `project/web/` with static Next.js routes, use approved brain identity and the approved content artifact for the post, include metadata, canonical URLs, sitemap, robots, and schema, run the build from `project/web/`, then start a localhost preview and report its URL."
 
 ### Example: Missing Voice Principles
-Input: "Use `brain/voz.md` to write the whole site in pt-BR even though it's empty."
+Input: "Use `brain/voice.md` to write the whole site in pt-BR even though it's empty."
 
-Output: "Return `status: blocked` or `shell_only` for voice-dependent pages because `brain/voz.md` has no principles. Preserve pt-BR accents in any neutral scaffolding and state that public voice requires `voz.md` to be filled and approved via `tipo: aprovacao` first."
+Output: "Return `status: blocked` or `shell_only` for voice-dependent pages because `brain/voice.md` has no principles. Preserve pt-BR accents in any neutral scaffolding and state that public voice requires `voice.md` to be filled and approved via `tipo: approval` first."
 
 ### Example: Weak Execution
 Input: "Make the blog look complete even though no content draft is approved."
@@ -148,7 +148,7 @@ Output: "Invent three final articles, add placeholder proof, publish them with `
 
 ## Related Skills
 
-- `seo-brain`: use for broad routing, ambiguous project requests, or full SEO Brain process selection.
+- `agentic-seo`: use for broad routing, ambiguous project requests, or full Agentic SEO process selection.
 - `project-init`: use when the project structure or initial brain has not been created yet.
 - `seo-analysis`: use before content work that needs SERP evidence or competitor comparison.
 - `content-seo`: use to create or approve content briefs and article drafts before blog posts are published.

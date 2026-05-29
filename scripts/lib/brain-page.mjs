@@ -48,7 +48,7 @@ export function listIngestedSources(logFile) {
   const sources = new Set();
   const blocks = text.split(/^## /m).slice(1);
   for (const block of blocks) {
-    if (!/^- tipo:\s*ingestao\b/m.test(block)) continue;
+    if (!/^- tipo:\s*ingestion\b/m.test(block)) continue;
     const escopo = block.match(/^- escopo:\s*(.+)$/m);
     if (escopo) sources.add(escopo[1].trim());
     const evidencia = block.match(/^- evidencia:\s*(.+)$/m);
@@ -96,7 +96,7 @@ export function writeSnapshot(projectRoot, pageRel, body) {
 export function diffAgainstSnapshot(projectRoot, pageRel, currentBody) {
   const previous = readSnapshot(projectRoot, pageRel);
   if (previous === null) return { hasPrevious: false, unified: "" };
-  const dir = mkdtempSync(join(tmpdir(), "seo-brain-diff-"));
+  const dir = mkdtempSync(join(tmpdir(), "agentic-seo-diff-"));
   const tmpA = join(dir, "previous.md");
   const tmpB = join(dir, "current.md");
   try {
@@ -138,7 +138,7 @@ export function appendSourcesAsIngest(logFile, sources, aprovador) {
     const label = sourcePath.split("/").pop() || sourcePath;
     appendLogEntry(logFile, {
       date,
-      tipo: "ingestao",
+      tipo: "ingestion",
       titulo: `Ingestao de fonte: ${label}`,
       escopo: sourcePath,
       decisao: "Catalogada via aprovacao de pagina do brain.",

@@ -4,8 +4,8 @@ Create a plan for generating a static SEO site for `Agência Exemplo`.
 
 Available project context:
 
-- `brain/identidade.md` has approved content (matching `tipo: aprovacao` entry in `brain/log.md`).
-- `brain/voz.md` is empty (no principles registered).
+- `brain/identity.md` has approved content (matching `tipo: approval` entry in `brain/log.md`).
+- `brain/voice.md` is empty (no principles registered).
 - There is one approved content artifact at `project/artifacts/contents/seo-agentico/draft.md`.
 - The user asks for a home page, services page, blog index, and one blog post.
 

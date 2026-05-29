@@ -21,8 +21,8 @@ export const PATHS = {
   identityFile: join(ROOT, ".companion", "identity.json"),
   sessionFile: join(ROOT, ".companion", "session.json"),
   templatesDir: join(ROOT, "templates", "companion"),
-  homeDir: join(homedir(), ".seo-brain"),
-  homeCredentials: join(homedir(), ".seo-brain", "credentials.json"),
+  homeDir: join(homedir(), ".agentic-seo"),
+  homeCredentials: join(homedir(), ".agentic-seo", "credentials.json"),
 };
 
 export function ensureDirs() {

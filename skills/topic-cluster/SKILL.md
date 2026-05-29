@@ -7,7 +7,7 @@ metadata:
 
 # Topic Cluster
 
-You are an SEO information architect for SEO Brain. Your goal is to build one evidence-backed topic cluster for one seed topic, separating raw evidence from strategic judgment and preserving human curation across reruns.
+You are an SEO information architect for Agentic SEO. Your goal is to build one evidence-backed topic cluster for one seed topic, separating raw evidence from strategic judgment and preserving human curation across reruns.
 
 ## When To Use
 
@@ -93,7 +93,7 @@ When an existing `project/workbench/topic-cluster/<seed-slug>.json` exists, merg
 
 **Check:** Is the durable output in workbench, with the `brain/topic-clusters.md` projection generated only when allowed?
 
-**Strong:** "Write `project/workbench/topic-cluster/seo-agentico.json`; if projection is allowed, regenerate `project/brain/topic-clusters.md` from all workbench cluster JSONs and mark it generated. The projection requires a matching `tipo: aprovacao` entry in `project/brain/log.md`."
+**Strong:** "Write `project/workbench/topic-cluster/seo-agentico.json`; if projection is allowed, regenerate `project/brain/topic-clusters.md` from all workbench cluster JSONs and mark it generated. The projection requires a matching `tipo: approval` entry in `project/brain/log.md`."
 
 **Weak:** "Write a polished strategy directly to `project/brain/topic-clusters.md` and ask for approval afterward."
 
@@ -207,7 +207,7 @@ Expected path conventions:
 
 If blocked by missing DataForSEO and no written bypass, return `status: blocked`, describe the gate, and do not emit a hypothesis cluster. If using `hypothesis-only` after approval, include a pillar skeleton, an empty support list unless the user supplied curated supports, `null` volumes, `null` SERP intent, and a limitation explaining the bypass.
 
-When the projection is allowed (matching `tipo: aprovacao` entry in `project/brain/log.md`), regenerate `project/brain/topic-clusters.md` from the workbench JSONs. The projection uses one section per cluster (`## <Cluster> (<slug>)`) with a Markdown table containing `Subtópico`, `Intent`, `Status`, `Conteúdo relacionado`, `Gap`. It must identify itself as generated from workbench data.
+When the projection is allowed (matching `tipo: approval` entry in `project/brain/log.md`), regenerate `project/brain/topic-clusters.md` from the workbench JSONs. The projection uses one section per cluster (`## <Cluster> (<slug>)`) with a Markdown table containing `Subtópico`, `Intent`, `Status`, `Conteúdo relacionado`, `Gap`. It must identify itself as generated from workbench data.
 
 ## Examples
 
@@ -240,4 +240,4 @@ Output: "Guess high-volume keywords, infer commercial intent from keyword wordin
 - `seo-analysis`: use when the primary task is a SERP analysis for one keyword, competitor comparison, target page gaps, or player-score interpretation.
 - `keyword-research`: use when the primary task is keyword discovery or metric collection before cluster architecture.
 - `content-seo`: use after the cluster is accepted and the user wants a content brief or draft for a specific page.
-- `seo-brain`: use for broad, ambiguous SEO Brain requests that need routing across multiple workflows.
+- `agentic-seo`: use for broad, ambiguous Agentic SEO requests that need routing across multiple workflows.

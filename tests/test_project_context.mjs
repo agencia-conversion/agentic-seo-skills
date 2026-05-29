@@ -5,10 +5,10 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const bin = resolve(root, "bin", "seo-brain");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-project-context-"));
+const bin = resolve(root, "bin", "agentic-seo");
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-project-context-"));
 const project = join(tmp, "project");
-const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: project };
+const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: project };
 
 execFileSync(bin, ["project-init", "Context test", "--market", "Portugal", "--country", "Portugal", "--language", "pt-PT"], {
   cwd: root,
@@ -16,7 +16,7 @@ execFileSync(bin, ["project-init", "Context test", "--market", "Portugal", "--co
   env,
 });
 
-const config = JSON.parse(readFileSync(join(project, ".seo-brain", "project.json"), "utf8"));
+const config = JSON.parse(readFileSync(join(project, ".agentic-seo", "project.json"), "utf8"));
 assert.equal(config.country, "Portugal");
 assert.equal(config.market, "Portugal");
 assert.equal(config.language, "pt-PT");
@@ -26,16 +26,16 @@ assert.equal(config.single_project_root, "project");
 const brainIndex = readFileSync(join(project, "brain", "index.md"), "utf8");
 assert.ok(brainIndex.includes('title: "Context test"'));
 
-for (const page of ["index.md", "identidade.md", "voz.md", "tecnologia.md", "editorial.md", "topic-clusters.md", "log.md"]) {
+for (const page of ["index.md", "identity.md", "voice.md", "technology.md", "editorial.md", "topic-clusters.md", "log.md"]) {
   assert.ok(existsSync(join(project, "brain", page)), `missing brain/${page}`);
 }
-for (const origem of ["blog", "linkedin", "podcast", "outros"]) {
-  assert.ok(existsSync(join(project, "conteudos", origem, "_template.md")), `missing conteudos/${origem}/_template.md`);
+for (const origem of ["blog", "linkedin", "podcast", "other"]) {
+  assert.ok(existsSync(join(project, "contents", origem, "_template.md")), `missing contents/${origem}/_template.md`);
 }
 
 const log = readFileSync(join(project, "brain", "log.md"), "utf8");
 assert.match(log, /## \d{4}-\d{2}-\d{2} - Projeto criado/);
-assert.match(log, /tipo: decisao/);
+assert.match(log, /tipo: decision/);
 assert.match(log, /Portugal/);
 
 rmSync(tmp, { recursive: true, force: true });

@@ -5,9 +5,9 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const bin = resolve(root, "bin", "seo-brain");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-reject-project-"));
-const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: join(tmp, "project") };
+const bin = resolve(root, "bin", "agentic-seo");
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-reject-project-"));
+const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: join(tmp, "project") };
 
 const result = spawnSync(bin, ["brain-lint", "--project", "legacy"], {
   cwd: root,

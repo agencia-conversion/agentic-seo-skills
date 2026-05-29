@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// CLI for the /seo-brain:eeat skill engine.
+// CLI for the /agentic-seo:eeat skill engine.
 // Subcommands: init, validate, consensus.
 
 import * as fs from "node:fs";
@@ -46,7 +46,7 @@ function writeText(p, text) {
 }
 
 function projectDir(cwd) {
-  const env = process.env.SEO_BRAIN_PROJECT_DIR;
+  const env = process.env.AGENTIC_SEO_PROJECT_DIR;
   if (env) return path.resolve(env);
   return path.resolve(cwd, "project");
 }
@@ -62,11 +62,11 @@ function stamp() {
 
 function defaultPagesForBrain(projDir) {
   return [
-    { id: "brain/identidade", path: "brain/identidade.md", page_type: "about" },
+    { id: "brain/identity", path: "brain/identity.md", page_type: "about" },
     { id: "brain/index", path: "brain/index.md", page_type: "homepage" },
     { id: "brain/editorial", path: "brain/editorial.md", page_type: "service" },
-    { id: "brain/voz", path: "brain/voz.md", page_type: "policy" },
-    { id: "brain/tecnologia", path: "brain/tecnologia.md", page_type: "policy" },
+    { id: "brain/voice", path: "brain/voice.md", page_type: "policy" },
+    { id: "brain/technology", path: "brain/technology.md", page_type: "policy" },
   ].filter((p) => fs.existsSync(path.join(projDir, p.path)));
 }
 
@@ -96,7 +96,7 @@ const SUBCOMMANDS = {
   init(args, cwd) {
     const mode = args.mode || (args.url ? "url" : "brain");
     if (!["brain", "url"].includes(mode)) fail("--mode must be brain|url");
-    const value = mode === "url" ? args.url : (args.value || path.join(projectDir(cwd), "brain", "identidade.md"));
+    const value = mode === "url" ? args.url : (args.value || path.join(projectDir(cwd), "brain", "identity.md"));
     if (mode === "url" && !value) fail("--url required for url mode");
     const targetSlug = slugify(args.slug || (mode === "url" ? new URL(value).hostname : "brain"));
     const proj = projectDir(cwd);

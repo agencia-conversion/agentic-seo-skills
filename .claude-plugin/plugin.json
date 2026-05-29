@@ -1,5 +1,5 @@
 {
-  "name": "seo-brain",
+  "name": "agentic-seo",
   "version": "0.2.0",
   "description": "Agentic SEO operating system with project brains, data-backed SEO analysis, content workflows, and technical SEO checks.",
   "author": {
@@ -34,7 +34,7 @@
     "project_dir": {
       "type": "directory",
       "title": "Diretorio do projeto",
-      "description": "Diretorio onde SEO Brain cria o projeto unico.",
+      "description": "Diretorio onde Agentic SEO cria o projeto unico.",
       "required": false,
       "default": "./project"
     },

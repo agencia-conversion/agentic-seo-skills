@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SEO Brain · Aprovar página</title>
+<title>Agentic SEO · Aprovar página</title>
 <!--CONTEXT-->
 <style>
   :root {
@@ -135,7 +135,7 @@
       <textarea id="notes" name="notes" placeholder="Motivo da decisão, evidências faltando, próximos passos..."></textarea>
     </div>
     <div class="row" id="register-row" style="display:none;">
-      <label><input type="checkbox" id="register_missing" name="register_missing" /> Registrar fontes faltando como entradas <code>tipo: ingestao</code> em <code>brain/log.md</code> ao aprovar</label>
+      <label><input type="checkbox" id="register_missing" name="register_missing" /> Registrar fontes faltando como entradas <code>tipo: ingestion</code> em <code>brain/log.md</code> ao aprovar</label>
     </div>
     <div id="error" class="alert-box" style="display:none;"></div>
     <div id="success" class="ok-box" style="display:none;">Decisão registrada. Pode fechar esta aba.</div>
@@ -247,7 +247,7 @@
 
   // Missing sources
   const missingPane = document.getElementById("pane-missing");
-  if (!missingCount) missingPane.innerHTML = '<div class="empty">Todas as fontes citadas têm entradas <code>tipo: ingestao</code> em <code>brain/log.md</code>.</div>';
+  if (!missingCount) missingPane.innerHTML = '<div class="empty">Todas as fontes citadas têm entradas <code>tipo: ingestion</code> em <code>brain/log.md</code>.</div>';
   else missingPane.innerHTML = '<ul class="source-list">' + ctx.missingSources.map((p) => `<li class="alert">${escape(p)}</li>`).join("") + "</ul>";
   if (missingCount) document.getElementById("register-row").style.display = "";
 

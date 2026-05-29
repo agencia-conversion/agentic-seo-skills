@@ -8,7 +8,7 @@ updated: "<YYYY-MM-DD>"
 <!--
 Este arquivo é o ponto de entrada do brain. Mantenha curto: mapa + dashboard.
 O brandbook narrativo (aposto, parágrafo, frase-marca, público, canais) vive em
-[[identidade]]. Aqui só o que muda com frequência.
+[[identity]]. Aqui só o que muda com frequência.
 -->
 
 ## Status atual
@@ -21,9 +21,9 @@ O brandbook narrativo (aposto, parágrafo, frase-marca, público, canais) vive e
 
 ## Mapa do brain
 
-- [[identidade]] — quem somos, público, posicionamento, canais
-- [[voz]] — princípios editoriais
-- [[tecnologia]] — stack e SEO técnico
+- [[identity]] — quem somos, público, posicionamento, canais
+- [[voice]] — princípios editoriais
+- [[technology]] — stack e SEO técnico
 - [[editorial]] — áreas de conteúdo
 - [[topic-clusters]] — clusters semânticos
 - [[log]] — eventos cronológicos

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import YAML from "yaml";
 
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-brief-"));
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-brief-"));
 process.env.HOME = tmp;
 const projectRoot = join(tmp, "project");
 mkdirSync(join(projectRoot, "brain"), { recursive: true });
@@ -19,10 +19,10 @@ const { buildContext, handleSubmit } = await import("../scripts/lib/companion-ty
 const contextEvidence = {
   path: "workbench/content/context-evidence.yaml",
   brain_pages_read: [
-    { path: "brain/identidade.md", title: "Identidade", filled: true, updated: "2026-05-05", content_hash_sha256: "abc123", excerpts_used: ["Contexto aprovado"] },
+    { path: "brain/identity.md", title: "Identidade", filled: true, updated: "2026-05-05", content_hash_sha256: "abc123", excerpts_used: ["Contexto aprovado"] },
   ],
   voice_evidence: {
-    path: "brain/voz.md",
+    path: "brain/voice.md",
     title: "Voz",
     filled: true,
     updated: "2026-05-05",
@@ -69,7 +69,7 @@ const baseBrief = {
     ],
     outline_capacity: { target_words: 2000, min_h2_sections: 4, planned_h2_sections: 4, planned_words: 2000, can_support_target: true, iterations: [] },
   },
-  voice_context: { path: "brain/voz.md", filled: true, title: "Voz", updated: "2026-05-05" },
+  voice_context: { path: "brain/voice.md", filled: true, title: "Voz", updated: "2026-05-05" },
   approval: { phase: "briefing", mode: "handoff", status: "pending", aprovador: null, aprovado_em: null, decided_at: null, notes: null },
   draft_status: "briefing",
 };
@@ -118,14 +118,14 @@ function writeJsonBrief(name, override = {}) {
   assert.match(draft, /source_policy: frontmatter-consulted-sources/);
   assert.doesNotMatch(draft, /\]\(https?:\/\//);
   const log = readFileSync(join(projectRoot, "brain", "log.md"), "utf8");
-  assert.match(log, /tipo: decisao/);
+  assert.match(log, /tipo: decision/);
   assert.match(log, /aprovador: Diego Ivo/);
   assert.match(log, /draft gerado em artifacts/);
 }
 
 {
   const draftVoice = { ...contextEvidence, voice_evidence: { ...contextEvidence.voice_evidence, filled: false } };
-  const file = writeBrief("voice-draft.brief.yaml", { context_evidence: draftVoice, voice_context: { path: "brain/voz.md", filled: false, title: "Voz" } });
+  const file = writeBrief("voice-draft.brief.yaml", { context_evidence: draftVoice, voice_context: { path: "brain/voice.md", filled: false, title: "Voz" } });
   const ctx = buildContext({ projectRoot, briefPath: file });
   const blocked = await handleSubmit({ decision: "approved", approver: "Diego", notes: "" }, ctx);
   assert.deepEqual(blocked, { ok: false, reason: "voice-context-not-acknowledged" });

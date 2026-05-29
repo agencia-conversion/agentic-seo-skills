@@ -7,8 +7,8 @@ The user says:
 Project state:
 
 - No DataForSEO credentials.
-- `brain/identidade.md` has approved content (matching `tipo: aprovacao` entry in `brain/log.md`).
-- `brain/voz.md` is empty (placeholders untouched).
+- `brain/identity.md` has approved content (matching `tipo: approval` entry in `brain/log.md`).
+- `brain/voice.md` is empty (placeholders untouched).
 
 Expected output:
 

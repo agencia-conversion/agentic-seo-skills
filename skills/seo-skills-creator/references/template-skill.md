@@ -17,7 +17,7 @@ Use this skill for one task. Do not use it for nearby work that belongs to anoth
 
 - Never fabricate keyword volume, backlinks, credentials, awards, clients, or proof.
 - Keep raw evidence in `project/sources/`, working drafts in `project/workbench/`, and final deliverables in `project/artifacts/`.
-- Authorial brain pages require an approved `tipo: aprovacao` entry in `project/brain/log.md`.
+- Authorial brain pages require an approved `tipo: approval` entry in `project/brain/log.md`.
 - Preserve the requested output language, including pt-BR accents.
 
 ## Framework
@@ -59,9 +59,9 @@ Output: "Use `keyword-research` or `seo-analysis`, preserve pt-BR accents, inclu
 
 ### Example: Missing gate
 Input: "Publish this strategic positioning page."
-Output: "Return `approval_required`; authorial brain pages require an approved `tipo: aprovacao` entry in `project/brain/log.md` before promotion."
+Output: "Return `approval_required`; authorial brain pages require an approved `tipo: approval` entry in `project/brain/log.md` before promotion."
 
 ## Related Skills
 
-- `seo-brain`: route broad or ambiguous SEO Brain requests.
+- `agentic-seo`: route broad or ambiguous Agentic SEO requests.
 - `seo-tools-creator`: create deterministic tools, not narrative skills.

@@ -5,9 +5,9 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const bin = resolve(root, "bin", "seo-brain");
-const tmp = mkdtempSync(resolve(tmpdir(), "seo-brain-technical-"));
-const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: resolve(tmp, "project") };
+const bin = resolve(root, "bin", "agentic-seo");
+const tmp = mkdtempSync(resolve(tmpdir(), "agentic-seo-technical-"));
+const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: resolve(tmp, "project") };
 
 execFileSync(bin, ["project-init", "Technical test"], { cwd: root, encoding: "utf8", env });
 

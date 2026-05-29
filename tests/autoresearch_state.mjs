@@ -30,14 +30,14 @@ assert.match(runId, /^\d{8}-\d{6}-improve-hero-headline$/);
 
 // --- resolveRunDir ---
 const projectRoot = join(tmp, "repo");
-mkdirSync(join(projectRoot, "project", ".seo-brain"), { recursive: true });
+mkdirSync(join(projectRoot, "project", ".agentic-seo"), { recursive: true });
 assert.equal(resolveProjectRoot(projectRoot), join(projectRoot, "project"));
 const dirWithProject = resolveRunDir(projectRoot, runId);
 assert.equal(dirWithProject, join(projectRoot, "project", ".context", "autoresearch", runId));
 rmSync(join(projectRoot, "project"), { recursive: true, force: true });
 const dirFreeUse = resolveRunDir(projectRoot, runId);
 assert.equal(dirFreeUse, join(projectRoot, ".context", "autoresearch", runId));
-mkdirSync(join(projectRoot, "project", ".seo-brain"), { recursive: true });
+mkdirSync(join(projectRoot, "project", ".agentic-seo"), { recursive: true });
 
 // --- createRun ---
 const created = createRun({

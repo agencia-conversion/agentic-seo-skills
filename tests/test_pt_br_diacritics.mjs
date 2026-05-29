@@ -6,10 +6,10 @@ import { join, resolve } from "node:path";
 import YAML from "yaml";
 
 const root = resolve(import.meta.dirname, "..");
-const bin = resolve(root, "bin", "seo-brain");
-const tmp = mkdtempSync(join(tmpdir(), "seo-brain-ptbr-"));
+const bin = resolve(root, "bin", "agentic-seo");
+const tmp = mkdtempSync(join(tmpdir(), "agentic-seo-ptbr-"));
 const project = join(tmp, "project");
-const env = { ...process.env, SEO_BRAIN_PROJECT_DIR: project, DATAFORSEO_LOGIN: "", DATAFORSEO_PASSWORD: "" };
+const env = { ...process.env, AGENTIC_SEO_PROJECT_DIR: project, DATAFORSEO_LOGIN: "", DATAFORSEO_PASSWORD: "" };
 
 function run(...args) {
   execFileSync(bin, args, { cwd: root, encoding: "utf8", env });
@@ -69,7 +69,7 @@ try {
   run("technical-seo", "--html-file", join(root, "tests", "fixtures", "technical-seo-valid.html"), "--page-type", "blog-post");
   run("next-website-creator");
 
-  const markdown = [...walk(join(project, "brain")), ...walk(join(project, "conteudos")), ...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]
+  const markdown = [...walk(join(project, "brain")), ...walk(join(project, "contents")), ...walk(join(project, "workbench")), ...walk(join(project, "artifacts"))]
     .filter((file) => file.endsWith(".md") && !file.endsWith("log.md"))
     .map((file) => markdownProse(readFileSync(file, "utf8")))
     .join("\n");

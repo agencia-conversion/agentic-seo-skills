@@ -159,7 +159,7 @@ export async function handleSubmit(body, ctx, projectRoot) {
   const accepted = classification["unchanged-from-v1"].length !== ctx.files.length;
   appendLogEntry(logFile, {
     date: today,
-    tipo: accepted ? "aprovacao" : "decisao",
+    tipo: accepted ? "approval" : "decision",
     titulo: `Review revisado em ${ctx.files.length} arquivo(s)`,
     escopo: ctx.files.map((f) => f.path.replace(/^brain\//, "").replace(/\.md$/, "")).join(", "),
     decisao: summaryParts.join("; ") + " | " + detailLines.join(" / "),
@@ -174,8 +174,8 @@ export async function handleSubmit(body, ctx, projectRoot) {
 
 export async function runReviewChanges(argv = []) {
   const args = parseArgs(argv);
-  if (args.project) throw new Error("--project is no longer supported; SEO Brain uses the single project at project/.");
-  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.SEO_BRAIN_PROJECT_DIR ?? "project";
+  if (args.project) throw new Error("--project is no longer supported; Agentic SEO uses the single project at project/.");
+  const projectRootArg = args["project-root"] ?? process.env.CLAUDE_PLUGIN_OPTION_project_dir ?? process.env.AGENTIC_SEO_PROJECT_DIR ?? "project";
   if (!args.proposal) throw new Error("missing --proposal <path>");
   const projectRoot = resolve(projectRootArg);
   const proposalPath = resolve(args.proposal);
