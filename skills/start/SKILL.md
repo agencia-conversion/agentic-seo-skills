@@ -24,6 +24,7 @@ Do not use this skill for ongoing SEO work after the project already has a defin
 - Do not duplicate a full Agentic SEO workflow here. Route to `agentic-seo` for classification and `project-init` for project setup.
 - Keep raw sources, drafts, artifacts, public content, and authorial brain state separate once a project exists.
 - Preserve the user's language and diacritics. In pt-BR, write accents correctly: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
+- Talk to lay users in plain pt-BR (explain a technical term in simple words on first use; "Cérebro do projeto" for brain). Show progress as a one-step-per-line native checklist (TodoWrite), with minimal prose, never depending on Ruflo or any external MCP. See `docs/output-and-tone.md` for tone, the lay glossary, and progress.
 
 ## Framework
 
