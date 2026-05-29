@@ -62,15 +62,54 @@ First-run setup may create blank brain templates and operational log entries, bu
 - `project/brain/topic-clusters.md`
 - `project/brain/review.md`
 
+No caminho `from_site` (onboarding, autorização prévia do Passo 0), o subagente
+`project-init` ESCREVE essas páginas direto em `project/brain/` para o usuário
+revisar — sem `workbench/` e sem `type: approval` — e registra UMA entrada
+`type: decision` com `approver` = nome do usuário (passe o identificador do usuário
+ao delegar, junto de `prefill_choice`/`site_extractions`/`additional_info`). Isso
+permanece compatível com "recorded through `type: decision`". Esta relaxação vale
+SOMENTE no onboarding/seed; os demais gates e o `brain-keeper` seguem intactos.
+
 ### 4. Route The Next Action
 
 Return one clear routing decision:
 
-- `project-init` when no Agentic SEO project exists. When delegating, pass the pre-fill decision (`prefill_choice`), `site_url`, the `site_extractions` already read, and the `additional_info` text — the subagent cannot ask the user.
+- `project-init` when no Agentic SEO project exists. When delegating, pass the pre-fill decision (`prefill_choice`), `site_url`, the `site_extractions` already read, the `additional_info` text, and the user identifier as `approver` for the `from_site` seed `type: decision` entry — the subagent cannot ask the user.
 - `agentic-seo` when the project exists but the user's goal is broad or unclear.
 - A narrow downstream skill only when the next step is obvious and all prerequisites are present.
 
 Stop at the first missing gate. Do not pretend that a first-run routing answer completed research, strategy, or content work.
+
+### 5. Fechamento Pronto-Para-Uso (obrigatório, em ordem)
+
+O `/start` **não termina "no ar"**: ou o Cérebro foi entregue e o Companion
+oferecido, ou há um próximo passo claro. Quando `project-init` retornou
+`status: complete`, conduza estes quatro estágios, **nesta ordem**, cada um
+obrigatório:
+
+- **E1 — Cérebro preenchido e entregue.** No caminho `from_site`, as páginas do
+  Cérebro já estão escritas em `project/brain/` (registro `type: decision`,
+  `approver` = usuário). No caminho `blank`, o Cérebro fica em branco
+  (sem mudança). Em ambos, a entrega aponta para `project/brain/index.md`.
+- **E2 — Pedir permissão e abrir o Companion.** Feche a mensagem de entrega com a
+  linha canônica EXATA: `Posso abrir o Web Companion para você revisar esta
+  entrega?` (sem pergunta depois). Só após o "sim", abra o Companion com o comando
+  canônico detached mirando o projeto do usuário (`agentic-seo project-browser
+  --detach`), em silêncio — sem expor comando/token/URL de debug, nunca `cd` na
+  pasta do plugin (ver `AGENTS.md` → "Browser handoff" → "Correct launch").
+  Confirme com 1 frase + a `url` lida da JSON status line. Se o usuário recusar,
+  não abra; diga onde o Cérebro está (em prosa) e siga para E3.
+- **E3 — Esperar a revisão.** PARE e aguarde o usuário dizer que revisou
+  ("revisei", "ok", "pode seguir", ou edições feitas). NÃO emende E4 na mesma
+  mensagem em que pediu para abrir o navegador — a confirmação de revisão é um
+  turno humano separado. Pode oferecer ajuda para editar páginas do Cérebro
+  enquanto espera.
+- **E4 — Próximos passos + menu.** SÓ após a confirmação de revisão: (a) sugira
+  2-3 próximas análises adequadas ao estado real do projeto (sem fonte de dados →
+  sugira "configurar os dados" primeiro; com clusters inferidos →
+  cluster/pesquisa de palavras-chave; sinais técnicos aparentes → auditoria
+  técnica; sempre uma recomendação prioritária); e (b) mostre o menu sucinto da
+  seção "Menu de Capacidades". Tom leigo, prosa curta, sem IDs/YAML/paths.
 
 ## Output Format
 
@@ -86,6 +125,50 @@ Needed input: <only the minimum missing context, or "none">
 Decision boundary: <what will not be treated as evidence-backed yet>
 Next action: <friendly instruction or handoff offer>
 ```
+
+## Menu de Capacidades (mostrar ao fim do /start)
+
+Exiba este menu no estágio **E4**, APÓS o usuário confirmar que revisou o Cérebro
+no Web Companion, como sugestão de próximos passos. Instrução interna (fora do
+bloco visível): não exponha comandos crus nem IDs internos de skill; ofereça abrir
+o Web Companion (pedindo permissão antes) para o usuário revisar os relatórios; as
+"frases entre aspas" são apelidos leigos que o router `agentic-seo` mapeia às skills
+corretas. Este é o passo final do `/start`.
+
+---
+
+Pronto! Seu projeto está criado e o Cérebro já vem pré-preenchido para você revisar. A partir daqui, é só me pedir o que quiser. Eis o que dá para fazer (peça com suas palavras ou use a frase entre aspas):
+
+**Descobrir o que as pessoas buscam**
+- Encontrar as palavras e perguntas que seu público pesquisa, com volume e dificuldade — peça "pesquisa de palavras-chave".
+- Tirar uma foto de quem aparece no Google para um termo (sem análise ainda) — peça "capturar os resultados do Google".
+
+**Auditar seu site**
+- Checar a saúde técnica de uma página ou do site (o que está quebrando o desempenho) — peça "auditoria técnica".
+- Comparar uma página sua com quem está na frente no Google e ver onde você perde — peça "análise de SERP" ou "análise de concorrência por palavra".
+- Descobrir links internos que faltam para fortalecer suas páginas — peça "sugestões de links internos".
+
+**Criar e organizar conteúdo**
+- Escrever ou melhorar um artigo, post ou página de venda já otimizado para o Google — peça "criar conteúdo".
+- Montar um plano de conteúdo em torno de um tema (página principal + apoios) — peça "cluster de conteúdo".
+- Trazer o conteúdo que você já publicou no site para dentro do projeto — peça "importar meu conteúdo".
+
+**Medir sua autoridade**
+- Avaliar e reforçar sua credibilidade (experiência, autoridade e confiança aos olhos do Google) — peça "análise de E-E-A-T".
+- Analisar quem aponta links para seu site e comparar com concorrentes — peça "análise de backlinks".
+
+**Espionar concorrentes**
+- Comparar seu site com os concorrentes (presença, lacunas de tema e de conteúdo, e onde eles ganham) — peça "análise competitiva".
+
+**Ajustar o Cérebro do projeto**
+- Atualizar quem você é, sua voz, seus temas e suas provas — o Cérebro guia tudo que eu crio — peça "ajustar o Cérebro".
+
+**Preparar / configurar**
+- Ligar a fonte de dados de pesquisa (necessária para volume e concorrência reais) — peça "configurar os dados".
+
+É só dizer por onde quer começar. Se a tarefa for grande, eu mesmo divido em etapas e te aviso quando precisar de uma decisão sua.
+
+---
 
 ## Examples
 

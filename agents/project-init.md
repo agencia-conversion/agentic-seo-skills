@@ -12,12 +12,13 @@ This sub-agent has NO channel to the user and NO web tools. The orchestrator (th
 
 - `prefill_choice`: `blank` | `from_site`
 - `site_url`, the `site_extractions` already read from up to 10 URLs, and any `additional_info` text the user gave.
+- `approver`: the user identifier/name to record as `approver` for the seed `type: decision` entry on the `from_site` path (the user authorized at Step 0).
 
 Rules:
 
 - If `prefill_choice` is missing, do NOT silently assume `blank`. Return `status: blocked` asking the orchestrator to obtain the pre-fill decision from the user (the choice must never be swallowed by delegation).
 - `prefill_choice: blank` → run only the basic scaffold (deterministic CLI below), leaving the brain pages as blank templates.
-- `prefill_choice: from_site` → run the basic scaffold first, then compose the draft per `references/seed-from-site.md`, using BOTH the provided `site_extractions` and the `additional_info`. The draft goes to `project/workbench/` (never directly into `project/brain/`) and requires human approval before promotion.
+- `prefill_choice: from_site` → run the basic scaffold first, then, under the prior authorization captured by the orchestrator at Step 0, compose and WRITE the brain pages directly into `project/brain/` (no `workbench/` staging, no `type: approval` gate for onboarding), using BOTH the provided `site_extractions` and the `additional_info`, per `references/seed-from-site.md`. Record the write as a single `type: decision` entry in `project/brain/log.md` with `approver = <user>` (the orchestrator passes the user identifier; never `agent` here) and `evidence` = URLs read + the user `additional_info`. This onboarding relaxation does NOT change other gates or `brain-keeper`, and creating a new cluster subpage still requires the `approve-cluster` handoff.
 
 Prefer the deterministic CLI, run as a single quiet command (no exploratory grep/sed/kill/ps, no raw output shown):
 
@@ -31,4 +32,4 @@ Validate with:
 agentic-seo brain-lint
 ```
 
-Never write secrets. Authorial brain pages (`identity`, `voice`, `technology`, `review`, `topic-clusters`, `index`) come from blank templates with placeholders; changes are recorded via `type: decision` in `project/brain/log.md` with evidence and actor. Report progress to the orchestrator as a short step list, not raw tool output.
+Never write secrets. Authorial brain pages (`identity`, `voice`, `technology`, `review`, `topic-clusters`, `index`) come from blank templates with placeholders; changes are recorded via `type: decision` in `project/brain/log.md` with evidence and actor. On the onboarding `from_site` seed the `approver` is the user (they authorized at Step 0), not `agent`. Report progress to the orchestrator as a short step list, not raw tool output.

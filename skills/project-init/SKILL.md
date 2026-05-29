@@ -32,7 +32,7 @@ Do not use this skill to write strategic content, draft brand identity, run SEO 
 
 ## Optional: Seed-From-Doc
 
-If the user provides a strategic document (`.md` file, brand brief, paste) and asks to seed the brain from that source instead of starting blank, follow the workflow in [`references/seed-from-doc.md`](references/seed-from-doc.md) AFTER the standard scaffold runs. The seed workflow distributes source content across `identity.md`, `topic-clusters.md` (editorial areas as H2 sections), `voice.md`, `technology.md`, optional `products.md`, and creates hypothesis-only cluster drafts where the source lists subtopics under pillars. The user must approve substantive brain writes via Companion `approve-page` handoff or via explicit brain-first delegation recorded in `brain/log.md` (`approver: <user>`).
+If the user provides a strategic document (`.md` file, brand brief, paste) and asks to seed the brain from that source instead of starting blank, follow the workflow in [`references/seed-from-doc.md`](references/seed-from-doc.md) AFTER the standard scaffold runs. The seed workflow distributes source content across `identity.md`, `topic-clusters.md` (editorial areas as H2 sections), `voice.md`, `technology.md`, optional `products.md`, and creates hypothesis-only cluster drafts where the source lists subtopics under pillars. The user must approve substantive brain writes via Companion `approve-page` handoff or via explicit brain-first delegation recorded in `brain/log.md` (`approver: <user>`). Nota de escopo: o **onboarding `seed-from-site`** segue a regra de **autorização prévia** (Passo 0) e escreve direto no brain como `type: decision` — `seed-from-doc` permanece com seu próprio fluxo de aprovação.
 
 ## Required Inputs
 
@@ -68,7 +68,7 @@ Regras:
 - Se `project-init` rodar como subagente e `prefill_choice` não tiver sido passado, **não assuma silenciosamente um default**: retorne `status: blocked` (needs-input) para o caller perguntar ao usuário.
 - Se não houver `site_url` (é `null` e nenhuma URL foi informada), `from_site` não é possível: peça a URL ou siga com `blank`. Mesmo sem site, `additional_info` ainda pode semear o Cérebro (caminho `seed-from-doc`).
 - `blank` é o setup básico: só cria a estrutura e os arquivos em branco (passos 1-6, depois a revisão no passo 7). Não importa nem analisa nada.
-- `from_site` faz o setup básico primeiro (passos 1-6) e, em seguida, compõe o rascunho descrito em [`references/seed-from-site.md`](references/seed-from-site.md), **usando as `site_extractions` E a `additional_info`** (mapeie cada conteúdo às páginas do Cérebro reaproveitando a tabela de distribuição de [`references/seed-from-doc.md`](references/seed-from-doc.md)). O rascunho fica em `project/workbench/`, é registrado como `type: ingestion` e exige aprovação humana (handoff `project-browser`) antes de virar contexto do Cérebro. A `additional_info` deve SER USADA na composição, nunca apenas coletada.
+- `from_site` faz o setup básico primeiro (passos 1-6) e, em seguida, escreve o Cérebro conforme [`references/seed-from-site.md`](references/seed-from-site.md), **usando as `site_extractions` E a `additional_info`** (mapeie cada conteúdo às páginas do Cérebro reaproveitando a tabela de distribuição de [`references/seed-from-doc.md`](references/seed-from-doc.md)). Como o usuário autorizou no Passo 0, o seed ESCREVE direto as páginas do Cérebro em `project/brain/` (não usa `workbench/` nem exige `type: approval`); registra a escrita como UMA entrada `type: decision` com `approver` = nome do usuário e `evidence` = URLs lidas + informações adicionais; em seguida oferece o Companion para revisão. A `additional_info` deve SER USADA na composição, nunca apenas coletada. Esta é a regra do ONBOARDING (autorização prévia); ela NÃO relaxa os demais gates nem o `brain-keeper` fora do onboarding.
 
 ### 1. Inspect Existing Project State
 
@@ -163,6 +163,7 @@ Before reporting completion, verify:
 - All required directories exist.
 - The 7 brain files exist with frontmatter populated (title and updated only); placeholders untouched if user has not filled them. `brain/review.md` carries the universal editorial review rules populated by the template.
 - `brain/log.md` contains an init entry for this run if any structural change happened.
+- When `prefill_choice = from_site`: the brain pages are PREENCHIDAS (not placeholders), respecting the no-gap rule, and `brain/log.md` contains exactly ONE `type: decision` entry for the seed with `approver = <user>` (never `type: approval`/`approver: pending`, never a `workbench/` draft).
 - pt-BR text preserves accents.
 - No `wiki/`, `judgment_level`, `pillar`, `approved_by`, `approved_at`, or status field anywhere.
 

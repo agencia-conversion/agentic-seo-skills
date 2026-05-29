@@ -61,6 +61,10 @@ Above the canonical line, keep the message to ≤ 2 short prose sentences naming
 
 Short replies, clarifications, status checks, blocked routes without any artifact generated, and questions about how something works.
 
+### Onboarding exception (scope: `/start` close only)
+
+The `/start` flow ends ready-for-use, not on the canonical line. The canonical close still governs the **delivery message** (it ends on `Posso abrir o Web Companion para você revisar esta entrega?`, no question after). After the user confirms in a **separate later turn** that they reviewed the brain, `/start` is allowed — and required — to send a follow-up message with next-step suggestions plus the succinct capabilities menu (see `skills/start/SKILL.md` § "Fechamento Pronto-Para-Uso" and § "Menu de Capacidades"). Omitting the permission-to-open-the-browser line, or omitting the post-review next steps, is a `/start` failure. This applies only to the onboarding `/start` close; every other artifact-bearing message keeps the strict canonical close.
+
 ## Operating Model
 
 Agentic SEO Skills implements Agentic SEO through six pillars:

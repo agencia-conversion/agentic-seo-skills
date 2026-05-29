@@ -46,6 +46,8 @@ User guide: [`docs/web-companion.md`](docs/web-companion.md).
 
 `project/brain/` is the only authorial knowledge layer. Agent-driven edits to brain pages (`identity`, `voice`, `technology`, `topic-clusters`, `review`, `index`) are allowed when the decision, evidence, and limitations are recorded in `brain/log.md` as `type: decision`. Creating a new cluster subpage in `brain/topic-clusters/<slug>.md` requires the Companion `approve-cluster` handoff — agents never create a new cluster autonomously. Operational events (catalogue a source, register a lint, register a publication, sync cluster↔content) go straight to `log.md`.
 
+Onboarding exception (scope: `project-init`/`start` `seed-from-site` only): when the user authorized site pre-fill at Step 0, the seed writes the brain pages directly to `project/brain/` — no `workbench/` staging and no `type: approval` gate — recorded as a single `type: decision` in `log.md` with `approver = <user>` (the user authorized) and `evidence` = URLs read + `additional_info`. This relaxes only the onboarding draft+approval staging; it does NOT relax other gates (DataForSEO, voice, source separation, content checks), does NOT change `brain-keeper` or the `approve-cluster` gate for new cluster subpages, and does NOT change the rule that the agent always asks permission before opening the browser.
+
 Full layout, frontmatter, log types, no-gap rule, brain-first protocol, and editorial seat: [`docs/brain.md`](docs/brain.md). Topic Clusters spine: [`docs/clusters.md`](docs/clusters.md).
 
 ## Browser handoff
