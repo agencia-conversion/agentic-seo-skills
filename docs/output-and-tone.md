@@ -56,7 +56,9 @@ Os tokens do enum ficam em inglês (ver `AGENTS.md`). Quando precisar mostrar ou
 
 - Perguntas de setup/decisão para leigos devem usar a **ferramenta nativa de múltipla escolha (AskUserQuestion)**, para o usuário comum só **avançar** tocando numa opção em vez de digitar.
 - Em toda pergunta do wizard, a opção **continuar/pré-preencher é sempre a recomendada/default** (marque-a como recomendada). O usuário comum avança aceitando o recomendado.
-- Se a ferramenta nativa de múltipla escolha **não estiver disponível** no harness, apresente as MESMAS opções como uma lista curta numerada em prosa, com a opção recomendada marcada. Funciona em qualquer agente (Claude Code, Codex, Antigravity), sem depender de Ruflo nem MCP externo.
+- **No máximo 3 opções reais por pergunta**, e a recomendada/default vem sempre PRIMEIRO. Mantenha a pergunta curta — o usuário só precisa avançar tocando numa opção.
+- **NÃO liste "Outro"/"Other" manualmente:** a ferramenta nativa (AskUserQuestion) já adiciona um campo "Outro" automaticamente. Listar "Outro" à mão desperdiça uma das 3 vagas e duplica a opção. (No fallback em prosa, onde NÃO há AskUserQuestion, aí sim acrescente uma última linha `Outro (eu digito)`.)
+- Se a ferramenta nativa de múltipla escolha **não estiver disponível** no harness, apresente as MESMAS opções como uma lista curta numerada em prosa (mantendo o teto de 3 opções reais + a linha `Outro (eu digito)`), com a opção recomendada marcada. Funciona em qualquer agente (Claude Code, Codex, Antigravity), sem depender de Ruflo nem MCP externo.
 
 ### Exemplos
 

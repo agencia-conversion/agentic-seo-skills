@@ -47,11 +47,11 @@ If a project exists, route to `agentic-seo` and ask it to classify the user's cu
 
 ### 2. Wizard do Passo 0 (múltipla escolha — o usuário só avança)
 
-Conduza o Passo 0 como um **wizard**: use a **ferramenta nativa de múltipla escolha (AskUserQuestion)** para que um usuário comum só toque na opção e avance; a opção recomendada é **sempre** o caminho de continuar/pré-preencher. Faça uma pergunta por vez, em pt-BR claro. Se a ferramenta nativa não existir no harness, apresente as mesmas opções como lista numerada curta com a recomendada marcada (ver `docs/output-and-tone.md`).
+Conduza o Passo 0 como um **wizard**: use a **ferramenta nativa de múltipla escolha (AskUserQuestion)** para que um usuário comum só toque na opção e avance; a opção recomendada é **sempre** o caminho de continuar/pré-preencher. **No máximo 3 opções reais por pergunta, a recomendada primeiro, e NUNCA liste "Outro" à mão** — a AskUserQuestion já injeta o "Outro" nativo (ver `docs/output-and-tone.md`). Faça uma pergunta por vez, em pt-BR claro. Se a ferramenta nativa não existir no harness, apresente as mesmas opções como lista numerada curta com a recomendada marcada e, só aí, uma última linha `Outro (eu digito)`.
 
 - **Q1 — Site/marca:** campo curto de texto livre (nome ou URL). Uma URL/nome de marca é aberto e não cabe em opções fixas; peça em uma linha.
-- **Q2 — Mercado/país (AskUserQuestion):** `Brasil (pt-BR)` (recomendado/default) · `Portugal (pt-PT)` · `Estados Unidos (en)` · `Outro (eu digito)`.
-- **Q3 — Idioma (AskUserQuestion):** derive de Q2 e apresente pré-selecionado (`Português do Brasil` recomendado quando Q2 = Brasil) · `English` · `Outro`. É só uma confirmação rápida; preserve idioma/acentos (`AGENTS.md` → "Language Fidelity" vence).
+- **Q2 — Mercado/país (AskUserQuestion):** `Brasil (pt-BR)` (recomendado/default) · `Portugal (pt-PT)` · `Estados Unidos (en)`. São 3 opções reais; quem é de outro mercado usa o "Outro" nativo do AskUserQuestion e digita o país (mapeia para `market`/`country`). Não liste "Outro" à mão.
+- **Q3 — Idioma (AskUserQuestion):** derive de Q2 e apresente pré-selecionado: `Português do Brasil` (recomendado quando Q2 = Brasil) · `English`. São 2 opções reais; o "Outro" nativo cobre os demais idiomas. É só uma confirmação rápida; preserve idioma/acentos (`AGENTS.md` → "Language Fidelity" vence).
 - **Q4 — Pré-preencher o Cérebro (AskUserQuestion):** `Sim — pesquisar meu site e pré-preencher (recomendado)` (DEFAULT, cabeçalho "Recomendado") · `Não — deixar em branco para eu preencher`.
 - **Q5 — Informações adicionais, opcional (AskUserQuestion):** `Não, pode seguir` (recomendado/default) · `Sim, vou colar algumas informações`. Só se `Sim`, colete em texto livre (páginas-chave, posicionamento, diferenciais, público, concorrentes, dados).
 
@@ -181,7 +181,7 @@ Pronto! Seu projeto está criado e o Cérebro já vem pré-preenchido para você
 - Atualizar quem você é, sua voz, seus temas e suas provas — o Cérebro guia tudo que eu crio — peça "ajustar o Cérebro".
 
 **Preparar / configurar**
-- Ligar a fonte de dados de pesquisa (necessária para volume e concorrência reais) — peça "configurar os dados".
+- Ligar a fonte de dados de pesquisa (necessária para volume e concorrência reais) — peça "configurar os dados". (A configuração começa perguntando se pode abrir o Web Companion para você inserir as credenciais com segurança — o caminho seguro e recomendado; ver `data-setup`.)
 
 É só dizer por onde quer começar. Se a tarefa for grande, eu mesmo divido em etapas e te aviso quando precisar de uma decisão sua.
 
