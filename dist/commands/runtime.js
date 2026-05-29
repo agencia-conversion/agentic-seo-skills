@@ -2460,7 +2460,9 @@ async function commandProjectBrowser(args) {
         childArgs.push("--no-open");
     if (args.open_path || args.target_path)
         childArgs.push("--open-path", String(args.open_path || args.target_path));
-    if (args.detach || args.non_blocking)
+    // Detached by default so the Companion survives this CLI call (and the agent's
+    // ~120s Bash timeout). Opt out with --foreground/--no-detach for blocking runs.
+    if (!args.foreground && !args.no_detach)
         childArgs.push("--detach");
     const result = (0, node_child_process_1.spawnSync)(process.execPath, childArgs, {
         cwd: ROOT,

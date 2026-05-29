@@ -45,6 +45,12 @@ Os tokens do enum ficam em inglês (ver `AGENTS.md`). Quando precisar mostrar ou
 - Não despeje os passos internos da skill, nem blocos YAML, nem saída bruta de ferramenta para o usuário leigo. Os blocos de Output Format das skills são **uso interno do agente / contrato para o próximo passo**; a mensagem visível ao usuário deve ser sempre prosa simples.
 - Termine sempre indicando o que vem a seguir ou o que você precisa dele.
 
+### Regra dura: trabalho silencioso
+
+- **NUNCA exiba ao usuário comandos crus** (`node`, `grep`, `sed`, `kill`, `ps`, `cd`), URLs de debug (ex.: `http://127.0.0.1:...`), tokens, saída bruta de ferramenta, passos de exploração ou tentativas de debugging.
+- **Trabalho pesado/ruidoso roda em silêncio**: prefira um subagente ou **UM comando único correto na primeira tentativa**. Nunca tente-e-erre à vista do usuário.
+- A **única** superfície de progresso que o usuário vê é o checklist nativo (TodoWrite). O resto fica nos bastidores.
+
 ### Exemplos
 
 Ruim (jargão e despejo de processo):
@@ -59,13 +65,20 @@ Ruim:
 Bom:
 > Vou abrir uma tela no seu navegador (uma página local e temporária, que se fecha sozinha depois) para você configurar a fonte de dados de SEO (ex.: DataForSEO). É só preencher e confirmar.
 
+Ruim (expõe comando cru, debugging e exploração):
+> Rodando `cd plugin && node scripts/companion.mjs project-browser`… deu erro, vou `grep` o processo e `kill` a porta… agora abriu em `http://127.0.0.1:4123?token=abc`.
+
+Bom (checklist + uma linha de resultado, comando roda em silêncio):
+> Abri o Web Companion no seu projeto: <url>
+> (com o checklist nativo mostrando "Abrir a tela do Web Companion" marcado)
+
 ## 3. Progresso portátil
 
 Mostre o progresso de forma que funcione em qualquer agente (Claude Code, Codex, Antigravity).
 
-- Use o **checklist nativo do harness (TodoWrite no Claude Code)** como a lista de progresso visível: **uma etapa por linha**, em linguagem de usuário, e marque cada item ao concluir (atualize a lista no lugar, não repita tudo em prosa).
-- Exemplo de etapas para o setup: "Criar a estrutura do projeto" · "Coletar o nome do site e o mercado" · "Criar os arquivos do Cérebro em branco" · "Abrir a tela para configurar a fonte de dados de SEO" · "Anotar a decisão no diário".
-- A **narração em prosa é mínima**: a lista carrega o detalhe; o texto só diz o essencial (o que acabou de acontecer + próximo passo).
+- O **checklist nativo do harness (TodoWrite no Claude Code) É a status line visível** — não é só "uma lista de progresso", é a única visão que o usuário tem do que está acontecendo: **uma etapa por linha**, em linguagem de usuário, marcando cada item ao concluir (atualize a lista **no lugar**, nunca repita os passos em prosa nem relate o comando por trás de cada etapa).
+- Exemplo de etapas para o setup: "Coletar nome do site e mercado" · "Perguntar se pré-preenche o Cérebro pesquisando o site" · "Criar a estrutura do projeto" · "Pesquisar até 10 páginas do site e compor o rascunho" · "Abrir o Cérebro no navegador para você revisar e aprovar" · "Anotar a decisão no diário".
+- A **narração em prosa fica FORA do checklist e é ≤ 1 frase**: a lista carrega o detalhe; o texto só diz o essencial (o que acabou de acontecer + próximo passo).
 - **Sem dependência externa.** O progresso não pode depender de Ruflo nem de nenhum MCP externo. Onde não houver um checklist nativo, descreva o progresso como uma lista curta de etapas em prosa, mas o comportamento é o mesmo: uma etapa por linha, atualizada no lugar. O onboarding precisa funcionar para qualquer usuário sem nenhuma instalação extra.
 
 ## 4. Como referenciar este guia

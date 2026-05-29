@@ -50,7 +50,18 @@ Full layout, frontmatter, log types, no-gap rule, brain-first protocol, and edit
 
 ## Browser handoff
 
-Prefer a local browser handoff for previews, decisions, sensitive input, and option selection. Do not show users raw `node scripts/companion.mjs ...` commands as the primary handoff UX. Ask whether you may open a local browser window for the decision, preview, or sensitive input flow, then run the companion yourself when the user agrees.
+Prefer a local browser handoff for previews, decisions, sensitive input, and option selection. **Do not show users ANY raw command, shell exploration, `grep`/`sed`/`kill`/`ps`, `cd`, debug URL (`http://127.0.0.1:...`), or token as part of the handoff** — run the launch silently as the agent after consent. Ask whether you may open a local browser window for the decision, preview, or sensitive input flow, then run the companion yourself when the user agrees. The only progress the user sees is the native checklist (TodoWrite) plus one confirmation line with the final `url`.
+
+### Correct launch (always target the USER's project)
+
+Launch the Companion in **one** Bash call, from the user's working directory, with **no** preliminary `grep`/`sed`/`kill`/`ps`/exploration and **no** `cd` into the plugin folder:
+
+- **Canonical:** `agentic-seo project-browser --detach` (the compiled plugin CLI). It resolves the user's project from `CLAUDE_PLUGIN_OPTION_project_dir` / `AGENTIC_SEO_PROJECT_DIR` and hands the companion an absolute project root internally, so the root can never silently fall back to the plugin's bundled example `project/`.
+- **Documented fallback** (only when the CLI is not on PATH), still one command, detached, run from the user's working directory so the root anchors to their cwd: `AGENTIC_SEO_PROJECT_DIR="$PWD/project" node <PLUGIN_ROOT>/scripts/companion.mjs project-browser --detach`. The `$PWD/project` must be the user's working-directory project, never the plugin's.
+
+Why anchoring the root is mandatory: `scripts/lib/project-browser-server.mjs` `runProjectBrowser` resolves the root in priority order — the explicit root flag, then `CLAUDE_PLUGIN_OPTION_project_dir`, then `AGENTIC_SEO_PROJECT_DIR`, then a last-resort `"<INIT_CWD-or-cwd>/project"`. The last-resort default deliberately anchors to the user's launch directory (`INIT_CWD`, falling back to `process.cwd()`) so a raw launch never silently lands on the plugin's bundled example — but if the agent `cd`s into the plugin folder and runs the raw form without any of those set, that anchored default becomes the plugin's in-repo example `project/` and reopens the "opened the wrong project" bug. So: NEVER `cd` into the plugin folder, and NEVER use the raw `node scripts/companion.mjs` form as the primary/user-facing path — always let the canonical CLI resolve the absolute root for you, or export `AGENTIC_SEO_PROJECT_DIR` to the user's project.
+
+Read only the JSON status line and share its `url` (treat `reused: true` the same as a fresh open). Never echo the command, the token, or the debug URL pattern as "how to".
 
 Each handoff binds to `127.0.0.1` on an ephemeral port, requires a one-time token, validates `Origin`/`Host`, and shuts down on submit, cancel, or TTL expiry. Sensitive values never echo to agent stdout, never appear in full in logs, and never land in the repo root `.env`. They are stored via Claude Code `userConfig` when running as a plugin, or in `project/.env.local` when running standalone. Every handoff submission appends an entry to `project/brain/log.md` with the appropriate `type:`.
 

@@ -20,7 +20,7 @@ Do not use this skill as a substitute for the downstream work itself. Route to t
 
 The default user is nontechnical (founder, marketing lead, SEO strategist). Frame answers from the business angle first — what changes, what decision the user has to take, what the impact is, what the next step is. Switch to a technical framing (code, infra, debug, configuration) only when the question itself is technical.
 
-Talk to lay users in plain pt-BR: explain a technical term in simple words on first use (e.g. "Cérebro do projeto" for the brain), and never dump internal gate names, YAML, or raw tool output into a user-facing message. Show progress as a one-step-per-line native checklist (TodoWrite), with minimal prose, and never depend on Ruflo or any external MCP. See `docs/output-and-tone.md` for tone, the lay glossary, and progress.
+Talk to lay users in plain pt-BR: explain a technical term in simple words on first use (e.g. "Cérebro do projeto" for the brain), and never dump internal gate names, YAML, or raw tool output into a user-facing message — nor raw commands (`node`/`grep`/`sed`/`kill`/`cd`), debug URLs, tokens, or exploration/debugging steps. Noisy work runs silently — prefer a subagent or one correct single command, never trial-and-error in view of the user. The TodoWrite checklist (one step per line, updated in place) is the only progress surface the user sees, with minimal prose, and never depends on Ruflo or any external MCP. See `docs/output-and-tone.md` for tone, the lay glossary, and progress.
 
 For any substantive deliverable (report, analysis, content, brief, audit, recommendation), pick the delivery in this order:
 
@@ -28,7 +28,7 @@ For any substantive deliverable (report, analysis, content, brief, audit, recomm
 2. **Specific local handoff** when a decision or sensitive input is required — `approve-page`, `approve-briefing`, `pick-cluster`, `review-changes`, `dataforseo-bypass`, or `collect-env`.
 3. **Plain Markdown/prose in chat** only for quick clarifications, status, or when the user explicitly asks for inline output.
 
-Whenever a workflow generates `report.md`, the CLI or skill output must include `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?" }`. Ask that exact consent line in chat before opening any browser. Never expose `node scripts/companion.mjs ...` to the user; run it as the agent after consent. If the user declines, leave the artifact in place and tell them where it lives.
+Whenever a workflow generates `report.md`, the CLI or skill output must include `report_md` and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você ver a análise?" }`. Ask that exact consent line in chat before opening any browser. Never expose ANY raw command or shell exploration to the user; launch the Companion in one correct command targeting the user's project (see `AGENTS.md` → "Browser handoff" → "Correct launch"), as the agent after consent. If the user declines, leave the artifact in place and tell them where it lives.
 
 Whenever a workflow generates a substantive non-report deliverable — briefs, drafts, specs, import summaries, review notes, checks, public content, or brain changes — the CLI or skill output must include an artifact openable in the Web Companion plus `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "<project-relative path>", companion_path: "<route>", open_with: "project-browser" }`. Preserve existing compatibility fields such as `path`, `brief_markdown_path`, `draft_path`, `companion_path`, and `companion_slug`. Ask the consent line before opening the browser. Short status replies and clarifying questions stay in chat.
 
@@ -120,7 +120,7 @@ When a required evidence or check gate is missing, either return a blocked routi
 
 Route to the narrowest skill that owns the next step:
 
-- `project-init`: start or structure a project.
+- `project-init`: start or structure a project. Before delegating to a new project, the router (this main agent) MUST first ask the user the pre-fill question — "Quer que eu já pré-preencha o Cérebro pesquisando seu site? (recomendado) ou prefere deixar em branco?" (default = pesquisar o site) — and collect any `additional_info` (key pages, positioning, competitors, data). Then read the up to 10 site URLs itself (the subagent has no web fetch and no interactive channel) and delegate `project-init` passing `prefill_choice`, `site_url`, the `site_extractions`, and the `additional_info` text. Do not let `project-init` silently default the pre-fill choice.
 - `data-setup`: collect, validate, mask, or repair DataForSEO credentials and provider status.
 - `keyword-research`: collect keyword metrics, suggestions, CPC, competition, long-tail ideas, and clustering inputs.
 - `serp-extract`: capture raw and normalized SERP snapshots by keyword, market, language, location, and device.
@@ -151,7 +151,7 @@ Use normal Markdown links for `project/sources/` files and Obsidian wikilinks on
 
 **Check:** Is the user being asked for credentials, a decision, preview feedback, or a choice?
 
-Prefer a local browser handoff. Ask whether to open the browser flow, then run it as the agent when possible. The handoff should use a one-time token, local host binding, and shutdown after submit, cancel, or TTL expiry. Do not echo secrets or write them to the repo root `.env`. The `project-browser` Companion launches detached by default (see `AGENTS.md` → "Browser handoff") — never block a Bash call waiting on it; read the JSON status line, share its `url`, and let the user review at their own pace.
+Prefer a local browser handoff. Ask whether to open the browser flow, then run it as the agent when possible. The handoff should use a one-time token, local host binding, and shutdown after submit, cancel, or TTL expiry. Do not echo secrets or write them to the repo root `.env`. Launch the Companion in **one correct command targeting the user's project** — never expose any raw command or shell exploration, never `cd` into the plugin folder (the canonical command and the wrong-project trap are in `AGENTS.md` → "Browser handoff" → "Correct launch"). The `project-browser` Companion launches detached by default — never block a Bash call waiting on it; read the JSON status line, share its `url` (one confirmation line, e.g. "Abri o Web Companion no seu projeto: <url>"), and let the user review at their own pace.
 
 If browser handoff cannot run, present a friendly instruction and the exact decision needed. Do not dump shell commands as the main user experience.
 
