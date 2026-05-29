@@ -1,6 +1,7 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { validateDataForSeo } from '../../../../shared/dataforseo-validate.mjs';
 
 export type DataForSeoMode = 'standard' | 'live' | 'async' | 'offline';
 
@@ -21,7 +22,6 @@ export interface DataForSeoStatus {
 
 const CREDENTIALS_PATH = join(homedir(), '.agentic-seo', 'credentials.json');
 const VALID_MODES: DataForSeoMode[] = ['standard', 'live', 'async', 'offline'];
-const VALIDATE_URL = 'https://api.dataforseo.com/v3/appendix/user_data';
 
 export function readDataForSeoStatus(): DataForSeoStatus {
   if (!existsSync(CREDENTIALS_PATH)) {
@@ -87,32 +87,6 @@ export async function saveDataForSeoCredentials(
     validated_at: validation.validated_at ?? null,
     status: readDataForSeoStatus(),
   };
-}
-
-interface ValidationResult {
-  validated: boolean;
-  reason?: string;
-  validated_at?: string;
-}
-
-async function validateDataForSeo(
-  login: string,
-  password: string,
-  mode: DataForSeoMode,
-  fetchImpl: typeof fetch
-): Promise<ValidationResult> {
-  if (mode === 'offline') return { validated: false, reason: 'offline-mode' };
-  try {
-    const auth = Buffer.from(`${login}:${password}`).toString('base64');
-    const resp = await fetchImpl(VALIDATE_URL, { headers: { Authorization: `Basic ${auth}` } });
-    if (!resp.ok) return { validated: false, reason: `http-${resp.status}` };
-    const json = (await resp.json()) as { tasks?: Array<{ status_code?: number }> };
-    const status = json?.tasks?.[0]?.status_code;
-    if (status === 20000) return { validated: true, validated_at: new Date().toISOString() };
-    return { validated: false, reason: `dfs-status-${status}` };
-  } catch (err) {
-    return { validated: false, reason: `network: ${(err as Error).message}` };
-  }
 }
 
 function maskSecret(value: string, visible = 4) {

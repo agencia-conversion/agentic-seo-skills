@@ -1,14 +1,21 @@
 ---
 title: "<Nome do Cluster>"
 contract_version: 1
+icon: "<icon>"
 updated: "<YYYY-MM-DD>"
 ---
+
+# <heading>
 
 ## Resumo
 
 <resumo>
 
-## Tese editorial
+## Linhas editoriais
+
+<!-- Prosa autoral, preservada por cluster-sync. Desenvolva aqui a tese central do
+cluster, a diferenciação editorial da marca, a audiência principal e as conexões com
+outros clusters. Texto livre — esta seção nunca é sobrescrita pela sincronização. -->
 
 <Tese editorial — prosa autoral, preservada por cluster-sync.>
 

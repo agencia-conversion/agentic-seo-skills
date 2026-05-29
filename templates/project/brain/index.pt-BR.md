@@ -41,9 +41,8 @@ arquivo (identity.md, voice.md, technology.md, topic-clusters.md, review.md, log
 
 ### [[topic-clusters|Topic Clusters]]
 
-- <áreas editoriais ativas>
 - <clusters ativos (nomes)>
-- <o índice/tabela de clusters é auto-gerado>
+- <a tabela única de clusters é auto-gerada>
 
 ### [[review|Revisão]]
 

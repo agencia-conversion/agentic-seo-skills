@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 
+// DEPRECATION: the legacy 127.0.0.1 HTTP handoffs dispatched here are migrating to
+// the Web Companion surface. `collect-env` is superseded by the Web Companion
+// credentials surface (Settings → Credenciais); `approve-cluster` and
+// `dataforseo-bypass` also move to the Companion. `approve-briefing`,
+// `approve-page`, `review-changes`, and `pick-cluster` remain behind a flag with a
+// documented migration plan (see docs/web-companion.md). Kept for compatibility:
+// do NOT delete, other flows still reference these handoffs.
+
 // NOTE on TTL: companion-server.mjs resolves AGENTIC_SEO_HANDOFF_TTL_MS into a
 // module-level constant (TTL_MS) at import time. To give the collect-env handoff
 // a more generous timeout (the user needs time to find and type a login + secret)

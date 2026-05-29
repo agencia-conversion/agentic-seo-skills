@@ -19,24 +19,18 @@ function shortenTitle(title: string | undefined | null): string {
 }
 
 interface Params {
-  // No required params — index covers all active clusters.
-  // Optional: filter by area if user wants a scoped index.
-  area?: string;
+  // No params — the index covers all active clusters in a single flat table.
+  // The "área" concept was removed from the model.
 }
 
 export const clusterIndex: AutoBlockType<Params> = {
   name: "agentic-cluster-index",
   version: 1,
-  parseParams(yaml): Params | AutoBlockParseError {
-    const area =
-      typeof yaml.area === "string" && yaml.area.trim() ? yaml.area.trim() : undefined;
-    return { area };
+  parseParams(): Params | AutoBlockParseError {
+    return {};
   },
-  render(params, inputs): AutoBlockRenderResult {
-    const all = inputs.clusters.filter((c) => c.yaml.status === "active");
-    const matching = params.area
-      ? all.filter((c) => c.yaml.area === params.area)
-      : all;
+  render(_params, inputs): AutoBlockRenderResult {
+    const matching = inputs.clusters.filter((c) => c.yaml.status === "active");
 
     const labels = inputs.labels;
     const totalPublished = inputs.contents.length - inputs.orphanContents.length;
@@ -57,8 +51,8 @@ export const clusterIndex: AutoBlockType<Params> = {
       `| ${labels.last_sync} | ${inputs.now} |`,
     ];
 
-    const header = `| ${labels.cluster_col} | ${labels.area_col} | ${labels.pillar_col} | ${labels.published_col} | ${labels.planned_col} |`;
-    const divider = "| --- | --- | --- | --- | --- |";
+    const header = `| ${labels.cluster_col} | ${labels.pillar_col} | ${labels.published_col} | ${labels.planned_col} |`;
+    const divider = "| --- | --- | --- | --- |";
     const rows = matching.map((cluster) => {
       const published = inputs.contentsByCluster.get(cluster.slug) || [];
       const planned = cluster.yaml.planned_satellites?.length || 0;
@@ -73,8 +67,8 @@ export const clusterIndex: AutoBlockType<Params> = {
       const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
       const displayName = cluster.yaml.name || cluster.slug;
       const clusterLink = `[${icon}${displayName}](topic-clusters/${cluster.slug}.md)`;
-      const area = cluster.yaml.area_name || cluster.yaml.area || "—";
-      return `| ${clusterLink} | ${area} | ${pillarLink} | ${published.length} | ${planned} |`;
+      // Single flat table: the "área" column was removed from the model.
+      return `| ${clusterLink} | ${pillarLink} | ${published.length} | ${planned} |`;
     });
 
     const tableSection = [

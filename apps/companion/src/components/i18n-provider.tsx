@@ -35,9 +35,17 @@ export function I18nProvider({
   initialLocale: SupportedLocale;
 }) {
   const preference = useWorkspace((s) => s.settings.language ?? 'system');
-  const setSettings = useWorkspace((s) => s.setSettings);
+  // Read-only project delivery language (project.json). When the local UI
+  // preference is 'system', the interface DEFAULTS to the project's language
+  // so a pt-BR project shows a pt-BR Companion — without ever writing back to
+  // project.json. An explicit local selector choice still overrides it.
+  const projectLanguage = useWorkspace((s) => s.projectLanguage);
   const [browserLocale, setBrowserLocale] = useState<SupportedLocale>(initialLocale);
 
+  // When the preference is 'system', resolve the cookie locale into the
+  // EFFECTIVE rendered locale only (local component state). This NEVER calls
+  // setSettings and NEVER persists a preference or touches project.json —
+  // browser/cookie detection affects what we render, not what we store.
   useEffect(() => {
     if (preference !== 'system' || typeof document === 'undefined') return;
     const cookie = document.cookie
@@ -45,8 +53,8 @@ export function I18nProvider({
       .map((part) => part.trim())
       .find((part) => part.startsWith(`${LOCALE_COOKIE}=`));
     const explicit = resolveLocale(cookie?.split('=').slice(1).join('='));
-    if (explicit) setSettings({ language: explicit });
-  }, [preference, setSettings]);
+    if (explicit) setBrowserLocale(explicit);
+  }, [preference]);
 
   useEffect(() => {
     const update = () => {
@@ -64,7 +72,11 @@ export function I18nProvider({
     return () => window.removeEventListener('languagechange', update);
   }, []);
 
-  const locale = preference === 'system' ? browserLocale : preference;
+  // When preference is 'system', prefer the project delivery language, then the
+  // detected browser locale. An explicit preference ('pt-BR' | 'en') always wins.
+  const systemLocale: SupportedLocale =
+    projectLanguage === 'pt-BR' || projectLanguage === 'en' ? projectLanguage : browserLocale;
+  const locale = preference === 'system' ? systemLocale : preference;
 
   useEffect(() => {
     document.documentElement.lang = locale;

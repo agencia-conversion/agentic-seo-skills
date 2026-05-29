@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 import { getCompanionToken } from './cluster-row-api';
 import { EditableSelectCell } from './editable-select-cell';
 import { ClusterRowActionsMenu } from './cluster-row-actions-menu';
-import { ClusterAreaFilterMenu } from './cluster-area-filter-menu';
 import { TableSettingsMenu, type SortState, type TableColumnDef } from '@/features/contents/table-settings-menu';
 import { dataTableWidthClass } from '@/features/workspace/page-width';
 import { useWorkspace } from '@/features/workspace/store';
@@ -21,8 +20,6 @@ interface ClusterSummary {
   slug: string;
   name: string;
   icon: string | null;
-  area: string | null;
-  area_name: string | null;
   thesis: string | null;
   status: string;
   pillar_slug: string | null;
@@ -145,7 +142,6 @@ function readValue(row: ClusterSummary, column: string): string {
 }
 
 const EMPTY_HIDDEN_COLUMNS_BY_TABLE: Record<string, string[]> = {};
-const EMPTY_AREA_FILTERS_BY_TABLE: Record<string, string[]> = {};
 
 export function ActiveClustersTable({ followPageWidth = true }: { followPageWidth?: boolean }) {
   const router = useRouter();
@@ -170,11 +166,6 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
   const tableKey = 'active-clusters';
   const hiddenByTable = settings.hiddenColumnsByTable || EMPTY_HIDDEN_COLUMNS_BY_TABLE;
   const hiddenColumns = useMemo(() => new Set(hiddenByTable[tableKey] || []), [hiddenByTable]);
-  const areaFiltersByTable = settings.clusterAreaFiltersByTable || EMPTY_AREA_FILTERS_BY_TABLE;
-  const selectedAreas = useMemo(
-    () => new Set(areaFiltersByTable[tableKey] || []),
-    [areaFiltersByTable],
-  );
   const locale: 'pt-BR' | 'en' = settings.language === 'en' ? 'en' : 'pt-BR';
 
   const hasLoadedOnce = useRef(false);
@@ -234,21 +225,8 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
     [clusters],
   );
 
-  const areaOptions = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const row of activeClusters) {
-      if (row.area) map.set(row.area, row.area_name || row.area);
-    }
-    return Array.from(map.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
-  }, [activeClusters]);
-
   const activeRows = useMemo(() => {
     let rows = activeClusters;
-    if (selectedAreas.size > 0) {
-      rows = rows.filter((row) => row.area && selectedAreas.has(row.area));
-    }
     const q = query.trim().toLowerCase();
     if (q) {
       rows = rows.filter((row) =>
@@ -270,40 +248,9 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
       );
     }
     return rows;
-  }, [activeClusters, filters, query, selectedAreas, sort]);
+  }, [activeClusters, filters, query, sort]);
 
-  const totalActive = activeClusters.length;
-  const filteringActive = selectedAreas.size > 0;
-  const countLabel = filteringActive
-    ? `${activeRows.length} de ${totalActive} ativo${totalActive === 1 ? '' : 's'}`
-    : `${activeRows.length} ativo${activeRows.length === 1 ? '' : 's'}`;
-
-  const updateSelectedAreas = useCallback(
-    (next: Set<string>) => {
-      const nextByTable = { ...areaFiltersByTable };
-      if (next.size === 0) {
-        delete nextByTable[tableKey];
-      } else {
-        nextByTable[tableKey] = Array.from(next);
-      }
-      setSettings({ clusterAreaFiltersByTable: nextByTable });
-    },
-    [areaFiltersByTable, setSettings, tableKey],
-  );
-
-  const toggleAreaFilter = useCallback(
-    (value: string) => {
-      const next = new Set(selectedAreas);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-      updateSelectedAreas(next);
-    },
-    [selectedAreas, updateSelectedAreas],
-  );
-
-  const clearAreaFilter = useCallback(() => {
-    updateSelectedAreas(new Set());
-  }, [updateSelectedAreas]);
+  const countLabel = `${activeRows.length} ativo${activeRows.length === 1 ? '' : 's'}`;
 
   const columnDefs: TableColumnDef[] = [
     { id: 'cluster', label: 'Cluster', filterKind: 'text' },
@@ -356,6 +303,29 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
     return json;
   };
 
+  const promoteCluster = async (slug: string) => {
+    const companionToken = getCompanionToken();
+    if (!companionToken) return;
+    const res = await fetch(
+      `/api/project/cluster/${encodeURIComponent(slug)}/promote?token=${encodeURIComponent(companionToken)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-companion-token': companionToken },
+        body: JSON.stringify({ syncWait: true }),
+      },
+    );
+    const json = await res.json().catch(() => ({ ok: false, reason: `http-${res.status}` }));
+    if (json.ok) {
+      showToast('Cluster promovido', 'success');
+      syncBus.emit({ type: 'clusters:changed' });
+      syncBus.emit({ type: 'cluster:changed', slug });
+      await fetchClusters();
+      await refreshProjectTree();
+    } else {
+      showToast(formatRowError('cluster', json.reason, locale), 'error');
+    }
+  };
+
   const copySelected = async () => {
     const picked = activeRows.filter((row) => selected.has(row.slug));
     if (!picked.length) return;
@@ -383,16 +353,10 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                 className="w-full bg-transparent text-xs outline-none placeholder:text-notion-text-muted"
               />
             </label>
-            <ClusterAreaFilterMenu
-              options={areaOptions}
-              selected={selectedAreas}
-              onToggle={toggleAreaFilter}
-              onClear={clearAreaFilter}
-            />
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-3 text-xs text-notion-text-muted">
-            <span data-testid="cluster-area-filter-count">{countLabel}</span>
+            <span data-testid="cluster-count">{countLabel}</span>
             {selected.size > 0 && (
               <button type="button" onClick={() => void copySelected()} className="rounded px-2 py-1 hover:bg-notion-hover cursor-pointer">
                 Copiar
@@ -576,6 +540,7 @@ export function ActiveClustersTable({ followPageWidth = true }: { followPageWidt
                           }
                         }}
                         onArchive={() => setArchivingCluster({ slug: row.slug, name: row.name })}
+                        onPromote={row.status !== 'active' ? () => void promoteCluster(row.slug) : undefined}
                       />
                     </td>
                   </tr>

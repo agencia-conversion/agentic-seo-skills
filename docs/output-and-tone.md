@@ -52,6 +52,10 @@ Os tokens do enum ficam em inglês (ver `AGENTS.md`). Quando precisar mostrar ou
 - A **única** superfície de progresso que o usuário vê é o checklist nativo (TodoWrite). O resto fica nos bastidores.
 - **Leitura do site em UM lote silencioso (regra dura):** quando precisar ler várias páginas do site (até 10 URLs no onboarding), dispare **todos os fetches em paralelo numa ÚNICA mensagem**, sem narração por item. São **proibidas** frases como "Vou ler...", "Lendo a home...", "Bom material...", "Agora a página Sobre..." ou qualquer comentário por página. O progresso aparece **só no TodoWrite** (marque a etapa "Pesquisar até 10 páginas do site" ao concluir o lote inteiro). Nenhuma prosa por fetch é permitida.
 
+### Regra dura: documentos autossuficientes
+
+Toda página escrita em `project/` (páginas do Cérebro, reviews, reports, conteúdos) precisa ser **autossuficiente** quando lida fora do contexto que a gerou. **NUNCA** embuta URLs de runtime — `localhost`, `127.0.0.1` ou rotas do Web Companion (ex.: `.../project/<token>/brain-review`) — no corpo de nenhum arquivo escrito em `project/`. Essas URLs são efêmeras (token único, porta efêmera, expiram) e não servem como evidência. Cite URLs públicas ou evidência relativa na seção `## Evidência`, nunca uma URL de debug do Companion. (Isso é diferente da regra de trabalho silencioso acima, que proíbe *mostrar* essas URLs ao usuário no chat; esta regra proíbe *gravá-las* em arquivos do projeto.)
+
 ### Perguntas em wizard (múltipla escolha)
 
 - Perguntas de setup/decisão para leigos devem usar a **ferramenta nativa de múltipla escolha (AskUserQuestion)**, para o usuário comum só **avançar** tocando numa opção em vez de digitar.

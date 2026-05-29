@@ -6,14 +6,16 @@ updated: "<YYYY-MM-DD>"
 # Tecnologia
 
 <!--
-PROPOSITO: Stack observado e mapa de SEO técnico do site da marca. Este
+PROPOSITO: APENAS fatos tecnicos observados do site analisado — stack, CMS,
+framework, headers, JSON-LD, renderizacao, sinais de performance. Este
 arquivo e exclusivamente operacional: o que foi observado no site, o que
-foi decidido, o que falta verificar. NÃO documenta opiniao editorial sobre stack
-("preferimos sites estaticos", "rejeitamos WordPress", "acreditamos em
-edge rendering"). Tese editorial sobre tecnologia vive em [[topic-clusters]]
-ou em conteudos publicados em `contents/`. Cada linha factual aqui tem
-evidência de observacao direta em ## Evidência no rodape ou ancora para
-[[log]]. Comentarios <!-- REGRA: --> sao vinculantes e devem ser
+foi decidido, o que falta verificar. NUNCA opiniao editorial, posicionamento
+de mercado, tese de marca ou valores da empresa ("preferimos sites estaticos",
+"rejeitamos WordPress", "stack moderna e diferencial"). Observado entra aqui
+(ex.: "Next.js + Vercel, SSR, schema Article"); opiniao vai para [[identity]],
+[[topic-clusters]] ou conteudos publicados em `contents/`, NUNCA aqui. Cada
+linha factual aqui tem evidencia de observacao direta em ## Evidência no rodape
+ou ancora para [[log]]. Comentarios <!-- REGRA: --> sao vinculantes e devem ser
 REMOVIDOS quando o arquivo for preenchido.
 -->
 

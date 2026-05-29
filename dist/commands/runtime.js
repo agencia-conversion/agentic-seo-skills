@@ -3249,7 +3249,6 @@ function clusterYamlFromLegacy(cluster) {
         contract_version: 1,
         slug: cluster.seed_slug,
         name: cluster.seed,
-        area: cluster.area || "Estratégia editorial",
         status: "draft",
         language: cluster.language || "pt-BR",
         location: cluster.location || null,

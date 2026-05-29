@@ -1,8 +1,9 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { findContentBySlug, updateContentClusterMembership } from './content-mutations';
 import { normalizeClusterYaml } from './cluster-yaml';
+import { suggestClusterIcon } from '@/features/clusters/suggest-cluster-icon';
 
 const ORIGINS = ['blog', 'linkedin', 'podcast', 'other'] as const;
 const FM_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
@@ -11,8 +12,6 @@ export interface ClusterSummary {
   slug: string;
   name: string;
   icon: string | null;
-  area: string | null;
-  area_name: string | null;
   thesis: string | null;
   status: string;
   pillar_slug: string | null;
@@ -144,8 +143,6 @@ export function readClusterSummaries(projectRoot: string): ClusterSummary[] {
       slug,
       name: String(data.name || slug),
       icon: typeof data.icon === 'string' && data.icon ? data.icon : null,
-      area: typeof data.area === 'string' && data.area ? data.area : null,
-      area_name: typeof data.area_name === 'string' && data.area_name ? data.area_name : null,
       thesis: typeof data.thesis === 'string' ? data.thesis : typeof data.context === 'string' ? data.context : null,
       status: typeof data.status === 'string' ? data.status : 'drafting',
       pillar_slug: pillarSlug,
@@ -175,6 +172,10 @@ function createContentPillar(projectRoot: string, clusterSlug: string, title: st
   const filePath = uniqueContentPath(projectRoot, safeOrigin, slug);
   mkdirSync(dirname(filePath), { recursive: true });
   const finalSlug = basename(filePath, '.md');
+  // No fabricated keyword: a freshly materialized pillar has no researched
+  // keyword yet, so we omit it. This keeps the cluster-create path identical
+  // to the inline-CTA path (postPublishedContent) and the Keyword column
+  // renders "—" until DataForSEO / the user supplies a real keyword.
   const fm = {
     contract_version: 1,
     title,
@@ -182,7 +183,7 @@ function createContentPillar(projectRoot: string, clusterSlug: string, title: st
     published_at: '',
     source_url: '',
     origin: safeOrigin,
-    keyword: title,
+    keyword: '',
     intent: 'informational',
     clusters: [clusterSlug],
     role: { [clusterSlug]: 'pillar' },
@@ -193,7 +194,7 @@ function createContentPillar(projectRoot: string, clusterSlug: string, title: st
     title,
     path: relative(resolve(projectRoot), filePath).split(sep).join('/'),
     clusters: [clusterSlug],
-    keyword: title,
+    keyword: null,
     intent: 'informational',
     volume: null,
   };
@@ -246,17 +247,24 @@ export function createCluster(projectRoot: string, input: Record<string, unknown
     if (conflict) return { ok: false as const, reason: `unique-pillar-violation:${conflict}` };
   }
 
+  // Pre-select a deterministic emoji from the cluster name when the caller did
+  // not pick one, so the cluster never starts iconless. The user can override
+  // the suggestion in the create modal.
+  const icon = String(input.icon || '').trim() || suggestClusterIcon(name);
+
   const data = {
     contract_version: 1,
     slug,
     name,
-    icon: String(input.icon || '').trim() || null,
-    area: String(input.area || '').trim() || null,
+    icon,
     status: draftOnly ? 'draft' : 'active',
     thesis: String(input.thesis || '').trim() || `Cluster ${name}.`,
     pillar: {
+      // No fabricated keyword: the pillar keyword is resolved from the
+      // content's own frontmatter (or supplied later), never seeded from the
+      // pillar title. Seeding it produced a phantom keyword in the table.
       slug: pillarSlug,
-      keyword: pillarTitle,
+      keyword: '',
       intent: 'informational',
       volume: null,
       volume_source: null,
@@ -329,7 +337,7 @@ export function updateCluster(projectRoot: string, slug: string, updates: Record
     if (!candidate) return { ok: false as const, reason: 'invalid-name' };
   }
   const next = { ...entry.data };
-  for (const field of ['name', 'icon', 'area', 'thesis', 'status'] as const) {
+  for (const field of ['name', 'icon', 'thesis', 'status'] as const) {
     if (Object.prototype.hasOwnProperty.call(updates, field)) {
       const value = String(updates[field] ?? '').trim();
       if (field === 'status') next.status = value || next.status || 'drafting';
@@ -368,4 +376,128 @@ export function updateCluster(projectRoot: string, slug: string, updates: Record
   writeFileSync(entry.filePath, stringifyYaml(next, { lineWidth: 0 }), 'utf8');
   appendLog(projectRoot, `Cluster ${slug} atualizado no Companion`, `clusters/${slug}/cluster.yaml`, `Metadados do cluster "${slug}" atualizados no Companion Web.`, `clusters/${slug}/cluster.yaml`);
   return { ok: true as const, cluster: next, affected: [`clusters/${slug}/cluster.yaml`] };
+}
+
+function appendApprovalLog(
+  projectRoot: string,
+  title: string,
+  scope: string,
+  decision: string,
+  evidence: string,
+  approver: string,
+) {
+  const logFile = join(resolve(projectRoot), 'brain', 'log.md');
+  if (!existsSync(logFile)) return;
+  const today = todayIso();
+  const lines = [
+    '',
+    '',
+    `## ${today} - ${title}`,
+    '',
+    '- type: approval',
+    `- scope: ${scope}`,
+    `- decision: ${decision}`,
+    `- evidence: ${evidence}`,
+    `- approver: ${approver}`,
+    `- approved_at: ${today}`,
+  ];
+  appendFileSync(logFile, `${lines.join('\n')}\n`, 'utf8');
+}
+
+export type PromoteClusterDraftResult =
+  | {
+      ok: true;
+      slug: string;
+      cluster: Record<string, any>;
+      affected: string[];
+      archived_path: string;
+      sync_target: string;
+    }
+  | { ok: false; reason: string };
+
+// Promote a draft cluster (status: draft/hypothesis) to an active cluster.yaml.
+// Mirrors scripts/promote-drafts.mjs but scoped to a single cluster and driven
+// from the Companion UI, so the legacy approve-cluster handoff is no longer
+// required. The caller is responsible for running cluster-sync against
+// `sync_target`. On any write failure we roll back so the draft is never lost.
+export function promoteClusterDraft(
+  projectRoot: string,
+  slug: string,
+  options: { approver?: string } = {},
+): PromoteClusterDraftResult {
+  const root = resolve(projectRoot);
+  const safeSlug = slugify(slug);
+  if (!safeSlug) return { ok: false as const, reason: 'invalid-slug' };
+  const dir = join(root, 'clusters', safeSlug);
+  const draftPath = join(dir, 'draft.yaml');
+  const clusterPath = join(dir, 'cluster.yaml');
+  if (!existsSync(draftPath)) return { ok: false as const, reason: 'draft-not-found' };
+  if (existsSync(clusterPath)) return { ok: false as const, reason: 'cluster-already-active' };
+
+  let draft: Record<string, any>;
+  try {
+    const parsed = parseYaml(readFileSync(draftPath, 'utf8'));
+    draft = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Record<string, any>) : {};
+  } catch (err) {
+    return { ok: false as const, reason: `draft-parse:${(err as Error).message}` };
+  }
+
+  const today = todayIso();
+  const approver = String(options.approver || 'user').trim() || 'user';
+  const provenance = { ...(draft.provenance || {}) } as Record<string, unknown>;
+  delete provenance.requires_promotion;
+  delete provenance.bypass;
+  const next: Record<string, any> = {
+    ...draft,
+    contract_version: 1,
+    status: 'active',
+    provenance: { ...provenance, promoted_at: today, promoted_by: approver },
+    stats: { ...(draft.stats || {}), updated: today },
+  };
+
+  const archivedPath = draftPath.replace(/\.yaml$/, `.archived-${today}.yaml`);
+  let wroteCluster = false;
+  let archivedDraft = false;
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(clusterPath, stringifyYaml(next, { lineWidth: 0 }), 'utf8');
+    wroteCluster = true;
+    renameSync(draftPath, archivedPath);
+    archivedDraft = true;
+  } catch (err) {
+    // Rollback: restore the draft and remove a partially written cluster.yaml
+    // so a failed promotion never destroys the proposal.
+    try {
+      if (archivedDraft && existsSync(archivedPath) && !existsSync(draftPath)) {
+        renameSync(archivedPath, draftPath);
+      }
+      if (wroteCluster && existsSync(clusterPath)) {
+        renameSync(clusterPath, `${clusterPath}.failed-${today}`);
+      }
+    } catch {
+      // Best-effort rollback; surface the original failure regardless.
+    }
+    return { ok: false as const, reason: `promote-write:${(err as Error).message}` };
+  }
+
+  const clusterRel = `clusters/${safeSlug}/cluster.yaml`;
+  const archivedRel = `clusters/${safeSlug}/${basename(archivedPath)}`;
+  const affected = [clusterRel, archivedRel];
+  appendApprovalLog(
+    projectRoot,
+    `Cluster ${next.name || safeSlug} promovido para active no Companion`,
+    clusterRel,
+    `Draft "${safeSlug}" promovido para status active no Companion Web. Draft arquivado em ${archivedRel}.`,
+    affected.join(', '),
+    approver,
+  );
+
+  return {
+    ok: true as const,
+    slug: safeSlug,
+    cluster: next,
+    affected,
+    archived_path: archivedRel,
+    sync_target: clusterRel,
+  };
 }

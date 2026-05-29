@@ -1,15 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clustersByArea = void 0;
+exports.clustersByArea = exports.clusters = void 0;
 const auto_block_render_1 = require("../auto-block-render");
-function shortenTitle(title) {
-    if (!title)
-        return title;
-    const trimmed = title.trim();
-    if (trimmed.length <= 60)
-        return trimmed;
-    const cut = trimmed.slice(0, 57).replace(/\s+\S*$/, "");
-    return `${cut}…`;
+function parseOrder(yaml) {
+    const rawOrder = typeof yaml.order === "string" ? yaml.order.trim() : "";
+    if (rawOrder === "published desc" || rawOrder === "published-desc") {
+        return "published-desc";
+    }
+    if (rawOrder === "published asc" || rawOrder === "published-asc") {
+        return "published-asc";
+    }
+    return "name-asc";
+}
+function activeClusters(inputs, order) {
+    const active = inputs.clusters.filter((c) => c.yaml.status === "active");
+    return [...active].sort((a, b) => {
+        if (order === "published-desc" || order === "published-asc") {
+            const ac = inputs.contentsByCluster.get(a.slug)?.length || 0;
+            const bc = inputs.contentsByCluster.get(b.slug)?.length || 0;
+            return order === "published-desc" ? bc - ac : ac - bc;
+        }
+        const an = a.yaml.name || a.slug;
+        const bn = b.yaml.name || b.slug;
+        return an.localeCompare(bn, "pt-BR");
+    });
 }
 function pillarLink(cluster, inputs) {
     const published = inputs.contentsByCluster.get(cluster.slug) || [];
@@ -24,6 +38,15 @@ function pillarLink(cluster, inputs) {
         return `_${cluster.yaml.pillar.slug}_`;
     return "—";
 }
+function shortenTitle(title) {
+    if (!title)
+        return title;
+    const trimmed = title.trim();
+    if (trimmed.length <= 60)
+        return trimmed;
+    const cut = trimmed.slice(0, 57).replace(/\s+\S*$/, "");
+    return `${cut}…`;
+}
 const columns = [
     {
         key: "cluster",
@@ -34,19 +57,6 @@ const columns = [
             return `[${icon}${displayName}](topic-clusters/${cluster.slug}.md)`;
         },
         derived: true,
-    },
-    {
-        key: "name",
-        label: () => "Nome",
-        read: (cluster) => cluster.yaml.name || cluster.slug,
-        write: (cluster, value) => ({
-            filePath: cluster.filePath,
-            source: "cluster-yaml",
-            fieldPath: "name",
-            before: cluster.yaml.name ?? null,
-            after: typeof value === "string" ? value.trim() : null,
-        }),
-        parseCell: (cell) => cell.trim(),
     },
     {
         key: "pillar",
@@ -67,62 +77,39 @@ const columns = [
         derived: true,
     },
 ];
-exports.clustersByArea = {
-    name: "agentic-clusters-by-area",
+function render(params, inputs) {
+    const rows = activeClusters(inputs, params.order);
+    const materialized = (0, auto_block_render_1.renderDeclarativeTable)({
+        columns,
+        rows,
+        params,
+        inputs,
+        emptyMessage: "_Nenhum cluster ativo._",
+    });
+    return { materialized, fingerprint: (0, auto_block_render_1.fingerprint)(materialized) };
+}
+// Canonical block: one flat table of all active clusters, sorted by name-asc.
+exports.clusters = {
+    name: "agentic-clusters",
     version: 1,
     parseParams(yaml) {
-        const area = typeof yaml.area === "string" && yaml.area.trim() ? yaml.area.trim() : null;
-        if (!area)
-            return { error: "missing required param 'area'" };
-        const rawOrder = typeof yaml.order === "string" ? yaml.order.trim() : "";
-        const order = rawOrder === "published desc" || rawOrder === "published-desc"
-            ? "published-desc"
-            : rawOrder === "published asc" || rawOrder === "published-asc"
-                ? "published-asc"
-                : "name-asc";
-        return { area, order };
+        return { order: parseOrder(yaml) };
     },
     rows(params, inputs) {
-        const matching = inputs.clusters.filter((c) => c.yaml.area === params.area && c.yaml.status === "active");
-        return [...matching].sort((a, b) => {
-            if (params.order === "published-desc" || params.order === "published-asc") {
-                const ac = inputs.contentsByCluster.get(a.slug)?.length || 0;
-                const bc = inputs.contentsByCluster.get(b.slug)?.length || 0;
-                return params.order === "published-desc" ? bc - ac : ac - bc;
-            }
-            const an = a.yaml.name || a.slug;
-            const bn = b.yaml.name || b.slug;
-            return an.localeCompare(bn, "pt-BR");
-        });
+        return activeClusters(inputs, params.order);
     },
     rowKey(cluster) {
         return cluster.slug;
     },
     columns,
     rowMutationPolicy: "reject",
-    rowMutation(params, ctx) {
-        if (ctx.action !== "move-to-block")
-            return null;
-        const targetArea = ctx.targetParams?.area;
-        if (typeof targetArea !== "string" || !targetArea.trim())
-            return null;
-        return {
-            filePath: "",
-            source: "cluster-yaml",
-            fieldPath: `clusters.${ctx.rowKey}.area`,
-            before: params.area,
-            after: targetArea.trim(),
-        };
-    },
-    render(params, inputs) {
-        const rows = this.rows(params, inputs);
-        const materialized = (0, auto_block_render_1.renderDeclarativeTable)({
-            columns,
-            rows,
-            params,
-            inputs,
-            emptyMessage: "_Nenhum cluster ativo nesta área._",
-        });
-        return { materialized, fingerprint: (0, auto_block_render_1.fingerprint)(materialized) };
-    },
+    render,
+};
+// Deprecated alias. Kept so brain pages authored with `agentic-clusters-by-area`
+// (which used to require an `area` param) keep rendering after the model lost the
+// área concept. The `area` param is parsed but ignored; output is the full flat
+// table, identical to `agentic-clusters`.
+exports.clustersByArea = {
+    ...exports.clusters,
+    name: "agentic-clusters-by-area",
 };

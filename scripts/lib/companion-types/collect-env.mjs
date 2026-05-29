@@ -1,3 +1,9 @@
+// DEPRECATED: collect-env is superseded by the Web Companion credentials surface
+// (Settings → Credenciais); kept for compatibility. New credential setup flows
+// should point users to the Companion, which reads/writes the same home file
+// (~/.agentic-seo/credentials.json, chmod 0600). Do not remove: other flows still
+// reference this handoff.
+
 import { runHandoff } from "../companion-server.mjs";
 import {
   PATHS,
@@ -9,30 +15,14 @@ import {
   maskSecret,
   homeRelativePath,
 } from "../companion-state.mjs";
+// Single source of truth for the DataForSEO validator, shared with the
+// Companion (apps/companion/src/lib/credentials.ts). Re-exported here so
+// existing importers (tests, runtime) keep working unchanged.
+import { validateDataForSeo } from "../../../shared/dataforseo-validate.mjs";
 
-const VALIDATE_URL = "https://api.dataforseo.com/v3/appendix/user_data";
+export { validateDataForSeo };
+
 const VALID_MODES = new Set(["standard", "live", "async", "offline"]);
-
-export async function validateDataForSeo(login, password, mode, fetchImpl = fetch) {
-  if (mode === "offline") {
-    return { validated: false, reason: "offline-mode" };
-  }
-  try {
-    const auth = Buffer.from(`${login}:${password}`).toString("base64");
-    const resp = await fetchImpl(VALIDATE_URL, {
-      headers: { Authorization: `Basic ${auth}` },
-    });
-    if (!resp.ok) return { validated: false, reason: `http-${resp.status}` };
-    const json = await resp.json();
-    const status = json?.tasks?.[0]?.status_code;
-    if (status === 20000) {
-      return { validated: true, validated_at: new Date().toISOString() };
-    }
-    return { validated: false, reason: `dfs-status-${status}` };
-  } catch (err) {
-    return { validated: false, reason: `network: ${err.message}` };
-  }
-}
 
 export function buildExistingSummary() {
   const data = readHomeCredentials();

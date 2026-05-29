@@ -44,7 +44,6 @@ interface ClusterResponse {
     slug: string;
     name: string;
     icon: string | null;
-    area: string | null;
     status: string | null;
     thesis: string | null;
     pillar_slug: string | null;

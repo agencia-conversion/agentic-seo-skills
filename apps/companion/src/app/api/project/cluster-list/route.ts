@@ -11,7 +11,6 @@ interface ClusterEntry {
   name: string;
   icon?: string;
   status?: string;
-  area?: string;
   pillar_slug?: string;
 }
 
@@ -32,7 +31,6 @@ function readClusters(root: string): ClusterEntry[] {
           name: data.name,
           icon: typeof data.icon === 'string' ? data.icon : undefined,
           status: typeof data.status === 'string' ? data.status : undefined,
-          area: typeof data.area === 'string' ? data.area : undefined,
           pillar_slug:
             data.pillar && typeof data.pillar === 'object' && !Array.isArray(data.pillar) && typeof (data.pillar as Record<string, unknown>).slug === 'string'
               ? String((data.pillar as Record<string, unknown>).slug)

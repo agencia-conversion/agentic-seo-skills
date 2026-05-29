@@ -5,7 +5,7 @@
 contract_version: 1
 slug: <kebab-slug>
 nome: "<Nome do Cluster>"
-area: <slug em brain/editorial.md>
+icon: "🧭"                              # emoji exibido ao lado do nome no índice e na subpágina
 status: active                          # drafting | proposed | active | archived
 tese: |
   <2-3 linhas com a tese do cluster, escritas em pt-BR, sem AI-slop.>

@@ -5,6 +5,7 @@ import { Select } from '@/components/select';
 import { showToast } from '@/components/toast';
 import { cn } from '@/lib/utils';
 import { getCompanionToken } from './cluster-row-api';
+import { DEFAULT_CLUSTER_ICON, suggestClusterIcon } from './suggest-cluster-icon';
 
 export interface CreateClusterContentOption {
   slug: string;
@@ -23,8 +24,11 @@ export function CreateClusterModal({
   onCreated: () => void | Promise<void>;
 }) {
   const [name, setName] = useState('');
-  const [icon, setIcon] = useState('');
-  const [area, setArea] = useState('');
+  const [icon, setIcon] = useState(DEFAULT_CLUSTER_ICON);
+  // Track whether the user manually edited the emoji. While untouched, the
+  // icon field auto-follows the name-derived suggestion so it is always
+  // pre-filled; once the user types their own emoji we stop overriding it.
+  const [iconTouched, setIconTouched] = useState(false);
   const [mode, setMode] = useState<'existing' | 'new'>('existing');
   const [pillarSlug, setPillarSlug] = useState('');
   const [pillarTitle, setPillarTitle] = useState('');
@@ -34,8 +38,8 @@ export function CreateClusterModal({
   useEffect(() => {
     if (!open) {
       setName('');
-      setIcon('');
-      setArea('');
+      setIcon(DEFAULT_CLUSTER_ICON);
+      setIconTouched(false);
       setMode('existing');
       setPillarSlug('');
       setPillarTitle('');
@@ -44,6 +48,11 @@ export function CreateClusterModal({
     }
   }, [open]);
 
+  // Keep the icon synced to the name-derived suggestion until the user edits it.
+  useEffect(() => {
+    if (!iconTouched) setIcon(suggestClusterIcon(name));
+  }, [name, iconTouched]);
+
   if (!open) return null;
 
   const submit = async () => {
@@ -51,9 +60,10 @@ export function CreateClusterModal({
     if (!companionToken) return;
     setSubmitting(true);
     setError(null);
+    const trimmedIcon = icon.trim() || suggestClusterIcon(name);
     const payload = mode === 'existing'
-      ? { name, icon, area, pillar_slug: pillarSlug }
-      : { name, icon, area, pillar_title: pillarTitle || name };
+      ? { name, icon: trimmedIcon, pillar_slug: pillarSlug }
+      : { name, icon: trimmedIcon, pillar_title: pillarTitle || name };
     try {
       const res = await fetch(`/api/project/clusters?token=${encodeURIComponent(companionToken)}`, {
         method: 'POST',
@@ -82,18 +92,23 @@ export function CreateClusterModal({
         <div className="space-y-3">
           <label className="block space-y-1.5">
             <span className="text-xs font-medium text-notion-text-muted">Nome</span>
-            <input value={name} onChange={(event) => setName(event.target.value)} className="w-full rounded-md border border-notion-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-notion-text/10" />
+            <input value={name} onChange={(event) => setName(event.target.value)} data-testid="create-cluster-name" aria-label="Nome do cluster" className="w-full rounded-md border border-notion-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-notion-text/10" />
           </label>
-          <div className="grid grid-cols-[96px_1fr] gap-2">
-            <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-notion-text-muted">Ícone</span>
-              <input value={icon} onChange={(event) => setIcon(event.target.value)} className="w-full rounded-md border border-notion-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-notion-text/10" />
-            </label>
-            <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-notion-text-muted">Área</span>
-              <input value={area} onChange={(event) => setArea(event.target.value)} className="w-full rounded-md border border-notion-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-notion-text/10" />
-            </label>
-          </div>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-notion-text-muted">Ícone</span>
+            <input
+              value={icon}
+              onChange={(event) => {
+                setIconTouched(true);
+                setIcon(event.target.value);
+              }}
+              maxLength={8}
+              aria-label="Ícone do cluster"
+              data-testid="create-cluster-icon"
+              className="w-24 rounded-md border border-notion-border bg-background px-3 py-2 text-center text-base outline-none focus:ring-2 focus:ring-notion-text/10"
+            />
+            <span className="text-[11px] text-notion-text-muted">Sugerido pelo nome — edite se quiser.</span>
+          </label>
           <div className="flex gap-1 rounded-md bg-notion-active p-1 text-xs">
             <button type="button" onClick={() => setMode('existing')} className={cn('flex-1 rounded px-2 py-1.5', mode === 'existing' ? 'bg-background text-notion-text shadow-sm' : 'text-notion-text-muted')}>
               Página existente

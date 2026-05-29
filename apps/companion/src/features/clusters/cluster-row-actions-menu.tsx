@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MoreVertical, Archive, Pencil, ExternalLink, ChevronRight } from 'lucide-react';
+import { MoreVertical, Archive, Pencil, ExternalLink, ChevronRight, Rocket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ClusterRowActionsMenuProps {
@@ -13,6 +13,9 @@ interface ClusterRowActionsMenuProps {
   onRename: () => void;
   onStatusChange: (status: string) => void;
   onArchive: () => void;
+  // Present only when the cluster is a promotable draft (status !== active).
+  // Promotes draft.yaml -> active cluster.yaml via the promote endpoint.
+  onPromote?: () => void;
 }
 
 const STATUS_OPTIONS = [
@@ -35,6 +38,7 @@ export function ClusterRowActionsMenu({
   onRename,
   onStatusChange,
   onArchive,
+  onPromote,
 }: ClusterRowActionsMenuProps) {
   const [open, setOpen] = useState(false);
   const [showStatusSub, setShowStatusSub] = useState(false);
@@ -83,16 +87,21 @@ export function ClusterRowActionsMenu({
     };
   }, [open]);
 
+  const toggleStatusSub = () => setShowStatusSub((s) => !s);
+
   const actions = [
     { id: 'open', label: 'Abrir cluster', icon: ExternalLink, run: onOpen },
     { id: 'rename', label: 'Renomear', icon: Pencil, run: onRename },
-    { id: 'status', label: 'Mudar status', icon: ChevronRight, run: () => setShowStatusSub((s) => !s) },
+    ...(onPromote ? [{ id: 'promote', label: 'Promover', icon: Rocket, run: onPromote }] : []),
+    { id: 'status', label: 'Mudar status', icon: ChevronRight, run: toggleStatusSub },
     { id: 'archive', label: 'Arquivar', icon: Archive, destructive: true, run: onArchive },
   ];
 
   const handleAction = (run: () => void) => {
     run();
-    if (run !== onArchive && run !== onRename && run !== onOpen) return; // status keeps menu open with submenu
+    // The status item toggles a submenu and must keep the menu open; every
+    // other action (open, rename, promote, archive) closes it.
+    if (run === toggleStatusSub) return;
     setOpen(false);
   };
 

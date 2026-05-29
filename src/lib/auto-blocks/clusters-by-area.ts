@@ -4,22 +4,43 @@ import type {
   AutoBlockRenderResult,
   AutoBlockType,
   ColumnDef,
-  MutationDescriptor,
 } from "../auto-block-registry";
 import type { ClusterRecord } from "../cluster-types";
 import { fingerprint, renderDeclarativeTable } from "../auto-block-render";
 
+// Single flat table of every active cluster. The "área" concept was removed
+// from the model, so this block takes no `area` param. The legacy fence name
+// `agentic-clusters-by-area` is kept as a deprecated alias (see below) that
+// ignores any `area` param and renders the same full list, so brain pages
+// authored before the migration keep rendering instead of breaking.
+
 interface Params {
-  area: string;
-  order?: "name-asc" | "published-desc" | "published-asc";
+  order: "name-asc" | "published-desc" | "published-asc";
 }
 
-function shortenTitle(title?: string): string | undefined {
-  if (!title) return title;
-  const trimmed = title.trim();
-  if (trimmed.length <= 60) return trimmed;
-  const cut = trimmed.slice(0, 57).replace(/\s+\S*$/, "");
-  return `${cut}…`;
+function parseOrder(yaml: Record<string, unknown>): Params["order"] {
+  const rawOrder = typeof yaml.order === "string" ? yaml.order.trim() : "";
+  if (rawOrder === "published desc" || rawOrder === "published-desc") {
+    return "published-desc";
+  }
+  if (rawOrder === "published asc" || rawOrder === "published-asc") {
+    return "published-asc";
+  }
+  return "name-asc";
+}
+
+function activeClusters(inputs: AutoBlockInputs, order: Params["order"]): ClusterRecord[] {
+  const active = inputs.clusters.filter((c) => c.yaml.status === "active");
+  return [...active].sort((a, b) => {
+    if (order === "published-desc" || order === "published-asc") {
+      const ac = inputs.contentsByCluster.get(a.slug)?.length || 0;
+      const bc = inputs.contentsByCluster.get(b.slug)?.length || 0;
+      return order === "published-desc" ? bc - ac : ac - bc;
+    }
+    const an = a.yaml.name || a.slug;
+    const bn = b.yaml.name || b.slug;
+    return an.localeCompare(bn, "pt-BR");
+  });
 }
 
 function pillarLink(cluster: ClusterRecord, inputs: AutoBlockInputs): string {
@@ -35,6 +56,14 @@ function pillarLink(cluster: ClusterRecord, inputs: AutoBlockInputs): string {
   return "—";
 }
 
+function shortenTitle(title?: string): string | undefined {
+  if (!title) return title;
+  const trimmed = title.trim();
+  if (trimmed.length <= 60) return trimmed;
+  const cut = trimmed.slice(0, 57).replace(/\s+\S*$/, "");
+  return `${cut}…`;
+}
+
 const columns: ColumnDef<Params, ClusterRecord>[] = [
   {
     key: "cluster",
@@ -47,19 +76,6 @@ const columns: ColumnDef<Params, ClusterRecord>[] = [
     derived: true,
   },
   {
-    key: "name",
-    label: () => "Nome",
-    read: (cluster) => cluster.yaml.name || cluster.slug,
-    write: (cluster, value) => ({
-      filePath: cluster.filePath,
-      source: "cluster-yaml",
-      fieldPath: "name",
-      before: cluster.yaml.name ?? null,
-      after: typeof value === "string" ? value.trim() : null,
-    }),
-    parseCell: (cell) => cell.trim(),
-  },
-  {
     key: "pillar",
     label: (l) => l.pillar_col,
     read: (cluster, _params, inputs) => pillarLink(cluster, inputs),
@@ -68,7 +84,8 @@ const columns: ColumnDef<Params, ClusterRecord>[] = [
   {
     key: "published",
     label: (l) => l.published_col,
-    read: (cluster, _params, inputs) => String(inputs.contentsByCluster.get(cluster.slug)?.length || 0),
+    read: (cluster, _params, inputs) =>
+      String(inputs.contentsByCluster.get(cluster.slug)?.length || 0),
     derived: true,
   },
   {
@@ -79,63 +96,41 @@ const columns: ColumnDef<Params, ClusterRecord>[] = [
   },
 ];
 
-export const clustersByArea: AutoBlockType<Params, ClusterRecord> = {
-  name: "agentic-clusters-by-area",
+function render(params: Params, inputs: AutoBlockInputs): AutoBlockRenderResult {
+  const rows = activeClusters(inputs, params.order);
+  const materialized = renderDeclarativeTable({
+    columns,
+    rows,
+    params,
+    inputs,
+    emptyMessage: "_Nenhum cluster ativo._",
+  });
+  return { materialized, fingerprint: fingerprint(materialized) };
+}
+
+// Canonical block: one flat table of all active clusters, sorted by name-asc.
+export const clusters: AutoBlockType<Params, ClusterRecord> = {
+  name: "agentic-clusters",
   version: 1,
   parseParams(yaml): Params | AutoBlockParseError {
-    const area =
-      typeof yaml.area === "string" && yaml.area.trim() ? yaml.area.trim() : null;
-    if (!area) return { error: "missing required param 'area'" };
-    const rawOrder = typeof yaml.order === "string" ? yaml.order.trim() : "";
-    const order =
-      rawOrder === "published desc" || rawOrder === "published-desc"
-        ? ("published-desc" as const)
-        : rawOrder === "published asc" || rawOrder === "published-asc"
-          ? ("published-asc" as const)
-          : ("name-asc" as const);
-    return { area, order };
+    return { order: parseOrder(yaml) };
   },
   rows(params, inputs): ClusterRecord[] {
-    const matching = inputs.clusters.filter(
-      (c) => c.yaml.area === params.area && c.yaml.status === "active",
-    );
-    return [...matching].sort((a, b) => {
-      if (params.order === "published-desc" || params.order === "published-asc") {
-        const ac = inputs.contentsByCluster.get(a.slug)?.length || 0;
-        const bc = inputs.contentsByCluster.get(b.slug)?.length || 0;
-        return params.order === "published-desc" ? bc - ac : ac - bc;
-      }
-      const an = a.yaml.name || a.slug;
-      const bn = b.yaml.name || b.slug;
-      return an.localeCompare(bn, "pt-BR");
-    });
+    return activeClusters(inputs, params.order);
   },
   rowKey(cluster): string {
     return cluster.slug;
   },
   columns,
   rowMutationPolicy: "reject",
-  rowMutation(params, ctx): MutationDescriptor | null {
-    if (ctx.action !== "move-to-block") return null;
-    const targetArea = ctx.targetParams?.area;
-    if (typeof targetArea !== "string" || !targetArea.trim()) return null;
-    return {
-      filePath: "",
-      source: "cluster-yaml",
-      fieldPath: `clusters.${ctx.rowKey}.area`,
-      before: params.area,
-      after: targetArea.trim(),
-    };
-  },
-  render(params, inputs): AutoBlockRenderResult {
-    const rows = this.rows!(params, inputs);
-    const materialized = renderDeclarativeTable({
-      columns,
-      rows,
-      params,
-      inputs,
-      emptyMessage: "_Nenhum cluster ativo nesta área._",
-    });
-    return { materialized, fingerprint: fingerprint(materialized) };
-  },
+  render,
+};
+
+// Deprecated alias. Kept so brain pages authored with `agentic-clusters-by-area`
+// (which used to require an `area` param) keep rendering after the model lost the
+// área concept. The `area` param is parsed but ignored; output is the full flat
+// table, identical to `agentic-clusters`.
+export const clustersByArea: AutoBlockType<Params, ClusterRecord> = {
+  ...clusters,
+  name: "agentic-clusters-by-area",
 };

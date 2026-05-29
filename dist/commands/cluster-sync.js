@@ -261,7 +261,8 @@ function renderSubpageFromTemplate(cluster, block, labels, pluginRoot, now, pill
     const template = (0, cluster_io_1.loadTemplate)(pluginRoot, "project/brain/topic-clusters/_cluster-subpage.md.template");
     if (!template)
         return null;
-    const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
+    const iconValue = cluster.yaml.icon ? String(cluster.yaml.icon) : "🧭";
+    const icon = `${iconValue} `;
     const heading = `${icon}${cluster.yaml.name}`;
     const summary = cluster.yaml.thesis || cluster.yaml.context || `Cluster ${cluster.yaml.name}.`;
     const pillarLine = pillarContent
@@ -275,6 +276,7 @@ function renderSubpageFromTemplate(cluster, block, labels, pluginRoot, now, pill
     return template
         .replace(/<Nome do Cluster>/g, cluster.yaml.name)
         .replace(/<YYYY-MM-DD>/g, now)
+        .replace(/<icon>/g, iconValue)
         .replace(/<heading>/g, heading)
         .replace(/<resumo>/g, summary)
         .replace(/<pillar_line>/g, pillarLine)

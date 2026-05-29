@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Key } from 'lucide-react';
+import { ChevronDown, ChevronRight, Key } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
 import { Select } from '@/components/select';
 import { showToast } from '@/components/toast';
 import { useWorkspace } from '@/features/workspace/store';
+import { DataForSeoBypassModal } from './dataforseo-bypass-modal';
 
 interface Status {
   configured: boolean;
@@ -26,6 +27,7 @@ export function DataForSeoCredentialsForm() {
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState<Mode>('standard');
   const [busy, setBusy] = useState(false);
+  const [bypassOpen, setBypassOpen] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -131,7 +133,14 @@ export function DataForSeoCredentialsForm() {
         />
       </label>
 
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => setBypassOpen(true)}
+          className="text-[11px] text-notion-text-muted underline-offset-2 hover:underline cursor-pointer"
+        >
+          {t('credentials.bypass.title')}
+        </button>
         <button
           type="submit"
           disabled={busy}
@@ -140,6 +149,65 @@ export function DataForSeoCredentialsForm() {
           {busy ? t('credentials.saving') : t('credentials.submit')}
         </button>
       </div>
+
+      <CredentialsHelp />
+
+      <DataForSeoBypassModal isOpen={bypassOpen} onClose={() => setBypassOpen(false)} />
     </form>
+  );
+}
+
+// Collapsible DataForSEO tutorial, ported from the legacy collect-env handoff
+// (templates/companion/tutorials/dataforseo.html) so the Companion no longer
+// needs the separate 127.0.0.1/handoff tutorial tab.
+function CredentialsHelp() {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const steps: Array<{ title: string; body: string }> = [
+    { title: t('credentials.help.step1Title'), body: t('credentials.help.step1Body') },
+    { title: t('credentials.help.step2Title'), body: t('credentials.help.step2Body') },
+    { title: t('credentials.help.step3Title'), body: t('credentials.help.step3Body') },
+    { title: t('credentials.help.step4Title'), body: t('credentials.help.step4Body') },
+    { title: t('credentials.help.step5Title'), body: t('credentials.help.step5Body') },
+    { title: t('credentials.help.step6Title'), body: t('credentials.help.step6Body') },
+  ];
+
+  return (
+    <div className="rounded-md border border-notion-border">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-notion-text hover:bg-notion-hover rounded-md cursor-pointer"
+      >
+        {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        {t('credentials.help.toggle')}
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-3 text-xs text-notion-text-muted">
+          <div className="rounded-md border border-amber-300/40 bg-amber-100/20 px-3 py-2">
+            <div className="font-medium text-notion-text">{t('credentials.help.warningTitle')}</div>
+            <p className="mt-0.5">{t('credentials.help.warningBody')}</p>
+          </div>
+
+          <div>
+            <div className="text-[11px] font-semibold text-notion-text mb-1">{t('credentials.help.stepsTitle')}</div>
+            <ol className="space-y-2 list-decimal list-inside">
+              {steps.map((step) => (
+                <li key={step.title} className="text-notion-text-muted">
+                  <span className="font-medium text-notion-text">{step.title}</span>
+                  <span className="block ml-4">{step.body}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="rounded-md border border-notion-border bg-notion-sidebar/40 px-3 py-2">
+            <div className="font-medium text-notion-text">{t('credentials.help.modesTitle')}</div>
+            <p className="mt-0.5">{t('credentials.help.modesBody')}</p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

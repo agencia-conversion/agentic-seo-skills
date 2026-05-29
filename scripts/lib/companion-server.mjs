@@ -1,3 +1,10 @@
+// DEPRECATION: this local 127.0.0.1 HTTP handoff server backs the legacy handoffs
+// (collect-env, approve-cluster, dataforseo-bypass, approve-briefing, approve-page,
+// review-changes, pick-cluster). collect-env is superseded by the Web Companion
+// credentials surface (Settings → Credenciais); the credential, cluster-promotion,
+// and bypass flows migrate to the Web Companion. Kept for compatibility; do NOT
+// delete — other flows still reference it. See docs/web-companion.md for the plan.
+
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

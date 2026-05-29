@@ -48,9 +48,18 @@ Some flows need more than reading. They need a decision, a credential, a multi-s
 - `pick-cluster` — choose the cluster to assign a piece of content to.
 - `review-changes` — inspect proposed changes before they hit the brain.
 - `dataforseo-bypass` — confirm bypassing the DataForSEO gate and accept the consequence in writing.
-- `collect-env` — set up secrets or environment variables without exposing them in the terminal.
+- `collect-env` — set up secrets or environment variables without exposing them in the terminal. Superseded by the Companion credentials surface (Settings → Credenciais); see "Migration status" below.
 
-Each handoff binds to `127.0.0.1` on an ephemeral port, requires the one-time token, validates `Origin`/`Host`, and shuts down on submit, cancel, or TTL expiry. Sensitive values never echo to agent stdout, never appear in full in logs, and never land in the repo root `.env`. They are stored via Claude Code `userConfig` when running as a plugin, or in `project/.env.local` when running standalone.
+Each handoff binds to `127.0.0.1` on an ephemeral port, requires the one-time token, validates `Origin`/`Host`, and shuts down on submit, cancel, or TTL expiry. Sensitive values never echo to agent stdout, never appear in full in logs, and never land in the repo root `.env`. Credentials are stored in the user home file `~/.agentic-seo/credentials.json` with owner-only permissions (`chmod 0600`) — read and written by both the Companion and the CLI.
+
+### Migration status
+
+The legacy `127.0.0.1` HTTP handoffs (`node scripts/companion.mjs <name>`) are migrating into the Web Companion's own surfaces:
+
+- **Moving to the Companion now:** `collect-env` is superseded by the Web Companion credentials surface (Settings → Credenciais); `approve-cluster` (cluster promotion) and `dataforseo-bypass` also move to dedicated Companion screens.
+- **Behind a flag, with a documented plan:** `approve-briefing`, `approve-page`, `review-changes`, and `pick-cluster` remain available as legacy HTTP handoffs behind a flag until their Companion equivalents ship.
+
+The handoff code is not deleted — other flows still reference it — only deprecated and documented. Deprecation headers live in `scripts/companion.mjs`, `scripts/lib/companion-server.mjs`, and `scripts/lib/companion-types/collect-env.mjs`.
 
 Every handoff submission also appends an entry to `project/brain/log.md` with the appropriate `type:` (`approval`, `decision`, `ingestion`, `publication`, `evidence`).
 
