@@ -1,0 +1,30 @@
+skills/agentic-seo/SKILL.md
+  s_3b4e80af86082f::t_16c79a718208ff 128
+skills/start/SKILL.md
+  s_3b4e80af86082f::t_0ae1ebec89702c 184
+  s_3b4e80af86082f::t_0ef218f8514081 50,53-54
+docs/output-and-tone.md
+  s_3b4e80af86082f::t_8c997be8c97432 59-61
+scripts/companion.mjs
+  s_3b4e80af86082f::t_8fae94e9714020 3-25,32,36-40,43-51
+skills/data-setup/SKILL.md
+  s_3b4e80af86082f::t_34888f0efaa955 25
+  s_3b4e80af86082f::t_81e9a14f9c8924 76-89
+  s_3b4e80af86082f::t_66bdd683aa1e9c 210-215
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "03d781c532f3176f1ceeb98737b2360c6ae9792f",
+  "prompts": {},
+  "sessions": {
+    "s_3b4e80af86082f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "85335c10-2556-4fd6-9cfe-546f46d45fed",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
