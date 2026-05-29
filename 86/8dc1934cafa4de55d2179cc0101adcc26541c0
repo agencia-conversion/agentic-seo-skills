@@ -1,0 +1,205 @@
+src/lib/auto-blocks/index.ts
+  s_3b4e80af86082f::t_9ac29ee4ebb550 5,14-15
+skills/brain-keeper/SKILL.md
+  s_3b4e80af86082f::t_fa8dd0f1bc50dc 25-26
+  s_3b4e80af86082f::t_569ba38e37250b 133-134
+  s_3b4e80af86082f::t_5b00a53a6c9fac 63
+scripts/lib/companion-server.mjs
+  s_3b4e80af86082f::t_da29fd5a250c23 1-7
+apps/companion/src/features/credentials/dataforseo-bypass-modal.tsx
+  s_3b4e80af86082f::t_1d3ef10e812bf1 1-139
+apps/companion/src/features/workspace/settings-modal.tsx
+  s_3b4e80af86082f::t_4629849213cf14 139-140,144-171,175,179,189,193-214
+  s_3b4e80af86082f::t_c2ff8cd8ec0d36 5,7,10
+templates/project/brain/technology.md
+  s_3b4e80af86082f::t_8a11e81d8aaed2 9-10,12-18
+apps/companion/src/lib/i18n.ts
+  s_3b4e80af86082f::t_ee55947d3f865a 273-297
+  s_3b4e80af86082f::t_47aa32e8b31ad2 806-820
+  s_3b4e80af86082f::t_f581d244b0a5ff 258-272
+  s_3b4e80af86082f::t_159a1c1b257b99 821-845
+  s_3b4e80af86082f::t_2beddd0cbbcb9c 376-384
+  s_3b4e80af86082f::t_8c0255a3d60ca0 924-932
+agents/data-setup.md
+  s_3b4e80af86082f::t_d20b114afa7be2 11,13,15
+apps/companion/e2e/language-persistence.spec.ts
+  s_3b4e80af86082f::t_1ccd96e04da349 2-12,15-16,19-30,37-48,50-56,58,60-64,66-77,79,81,90-93,95-98
+  s_3b4e80af86082f::t_fae3854600538b 84-88
+  s_3b4e80af86082f::t_d74178b86cf037 1,13-14,17-18,31-36,49,57,59,65,78,80,82-83,89,94
+apps/companion/src/lib/project-files.ts
+  s_3b4e80af86082f::t_6a1554f83b0cf3 443-487
+  s_3b4e80af86082f::t_ec94a4ffec80d3 206-209
+skills/data-setup/SKILL.md
+  s_3b4e80af86082f::t_0c405778d360ae 24
+  s_3b4e80af86082f::t_fec7f4e6858ad4 108
+  s_3b4e80af86082f::t_f9dc469f6db30c 66,70,72,74,76,78
+  s_3b4e80af86082f::t_1c35341bbc4434 118
+  s_3b4e80af86082f::t_4aed23e7d4e33a 197
+  s_3b4e80af86082f::t_93849d1cc6dc24 121
+  s_3b4e80af86082f::t_a30e6e4c737a4b 50
+  s_3b4e80af86082f::t_662e1142bfd9f7 25,28
+  s_3b4e80af86082f::t_1088cf4d66727d 92
+  s_3b4e80af86082f::t_bb1ef355eb155a 140
+  s_3b4e80af86082f::t_6244bb70fc0626 175,179
+  s_3b4e80af86082f::t_7f2f2734b9e0e8 60
+  s_3b4e80af86082f::t_4aee2d89152290 40,44
+skills/topic-cluster/SKILL.md
+  s_3b4e80af86082f::t_466fa90c0fc17e 26
+scripts/lib/companion-types/collect-env.mjs
+  s_3b4e80af86082f::t_929222dc9c131e 1-6
+  s_3b4e80af86082f::t_2f80a0a81a1f64 18-21,23,25
+apps/companion/src/features/credentials/dataforseo-credentials-form.tsx
+  s_3b4e80af86082f::t_9a272f7c7b290f 152-153,159-211
+  s_3b4e80af86082f::t_bb5ec93daf6e24 9
+  s_3b4e80af86082f::t_98a7579c4a7da7 136-143,154-155
+  s_3b4e80af86082f::t_c917620788dcca 4
+  s_3b4e80af86082f::t_9b4e38e41854ce 30
+apps/companion/src/lib/credentials.ts
+  s_3b4e80af86082f::t_a28d8cbffd8046 4
+agents/project-init.md
+  s_3b4e80af86082f::t_83b7b2659a0669 21
+  s_3b4e80af86082f::t_02fe9d681d0d37 35
+shared/dataforseo-validate.mjs
+  s_3b4e80af86082f::t_a1cc77ef4db08b 1-32
+apps/companion/src/lib/cluster-management.ts
+  s_3b4e80af86082f::t_b5b40b1764b8b6 6
+  s_3b4e80af86082f::t_d9f5bcb9c4b24a 380-449,451-503
+  s_3b4e80af86082f::t_5f4c4f77c6407a 450
+  s_3b4e80af86082f::t_9336c27ceb269f 1
+  s_3b4e80af86082f::t_0ae9b743269710 175-178,186,197
+  s_3b4e80af86082f::t_07365c889ce7c9 250-254,259,263-265,267
+  s_3b4e80af86082f::t_e3e4a94ed1bf20 340
+scripts/lib/clusters-apply.mjs
+  s_3b4e80af86082f::t_720f9f3c505c50 300-301
+  s_3b4e80af86082f::t_880dd48b772b78 320
+apps/companion/src/features/clusters/active-clusters-table.tsx
+  s_3b4e80af86082f::t_416c40065c5e9c 543
+  s_3b4e80af86082f::t_6ff5c5f3de2a74 251,253
+  s_3b4e80af86082f::t_b170cbbc6ff380 306-328
+  s_3b4e80af86082f::t_0d7faa40819805 359
+apps/companion/src/features/clusters/cluster-row-actions-menu.tsx
+  s_3b4e80af86082f::t_f5e6c7a6545e4a 5,16-18
+  s_3b4e80af86082f::t_32096e373134fe 90-91,96,104
+  s_3b4e80af86082f::t_cfea324417356e 95,102-103
+  s_3b4e80af86082f::t_f367b80aedd1fa 41
+apps/companion/src/app/api/project/cluster/[slug]/promote/route.ts
+  s_3b4e80af86082f::t_9010a61afabaec 1-36
+shared/dataforseo-validate.d.ts
+  s_3b4e80af86082f::t_d6f0c68b9c25a0 1-16
+src/lib/cluster-types.ts
+  s_3b4e80af86082f::t_b002e8b7c16003 81-84
+skills/content-seo/SKILL.md
+  s_3b4e80af86082f::t_b8ee2385e9211a 11
+  s_3b4e80af86082f::t_60f51cdcfe5a36 169-170
+  s_3b4e80af86082f::t_d1ebc2e65e7983 31
+  s_3b4e80af86082f::t_5e8d40054650e8 35
+apps/companion/e2e/clusters-single-table.spec.ts
+  s_3b4e80af86082f::t_64e3a21d1801c0 62
+  s_3b4e80af86082f::t_c2409ff8cdcfb3 153-154,159-160
+  s_3b4e80af86082f::t_fbb9fe7852f4cb 1-61,63-109,112-152,155-158,161-172
+  s_3b4e80af86082f::t_4c02ff9d9937bd 110-111
+templates/project/brain/topic-clusters/_subpage-template.pt-BR.md
+  s_3b4e80af86082f::t_96529d4d7f1ea8 14
+templates/project/brain/topic-clusters/_subpage-template.md
+  s_3b4e80af86082f::t_bd5c97f458005a 14
+templates/project/brain/topic-clusters/_cluster-subpage.md.template
+  s_3b4e80af86082f::t_1c3ae633271792 8-9,14-18
+  s_3b4e80af86082f::t_bd4bb03742ef89 4
+templates/project/brain/topic-clusters.md
+  s_3b4e80af86082f::t_6ab5a6ca2d2d8f 11,14-19,21,23
+apps/companion/src/features/clusters/suggest-cluster-icon.ts
+  s_3b4e80af86082f::t_374028f6d45b96 1-5
+  s_3b4e80af86082f::t_0f7584ba25c2e4 6-28
+templates/project/brain/index.pt-BR.md
+  s_3b4e80af86082f::t_bdb65b6bc31b49 45
+src/lib/cluster-render.ts
+  s_3b4e80af86082f::t_30c9450559c2ca 283-284
+  s_3b4e80af86082f::t_c493667540d824 310-311
+skills/project-init/references/seed-from-site.md
+  s_3b4e80af86082f::t_0b88d85e5de0e8 141-145,147-150,153-165,167-168
+  s_3b4e80af86082f::t_4dea9ab01bd60a 217-220,223-236
+  s_3b4e80af86082f::t_4622ee16a8df74 129-139
+  s_3b4e80af86082f::t_2433c986f35e48 122-123
+  s_3b4e80af86082f::t_f0f27b8757a838 54-55
+docs/output-and-tone.md
+  s_3b4e80af86082f::t_5421b5885f95e0 55-58
+skills/agentic-seo/SKILL.md
+  s_3b4e80af86082f::t_76d6e29293ce44 28
+skills/project-init/references/seed-from-doc.md
+  s_3b4e80af86082f::t_3dd5ff1bba3c15 31
+  s_3b4e80af86082f::t_fd740fc60059a8 28
+  s_3b4e80af86082f::t_d4c6aca19621d4 29
+  s_3b4e80af86082f::t_c93d2695a39731 37
+templates/project/brain/review.pt-BR.md
+  s_3b4e80af86082f::t_8e6fc7316f4ccf 80
+  s_3b4e80af86082f::t_db6a58430c2cf6 32
+templates/project/clusters/cluster.yaml.template
+  s_3b4e80af86082f::t_e54173aaa0a64e 8
+src/commands/cluster-sync.ts
+  s_3b4e80af86082f::t_32e7962e2dd5ab 330-331
+  s_3b4e80af86082f::t_bf0843fca94c1b 345
+src/lib/auto-blocks/clusters-by-area.ts
+  s_3b4e80af86082f::t_3a62c05dd2023a 11-16,18,21-43,59-66,87-88,99-113,116,119,126-135
+templates/project/brain/index.md
+  s_3b4e80af86082f::t_c333d8b7a7fc4d 28
+  s_3b4e80af86082f::t_139781175d4260 59
+apps/companion/src/features/editor/auto-block-hydrator.tsx
+  s_3b4e80af86082f::t_287f1406eff959 208
+agents/content-seo.md
+  s_3b4e80af86082f::t_39b95a3f12c522 15,17,19-27
+apps/companion/src/components/i18n-provider.tsx
+  s_3b4e80af86082f::t_81311a941b2243 45-48,56-57
+  s_3b4e80af86082f::t_cc4cb3f8c44f3e 75-79
+  s_3b4e80af86082f::t_01c44abda5b7cb 38-42
+apps/companion/src/features/workspace/store.ts
+  s_3b4e80af86082f::t_89c2878ba8ee77 696-699,701-702,713
+  s_3b4e80af86082f::t_fb89068557186f 680
+  s_3b4e80af86082f::t_e7708d95422773 182
+  s_3b4e80af86082f::t_db2fdebe8bf83d 1119-1122,1129-1143
+  s_3b4e80af86082f::t_4bdfd2ba143c17 119-121
+apps/companion/src/app/api/project/bypass/route.ts
+  s_3b4e80af86082f::t_f5e384cd20066f 1-27
+docs/web-companion.md
+  s_3b4e80af86082f::t_72e7a9d9a543cb 51
+  s_3b4e80af86082f::t_3ba1490be6dac8 53-62
+templates/project/clusters/cluster.yaml.template.pt-BR
+  s_3b4e80af86082f::t_263d24df2cdfe5 8
+apps/companion/src/features/clusters/create-cluster-modal.tsx
+  s_3b4e80af86082f::t_cbeafb1a4d3b36 27-31,41-42,51-54
+  s_3b4e80af86082f::t_11506250a78612 95
+  s_3b4e80af86082f::t_132cb9af024dfb 97-110
+  s_3b4e80af86082f::t_ea8dbaabda5ed4 63,65-66
+  s_3b4e80af86082f::t_124c6ae1a78e6b 8
+templates/project/brain/topic-clusters.pt-BR.md
+  s_3b4e80af86082f::t_9f9d3640081f2d 11,14-18,20,22
+templates/project/brain/technology.pt-BR.md
+  s_3b4e80af86082f::t_070a47b1cf8911 9-10,12-18
+src/lib/auto-blocks/cluster-index.ts
+  s_3b4e80af86082f::t_bf724b2995af37 70-71
+  s_3b4e80af86082f::t_3660a37accd9b3 22-23,29-30,32-33
+  s_3b4e80af86082f::t_b3f8c661cbca21 54-55
+docs/specs/topic-clusters-contract.md
+  s_3b4e80af86082f::t_f59cecb5424537 35-51
+  s_3b4e80af86082f::t_8b052f35f05164 237-239
+  s_3b4e80af86082f::t_9453a134f0af6d 91
+scripts/companion.mjs
+  s_3b4e80af86082f::t_85b779acac7832 3-10
+templates/project/brain/review.md
+  s_3b4e80af86082f::t_c99451567eb0c1 80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "868dc1934cafa4de55d2179cc0101adcc26541c0",
+  "prompts": {},
+  "sessions": {
+    "s_3b4e80af86082f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "85335c10-2556-4fd6-9cfe-546f46d45fed",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
