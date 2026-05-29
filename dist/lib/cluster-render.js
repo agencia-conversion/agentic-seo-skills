@@ -202,8 +202,8 @@ function indexClusterRow(cluster, labels, contentsByCluster) {
             : "—";
     const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
     const clusterLink = `[${icon}${cluster.yaml.name}](topic-clusters/${cluster.slug}.md)`;
-    const area = cluster.yaml.area_name || cluster.yaml.area || "—";
-    return `| ${clusterLink} | ${area} | ${pillarLink} | ${published.length} | ${planned} |`;
+    // Single flat table: the "área" column was removed from the model.
+    return `| ${clusterLink} | ${pillarLink} | ${published.length} | ${planned} |`;
 }
 function renderIndexBlock(input) {
     const { clusters, labels, contentsByCluster, orphanCount, plannedCount, publishedCount, syncTimestamp, } = input;
@@ -219,8 +219,8 @@ function renderIndexBlock(input) {
         `| ${labels.orphans} | ${orphanCount} |`,
         `| ${labels.last_sync} | ${syncTimestamp} |`,
     ].join("\n");
-    const header = `| ${labels.cluster_col} | ${labels.area_col} | ${labels.pillar_col} | ${labels.published_col} | ${labels.planned_col} |`;
-    const divider = "| --- | --- | --- | --- | --- |";
+    const header = `| ${labels.cluster_col} | ${labels.pillar_col} | ${labels.published_col} | ${labels.planned_col} |`;
+    const divider = "| --- | --- | --- | --- |";
     const rows = activeClusters.length === 0
         ? "<!-- Nenhum cluster ativo. -->"
         : activeClusters

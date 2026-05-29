@@ -77,4 +77,4 @@ Como evoluir esta página:
 - Tom de voz e registro: ver [[voice]].
 - Schema de frontmatter público e schema do log: skill `brain-keeper`.
 - Brandbook narrativo (aposto, público, canais): ver [[identity]].
-- Áreas editoriais e teses: ver [[topic-clusters]].
+- Clusters editoriais e teses: ver [[topic-clusters]].

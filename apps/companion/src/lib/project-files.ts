@@ -203,7 +203,10 @@ function readProjectConfig(root: string): Record<string, any> {
 
 import { normalizeLanguage as sharedNormalizeLanguage } from '../../../../shared/locale.mjs';
 
-function normalizeProjectLanguage(value: unknown, fallback: 'pt-BR' | 'en' = 'en') {
+// Fallback is 'pt-BR' to match the CLI canonical default, so a transient
+// empty/unparseable read never biases delivery language to 'en'. The explicit
+// user-initiated change path is updateProjectSettings + PATCH /api/project/settings.
+function normalizeProjectLanguage(value: unknown, fallback: 'pt-BR' | 'en' = 'pt-BR') {
   return sharedNormalizeLanguage(value, fallback);
 }
 
@@ -435,6 +438,51 @@ export function updateProjectSettings({ projectRoot, language }: { projectRoot?:
     });
   }
   return readProjectSettings({ projectRoot: root });
+}
+
+// Appends a deliberate DataForSEO bypass decision to project/brain/log.md.
+// Used by the Companion bypass dialog (POST /api/project/bypass) to replace the
+// legacy 127.0.0.1/handoff dataforseo-bypass flow. Returns ok:false with a
+// reason when input is missing or the Brain log does not exist yet.
+export function appendBypassDecision({
+  projectRoot,
+  reason,
+  consequence,
+  approver,
+  workflow,
+  step,
+}: {
+  projectRoot?: string;
+  reason?: unknown;
+  consequence?: unknown;
+  approver?: unknown;
+  workflow?: unknown;
+  step?: unknown;
+}) {
+  const root = normalizeProjectRoot(projectRoot);
+  const reasonClean = typeof reason === 'string' ? reason.trim() : '';
+  if (!reasonClean) return { ok: false as const, reason: 'missing-reason' };
+  const approverClean = (typeof approver === 'string' ? approver.trim() : '') || 'agent';
+  const workflowClean = (typeof workflow === 'string' ? workflow.trim() : '') || 'agentic-seo';
+  const stepClean = (typeof step === 'string' ? step.trim() : '') || 'dataforseo';
+  const consequenceClean =
+    (typeof consequence === 'string' ? consequence.trim() : '') || 'O artifact não será DataForSEO-backed.';
+  const logFile = join(root, 'brain', 'log.md');
+  if (!existsSync(join(root, 'brain')) && !existsSync(logFile)) {
+    return { ok: false as const, reason: 'brain-log-missing' };
+  }
+  appendLogEntry(logFile, {
+    date: todayIso(),
+    type: 'decision',
+    title: `DataForSEO bypass · ${workflowClean}`,
+    scope: workflowClean,
+    decision: `${workflowClean} registrado sem DataForSEO em ${stepClean}: ${consequenceClean}`,
+    evidence: reasonClean,
+    approver: approverClean,
+    approved_at: null,
+    notes: reasonClean,
+  });
+  return { ok: true as const, workflow: workflowClean, step: stepClean, approver: approverClean };
 }
 
 function readSummary(

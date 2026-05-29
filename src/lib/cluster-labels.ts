@@ -28,7 +28,6 @@ export interface ClusterLabels {
   orphans: string;
   last_sync: string;
   cluster_col: string;
-  area_col: string;
   pillar_col: string;
   published_col: string;
   planned_col: string;
@@ -65,7 +64,6 @@ export const CLUSTER_LABELS: Record<Language, ClusterLabels> = {
     orphans: "Conteúdos órfãos",
     last_sync: "Última sincronização",
     cluster_col: "Cluster",
-    area_col: "Área",
     pillar_col: "Pilar",
     published_col: "Publicados",
     planned_col: "Planejados",
@@ -100,7 +98,6 @@ export const CLUSTER_LABELS: Record<Language, ClusterLabels> = {
     orphans: "Orphan content",
     last_sync: "Last sync",
     cluster_col: "Cluster",
-    area_col: "Area",
     pillar_col: "Pillar",
     published_col: "Published",
     planned_col: "Planned",

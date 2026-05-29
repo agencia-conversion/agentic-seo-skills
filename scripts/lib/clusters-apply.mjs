@@ -222,7 +222,6 @@ function buildClusterSubpage(entry, publishedByCluster) {
     parent_label: "Topic Clusters",
     heading,
     resumo: yaml.context || `Cluster ${yaml.name}.`,
-    area: yaml.area || "",
     pillar_line: buildPillarLine(yaml, pillarContent),
     contents_table: contentsTable,
     next_actions: nextActions,
@@ -272,18 +271,6 @@ export function writeBrainSubpages(root, plan, publishedByCluster) {
   return written;
 }
 
-function humanArea(entry) {
-  if (typeof entry.yaml.area_name === "string" && entry.yaml.area_name.trim()) {
-    return entry.yaml.area_name.trim();
-  }
-  const slug = entry.yaml.area || "";
-  return slug
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 function buildBrainIndex(plan, publishedByCluster) {
   const total = plan.summary.contents_to_update;
   const planned = plan.clusters_to_create.reduce(
@@ -310,8 +297,8 @@ function buildBrainIndex(plan, publishedByCluster) {
     "",
     "## Clusters ativos",
     "",
-    "| Cluster | Área | Pilar | Cobertura |",
-    "| --- | --- | --- | --- |",
+    "| Cluster | Pilar | Cobertura |",
+    "| --- | --- | --- |",
   ];
   for (const entry of plan.clusters_to_create) {
     const published = publishedByCluster.get(entry.slug) || [];
@@ -330,7 +317,7 @@ function buildBrainIndex(plan, publishedByCluster) {
     const icon = typeof entry.yaml.icon === "string" && entry.yaml.icon.trim() ? entry.yaml.icon.trim() : null;
     const clusterLabel = icon ? `${icon} ${entry.yaml.name}` : entry.yaml.name;
     lines.push(
-      `| [${clusterLabel}](topic-clusters/${entry.slug}.md) | ${humanArea(entry)} | ${pillarLink} | ${cover} |`,
+      `| [${clusterLabel}](topic-clusters/${entry.slug}.md) | ${pillarLink} | ${cover} |`,
     );
   }
   lines.push("");

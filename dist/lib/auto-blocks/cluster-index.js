@@ -18,15 +18,11 @@ function shortenTitle(title) {
 exports.clusterIndex = {
     name: "agentic-cluster-index",
     version: 1,
-    parseParams(yaml) {
-        const area = typeof yaml.area === "string" && yaml.area.trim() ? yaml.area.trim() : undefined;
-        return { area };
+    parseParams() {
+        return {};
     },
-    render(params, inputs) {
-        const all = inputs.clusters.filter((c) => c.yaml.status === "active");
-        const matching = params.area
-            ? all.filter((c) => c.yaml.area === params.area)
-            : all;
+    render(_params, inputs) {
+        const matching = inputs.clusters.filter((c) => c.yaml.status === "active");
         const labels = inputs.labels;
         const totalPublished = inputs.contents.length - inputs.orphanContents.length;
         const totalPlanned = matching.reduce((sum, c) => sum + (c.yaml.planned_satellites?.length || 0), 0);
@@ -41,8 +37,8 @@ exports.clusterIndex = {
             `| ${labels.orphans} | ${inputs.orphanContents.length} |`,
             `| ${labels.last_sync} | ${inputs.now} |`,
         ];
-        const header = `| ${labels.cluster_col} | ${labels.area_col} | ${labels.pillar_col} | ${labels.published_col} | ${labels.planned_col} |`;
-        const divider = "| --- | --- | --- | --- | --- |";
+        const header = `| ${labels.cluster_col} | ${labels.pillar_col} | ${labels.published_col} | ${labels.planned_col} |`;
+        const divider = "| --- | --- | --- | --- |";
         const rows = matching.map((cluster) => {
             const published = inputs.contentsByCluster.get(cluster.slug) || [];
             const planned = cluster.yaml.planned_satellites?.length || 0;
@@ -57,8 +53,8 @@ exports.clusterIndex = {
             const icon = cluster.yaml.icon ? `${cluster.yaml.icon} ` : "";
             const displayName = cluster.yaml.name || cluster.slug;
             const clusterLink = `[${icon}${displayName}](topic-clusters/${cluster.slug}.md)`;
-            const area = cluster.yaml.area_name || cluster.yaml.area || "—";
-            return `| ${clusterLink} | ${area} | ${pillarLink} | ${published.length} | ${planned} |`;
+            // Single flat table: the "área" column was removed from the model.
+            return `| ${clusterLink} | ${pillarLink} | ${published.length} | ${planned} |`;
         });
         const tableSection = [
             `## ${labels.active_clusters}`,

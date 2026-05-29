@@ -25,7 +25,7 @@ O que cada página resume nos bullets:
 - identity → aposto/promessa/público/anti-posicionamento/identidade técnica/canais.
 - voice → registro, termos preferidos, termos proibidos, atribuição, idioma/acentuação.
 - technology → stack/CMS observado, status de SEO técnico, pendências.
-- topic-clusters → áreas editoriais ativas, clusters ativos (nomes), índice/tabela auto-gerado.
+- topic-clusters → clusters ativos (nomes) e que a tabela única é auto-gerada.
 - review → regra universal + princípios do projeto + checklist.
 - log → o que é registrado (decisões, aprovações, erratas, lints, ingestões, publicações).
 
@@ -55,9 +55,8 @@ Mantenha os wikilinks [[identity]] etc. como o cabeçalho do H3. Frases curtas.
 
 ### [[topic-clusters|Topic Clusters]]
 
-- <áreas editoriais ativas>
 - <clusters ativos (nomes)>
-- <o índice/tabela de clusters é auto-gerado>
+- <a tabela única de clusters é auto-gerada>
 
 ### [[review|Revisão]]
 

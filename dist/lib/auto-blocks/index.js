@@ -12,6 +12,8 @@ function registerBuiltinAutoBlocks() {
     if (registered)
         return;
     registered = true;
+    (0, auto_block_registry_1.registerAutoBlockType)(clusters_by_area_1.clusters);
+    // Deprecated alias for pre-migration brain pages (ignores `area`).
     (0, auto_block_registry_1.registerAutoBlockType)(clusters_by_area_1.clustersByArea);
     (0, auto_block_registry_1.registerAutoBlockType)(cluster_content_1.clusterContent);
     (0, auto_block_registry_1.registerAutoBlockType)(cluster_index_1.clusterIndex);

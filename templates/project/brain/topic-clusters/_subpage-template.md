@@ -11,9 +11,7 @@ updated: "{{updated}}"
 
 ## Tese editorial
 
-<!-- Espaço para o autor expandir em prosa: tese central do cluster, diferenciação editorial, audiência principal, conexão com outras áreas. Texto livre. -->
-
-Pertence à área [[topic-clusters]] (`{{area}}`).
+<!-- Espaço para o autor expandir em prosa: tese central do cluster, diferenciação editorial, audiência principal e conexões com outros clusters. Texto livre — esta seção nunca é sobrescrita pela sincronização. -->
 
 ## Pilar
 

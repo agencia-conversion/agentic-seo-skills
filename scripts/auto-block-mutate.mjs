@@ -149,19 +149,6 @@ async function main() {
       emit({ ok: false, error: 'rowMutation returned null' });
       process.exit(1);
     }
-    // Special-case: agentic-clusters-by-area move-to-block emits a descriptor with
-    // fieldPath="clusters.<slug>.area"; rewrite to target the actual cluster.yaml.
-    if (mutation.action === 'move-to-block' && descriptor.fieldPath.startsWith('clusters.')) {
-      const segments = descriptor.fieldPath.split('.');
-      const slug = segments[1];
-      const subpath = segments.slice(2).join('.');
-      const cluster = clusterBySlug.get(slug);
-      if (!cluster) {
-        emit({ ok: false, error: `cluster not found: ${slug}` });
-        process.exit(1);
-      }
-      descriptor = { ...descriptor, filePath: cluster.filePath, fieldPath: subpath };
-    }
   }
 
   const result = mutateLib.applyMutation(descriptor, {

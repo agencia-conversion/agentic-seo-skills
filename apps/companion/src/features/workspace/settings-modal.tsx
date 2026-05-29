@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check, Folder, Globe, HardDrive, Key, Maximize2, X } from 'lucide-react';
+import { Check, Folder, Globe, HardDrive, Key, Languages, Maximize2, X } from 'lucide-react';
 import { Select } from '@/components/select';
+import { showToast } from '@/components/toast';
 import { useEscapeKey } from '@/hooks/use-click-outside';
 import { cn } from '@/lib/utils';
-import { getLocaleOptions, localeDisplayName, LocalePreference } from '@/lib/i18n';
+import { getLocaleOptions, localeDisplayName, LocalePreference, SupportedLocale } from '@/lib/i18n';
 import { useI18n } from '@/components/i18n-provider';
 import { getPageWidthOptions } from './page-width';
 import { useWorkspace } from './store';
@@ -135,16 +136,47 @@ function GeneralSettings() {
   const defaultPageWidth = useWorkspace((s) => s.settings.defaultPageWidth);
   const language = useWorkspace((s) => s.settings.language);
   const setSettings = useWorkspace((s) => s.setSettings);
+  const projectLanguage = useWorkspace((s) => s.projectLanguage);
+  const changeProjectLanguage = useWorkspace((s) => s.changeProjectLanguage);
   const pageWidthOptions = getPageWidthOptions(t);
   const localeOptions = getLocaleOptions(locale);
   const activeBrowserLocaleLabel = localeDisplayName(browserLocale, locale);
+  const [changingProjectLanguage, setChangingProjectLanguage] = useState(false);
+
+  const projectLanguageLabel = projectLanguage
+    ? localeDisplayName(projectLanguage as SupportedLocale, locale)
+    : '—';
+  // The single deliberate alternative to the current project delivery language.
+  const targetProjectLanguage: 'pt-BR' | 'en' = projectLanguage === 'en' ? 'pt-BR' : 'en';
+  const targetProjectLanguageLabel = localeDisplayName(targetProjectLanguage, locale);
+
+  const onChangeProjectLanguage = async () => {
+    if (changingProjectLanguage) return;
+    const confirmed = window.confirm(
+      t('settings.projectLanguageConfirm', { language: targetProjectLanguageLabel })
+    );
+    if (!confirmed) return;
+    setChangingProjectLanguage(true);
+    try {
+      const ok = await changeProjectLanguage(targetProjectLanguage);
+      showToast(
+        ok
+          ? t('settings.projectLanguageChanged', { language: targetProjectLanguageLabel })
+          : t('settings.projectLanguageError'),
+        ok ? 'success' : 'error'
+      );
+    } finally {
+      setChangingProjectLanguage(false);
+    }
+  };
 
   return (
     <>
+      {/* LOCAL UI/browser preference — never touches project.json. */}
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-notion-text">
           <Globe className="w-4 h-4" />
-          {t('common.language')}
+          {t('settings.uiLanguageTitle')}
         </div>
         <div className="border border-notion-border rounded-md px-1 py-0.5 inline-flex min-w-[220px]">
           <Select
@@ -154,7 +186,32 @@ function GeneralSettings() {
             className="w-full"
           />
         </div>
+        <p className="text-[11px] text-notion-text-muted">{t('settings.uiLanguageHint')}</p>
         <p className="text-[11px] text-notion-text-muted">{t('settings.languageBrowserHint', { locale: activeBrowserLocaleLabel })}</p>
+      </section>
+
+      {/* PROJECT delivery language — canonical (project.json), changed only on
+          deliberate user action with a confirm. Visually distinct from the UI
+          preference above. */}
+      <section className="space-y-2 rounded-md border border-notion-border bg-notion-sidebar/40 px-3 py-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-notion-text">
+          <Languages className="w-4 h-4" />
+          {t('settings.projectLanguageTitle')}
+        </div>
+        <p className="text-[11px] text-notion-text-muted">{t('settings.projectLanguageHint')}</p>
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <span className="text-xs text-notion-text">
+            {t('settings.projectLanguageCurrent', { language: projectLanguageLabel })}
+          </span>
+          <button
+            type="button"
+            onClick={onChangeProjectLanguage}
+            disabled={changingProjectLanguage || !projectLanguage}
+            className="rounded-md border border-notion-border px-2.5 py-1 text-xs font-medium text-notion-text hover:bg-notion-hover disabled:opacity-50 cursor-pointer"
+          >
+            {t('settings.projectLanguageChange')} → {targetProjectLanguageLabel}
+          </button>
+        </div>
       </section>
 
       <section className="space-y-3">

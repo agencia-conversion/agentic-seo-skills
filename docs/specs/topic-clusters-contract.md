@@ -32,6 +32,23 @@ Keys renamed to align with the EN-first vocabulary in `docs/specs/en-rename-map.
 
 Both `cluster-sync` and the Companion `cluster-yaml` normalizer accept v1 and add v2 aliases at parse time, so downstream code can read either side. The one-off Belo Horizonte brain migration (PR 3 of the bilingual refactor) rewrites all v1 files to v2 in place.
 
+## Modelo de tabela única (área removida)
+
+O conceito de **área editorial** foi **removido do modelo**. Antes, clusters eram agrupados por área (um H2 por área em `brain/topic-clusters.md`, alimentado pelo bloco `agentic-clusters-by-area area: <slug>`). Agora há **uma única tabela plana** com todos os clusters ativos, ordenada por nome.
+
+Mudanças concretas:
+
+- **Schema `cluster.yaml`:** os campos `area` e `area_name` (e o legacy pt-BR `area_nome`) **não fazem mais parte do schema**. O parser continua tolerante — yaml antigo com esses campos é lido sem erro e os campos são **ignorados** (e some na próxima sincronização que regravar o yaml). `contract_version` permanece **1**: a remoção é backward-compatible na leitura.
+- **Bloco automático `agentic-clusters`:** novo bloco canônico. Renderiza, em uma única tabela, **todos** os clusters com `status: active`, ordenados por nome (`order: name-asc`, padrão; aceita também `published-desc` / `published-asc`). Colunas: Cluster (ícone + nome + link para `topic-clusters/<slug>.md`), Pilar, Publicados, Planejados.
+
+  ```agentic-clusters
+  version: 1
+  order: name-asc
+  ```
+
+- **Alias depreciado `agentic-clusters-by-area`:** mantido **apenas** para não quebrar páginas do brain criadas antes da migração. Ele **ignora** o parâmetro `area` e renderiza a mesma tabela plana de `agentic-clusters`. Não use em conteúdo novo.
+- **Bloco `agentic-cluster-index`** e o índice entre as sentinelas (`cluster-index-table`, regenerado por `cluster-sync`) perderam a coluna **Área**; passam a ter Cluster | Pilar | Publicados | Planejados.
+
 ## 1. Objetivo
 
 Resolver "edit anywhere, sync everywhere" sobre arquivos Markdown + frontmatter, com:
@@ -71,7 +88,7 @@ Plus:
 contract_version: 1
 slug: seo-agentico                # kebab-case lowercase; deve casar com nome da pasta
 name: SEO Agêntico                # exibição humana, com acentos
-area: fundamentos-do-seo-agentico # aponta para seção H2 em brain/topic-clusters.md
+icon: "🧭"                        # emoji exibido ao lado do nome no índice e na subpágina
 status: active                    # active | drafting | proposed | archived
 thesis: |
   Tese editorial em 1-3 parágrafos. Quem é, para quem, por que importa.
@@ -217,9 +234,9 @@ updated: 2026-05-25
 
 ## Clusters ativos
 
-| Cluster | Área | Pilar | Publicados | Planejados |
-|---|---|---|---|---|
-| [SEO Agêntico](topic-clusters/seo-agentico.md) | Fundamentos | O que é SEO Agêntico | 9 | 1 |
+| Cluster | Pilar | Publicados | Planejados |
+|---|---|---|---|
+| [🧭 SEO Agêntico](topic-clusters/seo-agentico.md) | O que é SEO Agêntico | 9 | 1 |
 
 <!-- END cluster-index-table:auto -->
 

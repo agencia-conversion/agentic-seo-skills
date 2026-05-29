@@ -10,7 +10,6 @@ interface ClusterRow {
   name: string;
   icon?: string;
   status?: string;
-  area?: string;
 }
 
 interface ClusterPickModalProps {
@@ -147,7 +146,6 @@ export function ClusterPickModal({
                       <span className="block text-sm text-notion-text truncate">{c.name}</span>
                       <span className="block text-[11px] text-notion-text-muted truncate">
                         {c.slug}
-                        {c.area ? ` · ${c.area}` : ''}
                       </span>
                     </span>
                     {c.status && (

@@ -12,7 +12,6 @@ interface ClusterYaml {
   slug?: string;
   name?: string;
   icon?: string;
-  area?: string;
   status?: string;
   thesis?: string;
   pillar?: { slug?: string; keyword?: string; intent?: string; volume?: number | null };
@@ -236,7 +235,6 @@ export async function GET(req: NextRequest, context: { params: Promise<{ slug: s
       slug,
       name: yaml.name || slug,
       icon: yaml.icon || null,
-      area: yaml.area || null,
       status: yaml.status || null,
       thesis: yaml.thesis || null,
       pillar_slug: yaml.pillar?.slug || null,

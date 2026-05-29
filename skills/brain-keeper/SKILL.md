@@ -22,6 +22,8 @@ Hard rules for every brain-keeper run.
 
 - Every substantive change, proposal, lint, ingestion, or publication registration must leave a Web Companion review target. If an authorial page changed, point to that `project/brain/<page>.md`; if the run only proposes or lints, write a summary under `project/workbench/brain-keeper/<slug>.md` or `.yaml`. Return `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "<project-relative path>", open_with: "project-browser" }`. Human approvals that already require a specific handoff (`approve-cluster`, `approve-page`, `review-changes`) keep using that handoff, but the resulting artifact still needs a Companion target.
 
+**Migração de handoffs (status).** Os antigos handoffs HTTP (`scripts/companion.mjs <name>` em `127.0.0.1`) estão sendo movidos para a superfície do Web Companion. `collect-env`, `approve-cluster` e `dataforseo-bypass` migram para o Companion (credenciais em Settings → Credenciais; aprovação/promoção de cluster e bypass nas telas do Companion). `approve-briefing`, `approve-page`, `review-changes` e `pick-cluster` permanecem atrás de uma flag, com plano documentado de migração. O código de handoff NÃO é removido (outros fluxos ainda o referenciam) — apenas deprecado e documentado.
+
 ## Boundaries
 
 Allowed writes:
@@ -58,7 +60,7 @@ Use Obsidian Wikilinks `[[...]]` only for real files inside `project/brain/`. Us
 
 **Fonte autoral vs. fonte interna.** O brain é a voz da própria marca falando de si mesma. Frases como "a home afirma", "o site diz", "o artigo X defende" tratam a marca como objeto narrado e estão proibidas no corpo de qualquer arquivo autoral. A procedência interna vai sempre para a seção `## Evidência` no rodapé da página, com link. Veja `## Lint editorial` abaixo para a regra completa.
 
-**Stack observado vs. tese editorial.** `technology.md` é estritamente descritivo do que foi observado no site (frontend, CMS, headers, JSON-LD). Tese editorial sobre stack ("a marca defende Next.js", "preferimos sites estáticos") vive em `topic-clusters.md` como seção da área editorial Tecnologia ou em conteúdos publicados em `contents/`. Nunca em `technology.md`.
+**Stack observado vs. tese editorial (regra dura).** `technology.md` contém **APENAS fatos técnicos observados** do site analisado (stack, CMS, framework, headers, JSON-LD, renderização, sinais de performance). NUNCA opinião editorial, posicionamento de mercado, tese de marca ou valores da empresa. Guia observado vs. opinião — observado (entra em `technology`): "Next.js + Vercel, SSR, schema `Article`". Opinião ("a marca defende Next.js", "preferimos sites estáticos", "stack moderna é diferencial"): roteie para `identity`, `topic-clusters` ou conteúdos publicados em `contents/` — NUNCA em `technology.md`.
 
 **Brain Index.** `index.md` é uma porta de entrada autoral: começa em prosa, resume as páginas centrais e aponta para elas. Ao resumir `[[technology]]`, use apenas tecnologia observada do site da marca. Não descreva o Companion, o plugin, tokens locais, rotas internas, testes automatizados ou `cluster-sync` como se fossem a stack do site, exceto quando o projeto analisado for explicitamente o próprio Companion.
 
@@ -127,6 +129,8 @@ Aplicar a regra em:
 - Reports do Web Companion (`relatorios/<module>/<run-slug>/report.md`).
 
 Logs (`log.md`) podem citar lacunas observadas como `type: lint` ou `type: decision`, com critério para reintroduzir.
+
+**Documentos autossuficientes (regra dura).** Todo arquivo escrito em `project/` (páginas do Cérebro, reviews, reports, conteúdos) precisa ser autossuficiente quando lido fora do contexto que o gerou e **NUNCA** pode embutir URLs de runtime — `localhost`, `127.0.0.1` ou rotas do Web Companion (ex.: `.../project/<token>/brain-review`). Essas URLs são efêmeras (token único, porta efêmera, expiram). Cite URLs públicas ou evidência relativa na seção `## Evidência`, nunca uma URL de debug do Companion.
 
 ## Lint editorial
 

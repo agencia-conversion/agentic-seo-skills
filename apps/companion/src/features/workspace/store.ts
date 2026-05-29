@@ -116,6 +116,9 @@ interface WorkspaceState {
   hasBrain: boolean;
   canBootstrapBrain: boolean;
   reportModules: ReportModuleSummary[];
+  // Read-only mirror of the project delivery language (project.json). Surfaced
+  // for display only; it must never feed back into settings.language.
+  projectLanguage: LocalePreference | null;
   token: string | null;
   sidebarCollapsed: boolean;
   sidebarWidth: number;
@@ -134,7 +137,6 @@ interface WorkspaceState {
     hiddenColumns?: string[];
     hiddenColumnsByTable?: Record<string, string[]>;
     dataTableFollowPageByPage?: Record<string, boolean>;
-    clusterAreaFiltersByTable?: Record<string, string[]>;
   };
   _hasHydrated: boolean;
 
@@ -177,6 +179,7 @@ interface WorkspaceState {
   computeRollup: () => string | number | null;
   setActivePage: (id: string | null) => Promise<void>;
   setSettings: (updates: Partial<WorkspaceState['settings']>) => void;
+  changeProjectLanguage: (language: 'pt-BR' | 'en') => Promise<boolean>;
   turnIntoDatabase: () => void;
   turnIntoPage: () => void;
   addDatabaseView: () => string;
@@ -674,6 +677,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   hasBrain: false,
   canBootstrapBrain: true,
   reportModules: [],
+  projectLanguage: null,
   token: null,
   sidebarCollapsed: readSidebarPreference().collapsed ?? false,
   sidebarWidth: readSidebarPreference().width ?? DEFAULT_SIDEBAR_WIDTH,
@@ -689,12 +693,13 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   initializeProject: async (token) => {
     set({ token, _hasHydrated: false });
     const built = await buildPagesAndSections(token);
-    const currentSettings = get().settings;
-    const nextSettings =
+    // The project delivery language is surfaced READ-ONLY under projectLanguage.
+    // It MUST NOT overwrite the local UI preference (settings.language), which
+    // is owned solely by readInitialSettings() (localStorage) + 'system' default.
+    const projectLanguage =
       built.projectLanguage && ['pt-BR', 'en'].includes(built.projectLanguage)
-        ? { ...currentSettings, language: built.projectLanguage as LocalePreference }
-        : currentSettings;
-    if (nextSettings !== currentSettings) writeSettings(nextSettings);
+        ? (built.projectLanguage as LocalePreference)
+        : null;
     set({
       pages: built.pages,
       sections: built.sections,
@@ -705,7 +710,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
       hasBrain: built.hasBrain,
       canBootstrapBrain: built.canBootstrapBrain,
       reportModules: built.reportModules,
-      settings: nextSettings,
+      projectLanguage,
       expandedPageIds: built.defaultExpandedIds,
       _hasHydrated: true,
     });
@@ -1111,18 +1116,31 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     }
     set({ activePageId });
   },
+  // setSettings is a LOCAL-only UI/browser preference writer. It persists to
+  // localStorage and NEVER PATCHes /api/project/settings. The project delivery
+  // language (project.json) is a separate source of truth, changed only by a
+  // deliberate user action via changeProjectLanguage().
   setSettings: (updates) =>
     set((s) => {
       const settings = { ...s.settings, ...updates };
       writeSettings(settings);
-      if (updates.language && ['pt-BR', 'en'].includes(updates.language) && s.token) {
-        void apiFetch(s.token, '/api/project/settings', {
-          method: 'PATCH',
-          body: JSON.stringify({ language: updates.language }),
-        });
-      }
       return { settings };
     }),
+  // Explicit, user-initiated change of the project DELIVERY language. This is
+  // the only Companion caller of PATCH /api/project/settings. It updates
+  // project.json (canonical) and mirrors the read-only projectLanguage field;
+  // it does NOT touch the local UI preference (settings.language).
+  changeProjectLanguage: async (language) => {
+    const token = get().token;
+    if (!token || !['pt-BR', 'en'].includes(language)) return false;
+    const result = await apiFetch(token, '/api/project/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ language }),
+    });
+    if (!result?.ok) return false;
+    set({ projectLanguage: typeof result.language === 'string' ? result.language : language });
+    return true;
+  },
   turnIntoDatabase: () => {},
   turnIntoPage: () => {},
   addDatabaseView: () => '',

@@ -50,9 +50,9 @@ Faz:
 NÃO faz:
 
 - Não inventa fatos de marca, dados de mercado nem decisões técnicas.
-- Não cria novas subpáginas de cluster (`brain/topic-clusters/<slug>.md`) por conta
-  própria — isso continua exigindo o handoff `approve-cluster`.
 - Não abre o navegador sem pedir permissão antes.
+- Não embute URLs de runtime (localhost/`127.0.0.1`/rotas do Companion) em nenhuma
+  página escrita em `project/` — ver "Documentos autossuficientes" abaixo.
 
 ## Seleção das URLs (até 10)
 
@@ -119,47 +119,53 @@ lido do site com a `additional_info` do usuário (insumo obrigatório quando pre
   bullets curtos** em cada, resumindo o que você de fato escreveu naquela página
   (identity → aposto/promessa/público/anti-posicionamento/técnica/canais; voice →
   registro/termos preferidos/proibidos/atribuição/idioma; technology → stack/CMS/
-  status técnico/pendências; topic-clusters → áreas ativas + nomes dos clusters +
-  que o índice é auto-gerado; review → regra universal + princípios + checklist;
+  status técnico/pendências; topic-clusters → nomes dos clusters ativos +
+  que a tabela única é auto-gerada; review → regra universal + princípios + checklist;
   log → o que é registrado). Os bullets derivam do conteúdo semeado — **não
   invente; omita o bullet** em vez de adivinhar.
 - `identity` — aposto, parágrafo de apresentação, promessa, público,
   identidade técnica e canais.
 - `voice` — princípios e registro inferidos do tom dos textos.
-- `technology` — stack/CMS aparente; o resto fica de fora (não vira gap).
+- `technology` — **APENAS fatos técnicos observados do site** (stack, CMS,
+  framework, headers, JSON-LD, renderização, sinais de performance). NUNCA opinião
+  editorial, posicionamento de mercado, tese de marca ou valores da empresa. Guia
+  rápido — observado vs. opinião:
+  - Observado (entra em `technology`): "Next.js + Vercel, SSR, schema `Article`",
+    "WordPress com cache de CDN", "JSON-LD de `Organization` presente na home".
+  - Opinião (NUNCA em `technology`; roteie): "a marca defende sites estáticos",
+    "preferimos edge rendering", "stack moderna é diferencial competitivo" →
+    vai para `identity`, `topic-clusters` (área Tecnologia) ou conteúdos em
+    `contents/`, conforme o caso.
+  O que não foi observado fica de fora (não vira gap).
 - `review` — regras editoriais específicas do projeto inferidas do material.
-- `topic-clusters` — escreva no **FORMATO DE TABELA**, nunca em prosa:
-  - **(a) Áreas editoriais:** para cada área que você identificar, crie um H2 em
-    `brain/topic-clusters.md` cujo corpo é **APENAS** o bloco automático:
-
-    ````markdown
-    ## <Nome da Área>
-
-    ```agentic-clusters-by-area
-    version: 1
-    area: <slug-da-area-kebab>
-    ```
-    ````
-
-    Sem prosa de tese/diferenciação/audiência/provas na página do Cérebro.
-  - **(b) Clusters:** para cada cluster, escreva um manifesto
-    `project/clusters/<slug>/cluster.yaml` a partir de
+- `topic-clusters` — modelo de **tabela única** (sem áreas). A página
+  `brain/topic-clusters.md` tem um único bloco automático `agentic-clusters` (tabela
+  plana de todos os clusters ativos) entre as sentinelas — **NÃO** crie H2 por "área"
+  nem use o antigo `agentic-clusters-by-area`. Para cada cluster que você identificar:
+  - **(a) Manifesto:** escreva `project/clusters/<slug>/cluster.yaml` a partir de
     `templates/project/clusters/cluster.yaml.template` (schema em
-    `docs/specs/topic-clusters-contract.md`, `contract_version: 1`). Preencha
-    `area` (= slug do H2) + `name`; `thesis` (1-3 linhas, só do site/`additional_info`,
-    sem fabricação); `pillar.slug` apontando para um slug real ou planejado;
+    `docs/specs/topic-clusters-contract.md`, `contract_version: 1`). Preencha `name`;
+    um `icon` (um emoji pré-selecionado que represente o tema do cluster, ex.: 🧭, 🚀,
+    📊); `thesis` (1-3 linhas, só do site/`additional_info`, sem fabricação);
+    `pillar.slug` apontando para um slug real ou planejado;
     `planned_satellites`/`satellite_overrides` vazios salvo evidência;
     `provenance.created_by: agent` e `decision_log` apontando para a entrada do log.
-    **Status:** use `status: active` para que o cluster apareça na tabela do
-    Companion e o usuário possa revisá-lo (modelo de escrita direta autorizada no
-    Passo 0; o bloco `agentic-clusters-by-area` só renderiza clusters `active`).
-    NÃO invente dados: `pillar.volume`/`volume_source` ficam `null` e `evidence: []`
-    quando não houver dado real; `pillar.slug` aponta para um slug real ou planejado.
-  - **(c) Índice/painel:** **NÃO** edite o bloco entre as sentinelas
+    **Não há campo `area`.** **Status:** use `status: active` para que o cluster
+    apareça na tabela do Companion e o usuário possa revisá-lo (modelo de escrita
+    direta autorizada no Passo 0). NÃO invente dados: `pillar.volume`/`volume_source`
+    ficam `null` e `evidence: []` quando não houver dado real.
+  - **(b) Subpágina do cluster:** escreva também a subpágina
+    `brain/topic-clusters/<slug>.md` a partir de
+    `templates/project/brain/topic-clusters/_cluster-subpage.md.template`, com a prosa
+    editorial do cluster (tese/linhas editoriais, **só** do site/`additional_info`,
+    sem fabricação) mais o bloco `cluster-content` (tabela de conteúdos materializada
+    por `cluster-sync` entre as sentinelas — não preencha à mão). Sob a **autorização
+    prévia do Passo 0**, a criação da subpágina é escrita direta (modelo de
+    onboarding, sem gate `approve-cluster`).
+  - **(c) Índice/painel:** **NÃO** edite os blocos entre as sentinelas
     `<!-- BEGIN cluster-index-table:auto... -->` / `<!-- END cluster-index-table:auto -->`
-    — ele é regenerado por `cluster-sync`.
-  - **(d)** **NÃO** crie subpáginas `brain/topic-clusters/<slug>.md` — isso continua
-    exigindo o handoff `approve-cluster`.
+    nem `<!-- BEGIN cluster-content-table:auto... -->` / `<!-- END cluster-content-table:auto -->`
+    — são regenerados por `cluster-sync`.
 
 Regras duras de composição:
 
@@ -208,13 +214,23 @@ Gates que CONTINUAM valendo (não relaxam no onboarding):
 
 - Sempre pedir a autorização do usuário no Passo 0 antes de pré-preencher.
 - Sempre pedir permissão ANTES de abrir o navegador.
-- Criar NOVA subpágina de cluster (`brain/topic-clusters/<slug>.md`) continua
-  exigindo o handoff `approve-cluster` — o seed só cria os H2 de área com o bloco
-  `agentic-clusters-by-area` em `topic-clusters.md` e os manifestos
-  `project/clusters/<slug>/cluster.yaml`.
+- Fora do onboarding, criar NOVA subpágina de cluster volta a exigir o handoff
+  `approve-cluster`. O seed só escreve as subpáginas direto **sob a autorização
+  prévia do Passo 0** (modelo de escrita direta), com a tabela única `agentic-clusters`
+  em `topic-clusters.md` e os manifestos `project/clusters/<slug>/cluster.yaml`.
 
 > Decisão (aprovada): clusters semeados no onboarding nascem `status: active` para
-> ficarem visíveis na tabela do Companion e o usuário revisar/editar. Sem fabricar
-> dados (`volume`/`volume_source` nulos, `evidence: []` quando não houver). A criação
-> de NOVA subpágina de cluster segue exigindo `approve-cluster`; edição/refino
-> posterior vem pela interface (já integrada a content) ou pela skill `topic-cluster`.
+> ficarem visíveis na tabela única do Companion e o usuário revisar/editar. Sem
+> fabricar dados (`volume`/`volume_source` nulos, `evidence: []` quando não houver). A
+> escrita direta da subpágina é coberta pela autorização do Passo 0; fora do
+> onboarding, NOVA subpágina segue exigindo `approve-cluster`. Edição/refino posterior
+> vem pela interface (já integrada a content) ou pela skill `topic-cluster`.
+
+## Documentos autossuficientes (regra dura)
+
+Toda página escrita em `project/` (páginas do Cérebro, reviews, reports, conteúdos)
+precisa ser **autossuficiente** quando lida fora do contexto que a gerou. **NUNCA**
+embuta URLs de runtime — `localhost`, `127.0.0.1` ou rotas do Web Companion
+(ex.: `.../project/<token>/brain-review`) — no corpo de nenhum arquivo. Essas URLs são
+efêmeras (token único, porta efêmera, expiram). Cite URLs públicas ou evidência
+relativa na seção `## Evidência`, nunca uma URL de debug do Companion.

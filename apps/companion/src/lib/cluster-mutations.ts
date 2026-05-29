@@ -142,7 +142,6 @@ function buildClusterSubpageMarkdown(projectRoot: string, clusterYaml: any): str
     parent_label: 'Topic Clusters',
     heading,
     resumo: clusterYaml.context || '',
-    area: clusterYaml.area || '',
     pillar_line: pillarLine(projectRoot, clusterYaml),
     contents_table: contentsTable,
     next_actions: nextActionsBlock(clusterYaml),

@@ -21,13 +21,11 @@ Do not use this skill to perform keyword research, create a SERP analysis, write
 - DataForSEO is the first supported provider. Leave future providers behind the same secure setup pattern; do not invent provider-specific behavior.
 - Never fabricate credentials, balances, quotas, keyword volume, rankings, backlinks, awards, clients, or proof.
 - Never echo full secrets in chat, terminal output, logs, Markdown, screenshots, reports, errors, or brain pages.
-- For nontechnical users and all sensitive input, browser handoff is the primary UX. Ask whether you may open a local browser window, then run the handoff yourself after consent.
-- A pergunta de credenciais é SEMPRE primeiro Web Companion (AskUserQuestion Sim/Não, prompt `Posso abrir o Web Companion para você inserir as credenciais com segurança?`), nunca um menu que ofereça arquivo local como opção co-igual; o arquivo local só aparece depois de um "Não" explícito, com aviso de risco. Alinha com `agentic-seo` § 5 "Use Browser Handoff For Decisions".
+- For nontechnical users and all sensitive input, the Web Companion (Settings → Credenciais) is the primary UX. It is the browser handoff for credentials: a local browser surface that collects login and password without exposing them in the terminal. Ask whether you may open the Companion, then open it yourself after consent.
+- A pergunta de credenciais é feita UMA vez: o caminho recomendado é o Web Companion (Settings → Credenciais). O arquivo local só aparece depois de um "Não" explícito, com aviso de risco. **Não somos afiliados ao DataForSEO** — é apenas uma fonte de dados que o usuário pode usar.
 - Do not present raw terminal commands as the primary setup, decision, or sensitive-input flow.
 - Do not write secrets to the repository root `.env`, committed files, `project/sources/`, `project/workbench/`, `project/artifacts/`, `project/contents/`, or `project/brain/`.
-- In Claude Code plugin mode, store secrets in sensitive `userConfig` fields when available.
-- In standalone project mode, store secrets in `project/.env.local`, which must stay local and ignored by git.
-- In portable user-level CLI mode, store secrets only in `~/.agentic-seo/userConfig` or the configured user secret store with owner-only permissions.
+- Credentials are stored in the user home file `~/.agentic-seo/credentials.json` with owner-only permissions (`chmod 0600`). This is where both the Web Companion and the CLI read and write them. Do not write secrets anywhere else.
 - Mask validation output. Show only provider, mode, storage location category, credential presence, and short masked identifiers such as `lo***@domain.com`.
 - Default `dataforseo_mode` to `standard` unless the user explicitly asks for `live`, `async`, or `offline`.
 - Preserve the requested output language, including pt-BR accents in generated prose: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
@@ -39,21 +37,17 @@ Do not use this skill to perform keyword research, create a SERP analysis, write
 
 **Check:** Which provider, runtime, storage target, and mode does the user need?
 
-**Strong:** "The user needs DataForSEO in standalone project mode. Use browser handoff, store in `project/.env.local`, set `dataforseo_mode: standard`, and validate with masked output."
+**Strong:** "The user needs DataForSEO. Open the Web Companion (Settings → Credenciais), store in `~/.agentic-seo/credentials.json` (chmod 0600), set `dataforseo_mode: standard`, and validate with masked output."
 
 **Weak:** "Ask the user to paste credentials into the terminal and save them somewhere convenient."
 
-If the provider is not specified, assume DataForSEO. If the runtime is unclear, infer from available project/plugin context when safe; otherwise ask one concise question before requesting secrets.
+If the provider is not specified, assume DataForSEO. Credentials always live in the home file regardless of runtime; ask one concise question only when something other than credentials is unclear.
 
 ### 2. Choose Secure Storage
 
 **Check:** Where can credentials be stored without entering git, logs, or human-readable project artifacts?
 
-Use this storage order:
-
-1. Claude Code plugin mode: sensitive `userConfig` fields.
-2. Standalone project mode: `project/.env.local`.
-3. Portable user-level CLI mode: `~/.agentic-seo/userConfig` with owner-only access.
+Credentials live in a single home-directory file: `~/.agentic-seo/credentials.json` with owner-only permissions (`chmod 0600`). Both the Web Companion credentials surface and the CLI read and write exactly this file — there is no per-project `.env.local` or plugin `userConfig` storage for DataForSEO credentials. Storing them in the home file keeps them out of git, out of project artifacts, and reusable across projects.
 
 Required DataForSEO keys are:
 
@@ -63,30 +57,25 @@ DATAFORSEO_PASSWORD: "<sensitive>"
 DATAFORSEO_MODE: "standard | live | async | offline"
 ```
 
-Do not create or update root `.env`. Do not copy secrets into `.env.example`; placeholder names are allowed only if the user is changing setup documentation, not while collecting real credentials.
+Do not create or update root `.env`, `project/.env.local`, or any committed file. Do not copy secrets into `.env.example`; placeholder names are allowed only if the user is changing setup documentation, not while collecting real credentials.
 
 ### 3. Collect Sensitive Input
 
 **Check:** Is the user being asked for a secret through the safest available interface?
 
-**Strong:** "Ask permission to open a local browser window for DataForSEO setup. The handoff collects login and password, stores them in the selected local secret target, submits once, then shuts down."
+**Strong:** "Ask permission to open the Web Companion (Settings → Credenciais). The user enters login and password there; the credentials are saved to `~/.agentic-seo/credentials.json` (chmod 0600), validated once, and never echoed."
 
 **Weak:** "Paste your DataForSEO login and password here so I can test them."
 
-**A pergunta de credenciais é PRESCRITA — não improvise um menu.** A PRIMEIRA pergunta sobre credenciais DEVE ser feita pela ferramenta nativa de múltipla escolha (AskUserQuestion), com o prompt EXATO `Posso abrir o Web Companion para você inserir as credenciais com segurança?` e exatamente DUAS opções reais, a recomendada primeiro:
+**Pergunte UMA vez, com o Companion como caminho recomendado.** Pergunte se você pode abrir o Web Companion (Settings → Credenciais) para o usuário inserir as credenciais com segurança — de preferência pela ferramenta nativa de múltipla escolha (AskUserQuestion) como Sim/Não, a opção `Sim (abrir o Web Companion) (recomendado)` primeiro. Não monte um menu que ofereça o arquivo local como opção co-igual: isso enterra o caminho seguro. O arquivo local só aparece DEPOIS de um "Não" explícito.
 
-- `Sim (abrir no navegador) (recomendado)` — opção recomendada/default (cabeçalho "Recomendado"). Este é o método seguro: o Web Companion (handoff `collect-env`) coleta login e senha sem expô-los.
-- `Não (prefiro outro jeito)`.
+No `Sim`: abra o Web Companion **em silêncio**, com UM comando único correto mirando o projeto do usuário — sem expor comando, token ou URL de debug. O Companion bind local, usa token único, não imprime segredos e salva em `~/.agentic-seo/credentials.json` (chmod 0600).
 
-NÃO ofereça um menu do tipo "Como prefere inserir as credenciais?" em que "gravar no arquivo local" apareça como opção co-igual ao Companion — isso enterra o caminho seguro. O arquivo local só aparece DEPOIS de um "Não" explícito.
+No `Não`: só então ofereça a gravação direta no arquivo `~/.agentic-seo/credentials.json` (chmod 0600), com aviso explícito de risco de exposição do segredo, e registre o bypass (`browser_handoff.bypass_recorded: true`). Respeite a escolha.
 
-No `Sim`: abra o handoff `collect-env` **em silêncio**, com UM comando único correto mirando o projeto do usuário, pedindo permissão como já é o padrão — sem expor comando, token ou URL de debug. O Companion bind local, usa token único, não imprime segredos e fecha sozinho ao submeter/cancelar/expirar.
+Se a ferramenta AskUserQuestion não existir no harness, faça a MESMA pergunta como sim/não em prosa curta (Companion primeiro, arquivo local só após "Não" com aviso de risco). Nunca caia em chat ou terminal para coletar o segredo sem o usuário pedir explicitamente após o aviso de risco.
 
-No `Não`: SÓ então ofereça a gravação no arquivo local (`project/.env.local` em standalone, ou `userConfig` conforme o runtime), com aviso explícito de risco de exposição do segredo, e registre o bypass (`browser_handoff.bypass_recorded: true`). Não force outras coisas; respeite a escolha.
-
-Se a ferramenta AskUserQuestion não existir no harness, use o mesmo fluxo como sim/não em prosa curta, mantendo a MESMA linha canônica e a mesma ordem (Companion primeiro, arquivo local só após "Não" com aviso de risco). Nunca caia em chat ou terminal para coletar o segredo sem o usuário pedir explicitamente após o aviso de risco.
-
-If the browser handoff cannot run, stop at the gate and provide a friendly explanation of what is blocked. Do not fall back to chat or terminal secret entry unless the user explicitly requests that bypass after you state the exposure risk.
+If the Companion cannot run, stop at the gate and provide a friendly explanation of what is blocked. Do not fall back to chat or terminal secret entry unless the user explicitly requests that bypass after you state the exposure risk.
 
 ### 4. Validate Without Leaking
 
@@ -100,7 +89,7 @@ Validation output must be masked:
 provider: dataforseo
 mode: standard
 credential_status: present | missing | invalid | unvalidated
-storage: plugin_user_config | project_env_local | user_config | unknown
+storage: home_credentials_file | unknown
 login_masked: "us***@example.com"
 password_masked: "present"
 validation:
@@ -116,7 +105,7 @@ Never include raw provider response bodies if they contain secrets, account iden
 
 **Check:** Does the next step help the user recover without exposing secrets?
 
-**Strong:** "Validation failed with `unauthorized`. Credentials are present in `project/.env.local`, but DataForSEO rejected them. Reopen the secure browser setup to replace the login or password."
+**Strong:** "Validation failed with `unauthorized`. Credentials are present in `~/.agentic-seo/credentials.json`, but DataForSEO rejected them. Reopen the Web Companion (Settings → Credenciais) to replace the login or password."
 
 **Weak:** "Print the configured password and ask the user whether it looks correct."
 
@@ -126,10 +115,10 @@ Common failure classes:
 - `invalid`: provider rejected credentials.
 - `network`: local machine could not reach provider.
 - `quota_or_billing`: provider account exists but cannot perform the requested class of checks.
-- `handoff_unavailable`: local browser handoff could not start.
+- `handoff_unavailable`: the Web Companion credentials surface could not start.
 - `offline_mode`: user selected offline mode; no network validation was attempted.
 
-If validation fails, do not delete existing credentials unless the user explicitly asks. Offer a secure replacement flow through browser handoff.
+If validation fails, do not delete existing credentials unless the user explicitly asks. Offer a secure replacement flow through the Web Companion (Settings → Credenciais).
 
 ### 6. Record Operational Context
 
@@ -148,7 +137,7 @@ status: complete | blocked | failed | skipped
 provider: dataforseo
 mode: standard | live | async | offline
 runtime: plugin | standalone_project | user_level_cli | unknown
-storage: plugin_user_config | project_env_local | user_config | none
+storage: home_credentials_file | none
 browser_handoff:
   used: true | false
   reason: ""
@@ -183,17 +172,11 @@ For a blocked setup, set `status: blocked`, explain the gate in plain language, 
 
 ## Examples
 
-### Example: Standalone Secure Setup
+### Example: Secure Setup
 
 Input: "Set up DataForSEO for this project. I do not want to paste secrets in the terminal."
 
-Output: "Ask permission to open a local browser window, collect credentials through the handoff, store them in `project/.env.local`, set mode to `standard`, run a minimal safe validation, and return only masked status."
-
-### Example: Plugin Setup
-
-Input: "Configure DataForSEO in the plugin."
-
-Output: "Use sensitive plugin `userConfig` fields, never write secrets to repo files, validate with a minimal safe request, and report `storage: plugin_user_config` with masked credential status."
+Output: "Ask permission to open the Web Companion (Settings → Credenciais), collect credentials there, store them in `~/.agentic-seo/credentials.json` (chmod 0600), set mode to `standard`, run a minimal safe validation, and return only masked status with `storage: home_credentials_file`."
 
 ### Example: pt-BR Validation Summary
 
@@ -211,7 +194,7 @@ Output: "Print the configured login and password, ask the user to confirm them i
 
 Input: "Quero configurar o DataForSEO."
 
-Output (ERRADO): mostrar um menu "Como prefere inserir as credenciais?" com opções como `Abrir o navegador` e `Eu gravo no arquivo local` lado a lado, como se fossem equivalentes. Isso é fraco porque coloca a gravação no arquivo local como opção co-igual ao Web Companion e enterra o caminho seguro. O correto é perguntar primeiro `Posso abrir o Web Companion para você inserir as credenciais com segurança?` (Sim recomendado / Não) e só oferecer o arquivo local depois de um "Não" explícito, com aviso de risco de exposição.
+Output (ERRADO): mostrar um menu "Como prefere inserir as credenciais?" com opções como `Abrir o Web Companion` e `Eu gravo no arquivo local` lado a lado, como se fossem equivalentes. Isso é fraco porque coloca a gravação no arquivo local como opção co-igual ao Web Companion e enterra o caminho seguro. O correto é perguntar UMA vez se pode abrir o Web Companion (Settings → Credenciais) para inserir as credenciais com segurança (Sim recomendado / Não) e só oferecer o arquivo local `~/.agentic-seo/credentials.json` depois de um "Não" explícito, com aviso de risco de exposição.
 
 ## Related Workflows
 

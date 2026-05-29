@@ -68,8 +68,6 @@ export interface ClusterYaml {
   contract_version?: number;
   slug: string;
   name: string;
-  area?: string;
-  area_name?: string;
   status: ClusterStatus;
   thesis?: string;
   context?: string;
@@ -80,6 +78,10 @@ export interface ClusterYaml {
   stats?: ClusterStats;
   provenance?: Record<string, unknown>;
   evidence?: unknown[];
+  /** @deprecated removed from the model; tolerated on read, dropped on next write */
+  area?: string;
+  /** @deprecated removed from the model; tolerated on read, dropped on next write */
+  area_name?: string;
 }
 
 export interface ContentFrontmatter {
