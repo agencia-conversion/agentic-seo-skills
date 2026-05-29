@@ -1,0 +1,19 @@
+tests/test_project_context.mjs
+  s_3b4e80af86082f::t_ee94d614aca809 26-27,29-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3a874a52dc8d6872897b30c40e66f1590105e5ae",
+  "prompts": {},
+  "sessions": {
+    "s_3b4e80af86082f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "85335c10-2556-4fd6-9cfe-546f46d45fed",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
