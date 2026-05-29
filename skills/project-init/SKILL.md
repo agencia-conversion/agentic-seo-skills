@@ -7,22 +7,28 @@ metadata:
 
 # Project Init
 
-You are the project setup agent for SEO Brain. Your goal is to initialize exactly one local project in `project/` with the required directories, blank brain templates, content scaffolding, project metadata, and a first log entry. The user fills brain content manually.
+You are the project setup agent for SEO Brain. Your goal is to initialize exactly one local project in `project/` with the required directories, blank brain templates (the project "Cérebro"), content scaffolding, project metadata, and a first log entry.
+
+O usuário escolhe como começar o Cérebro do projeto: setup manual (cria tudo em branco, o usuário preenche) ou rascunho automático (analisa até 10 páginas do site e propõe um rascunho do Cérebro para aprovação). Ver guia de output e tom em `docs/output-and-tone.md`.
 
 ## When To Use
 
 Use this skill when the user asks to create, initialize, bootstrap, prepare, or reset the empty structure for an SEO Brain project.
 
-Do not use this skill to write strategic content, draft brand identity, run SEO analysis, create content plans, publish pages, migrate user data, collect secrets, or initialize multiple client projects. This repository uses one runtime project at `project/`.
+Do not use this skill to run SEO analysis, create content plans, publish pages, migrate user data, collect secrets, or initialize multiple client projects. This repository uses one runtime project at `project/`.
+
+Esta skill pode propor um rascunho automático do Cérebro a partir do site (ver `references/seed-from-site.md`), mas só quando o usuário escolhe esse modo, e o rascunho fica sempre pendente de aprovação — nunca vira contexto aprovado sozinho.
 
 ## Critical Points
 
 - Initialize the single project directory only: `project/`. Do not create sibling project folders.
 - Do not write secrets, credentials, provider responses, or raw client exports.
-- Brain content (`brain/index.md`, `brain/identidade.md`, `brain/voz.md`, `brain/tecnologia.md`, `brain/editorial.md`, `brain/topic-clusters.md`) is created from blank templates with placeholders. The user fills it. Do not generate strategic prose.
+- Brain content (`brain/index.md`, `brain/identidade.md`, `brain/voz.md`, `brain/tecnologia.md`, `brain/editorial.md`, `brain/topic-clusters.md`, `brain/log.md`) is created from blank templates with placeholders. The canonical file names are in pt-BR; copy the templates exactly by these names.
+- No modo manual, o usuário preenche o Cérebro; não gere prosa estratégica.
+- No modo rascunho automático, você PODE gerar um RASCUNHO do Cérebro a partir do site, mas ele fica em `project/workbench/` marcado como pendente e nunca é escrito direto nos arquivos autorais de `project/brain/`. Nada vira contexto aprovado sem uma entrada `tipo: aprovacao` (aprovação humana). Ver `references/seed-from-site.md`.
 - Be idempotent: rerunning project init creates missing directories and missing files without overwriting existing content.
 - For pt-BR projects, preserve accents in any prose generated (placeholders, log notes).
-- Do not fabricate brand facts, market data, or technical decisions.
+- Do not fabricate brand facts, market data, or technical decisions — even in draft mode, only use what the site actually states.
 
 ## Required Inputs
 
@@ -37,6 +43,25 @@ Collect or infer only what is needed for stable metadata:
 If these are missing and cannot be safely inferred from `project/.seo-brain/project.json`, ask before writing.
 
 ## Framework
+
+### 0. Ask How To Start The Brain
+
+Antes de criar arquivos, pergunte ao usuário como ele prefere começar o Cérebro
+do projeto. Use linguagem simples, sem jargão:
+
+> Como você prefere começar o Cérebro do projeto?
+> (a) Configurar manualmente — eu crio os arquivos do Cérebro em branco e você preenche.
+> (b) Criar um rascunho automático (recomendado) — eu analiso até 10 páginas do seu site principal e proponho um rascunho do Cérebro para você revisar e aprovar.
+
+Regras:
+
+- Recomendado/default: opção (b).
+- Se não houver `site_url` (é `null` e o usuário não informa uma URL), a opção
+  (b) não é possível: peça a URL do site principal ou siga com a opção (a).
+- A opção (a) é o setup básico: só cria a estrutura e os arquivos em branco
+  (passos 1-6, depois revisão no passo 8). Não importa nem analisa nada.
+- A opção (b) faz o setup básico primeiro (passos 1-6) e, em seguida, executa o
+  rascunho automático (passo 7) descrito em `references/seed-from-site.md`.
 
 ### 1. Inspect Existing Project State
 
@@ -82,7 +107,7 @@ Write `project/.seo-brain/project.json` with stable, machine-readable metadata. 
 
 For each of `brain/index.md`, `brain/identidade.md`, `brain/voz.md`, `brain/tecnologia.md`, `brain/editorial.md`, `brain/topic-clusters.md`, `brain/log.md`:
 
-- If the file does not exist, copy from `templates/project/brain/<file>.md`. Replace `<Nome do projeto>` and `<YYYY-MM-DD>` in frontmatter with the project name and the current date. Leave all other placeholders for the user.
+- If the file does not exist, copy from `templates/project/brain/<file>.md`. The frontmatter `title` is now fixed by file type (Identidade, Voz, Tecnologia, Editorial, Topic clusters, Log, e "Índice do Cérebro" para o index) and does not carry the project name — do not substitute it. Replace only `<YYYY-MM-DD>` in `updated` with the current date. Leave all other placeholders for the user.
 - If the file exists with substantive content, leave untouched.
 
 ### 5. Create Content Templates
@@ -109,13 +134,32 @@ Append to `brain/log.md` exactly one entry per init run that creates or complete
 
 Do not append duplicate entries on idempotent reruns that did not change anything.
 
-### 7. Review Before Done
+### 7. Optional: Automatic Brain Draft (only if the user chose option b)
+
+Se o usuário escolheu (b) no passo 0 e existe `site_url`, execute o rascunho
+automático seguindo `references/seed-from-site.md`:
+
+- Selecione até 10 URLs representativas do domínio principal (home, sobre,
+  serviços, páginas pilar, posts-chave).
+- Extraia o conteúdo e componha um RASCUNHO das páginas do Cérebro em
+  `project/workbench/`. Não escreva nos arquivos de `project/brain/`.
+- Anexe ao `brain/log.md` uma entrada `tipo: ingestao` (token PT, sem "n" final;
+  nunca "ingestion") com as URLs lidas como evidência e `aprovador: pendente`.
+- Apresente o rascunho para revisão. Só após aprovação explícita do usuário o
+  conteúdo aprovado é movido para `project/brain/` e registrado com uma entrada
+  `tipo: aprovacao`. Nunca auto-promova o rascunho a contexto aprovado.
+
+Se o usuário escolheu (a), pule este passo: o setup termina com o Cérebro em
+branco.
+
+### 8. Review Before Done
 
 Before reporting completion, verify:
 
 - `project/.seo-brain/project.json` exists with project name, market, language, `single_project_root: "project"`, `schema_version: "2.0.0"`.
 - All required directories exist.
-- The 7 brain files exist with frontmatter populated (title and updated only); placeholders untouched if user has not filled them.
+- The 7 brain files exist with the fixed per-type `title` from the templates (not personalized with the project name) and `updated` set to the current date; placeholders untouched if user has not filled them.
+- If option (b) was chosen: the draft lives in `project/workbench/` (not in `project/brain/`), and `brain/log.md` has a `tipo: ingestao` entry with `aprovador: pendente`.
 - `brain/log.md` contains an init entry for this run if any structural change happened.
 - pt-BR text preserves accents.
 - No `wiki/`, `judgment_level`, `pillar`, `approved_by`, `approved_at`, or status field anywhere.
@@ -144,11 +188,17 @@ Use `blocked` when required inputs (`project_name`, `country_or_market`, `primar
 
 ## Examples
 
-### New pt-BR project
+### New pt-BR project (manual setup)
 
-Input: "Initialize SEO Brain for Clínica Exemplo, Brasil, pt-BR."
+Input: "Initialize SEO Brain for Clínica Exemplo, Brasil, pt-BR." User picks option (a) manual.
 
-Output: "Create `project/` structure, write `.seo-brain/project.json` with Brasil and `pt-BR`, copy 7 blank brain templates and 4 content templates preserving pt-BR accents, append `tipo: decisao` log entry, return `status: complete`."
+Output: "Create `project/` structure, write `.seo-brain/project.json` with Brasil and `pt-BR`, copy 7 blank brain templates (fixed per-type titles) and 4 content templates preserving pt-BR accents, append `tipo: decisao` log entry, return `status: complete`."
+
+### New project with automatic draft
+
+Input: "Initialize SEO Brain for Clínica Exemplo, site https://clinicaexemplo.com.br." User picks option (b).
+
+Output: "Do the manual setup first (structure + blank templates + `tipo: decisao` log entry). Then follow `references/seed-from-site.md`: read up to 10 pages of the domain, compose a brain draft in `project/workbench/`, append a `tipo: ingestao` log entry with the read URLs and `aprovador: pendente`, and present the draft for approval. Do not write into `project/brain/` until the user approves with a `tipo: aprovacao` entry."
 
 ### Idempotent rerun
 
@@ -159,7 +209,9 @@ Output: "Create only missing directories and files. Do not overwrite brain files
 ## Done Criteria
 
 - Single `project/` root, no siblings.
-- 7 brain files created from blank templates if missing; existing user content preserved.
+- The user was asked how to start the Cérebro (manual vs automatic draft) before any file was created.
+- 7 brain files created from blank templates if missing, with fixed per-type titles (no project name in `title`); existing user content preserved.
+- If automatic draft was chosen: draft lives only in `project/workbench/`, logged as `tipo: ingestao` with `aprovador: pendente`, never auto-promoted into `project/brain/`.
 - 4 content directories with `_template.md` each.
 - `project/.seo-brain/project.json` records identity and market.
 - Init log entry appended only when structural change occurred.

@@ -8,10 +8,12 @@ import {
   writeHandoffResult,
   readSessionPort,
   writeSessionPort,
+  writePidFile,
+  removePidFile,
 } from "./companion-state.mjs";
 
 const DEFAULT_TTL_MS = 120_000;
-const TTL_MS = Number(process.env.SEO_BRAIN_HANDOFF_TTL_MS) || DEFAULT_TTL_MS;
+const ENV_TTL_MS = Number(process.env.SEO_BRAIN_HANDOFF_TTL_MS) || 0;
 const MAX_BODY = 1024 * 1024;
 
 const HEADERS = {
@@ -55,20 +57,37 @@ function injectContext(html, contextData) {
   return html.replace("<!--CONTEXT-->", `<script>window.__CONTEXT__=${safe};</script>`);
 }
 
-export function runHandoff({ id, templateName, contextData, onSubmit, extraTabs = [] }) {
+export function runHandoff({
+  id,
+  templateName,
+  contextData,
+  onSubmit,
+  extraTabs = [],
+  ttlMs,
+  emitStatus = false,
+}) {
   return new Promise((resolve) => {
     const token = newToken();
     const tokenPath = `/handoff/${token}`;
     const tabRoutes = new Map(extraTabs.map((tab) => [tab.path, tab.template]));
+    // TTL precedence: env override (operator escape hatch) > per-handoff opt > default.
+    const effectiveTtl = ENV_TTL_MS || Number(ttlMs) || DEFAULT_TTL_MS;
+    // Status emission is for the detached child only: the parent sets
+    // SEO_BRAIN_HANDOFF_EMIT_STATUS=1 when it spawns the --serve child. A
+    // caller may also force it via opts.emitStatus.
+    const detachedMode = process.env.SEO_BRAIN_HANDOFF_EMIT_STATUS === "1";
+    const shouldEmitStatus = emitStatus || detachedMode;
     let port = 0;
     let resolved = false;
     let timer;
+    let pidWritten = false;
 
     const finish = (payload) => {
       if (resolved) return;
       resolved = true;
       clearTimeout(timer);
       writeHandoffResult(id, payload);
+      if (pidWritten) removePidFile(id);
       try {
         server.close();
       } catch {}
@@ -115,7 +134,7 @@ export function runHandoff({ id, templateName, contextData, onSubmit, extraTabs 
       }
     });
 
-    timer = setTimeout(() => finish({ ok: false, reason: "timeout" }), TTL_MS);
+    timer = setTimeout(() => finish({ ok: false, reason: "timeout" }), effectiveTtl);
 
     const onListen = () => {
       port = server.address().port;
@@ -126,6 +145,26 @@ export function runHandoff({ id, templateName, contextData, onSubmit, extraTabs 
         for (const tab of extraTabs) {
           process.stderr.write(`[companion-tab] ${base}${tab.path}\n`);
         }
+      }
+      // Persist the live server metadata so a detached server can be
+      // stopped/reattached later, independent of the launching process.
+      writePidFile(id, { pid: process.pid, port, token });
+      pidWritten = true;
+      // In detached/status mode the parent reads exactly one JSON line from
+      // the child's stdout, then unrefs and exits. Always terminate with a
+      // newline and flush synchronously so the parent never deadlocks.
+      if (shouldEmitStatus) {
+        const status = {
+          ok: true,
+          detached: detachedMode,
+          url: base,
+          port,
+          token,
+          pid: process.pid,
+          id,
+          pidFile: `.companion/handoffs/${id}.pid.json`,
+        };
+        process.stdout.write(JSON.stringify(status) + "\n");
       }
       for (const tab of extraTabs) openBrowser(`${base}${tab.path}`);
       openBrowser(base);

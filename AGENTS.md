@@ -136,6 +136,26 @@ For previews, approvals, sensitive input, and option selection, prefer a local b
 - Handoff state lives outside `project/` (in `.companion/handoffs/`, gitignored) so skill `Writes only` contracts remain intact.
 - Every handoff submission appends to `project/brain/log.md` with the appropriate `tipo:`.
 
+### Launch persistente (detached por padrão)
+
+O handoff `project-browser` do onboarding já sobe em modo persistente/detached **por padrão** — você não precisa passar nenhuma flag para isso (não existe um token `--detached`; o detach é o comportamento default). Isso é obrigatório: sem ele, o servidor vive dentro do processo que o agente lançou via Bash, e quando esse Bash atinge o timeout (~120s) o servidor morre antes de a pessoa terminar de aprovar.
+
+- **Como funciona:** nesse modo, o comando faz `spawn` desacoplado do servidor (`detached: true` + `unref()`), imprime UMA linha JSON de status em stdout assim que o servidor confirma o `listen` — `{ "ok": true, "detached": true, "url": "http://127.0.0.1:<port>/handoff/<token>", "port": <port>, "token": "<hex>", "pid": <pid>, "id": "<id>" }` — e sai imediatamente (`exit 0`). O servidor continua vivo até submit, cancel ou TTL.
+- **Nunca prenda o servidor a um Bash com timeout.** O agente deve capturar a primeira linha de status e usar o campo `url` para combinar a abertura da tela com a pessoa. Não fique bloqueando o Bash à espera da interação humana.
+- **TTL maior:** como o servidor já não depende do Bash, o `project-browser` usa um TTL coerente com ritmo humano (padrão `SEO_BRAIN_HANDOFF_TTL_MS` ~600000ms / 10min). O servidor se encerra sozinho ao expirar, mesmo sem `--stop`.
+- **PID file:** o servidor grava `pid`, `port`, `token`, `id` e `started_at` em `.companion/handoffs/<id>.pid.json` (mesma pasta gitignored dos handoffs). O token agora também vive nesse arquivo — mantenha a pasta gitignored e o arquivo com permissão restrita.
+- **Parar depois:** encerre o servidor com `project-browser --stop <id>` (ou `--stop-all`), que lê o PID file, envia `SIGTERM` e remove o arquivo. Sempre pare o servidor quando o fluxo terminar para não deixar processo órfão.
+- **Opt-out:** use `--foreground` apenas em depuração local, quando você precisar segurar o servidor no mesmo processo.
+
+### Consentimento e abertura que sobrevive à sessão
+
+O onboarding atende milhares de pessoas, muitas sem perfil técnico. Antes de abrir o Companion:
+
+- **Peça permissão em linguagem simples.** Diga o que vai abrir e por quê, sem jargão. Bom: "Posso abrir uma tela no seu navegador para você revisar e aprovar o cérebro do projeto?" Evite: "Vou subir um handoff detached em 127.0.0.1 com token e PID file."
+- **Só abra depois do "sim".** Respeite `SEO_BRAIN_NO_BROWSER=1`: nesse caso, não tente abrir nada — apenas compartilhe a `url` do JSON de status para a pessoa abrir manualmente.
+- **Garanta que a tela sobreviva à sessão.** O modo persistente é o padrão no onboarding (não passe flag) e nunca use `--foreground` aqui, de modo que a tela continue de pé mesmo que a sua etapa termine ou o Bash expire. Depois de abrir, repasse o link a partir do campo `url` do status e diga, em uma frase, que a pessoa pode revisar com calma — o servidor espera por ela.
+- **Feche com clareza.** Quando a pessoa aprovar (ou desistir), pare o servidor com `--stop <id>` e siga para o próximo passo.
+
 ## Plugin Development
 
 Use these rules when changing manifests, skills, templates, scripts, or agent instructions.

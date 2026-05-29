@@ -17,27 +17,35 @@ Do not use this skill as a substitute for the downstream work itself. Route to t
 
 ## Operating Model
 
-SEO Brain implements Agentic SEO through six pillars:
+SEO Brain organizes the work into six áreas de trabalho (pillars):
 
-- Strategy: positioning, business goals, priorities, risks, and strategic decisions.
-- Brain: the project's authorial knowledge layer in `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`).
-- Technology: website architecture, Next.js, CMS decisions, deployment, metadata, schema, and publishing systems.
-- Technical SEO: crawlability, indexability, metadata, internal health, structured data, performance signals, and deterministic page audits.
-- Content: briefs, drafts, topical clusters, editorial artifacts, refreshes, and publication readiness.
-- Data and Analysis: DataForSEO setup, keyword research, SERP extraction, backlink analysis, competitor comparison, and evidence-backed recommendations.
+- Estratégia (Strategy): positioning, business goals, priorities, risks, and strategic decisions.
+- Cérebro do projeto (Brain) — a memória da sua marca que a IA usa, em `project/brain/` (`index`, `identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `log`).
+- Tecnologia (Technology): website architecture, Next.js, CMS decisions, deployment, metadata, schema, and publishing systems.
+- SEO técnico (Technical SEO): crawlability, indexability, metadata, internal health, structured data, performance signals, and deterministic page audits.
+- Conteúdo (Content): briefs, drafts, topical clusters, editorial artifacts, refreshes, and publication readiness.
+- Dados e Análise (Data and Analysis): data source setup, keyword research, SERP extraction, backlink analysis, competitor comparison, and evidence-backed recommendations.
 
-Humans own judgment. Agents execute repeatable intelligence, extraction, formatting, checks, drafts, and reports. A draft, briefing, or agent confidence is not approved strategic context until the user explicitly approves it through a `tipo: aprovacao` entry in `brain/log.md`.
+The human decides; the agent does the repeatable work (intelligence, extraction, formatting, checks, drafts, and reports). A draft, briefing, or agent confidence is not approved strategy until the user explicitly says so — você diz "aprovo" e a IA anota a data no diário (registro de aprovação; tecnicamente um `tipo: aprovacao` em `brain/log.md`).
 
 ## Critical Points
 
 - Never fabricate keyword volume, backlinks, rankings, credentials, awards, clients, case studies, or proof. Unknown metrics stay `null`, `unknown`, or blocked.
-- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, complete deliverables in `project/artifacts/`, public content in `project/conteudos/`, and authorial knowledge in `project/brain/`.
-- Authorial brain pages (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) only change after a `tipo: aprovacao` entry in `brain/log.md` is recorded with `aprovador: <human name>` and `aprovado_em: <date>`. Until then, drafts live in `project/workbench/`.
-- DataForSEO is the default provider for SEO metrics, SERP evidence, and backlink data. SEO Brain is not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
-- Do not silently fall back to WebSearch, intuition, or hypothesis-only output when DataForSEO is missing. Stop at the DataForSEO gate or ask for explicit written bypass approval.
-- A bypass must name the skipped step, approver, exact confirmation text, timestamp, reason, and consequence. Approval of an artifact is not approval of an undisclosed bypass.
-- Use a local browser handoff for approvals, previews, sensitive credentials, and option selection when it improves the user experience. Do not make terminal commands the primary UX for nontechnical approvals or secrets.
+- Keep raw sources in `project/sources/`, working drafts and hypotheses in `project/workbench/`, complete deliverables in `project/artifacts/`, public content in `project/conteudos/`, and the project's authorial memory in `project/brain/`.
+- The authorial pages of the Cérebro do projeto (`identidade`, `voz`, `tecnologia`, `editorial`, `topic-clusters`, `index`) only change after the user approves them — você diz "aprovo" e a IA anota a data no diário (`tipo: aprovacao` em `brain/log.md`, com `aprovador: <human name>` e `aprovado_em: <date>`). Until then, drafts live in `project/workbench/`.
+- DataForSEO is the default fonte de dados de SEO (provider) for search metrics, SERP evidence, and backlink data — de onde vêm os números reais de busca. We are not affiliated with DataForSEO; in pt-BR, say `não somos afiliados`.
+- Do not quietly switch to WebSearch, guesses, or hypothesis-only output when the data source is missing. Stop at the data-verification check (DataForSEO gate) or ask the user to approve, in writing, seguir sem dados (bypass).
+- Seguir sem dados (a bypass) must name the skipped step, who approved it, the exact confirmation text, the timestamp, the reason, and the consequence. Approving a deliverable is not the same as approving a hidden bypass.
+- Use abrir uma tela no navegador (no seu computador; browser handoff) for approvals, previews, sensitive credentials, and option selection when it makes things easier. Do not make terminal commands the main path for nontechnical approvals or secrets.
 - Preserve the requested language and diacritics in all human-facing output. For pt-BR, write accents correctly: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
+
+## How To Talk To The User
+
+Most users are nontechnical (founders, marketing, strategists). Speak like you would to a smart client who is not technical.
+
+- **Feedback is short and friendly.** At most 1-2 sentences about what you did, plus one sentence on the next step. Never dump internal skill steps, YAML blocks, or raw tool output on the user.
+- **Show progress with the native checklist (TodoWrite in Claude Code), one step per line** in plain user language, marked done as you go. Keep prose narration minimal. No external dependency: progress must never rely on Ruflo or any external MCP. TodoWrite is native and enough.
+- **Explain before using a technical term:** plain version first, technical term in parentheses on first mention, then plain only. See the glossary in `docs/output-and-tone.md` for the canonical wording (Cérebro do projeto, fonte de dados de SEO, verificação de dados, seguir sem dados com seu OK, abrir uma tela no navegador, próximo passo).
 
 ## Routing Framework
 
@@ -53,19 +61,19 @@ Use `spec-driven` before execution when the user asks for two or more deliverabl
 
 ### 2. Check Project State And Gates
 
-**Check:** Which required sources, approvals, provider credentials, or brain pages are missing?
+**Check:** Which required sources, approvals, data-source credentials, or Cérebro pages are missing?
 
-Name missing gates before downstream execution. Common blockers:
+Name what is still missing before moving on. For each item below, the user-facing gloss is in plain language; the technical name in backticks is for the agent. Common blockers:
 
-- `DataForSEO gate`: credentials are missing, invalid, or unavailable for required SEO evidence.
-- `DataForSEO bypass gate`: the user has not explicitly approved WebSearch, skip-data, or hypothesis-only output with the required consequence.
-- `Brain approval gate`: an authorial brain page has no matching `tipo: aprovacao` entry in `brain/log.md`. Drafts may proceed in `workbench/` when the user asks; promotion to `brain/` requires the approval entry first.
-- `Voice gate`: `brain/voz.md` is missing required principles before voice-backed public content. User-directed drafting may proceed as a workbench draft when the bypass is recorded.
-- `Content approval gate`: a brief, draft, or final public content artifact needs human approval before publishing or promotion.
-- `Source separation gate`: raw evidence has not been captured under `project/sources/` or cited separately from synthesis.
-- `Browser handoff gate`: sensitive input, approval, or preview should be completed through a local browser flow rather than terminal-first instructions.
+- `DataForSEO gate` — ainda falta conectar a fonte de dados de SEO: credentials are missing, invalid, or unavailable for required SEO evidence.
+- `DataForSEO bypass gate` — o usuário ainda não autorizou, por escrito, seguir sem dados: no explicit approval for WebSearch, skip-data, or hypothesis-only output with the required consequence.
+- `Brain approval gate` — falta o registro de aprovação no diário: an authorial Cérebro page has no matching `tipo: aprovacao` entry in `brain/log.md`. Drafts may proceed in `workbench/` when the user asks; promotion to `brain/` requires the approval entry first.
+- `Voice gate` — o arquivo de voz da marca (`brain/voz.md`) ainda não tem os princípios necessários para criar conteúdo público com a voz da marca. User-directed drafting may proceed as a workbench draft when the bypass is recorded.
+- `Content approval gate` — um briefing, rascunho ou conteúdo público final precisa da sua aprovação antes de publicar ou promover.
+- `Source separation gate` — as fontes (evidência crua) ainda não foram guardadas em `project/sources/` nem citadas separadamente da análise.
+- `Browser handoff gate` — algo sensível (dado, aprovação ou prévia) deveria ser feito abrindo uma tela no navegador, não por comandos de terminal.
 
-When a required gate is missing, either return a blocked/approval-required routing decision or, if the user explicitly asked for writing anyway, create the requested draft in `workbench/` and disclose the missing gate in the artifact. Do not write directly into `brain/` without the approval entry.
+When a required check is missing, either return a blocked/approval-required routing decision or, if the user explicitly asked for writing anyway, create the requested draft in `workbench/` and disclose the missing check in the artifact. Do not write directly into `brain/` without the approval entry.
 
 ### 3. Select Downstream Skills
 
@@ -78,7 +86,7 @@ Route to the narrowest skill that owns the next step:
 - `seo-analysis`: compare SERP competitors, interpret target gaps, score a page, and create the canonical evidence gate before content work.
 - `backlink-analysis`: analyze backlinks, referring domains, anchors, authority comparison, link gaps, or competitor link profiles.
 - `technical-seo`: run deterministic audits for metadata, canonicals, robots, headings, links, images, structured data, hreflang, indexability, viewport, status, and crawlable words.
-- `brain-keeper`: ingest sources, propose changes to brain pages, register approvals or operational decisions, catalog publications, and lint brain pages.
+- `brain-keeper`: import/bring in sources (ingest), propose changes to Cérebro pages, register approvals or operational decisions, catalog publications, and check Cérebro pages for consistency.
 - `eeat`: evaluate or document experience, expertise, authoritativeness, trust, proof, authors, reviewers, and claims.
 - `topic-cluster`: organize multiple topics, pillar pages, supporting pages, and topical authority plans after evidence gates.
 - `content-seo`: create public content briefs, drafts, refreshes, rewrites, reviews, and publication artifacts.
@@ -93,7 +101,7 @@ If multiple skills are needed, route in dependency order and stop at the first m
 
 **Check:** Does each artifact make clear what came from raw evidence, what the agent inferred, and what the human approved?
 
-Use normal Markdown links for `project/sources/` files and Obsidian wikilinks only for real pages inside `project/brain/`. Append important operational events and strategic approvals to `project/brain/log.md` with the right `tipo:` (`aprovacao | decisao | errata | lint | ingestao | publicacao | prova`).
+Use normal Markdown links for `project/sources/` files and Obsidian wikilinks only for real pages inside `project/brain/`. Append important operational events and strategic approvals to the diary `project/brain/log.md` with the right `tipo:` — `aprovacao` (aprovação) `| decisao` (decisão) `| errata` (correção) `| lint` (revisão de consistência) `| ingestao` (importação de fontes) `| publicacao` (publicação) `| prova` (evidência/comprovação).
 
 **Strong:** "Store SERP JSON in `project/sources/serp/`, write the analysis in `project/workbench/seo-analysis/`, request approval via `tipo: aprovacao` in `brain/log.md`, then update brain pages only after the approval entry has `aprovador != pendente`."
 
@@ -103,9 +111,9 @@ Use normal Markdown links for `project/sources/` files and Obsidian wikilinks on
 
 **Check:** Is the user being asked for credentials, approval, preview feedback, or a choice?
 
-Prefer a local browser handoff. Ask whether to open the browser flow, then run it as the agent when possible. The handoff should use a one-time token, local host binding, and shutdown after submit, cancel, or TTL expiry. Do not echo secrets or write them to the repo root `.env`.
+Prefer abrir uma tela no navegador (browser handoff). To the user, describe it simply: "uma página local e temporária, que se fecha sozinha depois". Ask whether to open it, then run it as the agent when possible. Agent note (not for the user): launch the handoff in the persistent/detached mode described in `AGENTS.md` → "Browser Handoff" — it must NOT block a Bash call with a timeout (a foreground launch dies at ~120s and the screen disappears mid-review). Read the single JSON status line, pass its `url` to the user, and call `--stop <id>` once they finish. The flow uses a one-time token, local host binding, a PID file, and shutdown after submit, cancel, or TTL expiry. Do not echo secrets or write them to the repo root `.env`.
 
-If browser handoff cannot run, present a friendly instruction and the exact decision needed. Do not dump shell commands as the main user experience.
+If the browser screen cannot run, present a friendly instruction and the exact decision needed. Do not dump shell commands as the main user experience.
 
 ### 6. Report The Decision And Consequence
 
@@ -115,7 +123,9 @@ Return the selected workflow, missing gates, consequence of each bypass, and the
 
 ## Output Format
 
-For broad or compound requests, produce a routing decision like this:
+The YAML block below is **internal use for the agent** (a contract for the next step and for downstream skills). Never paste it to the user. The user always gets short, friendly pt-BR prose: fill `message_to_user` and `next_action` with no more than ~4 lines — what you did or where you are routing, plus the next step or what you need.
+
+For broad or compound (pedido com várias coisas juntas) requests, produce a routing decision like this:
 
 ```yaml
 status: routed | blocked | approval_required
@@ -167,21 +177,21 @@ For a narrow request, you may answer in prose, but still name the selected downs
 
 Input: "Quero criar um cluster de conteúdo sobre SEO agêntico, escrever o primeiro artigo e publicar um site simples em Next.js."
 
-Project state: DataForSEO credentials are missing. `project/brain/identidade.md` has approved content per [[log]]. `project/brain/voz.md` is empty.
+Project state: the data source (DataForSEO) is not connected. `project/brain/identidade.md` has approved content per [[log]]. `project/brain/voz.md` is empty.
 
-Output: "This is compound and touches Strategy, Brain, Technology, Content, and Data and Analysis. Start with `spec-driven`. Block execution at the DataForSEO gate and voice gate: keyword/SERP evidence cannot be data-backed without DataForSEO or an explicit written bypass, and public content or website copy should not proceed without filled `brain/voz.md`. Offer browser handoff for DataForSEO setup or written bypass approval. Preserve accents in all pt-BR text."
+User-facing output (short, friendly): "Seu pedido junta várias coisas (cluster, primeiro artigo e site), então vou organizar tudo antes de começar. Dois pontos vão travar agora: ainda falta conectar a fonte de dados de SEO (ex.: DataForSEO) para termos números reais de busca, e o arquivo de voz da sua marca está vazio — sem ele não dá para escrever o conteúdo público com a sua voz. Quer que eu abra uma tela no navegador para conectar a fonte de dados, ou prefere autorizar por escrito seguir sem esses números?" (Internamente: começar por `spec-driven`; travar no DataForSEO gate e no voice gate.)
 
 ### Example: Strong Routing
 
 Input: "Analyze `seo agêntico` in Brazil and then brief an article."
 
-Output: "Route to `seo-analysis` first with Brazil, pt-BR, device, provider, and timestamp. If DataForSEO is unavailable, stop for credential setup or written bypass. Only after the analysis is complete should `content-seo` create the brief."
+Output (internal routing): start with `seo-analysis` for Brazil, pt-BR, device, data source, and timestamp. If the data source is unavailable, stop to connect it or get a written OK to seguir sem dados. Only after the analysis is complete should `content-seo` create the brief. To the user, say it in one or two friendly sentences and offer to connect the data source.
 
 ### Example: Weak Routing
 
 Input: "DataForSEO is not set up, but make the cluster and article."
 
-Output: "Use WebSearch, estimate volume, write the article, and mark the strategy approved." This is weak because it hides the DataForSEO bypass, fabricates or implies metrics, skips content and approval gates, and treats agent output as human judgment.
+Output: "Use WebSearch, estimate volume, write the article, and mark the strategy approved." This is weak because it hides that it skipped the data source (an undisclosed bypass), invents or implies numbers, skips the content and approval checks, and treats agent output as the human's decision.
 
 ## Done Criteria
 
@@ -191,4 +201,5 @@ Output: "Use WebSearch, estimate volume, write the article, and mark the strateg
 - Any bypass is user-approved in writing, recorded with consequence, and marked not data-backed for the skipped dimension.
 - Raw evidence, synthesis, artifacts, public content, and approved brain state remain separated.
 - User-facing prose preserves the requested language and diacritics.
-- The user receives the decision, consequence, and next action rather than hidden shortcuts or terminal-first gate handling.
+- The user gets short, friendly prose (no YAML, no internal steps), with technical terms explained in plain language on first use, and progress shown in the native checklist (TodoWrite) when there are multiple steps.
+- The user receives the decision, consequence, and next action rather than hidden shortcuts or terminal-first handling of the checks.

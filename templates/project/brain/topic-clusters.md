@@ -1,5 +1,5 @@
 ---
-title: "Topic clusters — <Nome do projeto>"
+title: "Topic clusters"
 updated: "<YYYY-MM-DD>"
 ---
 

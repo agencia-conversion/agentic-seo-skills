@@ -1,9 +1,9 @@
 ---
-title: "<Nome do projeto>"
+title: "Índice do Cérebro"
 updated: "<YYYY-MM-DD>"
 ---
 
-# <Nome do projeto>
+# Índice do Cérebro
 
 <!--
 Este arquivo é o ponto de entrada do brain. Mantenha curto: mapa + dashboard.

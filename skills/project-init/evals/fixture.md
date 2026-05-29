@@ -17,6 +17,8 @@ Expected output:
 - `.seo-brain/project.json` metadata with `schema_version: "2.0.0"`.
 - Initial entry in `brain/log.md` with `tipo: decisao` and `aprovador: agent`.
 
+Assume the user chose the manual setup (option a): create only the blank structure, do not analyze the site.
+
 Constraints:
 
 - Idempotent if run twice.

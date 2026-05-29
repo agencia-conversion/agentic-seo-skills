@@ -1,5 +1,13 @@
 import { homedir } from "node:os";
-import { mkdirSync, readFileSync, writeFileSync, existsSync, chmodSync } from "node:fs";
+import {
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  chmodSync,
+  rmSync,
+  readdirSync,
+} from "node:fs";
 import { join, resolve } from "node:path";
 import { randomBytes, createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -101,4 +109,67 @@ export function writeHomeCredentials(payload) {
   writeFileSync(PATHS.homeCredentials, JSON.stringify(payload, null, 2));
   chmodSync(PATHS.homeCredentials, 0o600);
   return PATHS.homeCredentials;
+}
+
+const PID_SUFFIX = ".pid.json";
+
+function pidFilePath(id) {
+  return join(PATHS.handoffsDir, `${id}${PID_SUFFIX}`);
+}
+
+// Persist the live server process metadata so a detached Companion can be
+// reattached or stopped later, even after the launching process is gone.
+// The token lands on disk here, so the file is chmod 600 (like credentials)
+// and lives in the gitignored .companion/handoffs/ directory.
+export function writePidFile(id, { pid, port, token, started_at } = {}) {
+  ensureDirs();
+  const path = pidFilePath(id);
+  const data = {
+    id,
+    pid,
+    port,
+    token,
+    started_at: started_at || new Date().toISOString(),
+  };
+  writeFileSync(path, JSON.stringify(data, null, 2));
+  try {
+    chmodSync(path, 0o600);
+  } catch {}
+  return path;
+}
+
+export function readPidFile(id) {
+  const path = pidFilePath(id);
+  if (!existsSync(path)) return null;
+  try {
+    return JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+export function removePidFile(id) {
+  const path = pidFilePath(id);
+  try {
+    rmSync(path, { force: true });
+  } catch {}
+  return path;
+}
+
+export function listPidFiles() {
+  if (!existsSync(PATHS.handoffsDir)) return [];
+  let entries;
+  try {
+    entries = readdirSync(PATHS.handoffsDir);
+  } catch {
+    return [];
+  }
+  const out = [];
+  for (const name of entries) {
+    if (!name.endsWith(PID_SUFFIX)) continue;
+    const id = name.slice(0, -PID_SUFFIX.length);
+    const data = readPidFile(id);
+    if (data) out.push(data);
+  }
+  return out;
 }
