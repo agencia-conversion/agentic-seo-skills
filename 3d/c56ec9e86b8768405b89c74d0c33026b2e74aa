@@ -1,0 +1,53 @@
+AGENTS.md
+  s_3b4e80af86082f::t_ab5b3ba87ced8e 53-58,61,63-64
+  s_3b4e80af86082f::t_94664cd1706ffc 59-60,62
+docs/output-and-tone.md
+  s_3b4e80af86082f::t_a2dd809dc63c3c 48-53
+  s_3b4e80af86082f::t_a99a531f12a2a6 80
+  s_3b4e80af86082f::t_1beb9f9ba1b57e 79,81
+  s_3b4e80af86082f::t_03631b9dc29271 68-74
+skills/agentic-seo/SKILL.md
+  s_3b4e80af86082f::t_ee6e6638cbbfe6 123
+  s_3b4e80af86082f::t_c9deaa01a761a5 154
+  s_3b4e80af86082f::t_c0f9742007b141 23
+  s_3b4e80af86082f::t_d56af736147ba7 31
+agents/project-init.md
+  s_3b4e80af86082f::t_e7c6ac7c6a81fe 3,9,11-22,25,31,34
+src/commands/runtime.ts
+  s_3b4e80af86082f::t_d4c2fcf44a7a82 2462-2464
+skills/project-init/SKILL.md
+  s_3b4e80af86082f::t_d2b6b0e74a26cd 46-48
+  s_3b4e80af86082f::t_8e1af64adb513e 54,56,58-62,66-71
+  s_3b4e80af86082f::t_524175c5c8419a 31
+  s_3b4e80af86082f::t_5005b197de7d32 30
+skills/start/SKILL.md
+  s_3b4e80af86082f::t_507b4bc7fc250f 28
+  s_3b4e80af86082f::t_2f1102a517d8f1 47-50
+  s_3b4e80af86082f::t_a6ccf2574bdd47 69
+scripts/lib/project-browser-server.mjs
+  s_3b4e80af86082f::t_e1ce13e3a31d57 227-232,237
+skills/project-init/references/seed-from-site.md
+  s_3b4e80af86082f::t_f7e5fd840d8ad3 135-136
+  s_3b4e80af86082f::t_b75d3a453bf7e6 18
+  s_3b4e80af86082f::t_85110823a77911 82-100,103-104
+  s_3b4e80af86082f::t_7f03e4156f954d 32-40,42
+  s_3b4e80af86082f::t_ceef3eea42d1d9 10-14
+  s_3b4e80af86082f::t_4cfcd07771ba29 25-26
+  s_3b4e80af86082f::t_1b550f48d22a20 147-153
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3dc56ec9e86b8768405b89c74d0c33026b2e74aa",
+  "prompts": {},
+  "sessions": {
+    "s_3b4e80af86082f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "85335c10-2556-4fd6-9cfe-546f46d45fed",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
