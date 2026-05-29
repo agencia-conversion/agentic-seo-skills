@@ -213,13 +213,23 @@ export function createCluster(projectRoot: string, input: Record<string, unknown
   const draftPath = join(root, 'clusters', slug, 'draft.yaml');
   if (existsSync(yamlPath) || existsSync(draftPath)) return { ok: false as const, reason: 'cluster-exists' };
 
+  // The human-facing UI creates clusters directly active and integrated with
+  // content (escrita direta autorizada). The legacy draft-only path — used by
+  // the agent's approve-cluster handoff — is gated behind an explicit flag so
+  // the two semantics never diverge silently. See docs/clusters.md.
+  const draftOnly = input.draft === true;
+
   const existingPillar = slugify(input.pillar_slug);
   let pillarSlug = existingPillar;
   let pillarTitle = String(input.pillar_title || name).trim() || name;
+  let pillarPath: string | null = null;
+  let createdPillarPath: string | null = null;
+
   if (existingPillar) {
     const located = findContentBySlug(projectRoot, existingPillar);
     if (!located) return { ok: false as const, reason: 'pillar-not-found' };
     pillarSlug = located.slug;
+    pillarPath = located.relPath;
     try {
       const parsed = parseFm(readFileSync(located.filePath, 'utf8'));
       pillarTitle = String(parsed.fm.title || pillarTitle).trim() || pillarTitle;
@@ -229,13 +239,20 @@ export function createCluster(projectRoot: string, input: Record<string, unknown
   }
   if (!pillarSlug) pillarSlug = slugify(pillarTitle);
 
+  // A content can only be the pillar of a single cluster. Guard before writing
+  // anything to disk so the unique-pillar lint never fires post-write.
+  if (!draftOnly && existingPillar) {
+    const conflict = ensureUniquePillar(projectRoot, slug, pillarSlug);
+    if (conflict) return { ok: false as const, reason: `unique-pillar-violation:${conflict}` };
+  }
+
   const data = {
     contract_version: 1,
     slug,
     name,
     icon: String(input.icon || '').trim() || null,
     area: String(input.area || '').trim() || null,
-    status: 'draft',
+    status: draftOnly ? 'draft' : 'active',
     thesis: String(input.thesis || '').trim() || `Cluster ${name}.`,
     pillar: {
       slug: pillarSlug,
@@ -247,13 +264,58 @@ export function createCluster(projectRoot: string, input: Record<string, unknown
     planned_satellites: [],
     satellite_overrides: {},
     stats: { published: 0, planned: 0, updated: todayIso() },
-    provenance: { created_at: todayIso(), created_by: 'companion', requires_promotion: true },
+    provenance: draftOnly
+      ? { created_at: todayIso(), created_by: 'companion', requires_promotion: true }
+      : { created_at: todayIso(), created_by: 'companion' },
     evidence: [],
   };
-  mkdirSync(dirname(draftPath), { recursive: true });
-  writeFileSync(draftPath, stringifyYaml(data, { lineWidth: 0 }), 'utf8');
-  appendLog(projectRoot, `Draft de cluster ${name} criado no Companion`, `clusters/${slug}/draft.yaml`, `Proposta de cluster "${name}" criada no Companion. Brain e conteúdos não foram alterados antes de promoção.`, `clusters/${slug}/draft.yaml`);
-  return { ok: true as const, cluster: data, affected: [`clusters/${slug}/draft.yaml`], draft_path: `clusters/${slug}/draft.yaml` };
+
+  if (draftOnly) {
+    mkdirSync(dirname(draftPath), { recursive: true });
+    writeFileSync(draftPath, stringifyYaml(data, { lineWidth: 0 }), 'utf8');
+    appendLog(projectRoot, `Draft de cluster ${name} criado no Companion`, `clusters/${slug}/draft.yaml`, `Proposta de cluster "${name}" criada no Companion. Brain e conteúdos não foram alterados antes de promoção.`, `clusters/${slug}/draft.yaml`);
+    return { ok: true as const, cluster: data, affected: [`clusters/${slug}/draft.yaml`], draft_path: `clusters/${slug}/draft.yaml` };
+  }
+
+  // Active path. When no existing content was supplied, materialize a fresh
+  // pillar so the cluster has a content spine from the start (caminho B).
+  if (!existingPillar) {
+    const pillar = createContentPillar(projectRoot, slug, pillarTitle);
+    pillarSlug = pillar.slug;
+    pillarPath = pillar.path;
+    createdPillarPath = pillar.path;
+    data.pillar.slug = pillarSlug;
+  }
+
+  mkdirSync(dirname(yamlPath), { recursive: true });
+  writeFileSync(yamlPath, stringifyYaml(data, { lineWidth: 0 }), 'utf8');
+
+  // For an existing content (caminho A), write the affiliation into the pillar
+  // frontmatter so the chip + role render and cluster-sync can pick it up.
+  if (existingPillar) {
+    const membership = updateContentClusterMembership(projectRoot, pillarSlug, slug, 'pillar');
+    if (!membership.ok) return membership;
+    pillarPath = membership.path;
+  }
+
+  const affected = [`clusters/${slug}/cluster.yaml`];
+  if (pillarPath) affected.push(pillarPath);
+
+  appendLog(
+    projectRoot,
+    `Cluster ${name} criado no Companion`,
+    `clusters/${slug}/cluster.yaml`,
+    `Cluster ativo "${name}" criado no Companion Web com pilar "${pillarSlug}".`,
+    affected.join(', '),
+  );
+  return {
+    ok: true as const,
+    cluster: data,
+    affected,
+    pillar_slug: pillarSlug,
+    pillar_path: pillarPath,
+    created_pillar_path: createdPillarPath,
+  };
 }
 
 export function updateCluster(projectRoot: string, slug: string, updates: Record<string, unknown>) {

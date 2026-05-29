@@ -320,6 +320,19 @@ test.describe('cluster-sync end-to-end', () => {
     const res = await request.get(`/api/project/cluster/sample-cluster?token=${TEST_TOKEN}`);
     const body = await res.json();
     expect(body.cluster.pillar_slug).toBe('sample-satellite');
+
+    // Cleanup: this spec runs serially without a per-test fixture reset and a
+    // content can only be the pillar of a single cluster. Restore Sample Pilar
+    // as the cluster pillar so downstream tests (e.g. the drawer create-cluster
+    // flow at line 519) can legitimately make sample-satellite the pillar of a
+    // brand-new cluster without tripping the unique-pillar invariant.
+    const restore = await request.patch(
+      `/api/project/content/sample-pilar/clusters?token=${TEST_TOKEN}`,
+      { data: { cluster_slug: 'sample-cluster', role: 'pillar', syncWait: true } },
+    );
+    expect(restore.ok()).toBeTruthy();
+    const restored = await request.get(`/api/project/cluster/sample-cluster?token=${TEST_TOKEN}`);
+    expect((await restored.json()).cluster.pillar_slug).toBe('sample-pilar');
   });
 
   test('adding a published content via inline row appears after refetch', async ({ page }) => {

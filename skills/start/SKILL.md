@@ -24,10 +24,18 @@ Do not use this skill for ongoing SEO work after the project already has a defin
 - Do not duplicate a full Agentic SEO workflow here. Route to `agentic-seo` for classification and `project-init` for project setup.
 - Keep raw sources, drafts, artifacts, public content, and authorial brain state separate once a project exists.
 - Preserve the user's language and diacritics. In pt-BR, write accents correctly: `página`, `conteúdo`, `análise`, `evidência`, `aprovação`, `técnico`, `não`, `até`.
-- Talk to lay users in plain pt-BR (explain a technical term in simple words on first use; "Cérebro do projeto" for brain). Show progress as a one-step-per-line native checklist (TodoWrite), with minimal prose, never depending on Ruflo or any external MCP. See `docs/output-and-tone.md` for tone, the lay glossary, and progress.
+- Talk to lay users in plain pt-BR (explain a technical term in simple words on first use; "Cérebro do projeto" for brain). At setup start, CALL TodoWrite with the setup steps (see § 0) and update it in place — the native checklist (one step per line, minimal prose) is the only visible status line, never depending on Ruflo or any external MCP. Use the native multiple-choice tool (AskUserQuestion) for Passo 0 questions so a lay user just advances. See `docs/output-and-tone.md` for tone, the lay glossary, the wizard rule, and progress.
 - Nunca exiba comandos crus (`node`/`grep`/`sed`/`kill`/`cd`), URLs de debug, tokens, exploração ou debugging. Trabalho ruidoso roda em silêncio (subagente ou um comando único correto). O checklist (TodoWrite) é a única visão de progresso do usuário.
 
 ## Framework
+
+### 0. Iniciar o checklist (obrigatório, antes de qualquer pergunta)
+
+Antes de qualquer pergunta, **CHAME TodoWrite** com as etapas do setup e atualize-o **no lugar** a cada etapa concluída — o checklist nativo é a ÚNICA status line visível. Etapas canônicas (uma por linha):
+
+`Coletar site e mercado` · `Perguntar idioma` · `Perguntar se pré-preenche o Cérebro` · `Coletar informações adicionais (opcional)` · `Criar a estrutura do projeto` · `Pesquisar até 10 páginas do site e preencher o Cérebro` · `Anotar a decisão no diário` · `Abrir o Cérebro no navegador para revisar` · `Sugerir as próximas análises`.
+
+Isto é obrigatório, não um exemplo. Ver `docs/output-and-tone.md` para tom e progresso.
 
 ### 1. Detect Project State
 
@@ -37,17 +45,21 @@ If no project exists, the next meaningful step is `project-init`.
 
 If a project exists, route to `agentic-seo` and ask it to classify the user's current SEO request.
 
-### 2. Ask For The Minimum Useful Context
+### 2. Wizard do Passo 0 (múltipla escolha — o usuário só avança)
 
-For a new project, collect only the context needed to initialize safely:
+Conduza o Passo 0 como um **wizard**: use a **ferramenta nativa de múltipla escolha (AskUserQuestion)** para que um usuário comum só toque na opção e avance; a opção recomendada é **sempre** o caminho de continuar/pré-preencher. Faça uma pergunta por vez, em pt-BR claro. Se a ferramenta nativa não existir no harness, apresente as mesmas opções como lista numerada curta com a recomendada marcada (ver `docs/output-and-tone.md`).
 
-- Website or brand name.
-- Primary market or country.
-- Preferred language.
-- **Pergunta de pré-preenchimento (feita ao usuário, default = pesquisar o site):** "Quer que eu já pré-preencha o Cérebro do projeto pesquisando seu site? (recomendado) ou prefere deixar em branco para preencher manualmente?"
-- **Informações adicionais (opcional):** "Tem alguma informação adicional que eu deva considerar no rascunho? (ex.: páginas-chave, posicionamento, diferenciais, público, concorrentes, dados)". Peça em linguagem leiga; aceite texto colado.
+- **Q1 — Site/marca:** campo curto de texto livre (nome ou URL). Uma URL/nome de marca é aberto e não cabe em opções fixas; peça em uma linha.
+- **Q2 — Mercado/país (AskUserQuestion):** `Brasil (pt-BR)` (recomendado/default) · `Portugal (pt-PT)` · `Estados Unidos (en)` · `Outro (eu digito)`.
+- **Q3 — Idioma (AskUserQuestion):** derive de Q2 e apresente pré-selecionado (`Português do Brasil` recomendado quando Q2 = Brasil) · `English` · `Outro`. É só uma confirmação rápida; preserve idioma/acentos (`AGENTS.md` → "Language Fidelity" vence).
+- **Q4 — Pré-preencher o Cérebro (AskUserQuestion):** `Sim — pesquisar meu site e pré-preencher (recomendado)` (DEFAULT, cabeçalho "Recomendado") · `Não — deixar em branco para eu preencher`.
+- **Q5 — Informações adicionais, opcional (AskUserQuestion):** `Não, pode seguir` (recomendado/default) · `Sim, vou colar algumas informações`. Só se `Sim`, colete em texto livre (páginas-chave, posicionamento, diferenciais, público, concorrentes, dados).
 
-**Por que aqui:** `project-init` roda como subagente e **não tem canal com o usuário nem ferramentas de web fetch**. Portanto o agente principal (esta skill) faz a pergunta de pré-preenchimento + coleta as informações adicionais + lê as até 10 URLs do site ANTES de delegar, e passa ao `project-init`: a decisão (`prefill_choice: blank | from_site`), o `site_url`, as extrações das URLs já lidas e o texto das informações adicionais. Se essas perguntas não forem feitas aqui, elas se perdem.
+**Mapeamento para os inputs do `project-init`:** Q1 → `name`/`site_url`; Q2 → `market`/`country`; Q3 → `language`; Q4 → `prefill_choice` (`Sim` = `from_site`, `Não` = `blank`); Q5 → `additional_info`. Não invente chaves novas.
+
+**Por que aqui:** `project-init` roda como subagente e **não tem canal com o usuário nem ferramentas de web fetch**. Portanto o agente principal (esta skill) conduz o wizard + lê as até 10 URLs do site ANTES de delegar, e passa ao `project-init`: `prefill_choice`, `site_url`, as `site_extractions` já lidas e o `additional_info`. Se o wizard não for conduzido aqui, esses dados se perdem.
+
+**Leitura do site em UM lote silencioso:** quando `prefill_choice = from_site`, leia o site em **um único lote** — dispare todos os fetches das até 10 URLs **em paralelo numa ÚNICA mensagem**, sem narração por item (proibido: "Vou ler...", "Lendo a home...", "Bom material...", comentário por página). O progresso aparece **só no TodoWrite** (marque a etapa "Pesquisar até 10 páginas do site" ao concluir o lote inteiro). Nenhuma prosa por fetch.
 
 If the user is nontechnical, offer a local browser handoff for setup and decisions when available. Do not make terminal commands the main handoff.
 
@@ -91,14 +103,19 @@ obrigatório:
   Cérebro já estão escritas em `project/brain/` (registro `type: decision`,
   `approver` = usuário). No caminho `blank`, o Cérebro fica em branco
   (sem mudança). Em ambos, a entrega aponta para `project/brain/index.md`.
-- **E2 — Pedir permissão e abrir o Companion.** Feche a mensagem de entrega com a
-  linha canônica EXATA: `Posso abrir o Web Companion para você revisar esta
-  entrega?` (sem pergunta depois). Só após o "sim", abra o Companion com o comando
-  canônico detached mirando o projeto do usuário (`agentic-seo project-browser
-  --detach`), em silêncio — sem expor comando/token/URL de debug, nunca `cd` na
-  pasta do plugin (ver `AGENTS.md` → "Browser handoff" → "Correct launch").
-  Confirme com 1 frase + a `url` lida da JSON status line. Se o usuário recusar,
-  não abra; diga onde o Cérebro está (em prosa) e siga para E3.
+- **E2 — Pedir permissão e abrir o Companion (múltipla escolha).** Feche a mensagem
+  de entrega com a linha canônica EXATA: `Posso abrir o Web Companion para você
+  revisar esta entrega?` (sem pergunta em prosa depois). Em seguida, faça a escolha
+  via **AskUserQuestion** — use essa mesma linha canônica como prompt/cabeçalho da
+  pergunta (assim o contrato de fechamento canônico fica preservado) — com as
+  opções: `Sim (abrir no navegador)` (recomendado) · `Não (continuar aqui)`. Em
+  `Sim`: abra o Companion com o comando canônico detached mirando o projeto do
+  usuário (`agentic-seo project-browser --detach`), em silêncio — sem expor
+  comando/token/URL de debug, nunca `cd` na pasta do plugin (ver `AGENTS.md` →
+  "Browser handoff" → "Correct launch"); confirme com 1 frase + a `url` lida da JSON
+  status line. Em `Não (continuar aqui)`: não abra; diga em uma frase onde o Cérebro
+  está (`project/brain/index.md`) e siga para E3. Se a ferramenta de múltipla escolha
+  não existir no harness, trate como sim/não em prosa, mantendo a linha canônica.
 - **E3 — Esperar a revisão.** PARE e aguarde o usuário dizer que revisou
   ("revisei", "ok", "pode seguir", ou edições feitas). NÃO emende E4 na mesma
   mensagem em que pediu para abrir o navegador — a confirmação de revisão é um
