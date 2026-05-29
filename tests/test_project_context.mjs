@@ -23,8 +23,11 @@ assert.equal(config.language, "pt-PT");
 assert.equal(config.schema_version, "2.0.0");
 assert.equal(config.single_project_root, "project");
 
+// O nome da marca vive no project.json, NUNCA num título de página do Cérebro.
+assert.equal(config.name, "Context test");
 const brainIndex = readFileSync(join(project, "brain", "index.md"), "utf8");
-assert.ok(brainIndex.includes('title: "Context test"'));
+assert.ok(brainIndex.includes('title: "Índice do Cérebro"'), "index deve usar título por tipo (Índice do Cérebro), sem a marca");
+assert.ok(!brainIndex.includes("Context test"), "a marca não pode aparecer no título/corpo do index do Cérebro");
 
 for (const page of ["index.md", "identity.md", "voice.md", "technology.md", "editorial.md", "topic-clusters.md", "log.md"]) {
   assert.ok(existsSync(join(project, "brain", page)), `missing brain/${page}`);
