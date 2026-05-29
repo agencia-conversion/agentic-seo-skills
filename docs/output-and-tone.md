@@ -77,7 +77,7 @@ Bom (checklist + uma linha de resultado, comando roda em silêncio):
 Mostre o progresso de forma que funcione em qualquer agente (Claude Code, Codex, Antigravity).
 
 - O **checklist nativo do harness (TodoWrite no Claude Code) É a status line visível** — não é só "uma lista de progresso", é a única visão que o usuário tem do que está acontecendo: **uma etapa por linha**, em linguagem de usuário, marcando cada item ao concluir (atualize a lista **no lugar**, nunca repita os passos em prosa nem relate o comando por trás de cada etapa).
-- Exemplo de etapas para o setup: "Coletar nome do site e mercado" · "Perguntar se pré-preenche o Cérebro pesquisando o site" · "Criar a estrutura do projeto" · "Pesquisar até 10 páginas do site e compor o rascunho" · "Abrir o Cérebro no navegador para você revisar e aprovar" · "Anotar a decisão no diário".
+- Exemplo de etapas para o setup: "Coletar nome do site e mercado" · "Perguntar se pré-preenche o Cérebro pesquisando o site" · "Criar a estrutura do projeto" · "Pesquisar até 10 páginas do site e preencher o Cérebro" · "Anotar a decisão no diário" · "Abrir o Cérebro no navegador para você revisar" · "Sugerir as próximas análises".
 - A **narração em prosa fica FORA do checklist e é ≤ 1 frase**: a lista carrega o detalhe; o texto só diz o essencial (o que acabou de acontecer + próximo passo).
 - **Sem dependência externa.** O progresso não pode depender de Ruflo nem de nenhum MCP externo. Onde não houver um checklist nativo, descreva o progresso como uma lista curta de etapas em prosa, mas o comportamento é o mesmo: uma etapa por linha, atualizada no lugar. O onboarding precisa funcionar para qualquer usuário sem nenhuma instalação extra.
 

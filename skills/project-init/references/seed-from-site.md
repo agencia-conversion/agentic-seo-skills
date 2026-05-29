@@ -1,8 +1,12 @@
-# Rascunho automático do Cérebro a partir do site
+# Pré-preenchimento do Cérebro a partir do site
 
-Este passo é opcional. Ele só roda quando o usuário, no início do setup, escolhe
-"criar um rascunho automático" em vez do setup manual. Ele NUNCA roda sozinho e
-NUNCA escreve direto nos arquivos autorais do Cérebro (`brain/`) sem aprovação.
+Este passo é opcional. Ele só roda quando o usuário, no início do setup (Passo 0),
+autoriza pré-preencher o Cérebro pesquisando o site. Sob essa **autorização prévia
+do Passo 0**, este passo ESCREVE DIRETO nas páginas do Cérebro (`project/brain/`)
+para o usuário revisar e editar no Web Companion. Ele NÃO usa `workbench/` nem exige
+registro `type: approval`: esta é a regra do **ONBOARDING** (autorização prévia),
+distinta do fluxo `brain-keeper`. Ele NUNCA roda sozinho (sempre depende do "sim" do
+Passo 0) e NUNCA inventa fatos, métricas ou decisões.
 
 > Tom e progresso para leigos: ver `docs/output-and-tone.md`. Explique o termo
 > técnico em linguagem simples na primeira menção (ex.: "Cérebro do projeto",
@@ -11,7 +15,8 @@ NUNCA escreve direto nos arquivos autorais do Cérebro (`brain/`) sem aprovaçã
 > Trabalho silencioso: a seleção/leitura das URLs e a coleta da info adicional
 > acontecem no agente principal (que tem web fetch e canal com o usuário); o
 > subagente recebe esses dados prontos. O usuário vê só o checklist nativo e o
-> rascunho para revisar — nunca comandos crus, URLs de debug nem exploração.
+> Cérebro já preenchido para revisar — nunca comandos crus, URLs de debug nem
+> exploração.
 
 ## Quando este passo se aplica
 
@@ -19,8 +24,8 @@ NUNCA escreve direto nos arquivos autorais do Cérebro (`brain/`) sem aprovaçã
 - Existe um `site_url` válido em `project/.agentic-seo/project.json` (ou o usuário
   informou a URL do site principal).
 - A estrutura básica do projeto já foi criada (diretórios + arquivos do Cérebro
-  em branco a partir dos templates). O rascunho automático acontece DEPOIS do
-  setup básico, nunca no lugar dele.
+  a partir dos templates). O pré-preenchimento acontece DEPOIS do setup básico,
+  nunca no lugar dele.
 
 Se não houver `site_url`, este passo não roda: peça a URL ou siga com o Cérebro
 em branco (`prefill_choice: blank`).
@@ -34,18 +39,20 @@ Faz:
    forneceu (`additional_info`: páginas-chave, posicionamento, diferenciais,
    público, concorrentes, dados). Ambas são entregues prontas pelo agente
    principal.
-2. Compõe um RASCUNHO das páginas do Cérebro (`identity`, `voice`, `technology`,
-   `review`, `topic-clusters`, `index`) combinando o que foi lido do site com a
-   info adicional do usuário.
-3. Marca o rascunho como pendente de aprovação e registra a coleta no diário
-   (`brain/log.md`) com `type: ingestion`.
-4. Apresenta o rascunho para o usuário revisar, editar e aprovar.
+2. Compõe e ESCREVE as páginas do Cérebro (`identity`, `voice`, `technology`,
+   `review`, `topic-clusters`, `index`) direto em `project/brain/`, combinando o
+   que foi lido do site com a info adicional do usuário.
+3. Registra a escrita no diário (`brain/log.md`) com `type: decision` e
+   `approver` = nome do usuário (ele autorizou no Passo 0).
+4. Abre/oferece o Web Companion em `project/brain/index.md` para o usuário revisar
+   e editar (pedindo permissão antes de abrir o navegador).
 
 NÃO faz:
 
-- Não escreve o rascunho direto nos arquivos autorais em `project/brain/`.
 - Não inventa fatos de marca, dados de mercado nem decisões técnicas.
-- Não promove o rascunho a contexto aprovado por conta própria.
+- Não cria novas subpáginas de cluster (`brain/topic-clusters/<slug>.md`) por conta
+  própria — isso continua exigindo o handoff `approve-cluster`.
+- Não abre o navegador sem pedir permissão antes.
 
 ## Seleção das URLs (até 10)
 
@@ -98,61 +105,69 @@ composição — nunca apenas coletada e ignorada.
   observada). Mas dados/métricas sem comprovação continuam indo para o `log` como
   pendência, não para a prosa do Cérebro (ver "Regras duras de composição").
 
-## Composição do rascunho (pendente)
+## Escrita das páginas do Cérebro
 
-Componha um rascunho para cada página do Cérebro combinando o que foi lido do site
-com a `additional_info` do usuário (insumo obrigatório quando presente):
+Escreva DIRETO em cada página do Cérebro (`project/brain/`), combinando o que foi
+lido do site com a `additional_info` do usuário (insumo obrigatório quando presente):
 
 - `index` — status atual e mapa (estrutura já existe; só preencher o que for
   observável).
 - `identity` — aposto, parágrafo de apresentação, promessa, público,
   identidade técnica e canais.
 - `voice` — princípios e registro inferidos do tom dos textos.
-- `technology` — stack/CMS aparente; o resto fica como pendência.
+- `technology` — stack/CMS aparente; o resto fica de fora (não vira gap).
 - `review` — regras editoriais específicas do projeto inferidas do material.
-- `topic-clusters` — clusters semânticos inferidos dos temas recorrentes.
+- `topic-clusters` — preencha as áreas editoriais H2 (tese, diferenciação,
+  audiência, subtemas, provas) e o índice entre as sentinelas. NÃO crie subpáginas
+  `brain/topic-clusters/<slug>.md` — isso exige o handoff `approve-cluster`.
 
 Regras duras de composição:
 
-- O rascunho fica em `project/workbench/` (área de trabalho), claramente marcado
-  como RASCUNHO / pendente de aprovação. Não toque nos arquivos de `project/brain/`.
-- Onde a página não der base para um campo, deixe o placeholder do template ou
-  escreva "a confirmar" — nunca preencha por suposição.
+- Escreva direto nas páginas de `project/brain/`, **preservando o frontmatter**
+  (`title`/`updated`) e **qualquer conteúdo que o usuário já tenha escrito** (não
+  sobrescreva conteúdo substantivo do usuário; o seed só preenche páginas ainda em
+  estado de template/placeholder).
+- Respeite a **no-gap rule** (ver `docs/brain.md`): nenhum `TODO`/`<fill>`/"a
+  confirmar" no arquivo autoral. Onde a página não der base para um campo, **omita
+  a subseção** (não deixe heading vazio) e mande a pendência para o `log` — não
+  preencha por suposição.
 - Não fabrique credenciais, números, casos, datas nem decisões. Se não está no
-  site, não entra no rascunho.
+  site nem na info adicional, não entra na prosa do Cérebro.
 
 ## Registro no diário (log)
 
-Anexe ao `brain/log.md` exatamente uma entrada de ingestão por execução do
-rascunho automático. Use o token do enum em inglês `ingestion` e as chaves em
-inglês (ver formato em `AGENTS.md`):
+Anexe ao `brain/log.md` exatamente UMA entrada por execução do seed que tenha
+alterado conteúdo (append-only, idempotente). Use o token do enum em inglês
+`decision` e as chaves em inglês (ver formato em `AGENTS.md`):
 
 ```markdown
-## YYYY-MM-DD - Coleta para rascunho automático do Cérebro
+## YYYY-MM-DD - Cérebro pré-preenchido a partir do site
 
-- type: ingestion
-- scope: project/workbench/ (rascunho do brain)
-- decision: Coletadas N páginas do domínio principal (+ informações adicionais do usuário, quando fornecidas) para compor rascunho do Cérebro.
+- type: decision
+- scope: project/brain/ (páginas preenchidas pelo seed)
+- decision: Cérebro pré-preenchido a partir do site (N páginas lidas) + informações adicionais do usuário, sob autorização prévia do Passo 0.
 - evidence: <lista das URLs lidas> + <"informações adicionais fornecidas pelo usuário" quando houver>
-- approver: pending
-- notes: Rascunho pendente de revisão e aprovação humana. Não é contexto aprovado.
+- approver: <nome do usuário>
+- notes: Onboarding/seed — autorização prévia (Passo 0). Páginas escritas direto no brain para revisão no Companion.
 ```
 
-## Aprovação obrigatória
+O `approver` é o **usuário** (ele autorizou no Passo 0), não `agent`.
 
-O rascunho não vira contexto estratégico aprovado até o usuário aprová-lo
-explicitamente. Conforme `AGENTS.md` e a skill `brain-keeper`:
+## Revisão no Companion (autorização prévia, sem gate de promoção)
 
-- Apresente o rascunho para o usuário revisar e editar. O caminho recomendado é
-  abrir o Cérebro numa tela no navegador (handoff `project-browser`, ver
-  `AGENTS.md` → "Browser handoff"), no modo persistente/detached e mirando o
-  projeto do usuário — nunca preso a um Bash com timeout.
-- Só ao receber aprovação explícita, mova o conteúdo aprovado do `workbench/`
-  para os arquivos de `project/brain/` e registre UMA entrada `type: approval`
-  no `brain/log.md` (com `approver` = nome humano e `approved_at` preenchidos).
-  Esse é o único registro de aprovação do rascunho.
-- Sem essa aprovação, o rascunho permanece em `workbench/` e não é tratado como
-  evidência por nenhuma outra skill.
+Não há mais mover `workbench/`→`brain/` nem registro `type: approval`: as páginas
+já foram escritas direto no Cérebro. O usuário só revisa e edita o que já está lá.
 
-Nunca auto-promova o rascunho. A ingestão registra que houve coleta; a aprovação
-é um ato humano separado.
+- Ofereça abrir o Cérebro numa tela no navegador (handoff `project-browser`, ver
+  `AGENTS.md` → "Browser handoff"), no modo detached e mirando o projeto do
+  usuário — nunca preso a um Bash com timeout. **Peça permissão antes de abrir.**
+- Após o usuário confirmar que revisou, siga para os próximos passos (ver o
+  fechamento do `/start`).
+
+Gates que CONTINUAM valendo (não relaxam no onboarding):
+
+- Sempre pedir a autorização do usuário no Passo 0 antes de pré-preencher.
+- Sempre pedir permissão ANTES de abrir o navegador.
+- Criar NOVA subpágina de cluster (`brain/topic-clusters/<slug>.md`) continua
+  exigindo o handoff `approve-cluster` — o seed só preenche as áreas editoriais e o
+  índice em `topic-clusters.md`.
