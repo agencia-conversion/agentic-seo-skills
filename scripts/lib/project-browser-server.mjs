@@ -231,6 +231,9 @@ export async function runProjectBrowser(argv = []) {
     "project";
   const open = !args["no-open"];
   const openPath = args["open-path"] || args["target-path"] || "";
-  const detach = !!(args.detach || args["non-blocking"]);
+  // Detached by default: the Companion must survive the process that launched it
+  // (e.g. an agent's Bash call killed at its ~120s timeout). Opt out with
+  // --foreground (or --no-detach) for local debugging that blocks until exit.
+  const detach = !args.foreground && !args["no-detach"];
   return startProjectBrowser({ projectRoot, open, dev: !!args.dev, openPath, detach });
 }

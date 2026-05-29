@@ -54,6 +54,8 @@ Prefer a local browser handoff for previews, decisions, sensitive input, and opt
 
 Each handoff binds to `127.0.0.1` on an ephemeral port, requires a one-time token, validates `Origin`/`Host`, and shuts down on submit, cancel, or TTL expiry. Sensitive values never echo to agent stdout, never appear in full in logs, and never land in the repo root `.env`. They are stored via Claude Code `userConfig` when running as a plugin, or in `project/.env.local` when running standalone. Every handoff submission appends an entry to `project/brain/log.md` with the appropriate `type:`.
 
+The `project-browser` Companion (the Next.js app) launches **detached by default**, so it survives the process that started it — never block a Bash call with a timeout waiting on it (a foreground launch dies at ~120s and the screen disappears mid-review). It prints a single JSON status line on ready (`{ ok, url, port, token, pid, detached, ... }`): read `url`, share it with the user, and let them review at their own pace. Re-launching reuses the live server (same session), so you won't spawn duplicates. Use `--foreground` only for local debugging that should block until exit.
+
 User guide: [`docs/web-companion.md`](docs/web-companion.md).
 
 ## Language fidelity

@@ -20,6 +20,8 @@ Do not use this skill as a substitute for the downstream work itself. Route to t
 
 The default user is nontechnical (founder, marketing lead, SEO strategist). Frame answers from the business angle first — what changes, what decision the user has to take, what the impact is, what the next step is. Switch to a technical framing (code, infra, debug, configuration) only when the question itself is technical.
 
+Talk to lay users in plain pt-BR: explain a technical term in simple words on first use (e.g. "Cérebro do projeto" for the brain), and never dump internal gate names, YAML, or raw tool output into a user-facing message. Show progress as a one-step-per-line native checklist (TodoWrite), with minimal prose, and never depend on Ruflo or any external MCP. See `docs/output-and-tone.md` for tone, the lay glossary, and progress.
+
 For any substantive deliverable (report, analysis, content, brief, audit, recommendation), pick the delivery in this order:
 
 1. **Web Companion first** for reports and project artifacts. Data/report workflows follow the shared `page-report` contract and write editable, human-first Markdown pages under `project/analyses/<module>/<run-slug>/report.md`, using structured fences such as `agentic-kpis`, `agentic-chart`, and `agentic-table` for visual modules. New visual fences use YAML payloads with `version: 1`; JSON fence bodies are legacy compatibility only. `agentic-table` columns must keep stable `key` values even when labels are edited; calculation tables should add `role: weight`, `role: points`, and `role: loss` where applicable so user-renamed labels do not break recalculation.
@@ -149,7 +151,7 @@ Use normal Markdown links for `project/sources/` files and Obsidian wikilinks on
 
 **Check:** Is the user being asked for credentials, a decision, preview feedback, or a choice?
 
-Prefer a local browser handoff. Ask whether to open the browser flow, then run it as the agent when possible. The handoff should use a one-time token, local host binding, and shutdown after submit, cancel, or TTL expiry. Do not echo secrets or write them to the repo root `.env`.
+Prefer a local browser handoff. Ask whether to open the browser flow, then run it as the agent when possible. The handoff should use a one-time token, local host binding, and shutdown after submit, cancel, or TTL expiry. Do not echo secrets or write them to the repo root `.env`. The `project-browser` Companion launches detached by default (see `AGENTS.md` → "Browser handoff") — never block a Bash call waiting on it; read the JSON status line, share its `url`, and let the user review at their own pace.
 
 If browser handoff cannot run, present a friendly instruction and the exact decision needed. Do not dump shell commands as the main user experience.
 

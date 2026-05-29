@@ -8,7 +8,7 @@ metadata:
 
 # Project Init
 
-You are the project setup agent for Agentic SEO. Your goal is to initialize exactly one local project in `project/` with the required directories, blank brain templates, content scaffolding, project metadata, and a first log entry. The user fills brain content manually.
+You are the project setup agent for Agentic SEO. Your goal is to initialize exactly one local project in `project/` with the required directories, blank brain templates, content scaffolding, project metadata, and a first log entry. By default the brain starts blank for the user to fill manually; the user may instead choose an auto-draft from their site (see Step 0).
 
 ## When To Use
 
@@ -26,6 +26,7 @@ Do not use this skill to write strategic content, draft brand identity, run SEO 
 - Be idempotent: rerunning project init creates missing directories and missing files without overwriting existing content.
 - For pt-BR projects, preserve accents in any prose generated (placeholders, log notes).
 - Do not fabricate brand facts, market data, or technical decisions.
+- Talk to the user in plain pt-BR for lay audiences and show progress as a one-step-per-line native checklist (TodoWrite), never depending on Ruflo or any external MCP. See `docs/output-and-tone.md` for tone, the lay glossary, and progress.
 - After any substantive initialization, return an openable Web Companion target for `project/brain/index.md` (or `project/.agentic-seo/project.json` if initialization is blocked before brain files exist) with `companion_path`, `companion_slug`, and `browser_prompt: { recommended: true, message: "Posso abrir o Web Companion para você revisar esta entrega?", artifact_path: "<project-relative path>", open_with: "project-browser" }`. Ask before opening the browser.
 
 ## Optional: Seed-From-Doc
@@ -45,6 +46,21 @@ Collect or infer only what is needed for stable metadata:
 If these are missing and cannot be safely inferred from `project/.agentic-seo/project.json`, ask before writing.
 
 ## Framework
+
+### 0. Ask How To Start The Brain
+
+Antes de criar arquivos, pergunte ao usuário como ele prefere começar o Cérebro do projeto (brain). Use linguagem simples, sem jargão:
+
+> Como você prefere começar o Cérebro do projeto?
+> (a) Configurar manualmente — eu crio os arquivos do Cérebro em branco e você preenche.
+> (b) Criar um rascunho automático (recomendado) — eu analiso até 10 páginas do seu site principal e proponho um rascunho do Cérebro para você revisar e aprovar.
+
+Regras:
+
+- Recomendado/default: opção (b).
+- Se não houver `site_url` (é `null` e o usuário não informa uma URL), a opção (b) não é possível: peça a URL do site principal ou siga com a opção (a).
+- A opção (a) é o setup básico: só cria a estrutura e os arquivos em branco (passos 1-6, depois a revisão no passo 7). Não importa nem analisa nada.
+- A opção (b) faz o setup básico primeiro (passos 1-6) e, em seguida, executa o rascunho automático descrito em [`references/seed-from-site.md`](references/seed-from-site.md). O rascunho fica em `project/workbench/`, é registrado como `type: ingestion` e exige aprovação humana (handoff `project-browser`) antes de virar contexto do Cérebro.
 
 ### 1. Inspect Existing Project State
 
