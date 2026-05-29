@@ -110,16 +110,56 @@ composição — nunca apenas coletada e ignorada.
 Escreva DIRETO em cada página do Cérebro (`project/brain/`), combinando o que foi
 lido do site com a `additional_info` do usuário (insumo obrigatório quando presente):
 
-- `index` — status atual e mapa (estrutura já existe; só preencher o que for
-  observável).
+- `index` — a HOME do Cérebro. **NUNCA** ponha banner/aviso de "rascunho", "não
+  validado" ou "aguardando revisão" no topo — a autorização do Passo 0 torna a
+  escrita canônica, não é rascunho. Escreva: 1 parágrafo curto de introdução
+  (o que a marca é + que este é o Cérebro que os agentes leem antes de agir) e a
+  seção `## Páginas` com um H3 (wikilink) por sub-página canônica (`identity`,
+  `voice`, `technology`, `topic-clusters`, `review`, `log`, nesta ordem) e **2-4
+  bullets curtos** em cada, resumindo o que você de fato escreveu naquela página
+  (identity → aposto/promessa/público/anti-posicionamento/técnica/canais; voice →
+  registro/termos preferidos/proibidos/atribuição/idioma; technology → stack/CMS/
+  status técnico/pendências; topic-clusters → áreas ativas + nomes dos clusters +
+  que o índice é auto-gerado; review → regra universal + princípios + checklist;
+  log → o que é registrado). Os bullets derivam do conteúdo semeado — **não
+  invente; omita o bullet** em vez de adivinhar.
 - `identity` — aposto, parágrafo de apresentação, promessa, público,
   identidade técnica e canais.
 - `voice` — princípios e registro inferidos do tom dos textos.
 - `technology` — stack/CMS aparente; o resto fica de fora (não vira gap).
 - `review` — regras editoriais específicas do projeto inferidas do material.
-- `topic-clusters` — preencha as áreas editoriais H2 (tese, diferenciação,
-  audiência, subtemas, provas) e o índice entre as sentinelas. NÃO crie subpáginas
-  `brain/topic-clusters/<slug>.md` — isso exige o handoff `approve-cluster`.
+- `topic-clusters` — escreva no **FORMATO DE TABELA**, nunca em prosa:
+  - **(a) Áreas editoriais:** para cada área que você identificar, crie um H2 em
+    `brain/topic-clusters.md` cujo corpo é **APENAS** o bloco automático:
+
+    ````markdown
+    ## <Nome da Área>
+
+    ```agentic-clusters-by-area
+    version: 1
+    area: <slug-da-area-kebab>
+    ```
+    ````
+
+    Sem prosa de tese/diferenciação/audiência/provas na página do Cérebro.
+  - **(b) Clusters:** para cada cluster, escreva um manifesto
+    `project/clusters/<slug>/cluster.yaml` a partir de
+    `templates/project/clusters/cluster.yaml.template` (schema em
+    `docs/specs/topic-clusters-contract.md`, `contract_version: 1`). Preencha
+    `area` (= slug do H2) + `name`; `thesis` (1-3 linhas, só do site/`additional_info`,
+    sem fabricação); `pillar.slug` apontando para um slug real ou planejado;
+    `planned_satellites`/`satellite_overrides` vazios salvo evidência;
+    `provenance.created_by: agent` e `decision_log` apontando para a entrada do log.
+    **Status:** use `status: active` para que o cluster apareça na tabela do
+    Companion e o usuário possa revisá-lo (modelo de escrita direta autorizada no
+    Passo 0; o bloco `agentic-clusters-by-area` só renderiza clusters `active`).
+    NÃO invente dados: `pillar.volume`/`volume_source` ficam `null` e `evidence: []`
+    quando não houver dado real; `pillar.slug` aponta para um slug real ou planejado.
+  - **(c) Índice/painel:** **NÃO** edite o bloco entre as sentinelas
+    `<!-- BEGIN cluster-index-table:auto... -->` / `<!-- END cluster-index-table:auto -->`
+    — ele é regenerado por `cluster-sync`.
+  - **(d)** **NÃO** crie subpáginas `brain/topic-clusters/<slug>.md` — isso continua
+    exigindo o handoff `approve-cluster`.
 
 Regras duras de composição:
 
@@ -169,5 +209,12 @@ Gates que CONTINUAM valendo (não relaxam no onboarding):
 - Sempre pedir a autorização do usuário no Passo 0 antes de pré-preencher.
 - Sempre pedir permissão ANTES de abrir o navegador.
 - Criar NOVA subpágina de cluster (`brain/topic-clusters/<slug>.md`) continua
-  exigindo o handoff `approve-cluster` — o seed só preenche as áreas editoriais e o
-  índice em `topic-clusters.md`.
+  exigindo o handoff `approve-cluster` — o seed só cria os H2 de área com o bloco
+  `agentic-clusters-by-area` em `topic-clusters.md` e os manifestos
+  `project/clusters/<slug>/cluster.yaml`.
+
+> Decisão (aprovada): clusters semeados no onboarding nascem `status: active` para
+> ficarem visíveis na tabela do Companion e o usuário revisar/editar. Sem fabricar
+> dados (`volume`/`volume_source` nulos, `evidence: []` quando não houver). A criação
+> de NOVA subpágina de cluster segue exigindo `approve-cluster`; edição/refino
+> posterior vem pela interface (já integrada a content) ou pela skill `topic-cluster`.

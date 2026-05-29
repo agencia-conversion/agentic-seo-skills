@@ -50,6 +50,13 @@ Os tokens do enum ficam em inglês (ver `AGENTS.md`). Quando precisar mostrar ou
 - **NUNCA exiba ao usuário comandos crus** (`node`, `grep`, `sed`, `kill`, `ps`, `cd`), URLs de debug (ex.: `http://127.0.0.1:...`), tokens, saída bruta de ferramenta, passos de exploração ou tentativas de debugging.
 - **Trabalho pesado/ruidoso roda em silêncio**: prefira um subagente ou **UM comando único correto na primeira tentativa**. Nunca tente-e-erre à vista do usuário.
 - A **única** superfície de progresso que o usuário vê é o checklist nativo (TodoWrite). O resto fica nos bastidores.
+- **Leitura do site em UM lote silencioso (regra dura):** quando precisar ler várias páginas do site (até 10 URLs no onboarding), dispare **todos os fetches em paralelo numa ÚNICA mensagem**, sem narração por item. São **proibidas** frases como "Vou ler...", "Lendo a home...", "Bom material...", "Agora a página Sobre..." ou qualquer comentário por página. O progresso aparece **só no TodoWrite** (marque a etapa "Pesquisar até 10 páginas do site" ao concluir o lote inteiro). Nenhuma prosa por fetch é permitida.
+
+### Perguntas em wizard (múltipla escolha)
+
+- Perguntas de setup/decisão para leigos devem usar a **ferramenta nativa de múltipla escolha (AskUserQuestion)**, para o usuário comum só **avançar** tocando numa opção em vez de digitar.
+- Em toda pergunta do wizard, a opção **continuar/pré-preencher é sempre a recomendada/default** (marque-a como recomendada). O usuário comum avança aceitando o recomendado.
+- Se a ferramenta nativa de múltipla escolha **não estiver disponível** no harness, apresente as MESMAS opções como uma lista curta numerada em prosa, com a opção recomendada marcada. Funciona em qualquer agente (Claude Code, Codex, Antigravity), sem depender de Ruflo nem MCP externo.
 
 ### Exemplos
 
@@ -77,7 +84,8 @@ Bom (checklist + uma linha de resultado, comando roda em silêncio):
 Mostre o progresso de forma que funcione em qualquer agente (Claude Code, Codex, Antigravity).
 
 - O **checklist nativo do harness (TodoWrite no Claude Code) É a status line visível** — não é só "uma lista de progresso", é a única visão que o usuário tem do que está acontecendo: **uma etapa por linha**, em linguagem de usuário, marcando cada item ao concluir (atualize a lista **no lugar**, nunca repita os passos em prosa nem relate o comando por trás de cada etapa).
-- Exemplo de etapas para o setup: "Coletar nome do site e mercado" · "Perguntar se pré-preenche o Cérebro pesquisando o site" · "Criar a estrutura do projeto" · "Pesquisar até 10 páginas do site e preencher o Cérebro" · "Anotar a decisão no diário" · "Abrir o Cérebro no navegador para você revisar" · "Sugerir as próximas análises".
+- **No início do setup, o agente DEVE chamar TodoWrite** com as etapas do setup ANTES de qualquer pergunta, e atualizá-lo no lugar a cada etapa concluída. Não é opcional nem "exemplo": é a única status line visível.
+- Etapas canônicas do setup (uma por linha): "Coletar site e mercado" · "Perguntar idioma" · "Perguntar se pré-preenche o Cérebro" · "Coletar informações adicionais (opcional)" · "Criar a estrutura do projeto" · "Pesquisar até 10 páginas do site e preencher o Cérebro" · "Anotar a decisão no diário" · "Abrir o Cérebro no navegador para revisar" · "Sugerir as próximas análises".
 - A **narração em prosa fica FORA do checklist e é ≤ 1 frase**: a lista carrega o detalhe; o texto só diz o essencial (o que acabou de acontecer + próximo passo).
 - **Sem dependência externa.** O progresso não pode depender de Ruflo nem de nenhum MCP externo. Onde não houver um checklist nativo, descreva o progresso como uma lista curta de etapas em prosa, mas o comportamento é o mesmo: uma etapa por linha, atualizada no lugar. O onboarding precisa funcionar para qualquer usuário sem nenhuma instalação extra.
 

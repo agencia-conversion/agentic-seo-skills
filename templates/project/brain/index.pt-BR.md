@@ -5,40 +5,52 @@ updated: "<YYYY-MM-DD>"
 
 # <Nome do projeto>
 
-<Nome do projeto> é a página de entrada do cérebro da marca. Ela resume o contexto editorial, técnico e estratégico que orienta decisões de SEO, conteúdo e análise.
+<!--
+REGRA: Esta é a HOME do Cérebro da marca — a primeira coisa que um agente lê antes
+de agir. NUNCA adicione banner/aviso de "rascunho", "não validado", "aguardando
+revisão" ou callout de pendência no topo: as escritas são autorizadas no Passo 0,
+o Cérebro é canônico, não é rascunho. Estrutura: 1 parágrafo curto de introdução +
+"## Páginas" com um H3 (wikilink) por sub-página canônica (identity, voice,
+technology, topic-clusters, review, log), e 2-4 bullets curtos em cada, resumindo os
+principais pontos daquela página para dar contexto sem abrir. Os bullets resumem o
+conteúdo realmente escrito; não invente, omita o bullet em vez de adivinhar. Frases
+curtas. Use os slugs EN ([[identity]], [[voice]]...) para casar com os nomes de
+arquivo (identity.md, voice.md, technology.md, topic-clusters.md, review.md, log.md).
+-->
 
-A marca usa este brain para transformar conhecimento acumulado em decisões publicáveis, rastreáveis e úteis. Cada página concentra uma parte do contexto que outros agentes precisam ler antes de escrever, revisar ou analisar.
+<introdução em 1 parágrafo curto: o que a marca é + que este é o Cérebro que os agentes leem antes de agir>
 
-A frase-marca, o aposto e os pontos de posicionamento vivem em [[identidade]]. O tom, a linha editorial e as decisões ficam nas páginas abaixo para que o index permaneça curto e navegável.
+## Páginas
 
-Use esta página como ponto de partida antes de editar conteúdos, avaliar oportunidades ou registrar decisões. Os links abaixo levam às áreas autorais que sustentam o trabalho.
+### [[identity|Identidade]]
 
-## Pilares do cérebro
+- <ponto-chave 1 da identidade: aposto/promessa/público>
+- <ponto-chave 2: anti-posicionamento>
+- <ponto-chave 3: identidade técnica/canais>
 
-### [[identidade|Identidade]]
+### [[voice|Tom de Voz]]
 
-A página de identidade reúne o aposto, a apresentação, a promessa central, o público e os limites de posicionamento da marca.
+- <registro e princípios editoriais do projeto>
+- <termos preferidos e termos proibidos>
+- <atribuição, idioma e acentuação>
 
-### [[voz|Tom de Voz]]
+### [[technology|Tecnologia]]
 
-A página de tom de voz define o registro editorial, os termos preferidos, os termos proibidos e os critérios de linguagem que mantêm os conteúdos consistentes.
-
-### [[editorial|Editorial]]
-
-A página editorial organiza as áreas macro, as teses de conteúdo, os do's e don'ts de linha editorial e a lógica que conecta conteúdo, busca e autoridade temática.
+- <stack/CMS observado>
+- <status de SEO técnico e pendências>
 
 ### [[topic-clusters|Topic Clusters]]
 
-A página de Topic Clusters reúne os clusters semânticos ativos, seus pilares, satélites publicados e oportunidades planejadas.
+- <áreas editoriais ativas>
+- <clusters ativos (nomes)>
+- <o índice/tabela de clusters é auto-gerado>
 
-### [[tecnologia|Tecnologia]]
+### [[review|Revisão]]
 
-A página de tecnologia registra o contexto técnico observado do site da marca, os riscos de SEO técnico e as decisões operacionais que afetam rastreamento, performance e publicação.
-
-### [[revisao|Revisão]]
-
-A página de revisão concentra as regras editoriais usadas antes de publicar, incluindo critérios universais e aprendizados específicos do projeto.
+- <regra editorial universal aplicada>
+- <princípios específicos do projeto>
+- <checklist de revisão>
 
 ### [[log|Log]]
 
-O log preserva decisões, aprovações, evidências e mudanças relevantes em ordem cronológica.
+- <registro append-only de decisões, aprovações, erratas, lints, ingestões, publicações>

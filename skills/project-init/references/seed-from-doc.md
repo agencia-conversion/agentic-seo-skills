@@ -26,7 +26,7 @@ Read the source document end-to-end. Classify each substantive chunk by the brai
 | Brand identity, aposto, parágrafo de apresentação, frase-marca, promessa, anti-posicionamento, público | `brain/identity.md` | Filter marketing adjectives; preserve verifiable claims with evidence links. |
 | Voice/tone principles, registro, vocabulary preferences, errata policy | `brain/voice.md` | Specific to this project; do not duplicate the universal rules in `brain/review.md`. |
 | Stack observed, technical decisions, SEO technical map | `brain/technology.md` | Only observable facts; no editorial opinion on stack. |
-| Editorial areas (pillars), thesis per area, sub-themes, target audience | `brain/topic-clusters.md` (H2 sections above the cluster-index auto-block) | One `##` section per pillar with slug, tese, diferenciação, audiência. |
+| Editorial areas (pillars), thesis per area, sub-themes, target audience | `brain/topic-clusters.md` (one H2 per area) + `project/clusters/<slug>/cluster.yaml` | Each area H2 body is ONLY the `agentic-clusters-by-area` auto-block fence (table format, not prose). Each cluster is a `cluster.yaml` manifest, not prose tese/diferenciação. |
 | Products, services, tools, courses listed publicly | `brain/products.md` (extensible) | Create with `approver: <human>` log entry per extensible-brain contract. |
 | Conceptual frameworks (e.g., 4 levels of AI adoption) | Best-fit pillar H2 in `brain/topic-clusters.md` as subsection | Or split into its own brain subpage `brain/<parent>/<concept>.md`. |
 | Proof points (clients, awards, métricas, citations) | `brain/log.md` as `type: evidence` entries | The pages reference the proof; the proof body lives in the log. |
@@ -34,7 +34,7 @@ Read the source document end-to-end. Classify each substantive chunk by the brai
 
 ### 2. Detect cluster seeds
 
-If the document lists subtopics under pillars (e.g., "Estratégia → Brand-Led Growth, Autoatribuição, Posicionamento"), propose 1 cluster draft per subtopic with `status: hypothesis` and an explicit `bypass` record. Cluster drafts go to `project/clusters/<slug>/draft.yaml` + `planejamento.md`. Promotion to `cluster.yaml` requires DataForSEO evidence (separate skill: `topic-cluster`).
+If the document lists subtopics under pillars (e.g., "Estratégia → Brand-Led Growth, Autoatribuição, Posicionamento"), create one H2 per editorial area in `brain/topic-clusters.md` whose body is ONLY the `agentic-clusters-by-area` fence (`version: 1` + `area: <slug>`), and propose 1 cluster draft per subtopic with `status: hypothesis` and an explicit `bypass` record. Cluster drafts go to `project/clusters/<slug>/draft.yaml` + `planejamento.md` (table-format manifests, not prose). Promotion to `cluster.yaml` (and to `status: active`, which is what the area auto-block renders) requires DataForSEO evidence + the `approve-cluster` handoff (separate skill: `topic-cluster`). Do not auto-promote.
 
 ### 3. Compose the brain pages
 

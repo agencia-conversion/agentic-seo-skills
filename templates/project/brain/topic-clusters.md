@@ -10,37 +10,29 @@ Um Topic Cluster organiza um tema editorial em torno de um conteúdo pilar e sat
 
 Topic Clusters são a espinha dorsal do projeto. Conteúdos vivem em relação N:N com clusters — um post pode pertencer a múltiplos clusters quando faz sentido editorial. Contrato técnico: `docs/specs/topic-clusters-contract.md`.
 
-Clusters são agrupados por **áreas editoriais**: camadas estratégicas macro (1 área : N clusters operacionais) que definem o território coberto pela marca. As áreas abaixo carregam tese, diferenciação, audiência, subtemas e provas factuais com fontes; a tabela auto-gerada ao final lista todos os clusters ativos com seu pilar.
+Clusters são agrupados por **áreas editoriais**: camadas estratégicas macro (1 área : N clusters operacionais) que definem o território coberto pela marca. Cada área é um H2 cujo corpo é um bloco automático `agentic-clusters-by-area` que renderiza, em tabela, os clusters ativos daquela área. A tabela-índice ao final lista todos os clusters ativos do projeto com seu pilar.
 
 <!--
-REGRA: Crie uma seção H2 por área editorial macro (ex.: `## IA Agêntica`, `## Estratégia`,
-`## Conteúdo`, `## Tecnologia`). Cada H2 carrega slug, tese (1 linha), diferenciação,
-audiência, subtemas (bullets curtos), provas (bullets factuais com fontes externas em
-markdown links), e a sub-seção `### Clusters nesta área` com wikilinks para subpáginas.
-Cluster.yaml.area aponta para o slug da área. Quando uma área não tem cluster ainda,
-remova a sub-seção "Clusters nesta área" ou marque com nota explícita.
-
-Exemplo de estrutura por área:
+REGRA (FORMATO DE TABELA, não prosa): Crie uma seção H2 por área editorial macro
+(ex.: `## Fundamentos`, `## Estratégia`, `## Conteúdo`, `## Tecnologia`). O CORPO de
+cada H2 é APENAS o bloco automático abaixo — sem prosa de tese/diferenciação/audiência/
+provas na página do Cérebro. O renderer (`agentic-clusters-by-area`) monta a tabela dos
+clusters ativos cuja `cluster.yaml.area` casa com o `area` do bloco.
 
 ## <Nome da Área>
 
-- slug: <slug-kebab>
-- tese: <1 linha>
-- diferenciação: <ângulo>
-- audiência: <quem>
+```agentic-clusters-by-area
+version: 1
+area: <slug-da-area-kebab>
+```
 
-### Subtemas
-
-- <subtema 1>
-- <subtema 2>
-
-### Provas
-
-- <prova factual com fonte externa em markdown link>
-
-### Clusters nesta área
-
-- [[topic-clusters/<slug-do-cluster>|<Nome do Cluster>]] — <linha resumo>
+Cada cluster é um manifesto `project/clusters/<slug>/cluster.yaml` (schema em
+`docs/specs/topic-clusters-contract.md`), NÃO prosa. O campo `cluster.yaml.area` aponta
+para o `<slug-da-area-kebab>` do bloco. Atenção: o bloco só renderiza clusters com
+`status: active`; áreas sem cluster ativo mostram "_Nenhum cluster ativo nesta área._".
+NÃO edite o painel/índice entre as sentinelas — ele é regenerado por `cluster-sync`.
+NÃO crie subpáginas `brain/topic-clusters/<slug>.md` aqui — isso exige o handoff
+`approve-cluster`.
 -->
 
 <!-- BEGIN cluster-index-table:auto:v1:do-not-edit -->
