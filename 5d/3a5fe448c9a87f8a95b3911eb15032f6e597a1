@@ -1,0 +1,126 @@
+tests/test_companion_approve_briefing.mjs
+  s_3b4e80af86082f::t_955010c1a73184 72
+  s_3b4e80af86082f::t_e9ffb9c901d25d 128
+  s_3b4e80af86082f::t_677aa777316abd 121
+  s_3b4e80af86082f::t_476b23800d8fb2 22,25
+skills/agentic-seo/SKILL.md
+  s_3b4e80af86082f::t_4229f647c21b50 20
+  s_3b4e80af86082f::t_e5c8b51d4ef25e 69
+  s_3b4e80af86082f::t_aae47307e0ce93 39
+  s_3b4e80af86082f::t_6035cdb979126e 163
+  s_3b4e80af86082f::t_d47aef59f3fa7b 104
+  s_3b4e80af86082f::t_056300f683a46a 29
+tests/test_companion_dataforseo_bypass.mjs
+  s_3b4e80af86082f::t_5c0e6da64baa58 41
+templates/project/brain/topic-clusters.md
+  s_3b4e80af86082f::t_a34dbcea00741c 21
+tests/test_pt_br_diacritics.mjs
+  s_3b4e80af86082f::t_e482865f231b71 72
+scripts/lib/companion-types/dataforseo-bypass.mjs
+  s_3b4e80af86082f::t_7f85fe7104dcf7 68
+src/commands/runtime.ts
+  s_3b4e80af86082f::t_199ddd1d098df1 2429,2431-2432
+  s_3b4e80af86082f::t_55e8cbd2380de5 1446
+  s_3b4e80af86082f::t_0354160621d3b1 2010
+  s_3b4e80af86082f::t_f63cb722e1692e 1433-1436
+  s_3b4e80af86082f::t_5c16851b01f8be 3114-3115
+  s_3b4e80af86082f::t_f2fee31b4a3990 1570
+  s_3b4e80af86082f::t_fd5d3073585a59 265-266,268-271
+  s_3b4e80af86082f::t_5263459076f90c 1388-1389,1391
+  s_3b4e80af86082f::t_42c737c3e741d5 2687
+  s_3b4e80af86082f::t_d418b4db0c0b41 1451
+  s_3b4e80af86082f::t_e4111dcce7d35b 31-33,40-42,46
+templates/project/brain/log.md
+  s_3b4e80af86082f::t_fea3ffd619e792 25,28,30,33-35
+  s_3b4e80af86082f::t_30544c0ff394c0 10
+  s_3b4e80af86082f::t_80658d18ab5e2b 16
+skills/brain-keeper/SKILL.md
+  s_3b4e80af86082f::t_6106dd1e22be22 66
+  s_3b4e80af86082f::t_bbaf10e04c2421 114
+scripts/lib/companion-types/project-browser.mjs
+  s_3b4e80af86082f::t_a30ffdae6a6654 12-14,16-18
+  s_3b4e80af86082f::t_a3526fad474cf9 95
+templates/project/brain/identity.md
+  s_3b4e80af86082f::t_2630aac3cf6b09 57
+skills/project-init/SKILL.md
+  s_3b4e80af86082f::t_bfea3e1b3adc9f 146-147
+  s_3b4e80af86082f::t_7e7a22c22657b9 26
+scripts/lib/companion-types/approve-briefing.mjs
+  s_3b4e80af86082f::t_645a1c3db17d47 205
+scripts/lib/companion-types/pick-cluster.mjs
+  s_3b4e80af86082f::t_381e2efc93c70e 147
+scripts/lib/companion-types/review-changes.mjs
+  s_3b4e80af86082f::t_42e4f612e33389 162
+tests/test_content_seo_process.mjs
+  s_3b4e80af86082f::t_51e73945599c2e 160
+templates/project/contents/other/_template.md
+  s_3b4e80af86082f::t_38cb9f19700984 6
+skills/project-init/references/seed-from-site.md
+  s_3b4e80af86082f::t_536bf9a1678cd6 29
+  s_3b4e80af86082f::t_c78f8a581069f2 98
+  s_3b4e80af86082f::t_566e05b78531b8 79,81-82
+docs/refactor-status.md
+  s_3b4e80af86082f::t_a1d90e0bfd8ec7 46
+scripts/lib/companion-types/approve-page.mjs
+  s_3b4e80af86082f::t_86076b156fe9ff 19-21
+  s_3b4e80af86082f::t_2d8725f23dbb0d 109
+scripts/lib/brain-page.mjs
+  s_3b4e80af86082f::t_9900a7495e6e24 51
+  s_3b4e80af86082f::t_f0354245041de3 141
+scripts/eeat.mjs
+  s_3b4e80af86082f::t_4fe82b227349a4 65,68-69
+  s_3b4e80af86082f::t_f62b201ed5f311 99
+tests/test_agentic_seo_skill.mjs
+  s_3b4e80af86082f::t_d97994c2bdf816 25
+package.json
+  s_3b4e80af86082f::t_0aac6404f3fedf 11
+templates/project/brain/index.md
+  s_3b4e80af86082f::t_a1c275c78ec759 11
+  s_3b4e80af86082f::t_21fadbb5d3fb98 24-26
+tests/test_brain_review_protocol.mjs
+  s_3b4e80af86082f::t_a9013ef7128766 11
+  s_3b4e80af86082f::t_750af2b8015fb6 29
+  s_3b4e80af86082f::t_e98e4b218f25ce 34
+  s_3b4e80af86082f::t_8a6dad2ed31ad4 16
+tests/test_eeat_engine.mjs
+  s_3b4e80af86082f::t_7d0a7004f79407 15
+tests/test_companion_approve_page.mjs
+  s_3b4e80af86082f::t_0544b76346a675 72
+  s_3b4e80af86082f::t_e5107dc8db9168 34
+  s_3b4e80af86082f::t_f299cb7ff5fcc8 15
+  s_3b4e80af86082f::t_333e8252f48151 71
+  s_3b4e80af86082f::t_3798b0be063438 75
+  s_3b4e80af86082f::t_c5971e27507b7e 77
+  s_3b4e80af86082f::t_61abb2292b5318 28
+tests/fixtures/eeat/rater-builder.mjs
+  s_3b4e80af86082f::t_6d484299ad85c5 11
+templates/project/brain/editorial.md
+  s_3b4e80af86082f::t_1fd06d35fd8530 41
+  s_3b4e80af86082f::t_ed35d68221d9bf 24
+AGENTS.md
+  s_3b4e80af86082f::t_1137de03477212 99
+tests/test_project_context.mjs
+  s_3b4e80af86082f::t_ddf2581cb71c60 38
+  s_3b4e80af86082f::t_f5df8eafb775a8 29,32-33
+tests/test_companion_pick_cluster.mjs
+  s_3b4e80af86082f::t_282a047c18101c 81
+docs/output-and-tone.md
+  s_3b4e80af86082f::t_a6bba4dfd68bf3 27
+  s_3b4e80af86082f::t_7129410401bafc 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "5d3a5fe448c9a87f8a95b3911eb15032f6e597a1",
+  "prompts": {},
+  "sessions": {
+    "s_3b4e80af86082f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "85335c10-2556-4fd6-9cfe-546f46d45fed",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
