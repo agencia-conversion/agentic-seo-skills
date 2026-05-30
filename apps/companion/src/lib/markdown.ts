@@ -226,7 +226,7 @@ export function markdownToDoc(
         content.push({ type: 'mermaid', attrs: { source: body } });
       } else if (language === 'agentic-query') {
         content.push({ type: 'agenticQuery', attrs: { source: body } });
-      } else if (/^agentic-(clusters-by-area|cluster-content|cluster-index)$/.test(language)) {
+      } else if (/^agentic-(clusters|clusters-by-area|cluster-content|cluster-index)$/.test(language)) {
         content.push({ type: 'autoBlock', attrs: { kind: language, body } });
       } else {
         content.push({ type: 'codeBlock', attrs: { language: language || null }, content: [textNode(body)] });
