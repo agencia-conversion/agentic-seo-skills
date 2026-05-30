@@ -45,6 +45,63 @@ test.describe('topic clusters — single table, emoji, keyword guard, promote', 
     await expect(page.locator('[data-testid="cluster-area-filter-trigger"]')).toHaveCount(0);
   });
 
+  // Regression: the cluster-index page must NOT leak the bare `agentic-clusters`
+  // fence payload (version:/order:/materialized:/materialized_fingerprint:) as
+  // raw text. The canonical writer (src/lib/auto-blocks/clusters-by-area.ts) and
+  // the brain template emit a singular ```agentic-clusters``` fence; markdownToDoc
+  // must route it to an auto-block node (rendered table) instead of a raw
+  // codeBlock that surfaces the YAML to the reader.
+  test('bare agentic-clusters fence renders a table and never leaks its YAML payload', async ({ page }) => {
+    const indexPath = join(PROJECT_ROOT, 'brain', 'topic-clusters.md');
+    const original = readFileSync(indexPath, 'utf8');
+    const fingerprint = 'deadbeefcafe';
+    const seeded = [
+      '---',
+      'title: "Topic clusters"',
+      'updated: "2026-05-30"',
+      '---',
+      '',
+      '# Topic clusters',
+      '',
+      'Intro paragraph.',
+      '',
+      '```agentic-clusters',
+      'version: 1',
+      'order: name-asc',
+      'materialized: |-',
+      '  | Cluster | Pilar | Publicados | Planejados |',
+      '  | --- | --- | --- | --- |',
+      '  | [Sample Cluster](topic-clusters/sample-cluster.md) | — | 2 | 0 |',
+      `materialized_at: 2026-05-30`,
+      `materialized_fingerprint: ${fingerprint}`,
+      '```',
+      '',
+    ].join('\n');
+    try {
+      writeFileSync(indexPath, seeded, 'utf8');
+
+      await page.goto(CLUSTERS_URL);
+      await page.waitForLoadState('domcontentloaded');
+
+      // The fence becomes an auto-block host (NOT a raw code block).
+      const host = page.locator('[data-auto-block][data-kind="agentic-clusters"]');
+      await host.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(host).toHaveCount(1);
+
+      // It renders an actual table, not raw text.
+      await expect(host.locator('table')).toBeVisible();
+
+      // The raw YAML payload must NOT appear anywhere in the visible page text.
+      const bodyText = await page.locator('body').innerText();
+      expect(bodyText).not.toContain('materialized_fingerprint');
+      expect(bodyText).not.toContain(fingerprint);
+      expect(bodyText).not.toContain('materialized: |-');
+      expect(bodyText).not.toMatch(/^\s*order:\s*name-asc\s*$/m);
+    } finally {
+      writeFileSync(indexPath, original, 'utf8');
+    }
+  });
+
   test('creating a cluster pre-fills a suggested emoji', async ({ page }) => {
     await page.goto(CLUSTERS_URL);
     await page.waitForLoadState('domcontentloaded');

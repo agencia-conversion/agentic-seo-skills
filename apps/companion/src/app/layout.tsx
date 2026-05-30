@@ -59,6 +59,22 @@ export default async function RootLayout({
         <I18nProvider initialLocale={locale}>
           {children}
         </I18nProvider>
+        {/* Userback feedback widget. access_token is a public client token by
+            design, so it is safe to embed. Loaded last in <body> so it runs on
+            every page, mirroring Userback's documented snippet. Note: o Companion
+            roda em 127.0.0.1 com porta variável — liberar 127.0.0.1/localhost em
+            Manage Domains no projeto Userback para o widget inicializar. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+  window.Userback = window.Userback || {};
+  Userback.access_token = "A-05EiZMdxgyP6U5VqvZO5sFk6l";
+  (function(d) {
+    var s = d.createElement('script');s.async = true;s.src = 'https://static.userback.io/widget/v1.js';(d.head || d.body).appendChild(s);
+  })(document);
+`,
+          }}
+        />
       </body>
     </html>
   );

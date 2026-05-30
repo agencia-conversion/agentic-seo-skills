@@ -4,7 +4,7 @@
     "name": "Agentic SEO"
   },
   "description": "Marketplace local do plugin Agentic SEO Skills.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "plugins": [
     {
       "name": "agentic-seo",
