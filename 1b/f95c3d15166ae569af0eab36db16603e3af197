@@ -1,0 +1,23 @@
+apps/companion/src/lib/markdown.ts
+  s_1ca9aaf0f99fa1::t_df9466a500c726 229
+apps/companion/e2e/clusters-single-table.spec.ts
+  s_1ca9aaf0f99fa1::t_77445dd4425785 48-104
+apps/companion/src/app/layout.tsx
+  s_1ca9aaf0f99fa1::t_f836fc42b7ca13 62-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1bf95c3d15166ae569af0eab36db16603e3af197",
+  "prompts": {},
+  "sessions": {
+    "s_1ca9aaf0f99fa1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "89dd3759-0d86-443e-b5c5-da7b43e09920",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
