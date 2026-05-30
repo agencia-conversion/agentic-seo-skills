@@ -590,11 +590,13 @@ export function ClusterContentTable({ clusterSlug, bleedMargin = false, followPa
     }
   }, [rows, selectedSlugs]);
 
-  // Bulk delete: only acts on PUBLISHED rows (planned satellites have no
-  // file on disk to trash). Iterates sequentially to avoid hammering the
-  // cluster-sync watcher with concurrent writes.
+  // Bulk delete: acts on any selected row backed by a real file on disk
+  // (any status, including empty/planned items the user created by mistake).
+  // Rows without a slug are planned satellites with no file to trash and are
+  // skipped. Iterates sequentially to avoid hammering the cluster-sync watcher
+  // with concurrent writes.
   const deleteSelected = useCallback(async () => {
-    const selected = rows.filter((r) => selectedSlugs.has(r.slug) && r.status === 'published');
+    const selected = rows.filter((r) => selectedSlugs.has(r.slug) && r.slug);
     if (selected.length === 0) {
       setConfirmDeleteOpen(false);
       return;

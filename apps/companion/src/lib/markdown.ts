@@ -180,12 +180,25 @@ function extractClusterSlugFromPath(filePath?: string): string {
   return m ? m[1] : '';
 }
 
+// Defensive removal of a leading YAML frontmatter block. Callers are expected
+// to pass the body only (frontmatter is stripped upstream by readProjectFile /
+// parseFrontmatter), but if a raw file ever reaches here the `---\n...\n---`
+// header would otherwise render as a stray paragraph plus a horizontal rule.
+// Mirrors the parsing in parseFrontmatter() without importing the server-only
+// project-files module into client bundles.
+function stripLeadingFrontmatter(markdown: string): string {
+  if (!markdown.startsWith('---\n')) return markdown;
+  const end = markdown.indexOf('\n---', 4);
+  if (end === -1) return markdown;
+  return markdown.slice(end + 4).replace(/^\n/, '');
+}
+
 export function markdownToDoc(
   markdown: string,
   resolver?: MentionResolver,
   context?: MarkdownDocContext,
 ) {
-  const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+  const lines = stripLeadingFrontmatter(markdown.replace(/\r\n/g, '\n')).split('\n');
   const content: JsonNode[] = [];
   let i = 0;
   const clusterSlug = context?.clusterSlug || extractClusterSlugFromPath(context?.filePath);

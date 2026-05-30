@@ -888,6 +888,28 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
         }),
       };
     });
+    // A cluster's detail page IS the brain topic-cluster markdown file. The
+    // cluster list/table and the sidebar read the name from
+    // clusters/<slug>/cluster.yaml, NOT from this page's frontmatter title.
+    // So renaming the page title here must also rename the cluster record,
+    // otherwise the new name never reaches those surfaces (the slug/URL/file
+    // stay stable — only the displayed name changes). Mirrors the propagation
+    // done by the inline rename in active-clusters-table.
+    if (result.ok && page.fileDirty) {
+      const clusterMatch = page.path.match(/^brain\/topic-clusters\/([A-Za-z0-9._-]+)\.md$/);
+      const newName = page.title.trim();
+      if (clusterMatch && newName) {
+        const slug = clusterMatch[1];
+        const patched = await apiFetch(get().token, `/api/project/cluster/${encodeURIComponent(slug)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ name: newName, syncWait: false }),
+        }).catch(() => ({ ok: false }));
+        if (patched.ok) {
+          syncBus.emit({ type: 'clusters:changed' });
+          syncBus.emit({ type: 'cluster:changed', slug });
+        }
+      }
+    }
     return !!result.ok;
   },
 

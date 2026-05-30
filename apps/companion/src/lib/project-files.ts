@@ -908,7 +908,14 @@ export function createProjectFile({
       ? clusterList.map((c) => `  - ${yamlString(c)}`).join('\n')
       : '';
     const clustersBlock = clustersYaml ? `clusters:\n${clustersYaml}\n` : 'clusters: []\n';
-    text = `---\ncontract_version: 1\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigin: ${yamlString(safeOrigin)}\n${clustersBlock}---\n\n`;
+    // Seed a minimal body so a freshly created content item is never an empty
+    // document. The leading `# <title>` heading is intentionally stripped on read
+    // by stripDuplicateTitleHeading (the editor renders the title separately), so
+    // the seed also carries a placeholder paragraph that survives that strip —
+    // otherwise readProjectFile/GET would still return body:"" despite the seed
+    // reaching disk, and the editor/table would see an empty document.
+    const placeholder = '_Comece a escrever este conteúdo…_';
+    text = `---\ncontract_version: 1\ntitle: ${yamlString(title)}\nslug: ${yamlString(basename(rel, '.md'))}\npublished_at: ""\nsource_url: ""\norigin: ${yamlString(safeOrigin)}\n${clustersBlock}---\n\n# ${title}\n\n${placeholder}\n`;
   } else if (kind === 'brain-subpage' && parentPath) {
     const parentMatch = parentPath.match(/^brain\/([A-Za-z0-9._-]+)\.md$/);
     const parentSlug = parentMatch ? parentMatch[1] : '';
