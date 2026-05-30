@@ -1,0 +1,23 @@
+.claude-plugin/marketplace.json
+  s_1ca9aaf0f99fa1::t_249da8d9a0a3e2 7
+package.json
+  s_1ca9aaf0f99fa1::t_4fbaefb9363fe9 3
+.claude-plugin/plugin.json
+  s_1ca9aaf0f99fa1::t_9051bbdf040ece 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1c62f90d67d88514f753e974dd7dcc78f099d3e7",
+  "prompts": {},
+  "sessions": {
+    "s_1ca9aaf0f99fa1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "89dd3759-0d86-443e-b5c5-da7b43e09920",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Diego Ivo <diego@conversion.com.br>"
+    }
+  }
+}
