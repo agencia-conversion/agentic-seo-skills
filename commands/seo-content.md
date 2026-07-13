@@ -1,6 +1,6 @@
 ---
 description: Route to the `content-seo` skill to brief, write, review, optimize, or publish public SEO content.
-argument-hint: [optional context — slug, URL, tema, fase desejada (brief/approve/write/check/promote)]
+argument-hint: "[optional context — slug, URL, tema, fase desejada (brief/approve/write/check/promote)]"
 ---
 
 Invoke the `content-seo` skill for public SEO content work.
