@@ -1,6 +1,6 @@
 ---
 description: Decompose a compound request (multiple deliverables, skills, pillars, or decision/check gates) into spec + plan + result-check before any downstream skill runs.
-argument-hint: [optional extra context — leave empty to use the previous user message]
+argument-hint: "[optional extra context — leave empty to use the previous user message]"
 ---
 
 Invoke the `spec-driven` skill on the user's most recent compound request.
